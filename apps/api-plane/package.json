@@ -1,0 +1,20 @@
+{
+  "name": "ever-plan-api",
+  "version": "0.1.0",
+  "description": "Ever Plan Proxy APIs - One time runner",
+  "license": "",
+  "author": {
+    "name": "Ever Co. LTD",
+    "email": "ever@ever.co",
+    "url": "https://ever.co"
+  },
+  "main": "main.ts",
+  "scripts": {
+    "start": "ts-node src/main.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@gauzy/plugin-plane": "*",
+    "typescript": "^5.5.3"
+  }
+}

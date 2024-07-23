@@ -1,0 +1,10 @@
+{
+	"restartable": "rs",
+	"ignore": [".git", "node_modules/", "dist/", "coverage/", "src/**/*.spec.ts"],
+	"watch": ["src"],
+	"exec": "yarn ts-node -r tsconfig-paths/register src/dev.ts",
+	"env": {
+		"NODE_ENV": "development"
+	},
+	"ext": "ts"
+}

@@ -4,7 +4,8 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "start:api:dev": "yarn --cwd ./apps/api-plane start",
+    "start:api": "yarn --cwd ./apps/api-plane start",
+    "start:api:dev": "yarn --cwd ./apps/api-plane start:dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

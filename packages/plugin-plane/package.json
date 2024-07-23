@@ -8,7 +8,7 @@
     "url": "https://ever.co"
   },
   "private": true,
-  "license": "",
+  "license": "MIT",
   "exports": {
     ".": "./src/main.ts"
   },

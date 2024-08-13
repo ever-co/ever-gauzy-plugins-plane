@@ -15,7 +15,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@gauzy/plugin-plane": "*",
     "typescript": "^5.5.3"
   }
 }

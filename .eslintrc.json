@@ -1,0 +1,44 @@
+{
+	"root": true,
+	"parser": "@typescript-eslint/parser",
+	"ignorePatterns": ["**/*"],
+	"plugins": ["@nrwl/nx", "@typescript-eslint"],
+	"overrides": [
+		{
+			"files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+			"rules": {
+				"comma-dangle": "off",
+				"@typescript-eslint/comma-dangle": "off",
+				"@nrwl/nx/enforce-module-boundaries": [
+					"error",
+					{
+						"enforceBuildableLibDependency": true,
+						"allow": [],
+						"depConstraints": [
+							{
+								"sourceTag": "*",
+								"onlyDependOnLibsWithTags": ["*"]
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"files": ["*.ts", "*.tsx"],
+			"extends": ["plugin:@nrwl/nx/typescript"],
+			"parserOptions": { "project": "./tsconfig.*?.json" },
+			"rules": {
+				"comma-dangle": "off",
+				"@typescript-eslint/comma-dangle": "off"
+			}
+		},
+		{
+			"files": ["*.js", "*.jsx"],
+			"extends": ["plugin:@nrwl/nx/javascript"],
+			"rules": {
+				"comma-dangle": "off"
+			}
+		}
+	]
+}

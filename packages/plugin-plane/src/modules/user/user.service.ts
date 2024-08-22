@@ -38,7 +38,7 @@ export class UserService {
 			use_case: 'Engineering',
 			role: 'Individual contributor',
 			is_onboarded: true,
-			last_workspace_id: '053afc1b-c258-46b9-bda0-7c210014284c',
+			last_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
 			billing_address_country: 'INDIA',
 			billing_address: null,
 			has_billing_address: false,
@@ -52,9 +52,9 @@ export class UserService {
 			id: '61498b95-ca39-4464-93b3-acb8b14dee3e',
 			email: 'salva.cardano1@gmail.com',
 			workspace: {
-				last_workspace_id: '053afc1b-c258-46b9-bda0-7c210014284c',
+				last_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
 				last_workspace_slug: 'cardano',
-				fallback_workspace_id: '053afc1b-c258-46b9-bda0-7c210014284c',
+				fallback_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
 				fallback_workspace_slug: 'cardano',
 				invites: 0,
 			},
@@ -64,7 +64,7 @@ export class UserService {
 	async getMyWorkspaces() {
 		return [
 			{
-				id: '053afc1b-c258-46b9-bda0-7c210014284c',
+				id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
 				owner: {
 					id: '61498b95-ca39-4464-93b3-acb8b14dee3e',
 					first_name: 'Salva',

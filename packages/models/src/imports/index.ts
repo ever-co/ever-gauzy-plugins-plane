@@ -91,7 +91,6 @@ export * from './payment.model';
 export * from './pipeline-stage.model';
 export * from './pipeline.model';
 export * from './product.model';
-export * from './project.model';
 export * from './proposal.model';
 export * from './recurring-expense.model';
 export * from './report.model';

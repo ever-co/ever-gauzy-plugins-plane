@@ -12,7 +12,7 @@ export function getProjectsResponse(
 		}));
 		return {
 			id: project.id,
-			iis_favorite: false, // To be add on external API,
+			is_favorite: false, // To be add on external API,
 			total_members: project.membersCount,
 			total_cycles: project.organizationSprints?.length,
 			total_modules: 0, // Must add modules feature on external API
@@ -62,6 +62,6 @@ export function getProjectsResponse(
 			project_lead: null, // To add for external API
 			estimate: null, // To add for external API
 			default_state: null, // To add for external API
-		} as Partial<IProject>;
+		};
 	});
 }

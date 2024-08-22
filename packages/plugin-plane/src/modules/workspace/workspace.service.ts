@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class WorkspaceService {
-	async getDashboard(worspace_name: string, dashboard_type: string) {
-		console.log({ worspace_name, dashboard_type });
+	async getDashboard(workspace_name: string, dashboard_type: string) {
+		console.log({ workspace_name, dashboard_type });
 		return {
 			dashboard: {
 				id: '9495b115-1faa-4677-9051-0206353a21d4',
@@ -80,6 +80,103 @@ export class WorkspaceService {
 					widget_filters: {},
 				},
 			],
+		};
+	}
+
+	async getMembersMe(workspace_name: string) {
+		console.log(workspace_name);
+		return {
+			id: 'd9657344-06a1-4965-8d3e-b98fd984e58a',
+			created_at: '2024-08-13T11:47:19.039549Z',
+			updated_at: '2024-08-13T11:47:19.039558Z',
+			deleted_at: null,
+			role: 20,
+			company_role: '',
+			view_props: {
+				filters: {
+					state: null,
+					labels: null,
+					priority: null,
+					assignees: null,
+					created_by: null,
+					start_date: null,
+					subscriber: null,
+					state_group: null,
+					target_date: null,
+				},
+				display_filters: {
+					type: null,
+					layout: 'list',
+					group_by: null,
+					order_by: '-created_at',
+					sub_issue: true,
+					show_empty_groups: true,
+					calendar_date_range: '',
+				},
+				display_properties: {
+					key: true,
+					link: true,
+					state: true,
+					labels: true,
+					assignee: true,
+					due_date: true,
+					estimate: true,
+					priority: true,
+					created_on: true,
+					start_date: true,
+					updated_on: true,
+					sub_issue_count: true,
+					attachment_count: true,
+				},
+			},
+			default_props: {
+				filters: {
+					state: null,
+					labels: null,
+					priority: null,
+					assignees: null,
+					created_by: null,
+					start_date: null,
+					subscriber: null,
+					state_group: null,
+					target_date: null,
+				},
+				display_filters: {
+					type: null,
+					layout: 'list',
+					group_by: null,
+					order_by: '-created_at',
+					sub_issue: true,
+					show_empty_groups: true,
+					calendar_date_range: '',
+				},
+				display_properties: {
+					key: true,
+					link: true,
+					state: true,
+					labels: true,
+					assignee: true,
+					due_date: true,
+					estimate: true,
+					priority: true,
+					created_on: true,
+					start_date: true,
+					updated_on: true,
+					sub_issue_count: true,
+					attachment_count: true,
+				},
+			},
+			issue_props: {
+				created: true,
+				assigned: true,
+				all_issues: true,
+				subscribed: true,
+			},
+			is_active: true,
+			created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			workspace: '053afc1b-c258-46b9-bda0-7c210014284c',
+			member: '61498b95-ca39-4464-93b3-acb8b14dee3e',
 		};
 	}
 }

@@ -18,12 +18,19 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get dashboard widgets' })
 	@Get(':worspace_name/dashboard')
 	async getDashboard(
-		@Param('worspace_name') worspace_name: string,
+		@Param('worspace_name') workspace_name: string,
 		@Query('dashboard_type') dashboard_type: string,
 	) {
 		return await this._workspaceService.getDashboard(
-			worspace_name,
+			workspace_name,
 			dashboard_type,
 		);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get dashboard widgets' })
+	@Get(':worspace_name/workspace-members/me')
+	async getMembersMe(@Param('worspace_name') workspace_name: string) {
+		return await this._workspaceService.getMembersMe(workspace_name);
 	}
 }

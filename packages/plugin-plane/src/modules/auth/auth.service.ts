@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
-  CheckUserExist,
-  ICheckUserExist,
-  IEmailInput,
-  IPasswordInput,
+	CheckUserExistEnum,
+	ICheckUserExist,
+	IEmailInput,
+	IPasswordInput,
 } from '@plane-plugin/models';
 
 @Injectable()
@@ -13,19 +13,28 @@ export class AuthService {
 	async checkExistingUser(
 		payload: IEmailInput & Partial<IPasswordInput>,
 	): Promise<ICheckUserExist> {
-		try {
-			const user = await this._serverFetchService.apiFetch({
-				method: 'POST',
-				path: '/auth/login',
-				body: { email: payload.email, password: '1234' },
-			});
-      
-			if (!user) {
-				return { existing: false, status: CheckUserExist.MAGIC_CODE };
-			}
-			return { existing: true, status: CheckUserExist.CREDENTIALS };
-		} catch (error) {
-			throw new BadRequestException(error);
-		}
+		// try {
+		// 	const user = await this._serverFetchService.apiFetch({
+		// 		method: 'POST',
+		// 		path: '/auth/login',
+		// 		body: { email: payload.email, password: 'admine' },
+		// 	});
+
+		// 	console.log(user.data);
+
+		// 	if (!user.data) {
+		// 		return { existing: false, status: CheckUserExist.MAGIC_CODE };
+		// 	}
+		return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
+		// } catch (error) {
+		// 	return { existing: false, status: CheckUserExist.MAGIC_CODE };
+		// }
+	}
+
+	async getCsrfToken(): Promise<{ csrf_token: string }> {
+		return {
+			csrf_token:
+				'VewsJqujUGoIJKA7iTvbqmirySLbzFJVqha7Nxk5U39DCNfk2OLvCxQWYzPymhK4',
+		};
 	}
 }

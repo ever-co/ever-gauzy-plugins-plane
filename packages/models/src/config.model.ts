@@ -7,3 +7,9 @@ export interface IServerFetchInputs {
   init?: RequestInit;
   query?: any;
 }
+
+export interface IApiResponse {
+  status: number;
+  data: any;
+  headers: Record<string, string>;
+}

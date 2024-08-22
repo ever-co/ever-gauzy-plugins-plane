@@ -4,8 +4,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 
 @Module({
-  imports: [RouterModule.register([{ path: '/auth', module: AuthModule }])],
-  providers: [AuthService],
-  controllers: [AuthController],
+	imports: [RouterModule.register([{ path: '/auth', module: AuthModule }])],
+	providers: [AuthService],
+	controllers: [AuthController],
 })
 export class AuthModule {}

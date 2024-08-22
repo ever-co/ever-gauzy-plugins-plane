@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsOptional } from 'class-validator';
 import { IPasswordInput } from '@plane-plugin/models';
 
 /**
@@ -7,7 +7,7 @@ import { IPasswordInput } from '@plane-plugin/models';
  */
 export class UserPasswordDTO implements IPasswordInput {
 	@ApiProperty({ type: () => String })
-	@IsNotEmpty()
+	@IsOptional()
 	@IsEmail()
-	readonly password: string;
+	readonly password?: string;
 }

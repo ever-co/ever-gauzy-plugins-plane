@@ -6,16 +6,18 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ApiFetchModule } from './api-fetch/api-fetch.module';
 import { UserModule } from './user/user.module';
+import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    ApiFetchModule,
-    AuthModule,
-    InstancesModule,
-    UserModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService],
+	imports: [
+		ConfigModule.forRoot({ isGlobal: true }),
+		ApiFetchModule,
+		AuthModule,
+		InstancesModule,
+		UserModule,
+		WorkspaceModule,
+	],
+	controllers: [AppController],
+	providers: [AppService],
 })
 export class AppModule {}

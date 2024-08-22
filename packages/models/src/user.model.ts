@@ -1,6 +1,6 @@
 export interface ICheckUserExist {
     existing: boolean;
-    status: CheckUserExist
+    status: CheckUserExistEnum
 }
 
 export interface IEmailInput {
@@ -8,10 +8,10 @@ export interface IEmailInput {
 }
 
 export interface IPasswordInput {
-    password: string;
+    password?: string;
 }
 
-export enum CheckUserExist {
+export enum CheckUserExistEnum {
   MAGIC_CODE = "MAGIC_CODE",
-  CREDENTIALS = "CREDENTIALS",
+  CREDENTIALS = "CREDENTIAL",
 }

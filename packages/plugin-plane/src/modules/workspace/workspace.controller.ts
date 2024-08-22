@@ -33,4 +33,10 @@ export class WorkspaceController {
 	async getMembersMe(@Param('worspace_name') workspace_name: string) {
 		return await this._workspaceService.getMembersMe(workspace_name);
 	}
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace projects' })
+	@Get(':worspace_name/projects')
+	async getProjects() {
+		return await this._workspaceService.getProjects();
+	}
 }

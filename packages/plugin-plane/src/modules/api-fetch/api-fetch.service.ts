@@ -3,6 +3,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { IServerFetchInputs } from '@plane-plugin/models';
 import { EXTERNAL_BASE_API_URL } from '../../config/constants';
 import { firstValueFrom } from 'rxjs';
+import {
+	defaultTestTenantId,
+	defaultTestToken,
+} from '../../config/credentials';
 
 @Injectable()
 export class ApiFetchService {
@@ -23,11 +27,15 @@ export class ApiFetchService {
 		};
 
 		if (bearer_token) {
-			headers['authorization'] = `Bearer ${bearer_token}`;
+			headers['Authorization'] = `Bearer ${bearer_token}`;
+		} else {
+			headers['Authorization'] = `Bearer ${defaultTestToken}`;
 		}
 
 		if (tenantId) {
-			headers['tenant-id'] = tenantId;
+			headers['Tenant-Id'] = tenantId;
+		} else {
+			headers['Tenant-Id'] = defaultTestTenantId;
 		}
 
 		const datas: { body?: string } = {};

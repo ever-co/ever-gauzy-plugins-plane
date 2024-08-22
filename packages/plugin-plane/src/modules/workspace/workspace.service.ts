@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
 @Injectable()
 export class WorkspaceService {
+	constructor(private readonly _serverFetchService: ApiFetchService) {}
 	async getDashboard(workspace_name: string, dashboard_type: string) {
 		console.log({ workspace_name, dashboard_type });
 		return {
@@ -84,7 +86,7 @@ export class WorkspaceService {
 	}
 
 	async getMembersMe(workspace_name: string) {
-		console.log(workspace_name);
+		console.log({ workspace_name });
 		return {
 			id: 'd9657344-06a1-4965-8d3e-b98fd984e58a',
 			created_at: '2024-08-13T11:47:19.039549Z',
@@ -178,5 +180,20 @@ export class WorkspaceService {
 			workspace: '053afc1b-c258-46b9-bda0-7c210014284c',
 			member: '61498b95-ca39-4464-93b3-acb8b14dee3e',
 		};
+	}
+
+	async getProjects() {
+		try {
+			const projects = (
+				await this._serverFetchService.apiFetch({
+					method: 'GET',
+					path: '/organization-projects?where[organizationId]=7d486bd0-6437-44e2-923b-bad910d57c69&where[tenantId]=f8468b87-c371-4a78-9d68-5d09abc221d2&join[alias]=organization_project&join[leftJoin][tags]=organization_project.tags&relations[0]=organizationContact&relations[1]=organization&relations[2]=members&relations[3]=members.user&relations[4]=tags&relations[5]=teams',
+				})
+			).data;
+			return projects;
+		} catch (error) {
+			console.log(error);
+			throw new InternalServerErrorException(error);
+		}
 	}
 }

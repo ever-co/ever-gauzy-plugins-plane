@@ -24,6 +24,7 @@ export function getProjectsResponse(
 			is_favorite: false, // To be add on external API,
 			total_members: project.membersCount,
 			total_cycles: project.organizationSprints?.length,
+			total_issues: project.tasks?.length,
 			total_modules: 0, // Must add modules feature on external API
 			is_member: true, // Research and know what it is excatly
 			sort_order: 66373.5, // Research and know what it is excatly

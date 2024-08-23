@@ -4,6 +4,12 @@ export interface IProject {
 	total_members: number;
 	total_cycles: number;
 	total_modules: number;
+	total_issues?: number;
+	archived_issues?: number;
+	archived_sub_issues?: number;
+	draft_issues?: number;
+	draft_sub_issues?: number;
+	sub_issues?: number;
 	is_member: boolean;
 	sort_order: number;
 	member_role: number;
@@ -56,4 +62,3 @@ export interface IProject {
 }
 
 export interface ICreateProjectInput extends Partial<Omit<IProject, 'id'>> {}
-

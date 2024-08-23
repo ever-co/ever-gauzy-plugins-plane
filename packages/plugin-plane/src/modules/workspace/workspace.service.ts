@@ -8,6 +8,7 @@ import {
 } from '../../config';
 import {
 	ICreateProjectInput,
+	ID,
 	IOrganizationProject,
 	IPagination,
 	IProject,
@@ -204,6 +205,22 @@ export class WorkspaceService {
 				})
 			).data;
 			return getProjectsResponse(projects.items);
+		} catch (error) {
+			console.log(error);
+			throw new InternalServerErrorException(error);
+		}
+	}
+
+	async getProject(id: ID): Promise<IProject> {
+		const query = qs.stringify(getProjectsQuery);
+		try {
+			const project: IOrganizationProject = (
+				await this._serverFetchService.apiFetch({
+					method: 'GET',
+					path: `/organization-projects/${id}?${query}`,
+				})
+			).data;
+			return getProjectsResponse([project])[0] as IProject;
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);

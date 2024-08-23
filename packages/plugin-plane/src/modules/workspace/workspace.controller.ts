@@ -123,4 +123,16 @@ export class WorkspaceController {
 	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
 		return await this._workspaceService.createOrganizationProject(payload);
 	}
+
+	/**
+	 * @description - Get all projects for a workspace
+	 * @returns - A promise that resolves after getting all projects for a workspace
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace projects' })
+	@Get(':worspace_name/projects/:id/states')
+	async getWorkspaceProjectStates(@Param('id') id: ID) {
+		return await this._workspaceService.getWorkspaceProjectStates(id);
+	}
 }

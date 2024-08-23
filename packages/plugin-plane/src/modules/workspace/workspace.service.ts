@@ -5,6 +5,8 @@ import {
 	getProjectsResponse,
 	getProjectsQuery,
 	createProjectInputTransformer,
+	getStatesQuery,
+	getStatesTransformer,
 } from '../../config';
 import {
 	ICreateProjectInput,
@@ -13,6 +15,8 @@ import {
 	IOrganizationProject,
 	IPagination,
 	IProject,
+	IState,
+	ITaskStatus,
 } from '@plane-plugin/models';
 
 @Injectable()
@@ -364,6 +368,30 @@ export class WorkspaceService {
 			).data;
 
 			return getProjectsResponse([project])[0] as IProject;
+		} catch (error) {
+			console.log(error);
+			throw new InternalServerErrorException(error);
+		}
+	}
+
+	/**
+	 * @description - Get all states related to project
+	 * @param {ID} id - The UUID primary key of the project for whom to get states
+	 * @returns - A promise that resolves after getting all states
+	 * @memberof WorkspaceController
+	 */
+	async getWorkspaceProjectStates(id: ID): Promise<IState[]> {
+		const query = qs.stringify(getStatesQuery(id));
+		console.log(query);
+		try {
+			const states: IPagination<ITaskStatus> = (
+				await this._serverFetchService.apiFetch({
+					method: 'GET',
+					path: `/task-statuses?${query}`,
+				})
+			).data;
+			console.log(states);
+			return getStatesTransformer(states.items);
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);

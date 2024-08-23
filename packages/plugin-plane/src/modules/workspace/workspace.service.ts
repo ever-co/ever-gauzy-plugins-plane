@@ -1,7 +1,17 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { getProjectsResponse } from '../../config';
-import { IOrganizationProject, IPagination } from '@plane-plugin/models';
+import {
+	getProjectsResponse,
+	getProjectsQuery,
+	createProjectInputTransformer,
+} from '../../config';
+import {
+	ICreateProjectInput,
+	IOrganizationProject,
+	IPagination,
+	IProject,
+} from '@plane-plugin/models';
 
 @Injectable()
 export class WorkspaceService {
@@ -184,15 +194,36 @@ export class WorkspaceService {
 		};
 	}
 
-	async getProjects() {
+	async getProjects(): Promise<Partial<IProject>[]> {
+		const query = qs.stringify(getProjectsQuery);
 		try {
 			const projects: IPagination<IOrganizationProject> = (
 				await this._serverFetchService.apiFetch({
 					method: 'GET',
-					path: '/organization-projects?where[organizationId]=7d486bd0-6437-44e2-923b-bad910d57c69&where[tenantId]=f8468b87-c371-4a78-9d68-5d09abc221d2&join[alias]=organization_project&join[leftJoin][tags]=organization_project.tags&relations[0]=organizationContact&relations[1]=organization&relations[2]=members&relations[3]=members.user&relations[4]=tags&relations[5]=teams',
+					path: `/organization-projects?${query}`,
 				})
 			).data;
 			return getProjectsResponse(projects.items);
+		} catch (error) {
+			console.log(error);
+			throw new InternalServerErrorException(error);
+		}
+	}
+
+	async createOrganizationProject(
+		payload: ICreateProjectInput,
+	): Promise<IProject> {
+		const body = createProjectInputTransformer(payload);
+		try {
+			const project: IOrganizationProject = (
+				await this._serverFetchService.apiFetch({
+					method: 'POST',
+					path: '/organization-projects',
+					body,
+				})
+			).data;
+
+			return getProjectsResponse([project])[0] as IProject;
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);

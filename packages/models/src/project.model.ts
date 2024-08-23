@@ -54,3 +54,6 @@ export interface IProject {
 	estimate: any;
 	default_state: any;
 }
+
+export interface ICreateProjectInput extends Partial<Omit<IProject, 'id'>> {}
+

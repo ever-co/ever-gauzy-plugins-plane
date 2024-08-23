@@ -13,6 +13,7 @@ export class AuthService {
 	async checkExistingUser(
 		payload: IEmailInput & Partial<IPasswordInput>,
 	): Promise<ICheckUserExist> {
+		console.log(payload);
 		// try {
 		// 	const user = await this._serverFetchService.apiFetch({
 		// 		method: 'POST',

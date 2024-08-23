@@ -1,15 +1,24 @@
-import { IOrganizationProject, IProject } from '@plane-plugin/models';
+import {
+	ICreateProjectInput,
+	IOrganizationProject,
+	IOrganizationProjectCreateInput,
+	IProject,
+} from '@plane-plugin/models';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 
 export function getProjectsResponse(
 	projects: IOrganizationProject[],
 ): Partial<IProject>[] {
 	return projects.map((project) => {
-		const members = project.members.map((member) => ({
-			id: member.id,
-			member_id: member.user.id,
-			member__display_name: member.fullName,
-			member__avatar: member.user.imageUrl,
-		}));
+		const members = project.members
+			? project.members.map((member) => ({
+					id: member.id,
+					member_id: member.user.id,
+					member__display_name: member.fullName,
+					member__avatar: member.user.imageUrl,
+				}))
+			: [];
 		return {
 			id: project.id,
 			is_favorite: false, // To be add on external API,
@@ -32,7 +41,7 @@ export function getProjectsResponse(
 			description: project.description,
 			description_text: null, // To add for external API
 			description_html: null, // To add for external API
-			network: project.public ? 2 : 1 || 0,
+			network: project.public ? 2 : 0,
 			identifier: 'PLUGI', // To add for external API
 			emoji: null, // To add for external API
 			icon_prop: null, // To add for external API
@@ -65,3 +74,32 @@ export function getProjectsResponse(
 		};
 	});
 }
+
+export function createProjectInputTransformer(
+	input: ICreateProjectInput,
+): IOrganizationProjectCreateInput {
+	return {
+		name: input.name,
+		description: input.description,
+		startDate: input.start_date,
+		endDate: input.target_date,
+		tenantId: defaultTestTenantId,
+		organizationId: defaultOrganizationId,
+	};
+}
+
+export const projectRelations = [
+	'organization',
+	'members',
+	'members.user',
+	'tags',
+	'teams',
+];
+
+export const getProjectsQuery: Record<string, string> = {
+	...baseGetItemsWhereQuery,
+};
+
+projectRelations.forEach((relation, i) => {
+	getProjectsQuery[`relations[${i}]`] = relation;
+});

@@ -1,13 +1,16 @@
 import {
-    Controller,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    Query,
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	Post,
+	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
+import { CreateProjectDTO } from './dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -38,5 +41,12 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects')
 	async getProjects() {
 		return await this._workspaceService.getProjects();
+	}
+
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create workspace projects' })
+	@Post(':worspace_name/projects')
+	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
+		return await this._workspaceService.createOrganizationProject(payload);
 	}
 }

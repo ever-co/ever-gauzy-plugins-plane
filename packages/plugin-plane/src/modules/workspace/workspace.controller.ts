@@ -52,13 +52,13 @@ export class WorkspaceController {
 	}
 
 	/**--------------------------------------------------------------
-     * This function handlers should be updated after implementing authentication
-     *--------------------------------------------------------------/
-    /**
-     * @description - Get all projects for a workspace
-     * @returns - A promise that resolves after getting all projects for a workspace
-     * @memberof WorkspaceController
-     */
+	 * This function handlers should be updated after implementing authentication
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get all projects for a workspace
+	 * @returns - A promise that resolves after getting all projects for a workspace
+	 * @memberof WorkspaceController
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace projects' })
 	@Get(':worspace_name/projects')
@@ -67,27 +67,56 @@ export class WorkspaceController {
 	}
 
 	/**
-	 * @description - Get workspace projecy by ID
+	 * @description - Get workspace project by ID
 	 * @param {ID} id - The UUID primary key of the project to be fetched
 	 * @returns - A promise that resolves after getting the project
 	 * @memberof WorkspaceController
 	 */
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get workspace projects' })
+	@ApiOperation({ summary: 'Get one project' })
 	@Get(':worspace_name/projects/:id')
 	async getProject(@Param('id') id: ID) {
 		return await this._workspaceService.getProject(id);
 	}
 
+	/**
+	 * @description - Get project members
+	 * @param {ID} id - The UUID primary key of the project for whom to get members
+	 * @returns - A promise that resolves after getting the project members
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace project members' })
+	@Get(':worspace_name/projects/:id/members')
+	async getProjectMembers(@Param('id') id: ID) {
+		return await this._workspaceService.getProjectMembers(id);
+	}
+
 	/**--------------------------------------------------------------
-     * This function handlers should be updated after implementing authentication
-     *--------------------------------------------------------------/
-    /**
-     * @description - Create new Project in workspace
-     * @param {CreateProjectDTO} payload - input data with which to create project
-     * @returns - A promise that resolves after created project
-     * @memberof WorkspaceController
-     */
+	 * This function handlers should be updated after implementing authentication and User features
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get user properties project
+	 * @param {ID} id - The UUID primary key of the project for whom get properties
+	 * @returns - A promise that resolves after getting the promises
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user properties project' })
+	@Get(':worspace_name/projects/:id/user-properties')
+	async getProjectUserProperties(@Param('id') id: ID) {
+		return await this._workspaceService.getProjectUserProperties(id);
+	}
+
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Create new Project in workspace
+	 * @param {CreateProjectDTO} payload - input data with which to create project
+	 * @returns - A promise that resolves after created project
+	 * @memberof WorkspaceController
+	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create workspace projects' })
 	@Post(':worspace_name/projects')

@@ -1,3 +1,5 @@
+import { ID } from './imports';
+
 export interface IProject {
 	id?: string;
 	is_favorite: boolean;
@@ -62,3 +64,10 @@ export interface IProject {
 }
 
 export interface ICreateProjectInput extends Partial<Omit<IProject, 'id'>> {}
+
+export interface IGetProjectMembersResponse {
+	id: string;
+	role: number;
+	member: ID;
+	project: ID;
+}

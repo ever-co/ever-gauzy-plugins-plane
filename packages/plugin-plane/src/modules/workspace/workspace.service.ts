@@ -9,6 +9,7 @@ import {
 import {
 	ICreateProjectInput,
 	ID,
+	IGetProjectMembersResponse,
 	IOrganizationProject,
 	IPagination,
 	IProject,
@@ -17,6 +18,17 @@ import {
 @Injectable()
 export class WorkspaceService {
 	constructor(private readonly _serverFetchService: ApiFetchService) {}
+
+	/**--------------------------------------------------------------
+     * This function handlers should be updated after implementing authentication
+     *--------------------------------------------------------------/
+	/**
+	 * @description - Get dashboard widgets for given workspace
+	 * @param {string} workspace_name - slug for workspace name
+	 * @param {string} dashboard_type - query that define which widget filter should be fetched
+	 * @returns - A promise that resolves when dashboard widgets are fetched
+	 * @memberof WorkspaceService
+	 */
 	async getDashboard(workspace_name: string, dashboard_type: string) {
 		console.log({ workspace_name, dashboard_type });
 		return {
@@ -98,6 +110,15 @@ export class WorkspaceService {
 		};
 	}
 
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication and User features
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get member (from connected user) info for a workspace
+	 * @param {string} workspace_name - slug for workspace name
+	 * @returns - A promise that resolves after getting member informations
+	 * @memberof WorkspaceController
+	 */
 	async getMembersMe(workspace_name: string) {
 		console.log({ workspace_name });
 		return {
@@ -195,6 +216,14 @@ export class WorkspaceService {
 		};
 	}
 
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get all projects for a workspace
+	 * @returns - A promise that resolves after getting all projects for a workspace
+	 * @memberof WorkspaceController
+	 */
 	async getProjects(): Promise<Partial<IProject>[]> {
 		const query = qs.stringify(getProjectsQuery);
 		try {
@@ -211,6 +240,12 @@ export class WorkspaceService {
 		}
 	}
 
+	/**
+	 * @description - Get workspace project by ID
+	 * @param {ID} id - The UUID primary key of the project to be fetched
+	 * @returns - A promise that resolves after getting the project
+	 * @memberof WorkspaceController
+	 */
 	async getProject(id: ID): Promise<IProject> {
 		const query = qs.stringify(getProjectsQuery);
 		try {
@@ -227,6 +262,94 @@ export class WorkspaceService {
 		}
 	}
 
+	/**
+	 * @description - Get project members
+	 * @param {ID} id - The UUID primary key of the project for whom to get members
+	 * @returns - A promise that resolves after getting the project members
+	 * @memberof WorkspaceController
+	 */
+	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
+		const project = await this.getProject(id);
+		const members = project.members;
+		return members.map((member) => ({
+			id: member.member_id,
+			member: member.id,
+			role: 20, // Must be changed
+			project: project.id,
+		}));
+	}
+
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication and User features
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get user properties workspace project
+	 * @param {ID} id - The UUID primary key of the project for whom get properties
+	 * @returns - A promise that resolves after getting the user properties
+	 * @memberof WorkspaceController
+	 */
+	async getProjectUserProperties(id: ID) {
+		return {
+			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
+			created_at: '2024-08-20T14:27:11.217949Z',
+			updated_at: '2024-08-23T06:33:05.401050Z',
+			deleted_at: null,
+			filters: {
+				state: null,
+				labels: null,
+				priority: null,
+				assignees: null,
+				created_by: null,
+				start_date: null,
+				subscriber: null,
+				state_group: null,
+				target_date: null,
+			},
+			display_filters: {
+				type: null,
+				layout: 'kanban',
+				calendar: {
+					layout: 'month',
+					show_weekends: false,
+				},
+				group_by: 'state',
+				order_by: '-created_at',
+				sub_issue: true,
+				sub_group_by: null,
+				show_empty_groups: true,
+			},
+			display_properties: {
+				key: true,
+				link: true,
+				state: true,
+				labels: true,
+				assignee: true,
+				due_date: true,
+				estimate: true,
+				priority: true,
+				created_on: true,
+				start_date: true,
+				updated_on: true,
+				sub_issue_count: true,
+				attachment_count: true,
+			},
+			created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			project: id,
+			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
+			user: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+		};
+	}
+
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Create new Project in workspace
+	 * @param {CreateProjectDTO} payload - input data with which to create project
+	 * @returns - A promise that resolves after created project
+	 * @memberof WorkspaceController
+	 */
 	async createOrganizationProject(
 		payload: ICreateProjectInput,
 	): Promise<IProject> {

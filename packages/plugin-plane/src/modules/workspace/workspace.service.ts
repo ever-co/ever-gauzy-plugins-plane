@@ -390,7 +390,6 @@ export class WorkspaceService {
 					path: `/task-statuses?${query}`,
 				})
 			).data;
-			console.log(states);
 			return getStatesTransformer(states.items);
 		} catch (error) {
 			console.log(error);

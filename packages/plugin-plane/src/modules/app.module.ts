@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ApiFetchModule } from './api-fetch/api-fetch.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceModule } from './workspace/workspace.module';
+import { StatesModule } from './states/states.module';
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
 		InstancesModule,
 		UserModule,
 		WorkspaceModule,
+		StatesModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

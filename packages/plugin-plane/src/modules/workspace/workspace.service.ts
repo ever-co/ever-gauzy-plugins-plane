@@ -10,6 +10,7 @@ import {
 } from '../../config';
 import {
 	ICreateProjectInput,
+	ICreateStateInput,
 	ID,
 	IGetProjectMembersResponse,
 	IOrganizationProject,
@@ -18,10 +19,14 @@ import {
 	IState,
 	ITaskStatus,
 } from '@plane-plugin/models';
+import { StatesService } from '../states/states.service';
 
 @Injectable()
 export class WorkspaceService {
-	constructor(private readonly _serverFetchService: ApiFetchService) {}
+	constructor(
+		private readonly _serverFetchService: ApiFetchService,
+		private readonly _stateService: StatesService,
+	) {}
 
 	/**--------------------------------------------------------------
      * This function handlers should be updated after implementing authentication
@@ -382,7 +387,6 @@ export class WorkspaceService {
 	 */
 	async getWorkspaceProjectStates(id: ID): Promise<IState[]> {
 		const query = qs.stringify(getStatesQuery(id));
-		console.log(query);
 		try {
 			const states: IPagination<ITaskStatus> = (
 				await this._serverFetchService.apiFetch({
@@ -395,5 +399,65 @@ export class WorkspaceService {
 			console.log(error);
 			throw new InternalServerErrorException(error);
 		}
+	}
+
+	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
+		try {
+			const project = await this.getProject(id);
+			const memberInfos = await this.getMembersMe('');
+
+			return {
+				id: 'f6d11360-882d-44c1-a55c-dd3d5d8fe5d4',
+				workspace: {
+					name: 'Cardano',
+					slug: 'cardano',
+					id: project.workspace,
+				},
+				project: {
+					id: project.id,
+					identifier: project.identifier,
+					name: project.name,
+					cover_image: project.cover_image,
+					logo_props: project.logo_props,
+					desciption: project.description,
+				},
+				member: {
+					id: memberInfos.id,
+					first_name: 'Salva',
+					last_name: 'Cardano',
+					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
+					is_bot: false,
+					display_name: 'salva.cardano1',
+				},
+				created_at: memberInfos.created_at,
+				updated_at: memberInfos.updated_at,
+				deleted_at: memberInfos.deleted_at,
+				comment: null,
+				role: memberInfos.role,
+				view_props: {
+					filters: memberInfos.view_props.filters,
+					display_filters: memberInfos.view_props.display_filters,
+				},
+				default_props: {
+					filters: memberInfos.default_props.filters,
+					display_filters: memberInfos.default_props.display_filters,
+				},
+				preferences: {
+					pages: {
+						block_display: true,
+					},
+				},
+				sort_order: 65535.0,
+				is_active: memberInfos.is_active,
+				created_by: memberInfos.created_by,
+				updated_by: memberInfos.updated_by,
+			};
+		} catch (error) {
+			throw new InternalServerErrorException(error);
+		}
+	}
+
+	async createProjectState(payload: ICreateStateInput) {
+		return await this._stateService.createState(payload);
 	}
 }

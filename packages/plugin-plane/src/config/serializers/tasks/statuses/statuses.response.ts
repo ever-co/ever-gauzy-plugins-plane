@@ -1,5 +1,15 @@
-import { ID, IState, ITaskStatus, TaskStatusEnum } from '@plane-plugin/models';
-import { baseGetItemsWhereQuery } from '../../';
+import {
+	ICreateStateInput,
+	ID,
+	IState,
+	ITaskStatus,
+	ITaskStatusCreateInput,
+	TaskStatusEnum,
+} from '@plane-plugin/models';
+import {
+	defaultOrganizationId,
+	defaultTestTenantId,
+} from '../../../credentials';
 
 function capitalizeWords(word: string) {
 	return word
@@ -15,7 +25,7 @@ const stateGroup = (state: ITaskStatus) => {
 
 	const groupMapping: { [key: string]: string } = {
 		[TaskStatusEnum.BACKLOG]: TaskStatusEnum.BACKLOG,
-		'to do': 'unstarted',
+		'to-do': 'unstarted',
 		[TaskStatusEnum.OPEN]: 'unstarted',
 		[TaskStatusEnum.IN_PROGRESS]: 'started',
 		[TaskStatusEnum.READY_FOR_REVIEW]: 'started',
@@ -26,6 +36,18 @@ const stateGroup = (state: ITaskStatus) => {
 	};
 
 	return groupMapping[templateOrValue];
+};
+
+export const mapGroupToTemplate = (group: string): TaskStatusEnum => {
+	const groupToTemplateMapping: { [key: string]: TaskStatusEnum } = {
+		backlog: TaskStatusEnum.BACKLOG,
+		unstarted: TaskStatusEnum.OPEN,
+		started: TaskStatusEnum.IN_PROGRESS, // Default for 'started' group
+		completed: TaskStatusEnum.COMPLETED,
+		custom: TaskStatusEnum.CUSTOM,
+	};
+
+	return groupToTemplateMapping[group] || TaskStatusEnum.CUSTOM; // if not found, return 'custom'
 };
 
 export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
@@ -46,6 +68,26 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 	});
 }
 
+export function createStateInputTransformer(
+	input: ICreateStateInput,
+): ITaskStatusCreateInput {
+	const template = mapGroupToTemplate(input.group);
+	return {
+		name: input.name,
+		value: input.name.toLocaleLowerCase(),
+		description: input.description,
+		color: input.color,
+		template,
+		projectId: input.project_id,
+		tenantId: defaultTestTenantId,
+		organizationId: defaultOrganizationId,
+	};
+}
+
 export const getStatesQuery = (id: ID): Record<string, string> => {
-	return { ...baseGetItemsWhereQuery, 'where[projectId]': id };
+	return {
+		organizationId: defaultOrganizationId,
+		tenantId: defaultTestTenantId,
+		projectId: id,
+	};
 };

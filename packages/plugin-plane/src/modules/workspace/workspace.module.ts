@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { WorkspaceService } from './workspace.service';
 import { WorkspaceController } from './workspace.controller';
-import { RouterModule } from '@nestjs/core';
+import { StatesModule } from '../states/states.module';
 
 @Module({
 	imports: [
 		RouterModule.register([
 			{ path: '/workspaces', module: WorkspaceModule },
 		]),
+		StatesModule,
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

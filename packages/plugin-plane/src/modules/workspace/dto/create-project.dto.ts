@@ -7,19 +7,23 @@ import {
 	IsNumber,
 	IsObject,
 	IsOptional,
+	IsString,
 } from 'class-validator';
 import { ICreateProjectInput, ID } from '@plane-plugin/models';
 
 export class CreateProjectDTO implements ICreateProjectInput {
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsOptional()
 	cover_image: string;
 
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsOptional()
 	description: string;
 
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsNotEmpty()
 	identifier: string;
 
@@ -34,6 +38,7 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	members: any;
 
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsNotEmpty()
 	name: string;
 
@@ -43,10 +48,12 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	network: number;
 
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsOptional()
 	priority: string;
 
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsOptional()
 	project_lead: ID;
 
@@ -57,6 +64,7 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	start_date: Date;
 
 	@ApiProperty({ type: () => String })
+	@IsString()
 	@IsOptional()
 	state_id: ID;
 

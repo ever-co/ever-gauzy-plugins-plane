@@ -1,7 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Delete,
+	HttpCode,
+	HttpStatus,
+	Param,
+	Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StatesService } from './states.service';
 import { CreateStateDto } from './dto';
+import { ID } from '@plane-plugin/models';
 
 @ApiTags('States routes')
 @Controller('states')
@@ -17,7 +26,20 @@ export class StatesController {
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create state' })
 	@Post()
-	async createState(@Body() payload: CreateStateDto) {
-		return await this._stateService.createState(payload);
+	async create(@Body() payload: CreateStateDto) {
+		return await this._stateService.create(payload);
+	}
+
+	/**
+	 * @description - Delete state
+	 * @param {ID} id - the of the state to be deleted
+	 * @returns - A promise that resolves after state created
+	 * @memberof StatesService
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create state' })
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._stateService.delete(id);
 	}
 }

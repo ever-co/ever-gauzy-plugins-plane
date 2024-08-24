@@ -45,7 +45,6 @@ export class ApiFetchService {
 
 		switch (method) {
 			case 'GET':
-				console.log(endPoint);
 				return await firstValueFrom(
 					this._httpService.get(endPoint, {
 						...(init || {}),

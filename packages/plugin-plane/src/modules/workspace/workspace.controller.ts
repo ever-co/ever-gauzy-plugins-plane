@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -125,6 +126,19 @@ export class WorkspaceController {
 			...payload,
 			project_id,
 		});
+	}
+
+	/**
+	 * @description - Create project state
+	 * @param {ID} id - the of the state to be deleted
+	 * @returns - A promise that resolves after state deleted
+	 * @memberof StatesService
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete project state' })
+	@Delete(':worspace_name/projects/:projectId/states/:id')
+	async deleteProjectState(@Param('id') id: ID) {
+		return await this._workspaceService.deleteProjectState(id);
 	}
 
 	/**--------------------------------------------------------------

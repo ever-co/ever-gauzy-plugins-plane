@@ -457,7 +457,23 @@ export class WorkspaceService {
 		}
 	}
 
+	/**
+	 * @description - create project state
+	 * @param {ICreateStateInput} payload - input data
+	 * @returns - A promise that resolves after state created
+	 * @memberof WorkspaceService
+	 */
 	async createProjectState(payload: ICreateStateInput) {
-		return await this._stateService.createState(payload);
+		return await this._stateService.create(payload);
+	}
+
+	/**
+	 * @description - delete project state
+	 * @param {ICreateStateInput} id - primary key of the state to be deleted
+	 * @returns - A promise that resolves after state created
+	 * @memberof WorkspaceService
+	 */
+	async deleteProjectState(id: ID) {
+		return await this._stateService.delete(id);
 	}
 }

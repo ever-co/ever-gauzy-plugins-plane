@@ -1,7 +1,4 @@
-import {
-	IBasePerTenantAndOrganizationEntityModel,
-	IBaseRelationsEntityModel,
-} from './base-entity.model';
+import { IBasePerTenantAndOrganizationEntityModel, IBaseRelationsEntityModel, ID } from './base-entity.model';
 import { IEmployee } from './employee.model';
 import { IInvoiceItem } from './invoice-item.model';
 import { IOrganizationProject } from './organization-projects.model';
@@ -22,36 +19,37 @@ export interface ITask extends IBasePerTenantAndOrganizationEntityModel {
 	status?: TaskStatusEnum;
 	priority?: TaskPriorityEnum;
 	size?: TaskSizeEnum;
+	startDate?: Date;
 	dueDate?: Date;
 	estimate?: number;
 	project?: IOrganizationProject;
-	projectId?: IOrganizationProject['id'];
+	projectId?: ID;
 	tags?: ITag[];
 	members?: IEmployee[];
 	invoiceItems?: IInvoiceItem[];
 	teams?: IOrganizationTeam[];
 	organizationSprint?: IOrganizationSprint;
-	organizationSprintId?: IOrganizationSprint['id'];
+	organizationSprintId?: ID;
 	creator?: IUser;
-	creatorId?: IUser['id'];
+	creatorId?: ID;
+	resolvedAt?: Date;
 
 	parent?: ITask;
-	parentId?: ITask['id']; // Optional field for specifying the parent task ID
+	parentId?: ID; // Optional field for specifying the parent task ID
 	children?: ITask[];
 
 	taskStatus?: ITaskStatus;
 	taskSize?: ITaskSize;
 	taskPriority?: ITaskPriority;
-	taskStatusId?: ITaskStatus['id'];
-	taskSizeId?: ITaskSize['id'];
-	taskPriorityId?: ITaskPriority['id'];
+	taskStatusId?: ID;
+	taskSizeId?: ID;
+	taskPriorityId?: ID;
 
 	rootEpic?: ITask;
 }
 
-export interface IGetTaskOptions
-	extends IBasePerTenantAndOrganizationEntityModel {
-	projectId?: IOrganizationProject['id'];
+export interface IGetTaskOptions extends IBasePerTenantAndOrganizationEntityModel {
+	projectId?: ID;
 }
 
 export interface IGetTaskByEmployeeOptions extends IBaseRelationsEntityModel {
@@ -62,7 +60,7 @@ export type IGetSprintsOptions = IGetTaskOptions;
 
 export enum TaskParticipantEnum {
 	EMPLOYEES = 'employees',
-	TEAMS = 'teams',
+	TEAMS = 'teams'
 }
 
 export type ITaskCreateInput = ITask;

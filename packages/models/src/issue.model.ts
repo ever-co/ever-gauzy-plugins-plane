@@ -1,0 +1,29 @@
+export interface IIssue {
+	id?: string;
+	name?: string;
+	state_id?: string;
+	sort_order?: number;
+	completed_at?: Date;
+	estimate_point?: Date;
+	priority?: string;
+	start_date?: Date;
+	target_date?: Date;
+	sequence_id?: number;
+	project_id?: string;
+	parent_id?: string;
+	created_at?: Date;
+	updated_at?: Date;
+	created_by?: string;
+	updated_by?: string;
+	is_draft?: boolean;
+	archived_at?: Date;
+	state__group?: string;
+	type_id?: string;
+	cycle_id?: string;
+	link_count?: number;
+	attachment_count?: number;
+	sub_issues_count?: number;
+	assignee_ids?: string[];
+	label_ids?: string[];
+	module_ids?: string[];
+}

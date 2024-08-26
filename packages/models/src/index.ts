@@ -8,3 +8,4 @@ export * from './config.model';
 export * from './user.model';
 export * from './project.model';
 export * from './state.model';
+export * from './issue.model';

@@ -18,7 +18,9 @@ function capitalizeWords(word: string) {
 		.join(' ');
 }
 
-const stateGroup = (state: ITaskStatus) => {
+// From external API, transform template to group
+
+export const stateGroup = (state: ITaskStatus) => {
 	const templateOrValue = state.template || state.value;
 
 	if (!templateOrValue) return undefined;
@@ -37,6 +39,8 @@ const stateGroup = (state: ITaskStatus) => {
 
 	return groupMapping[templateOrValue];
 };
+
+// Transform group to template
 
 export const mapGroupToTemplate = (group: string): TaskStatusEnum => {
 	const groupToTemplateMapping: { [key: string]: TaskStatusEnum } = {

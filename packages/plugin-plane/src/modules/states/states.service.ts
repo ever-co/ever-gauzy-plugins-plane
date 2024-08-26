@@ -12,9 +12,7 @@ import {
 } from '../../config';
 
 @Injectable()
-export class StatesService {
-	constructor(private readonly _serverFetchService: ApiFetchService) {}
-
+export class StatesService extends ApiFetchService {
 	private readonly path = '/task-statuses';
 	/**
 	 * @description - Create state
@@ -26,7 +24,7 @@ export class StatesService {
 		const body = createStateInputTransformer(payload);
 		try {
 			const state: ITaskStatus = (
-				await this._serverFetchService.apiFetch({
+				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
 					body,
@@ -42,7 +40,7 @@ export class StatesService {
 
 	async delete(id: ID): Promise<any> {
 		return (
-			await this._serverFetchService.apiFetch({
+			await this.apiFetch({
 				method: 'DELETE',
 				path: `${this.path}/${id}`,
 			})

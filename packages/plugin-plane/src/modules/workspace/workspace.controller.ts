@@ -13,11 +13,17 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
 import { CreateProjectDTO } from './dto';
 import { ID } from '@plane-plugin/models';
+import { StatesService } from '../states/states.service';
+import { IssuesService } from '../issues/issues.service';
 
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
-	constructor(private readonly _workspaceService: WorkspaceService) {}
+	constructor(
+		private readonly _workspaceService: WorkspaceService,
+		private readonly _stateService: StatesService,
+		private readonly _issueService: IssuesService,
+	) {}
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
@@ -113,7 +119,7 @@ export class WorkspaceController {
 	 * @description - Create project state
 	 * @param {ICreateStateInput} payload
 	 * @returns - A promise that resolves after state created
-	 * @memberof StatesService
+	 * @memberof WorkspaceController
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create project state' })
@@ -122,7 +128,7 @@ export class WorkspaceController {
 		@Param('id') project_id: ID,
 		@Body() payload: CreateProjectDTO,
 	) {
-		return await this._workspaceService.createProjectState({
+		return await this._stateService.create({
 			...payload,
 			project_id,
 		});
@@ -132,13 +138,13 @@ export class WorkspaceController {
 	 * @description - Create project state
 	 * @param {ID} id - the of the state to be deleted
 	 * @returns - A promise that resolves after state deleted
-	 * @memberof StatesService
+	 * @memberof WorkspaceController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete project state' })
 	@Delete(':worspace_name/projects/:projectId/states/:id')
 	async deleteProjectState(@Param('id') id: ID) {
-		return await this._workspaceService.deleteProjectState(id);
+		return await this._stateService.delete(id);
 	}
 
 	/**--------------------------------------------------------------
@@ -202,5 +208,18 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects/:id/project-members/me')
 	async getWorkspaceProjectMemberMe(@Param('id') id: ID) {
 		return await this._workspaceService.getWorkspaceProjectMemberMe(id);
+	}
+
+	/**
+	 * @description - Create project state
+	 * @param {ID} id - The ID of the project for whom get tasks
+	 * @returns - A promise that resolves after got issues
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project issues' })
+	@Get(':worspace_name/projects/:id/issues')
+	async getWorkspaceProjectIssues(@Param('id') id: ID) {
+		return this._issueService.getAllIssuesByProject(id);
 	}
 }

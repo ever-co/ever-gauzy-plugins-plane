@@ -1,3 +1,4 @@
+import { IBasePerTenantAndOrganizationEntityModel } from './imports';
 export interface IIssueLabel {
 	parent: any;
 	name: string;
@@ -7,3 +8,7 @@ export interface IIssueLabel {
 	workspace_id: string;
 	sort_order: number;
 }
+
+export interface ICreateIssueLabelInput
+	extends Pick<IIssueLabel, 'name' | 'color'>,
+		IBasePerTenantAndOrganizationEntityModel {}

@@ -16,6 +16,7 @@ import { ID } from '@plane-plugin/models';
 import { StatesService } from '../states/states.service';
 import { IssuesService } from '../issues/issues.service';
 import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
+import { CreateIssueLabelDTO } from '../issues/issue-labels/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -163,6 +164,19 @@ export class WorkspaceController {
 	@Post(':worspace_name/projects')
 	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
 		return await this._workspaceService.createOrganizationProject(payload);
+	}
+
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Label' })
+	@Post(':worspace_name/projects/:id/issue-labels')
+	async createIssueLabel(
+		@Body() payload: CreateIssueLabelDTO,
+		@Param('id') projectId: ID,
+	) {
+		return await this._issueLabelService.createIssueLabel(
+			projectId,
+			payload,
+		);
 	}
 
 	/**

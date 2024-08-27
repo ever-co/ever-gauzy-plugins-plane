@@ -10,6 +10,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
 import { StatesModule } from './states/states.module';
 import { IssuesModule } from './issues/issues.module';
 import { GlobalHttpModule } from './http.module';
+import { IssueLabelsModule } from './issues/issue-labels/issue-labels.module';
 
 @Module({
 	imports: [
@@ -22,6 +23,7 @@ import { GlobalHttpModule } from './http.module';
 		WorkspaceModule,
 		StatesModule,
 		IssuesModule,
+		IssueLabelsModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

@@ -15,6 +15,7 @@ import { CreateProjectDTO } from './dto';
 import { ID } from '@plane-plugin/models';
 import { StatesService } from '../states/states.service';
 import { IssuesService } from '../issues/issues.service';
+import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -23,6 +24,7 @@ export class WorkspaceController {
 		private readonly _workspaceService: WorkspaceService,
 		private readonly _stateService: StatesService,
 		private readonly _issueService: IssuesService,
+		private readonly _issueLabelService: IssueLabelsService,
 	) {}
 
 	/**
@@ -211,8 +213,8 @@ export class WorkspaceController {
 	}
 
 	/**
-	 * @description - Create project state
-	 * @param {ID} id - The ID of the project for whom get tasks
+	 * @description - Get project issues
+	 * @param {ID} id - The ID of the project for whom get issues
 	 * @returns - A promise that resolves after got issues
 	 * @memberof WorkspaceController
 	 */
@@ -221,5 +223,18 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects/:id/issues')
 	async getWorkspaceProjectIssues(@Param('id') id: ID) {
 		return this._issueService.getAllIssuesByProject(id);
+	}
+
+	/**
+	 * @description - Get project issue labels
+	 * @param {ID} id - The ID of the project for whom get issue labels
+	 * @returns - A promise that resolves after got issue labels
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project issues' })
+	@Get(':worspace_name/projects/:id/issue-labels')
+	async getProjectIssueLabels(@Param('id') id: ID) {
+		return this._issueLabelService.getProjectIssueLabels(id);
 	}
 }

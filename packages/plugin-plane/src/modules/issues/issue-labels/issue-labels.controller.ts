@@ -72,4 +72,17 @@ export class IssueLabelsController {
 			payload,
 		);
 	}
+
+	/**
+	 * @description - Delete label
+	 * @param {ID} id - The label ID to be deleted
+	 * @returns - A promise that resolves after label deleted
+	 * @memberof IssueLabelsController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Issue Label' })
+	@Patch(':projectId/:id')
+	async deleteIssueLabel(@Param('id') id: ID) {
+		return await this._issueLabelService.deleteIssueLabel(id);
+	}
 }

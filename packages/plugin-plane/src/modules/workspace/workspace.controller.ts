@@ -213,6 +213,13 @@ export class WorkspaceController {
 		);
 	}
 
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Issue Label' })
+	@Delete(':worspace_name/projects/:projectId/issue-labels/:id')
+	async deleteIssueLabel(@Param('id') id: ID) {
+		return await this._issueLabelService.deleteIssueLabel(id);
+	}
+
 	/**
 	 * @description - Get all projects for a workspace
 	 * @returns - A promise that resolves after getting all projects for a workspace

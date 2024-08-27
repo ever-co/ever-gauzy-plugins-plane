@@ -18,6 +18,8 @@ import {
 
 @Injectable()
 export class IssueLabelsService extends ApiFetchService {
+	private readonly path = '/tags';
+
 	/**
 	 * @description - Get project issue labels
 	 * @param {ID} projectId - the project ID for whom getting labels
@@ -32,7 +34,7 @@ export class IssueLabelsService extends ApiFetchService {
 			const labels: IPagination<ITag> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/tags?${query}`,
+					path: `${this.path}?${query}`,
 				})
 			).data;
 
@@ -58,7 +60,7 @@ export class IssueLabelsService extends ApiFetchService {
 			const label: ITag = (
 				await this.apiFetch({
 					method: 'POST',
-					path: '/tags',
+					path: `${this.path}`,
 					body: {
 						...input,
 						organizationId: defaultOrganizationId,
@@ -89,11 +91,30 @@ export class IssueLabelsService extends ApiFetchService {
 			const label: ITag = (
 				await this.apiFetch({
 					method: 'PUT',
-					path: `/tags/${id}`,
+					path: `${this.path}/${id}`,
 					body: input,
 				})
 			).data;
 			return issueLabelsTransformer(label, projectId);
+		} catch (error) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description - Delete label
+	 * @param {ID} id - The label ID to be deleted
+	 * @returns - A promise that resolves after label deleted
+	 * @memberof IssueLabelsService
+	 */
+	async deleteIssueLabel(id: ID): Promise<any> {
+		try {
+			return (
+				await this.apiFetch({
+					method: 'DELETE',
+					path: `${this.path}/${id}`,
+				})
+			).data;
 		} catch (error) {
 			throw new BadRequestException(error);
 		}

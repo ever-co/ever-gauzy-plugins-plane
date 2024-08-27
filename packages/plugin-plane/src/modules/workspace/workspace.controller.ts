@@ -21,7 +21,7 @@ import {
 	CreateIssueLabelDTO,
 	UpdateIssueLabelDTO,
 } from '../issues/issue-labels/dto';
-import { CreateIssueDTO } from '../issues/dto';
+import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -199,9 +199,25 @@ export class WorkspaceController {
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue' })
-	@Post(':worspace_name/projects/:id/issues')
-	async create(@Body() payload: CreateIssueDTO): Promise<IIssue> {
+	@Post(':worspace_name/projects/:projectId/issues')
+	async createIssue(@Body() payload: CreateIssueDTO): Promise<IIssue> {
 		return await this._issueService.create(payload);
+	}
+
+	/**
+	 * @description - Update issue
+	 * @param {UpdateIssueDTO} payload - data for updating issue
+	 * @returns - A promise that resolves after issue updated
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Update Issue' })
+	@Patch(':worspace_name/projects/:projectId/issues/:id')
+	async updateIssue(
+		@Body() payload: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._issueService.update(id, payload);
 	}
 
 	/**
@@ -289,15 +305,28 @@ export class WorkspaceController {
 
 	/**
 	 * @description - Get project issues
-	 * @param {ID} id - The ID of the project for whom get issues
+	 * @param {ID} projectId - The ID of the project for whom get issues
 	 * @returns - A promise that resolves after got issues
 	 * @memberof WorkspaceController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get project issues' })
-	@Get(':worspace_name/projects/:id/issues')
-	async getWorkspaceProjectIssues(@Param('id') id: ID) {
-		return this._issueService.getAllIssuesByProject(id);
+	@Get(':worspace_name/projects/:projectId/issues')
+	async getWorkspaceProjectIssues(@Param('projectId') projectId: ID) {
+		return this._issueService.getAllIssuesByProject(projectId);
+	}
+
+	/**
+	 * @description - Find issue by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':worspace_name/projects/:projectId/issues/:id')
+	async findOne(@Param('id') id: ID) {
+		return await this._issueService.findOne(id);
 	}
 
 	/**

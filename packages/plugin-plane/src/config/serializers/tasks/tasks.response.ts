@@ -3,9 +3,11 @@ import {
 	IEmployee,
 	IIssue,
 	IIssueCreateInput,
+	IIssueUpdateInput,
 	ITag,
 	ITask,
 	ITaskCreateInput,
+	ITaskUpdateInput,
 	TaskPriorityEnum,
 	TaskStatusEnum,
 } from '@plane-plugin/models';
@@ -14,15 +16,15 @@ import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 
 export function issueAssigneesIds(issue: ITask): ID[] {
-	const assignees = issue.members;
+	const assignees = issue?.members;
 
-	return assignees.map((member) => member.id);
+	return assignees?.map((member) => member.id);
 }
 
 export function issueLabelsIds(issue: ITask): ID[] {
-	const labels = issue.tags;
+	const labels = issue?.tags;
 
-	return labels.map((member) => member.id);
+	return labels?.map((member) => member.id);
 }
 
 export function issueTransformer(issue: ITask): IIssue {
@@ -39,6 +41,12 @@ export function issueTransformer(issue: ITask): IIssue {
 		sequence_id: 1, // TODO : Research usecase and add to API
 		project_id: issue.projectId,
 		parent_id: issue.parentId,
+		parent: {
+			id: issue?.parent?.id,
+			project_id: issue?.parent?.projectId,
+			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
+			sequence_id: 1,
+		},
 		created_at: issue.createdAt,
 		updated_at: issue.updatedAt,
 		created_by: issue.creatorId,
@@ -133,8 +141,12 @@ export function createIssueInputTransformer(
 	issue: IIssueCreateInput,
 	status: TaskStatusEnum,
 ): ITaskCreateInput {
-	const tags = issue.label_ids.map((id) => ({ id }) as ITag);
-	const members = issue.assignee_ids.map((id) => ({ id }) as IEmployee);
+	const tags = issue.label_ids
+		? issue.label_ids.map((id) => ({ id }) as ITag)
+		: [];
+	const members = issue.assignee_ids
+		? issue.assignee_ids.map((id) => ({ id }) as IEmployee)
+		: [];
 	return {
 		title: issue.name,
 		description: issue.description_html,
@@ -151,4 +163,60 @@ export function createIssueInputTransformer(
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
 	};
+}
+
+export function updateIssueInputTransformer(
+	issue: IIssueUpdateInput,
+	status: TaskStatusEnum,
+): Partial<ITaskUpdateInput> {
+	// Mapping between IIssueUpdateInput and ITaskUpdateInput
+	const keyMapping: Partial<
+		Record<keyof IIssueUpdateInput, keyof ITaskUpdateInput>
+	> = {
+		name: 'title',
+		description_html: 'description',
+		priority: 'priority',
+		start_date: 'startDate',
+		target_date: 'dueDate',
+		project_id: 'projectId',
+		cycle_id: 'organizationSprintId',
+		parent_id: 'parentId',
+		state_id: 'taskStatusId',
+	};
+
+	// Include only user provided flelds in the final request
+	const transformedInput: ITaskUpdateInput = Object.entries(
+		keyMapping,
+	).reduce(
+		(
+			acc: Partial<Omit<ITaskUpdateInput, 'parent'>>,
+			[issueKey, taskKey],
+		) => {
+			if (issueKey in issue) {
+				const value = issue[issueKey as keyof IIssueUpdateInput];
+				acc[taskKey] = value;
+			}
+			if ('state_id' in issue) {
+				acc['status'] = status;
+			}
+			acc['organizationId'] = defaultOrganizationId;
+
+			return acc;
+		},
+		{} as ITaskUpdateInput,
+	);
+
+	// Add tags only if label_ids is defined
+	if (issue.label_ids) {
+		transformedInput.tags = issue.label_ids.map((id) => ({ id }) as ITag);
+	}
+
+	// AAdd members only if assignee_ids is defined
+	if (issue.assignee_ids) {
+		transformedInput.members = issue.assignee_ids.map(
+			(id) => ({ id }) as IEmployee,
+		);
+	}
+
+	return transformedInput;
 }

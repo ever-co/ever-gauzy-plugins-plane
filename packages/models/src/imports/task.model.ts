@@ -65,7 +65,7 @@ export enum TaskParticipantEnum {
 
 export type ITaskCreateInput = ITask;
 
-export interface ITaskUpdateInput extends ITaskCreateInput {
+export interface ITaskUpdateInput extends Partial<Omit<ITaskCreateInput, 'createdAt' | 'updatedAt'>> {
 	id?: string;
 }
 

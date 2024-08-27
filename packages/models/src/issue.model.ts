@@ -14,6 +14,12 @@ export interface IIssue {
 	sequence_id?: number;
 	project_id?: ID;
 	parent_id?: ID;
+	parent?: {
+		id?: ID;
+		sequence_id?: number;
+		project_id: ID;
+		type_id: ID;
+	};
 	created_at?: Date;
 	updated_at?: Date;
 	created_by?: string;
@@ -31,6 +37,6 @@ export interface IIssue {
 	module_ids?: ID[];
 }
 
-export interface IIssueCreateInput extends Omit<IIssue, 'id'> {}
+export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 
 export type IIssueUpdateInput = IIssue;

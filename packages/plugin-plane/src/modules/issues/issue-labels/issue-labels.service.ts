@@ -6,6 +6,7 @@ import {
 	IIssueLabel,
 	IPagination,
 	ITag,
+	IUpdateIssueLabelInput,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import {
@@ -63,6 +64,33 @@ export class IssueLabelsService extends ApiFetchService {
 						organizationId: defaultOrganizationId,
 						tenantId: defaultTestTenantId,
 					},
+				})
+			).data;
+			return issueLabelsTransformer(label, projectId);
+		} catch (error) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description - Update issue label
+	 * @param {ID} id - the label ID to be updated
+	 * @param {ID} projectId - the project ID for whom to associate with Updated label
+	 * @param {IUpdateIssueLabelInput} input - data for updating label
+	 * @returns - A promise that resolves after Updated label
+	 * @memberof IssueLabelsService
+	 */
+	async updateIssueLabel(
+		id: ID,
+		projectId: ID,
+		input: IUpdateIssueLabelInput,
+	): Promise<IIssueLabel | IIssueLabel[]> {
+		try {
+			const label: ITag = (
+				await this.apiFetch({
+					method: 'PUT',
+					path: `/tags/${id}`,
+					body: input,
 				})
 			).data;
 			return issueLabelsTransformer(label, projectId);

@@ -12,3 +12,5 @@ export interface IIssueLabel {
 export interface ICreateIssueLabelInput
 	extends Pick<IIssueLabel, 'name' | 'color'>,
 		IBasePerTenantAndOrganizationEntityModel {}
+
+export interface IUpdateIssueLabelInput extends Partial<ICreateIssueLabelInput> {}

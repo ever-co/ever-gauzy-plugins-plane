@@ -6,6 +6,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 	Query,
 } from '@nestjs/common';
@@ -16,7 +17,10 @@ import { ID } from '@plane-plugin/models';
 import { StatesService } from '../states/states.service';
 import { IssuesService } from '../issues/issues.service';
 import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
-import { CreateIssueLabelDTO } from '../issues/issue-labels/dto';
+import {
+	CreateIssueLabelDTO,
+	UpdateIssueLabelDTO,
+} from '../issues/issue-labels/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -166,6 +170,13 @@ export class WorkspaceController {
 		return await this._workspaceService.createOrganizationProject(payload);
 	}
 
+	/**
+	 * @description - Create issue label
+	 * @param {ID} projectId - the project ID for whom to associate with created label
+	 * @param {CreateIssueLabelDTO} payload - data for creating label
+	 * @returns - A promise that resolves after created label
+	 * @memberof WorkspaceController
+	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue Label' })
 	@Post(':worspace_name/projects/:id/issue-labels')
@@ -174,6 +185,29 @@ export class WorkspaceController {
 		@Param('id') projectId: ID,
 	) {
 		return await this._issueLabelService.createIssueLabel(
+			projectId,
+			payload,
+		);
+	}
+
+	/**
+	 * @description - Update issue label
+	 * @param {ID} id - the label ID to be updated
+	 * @param {ID} projectId - the project ID for whom to associate with Updated label
+	 * @param {UpdateIssueLabelDTO} payload - data for updating label
+	 * @returns - A promise that resolves after Updated label
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Issue Label' })
+	@Patch(':worspace_name/projects/:projectId/issue-labels/:id')
+	async updateIssueLabel(
+		@Body() payload: UpdateIssueLabelDTO,
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	) {
+		return await this._issueLabelService.updateIssueLabel(
+			id,
 			projectId,
 			payload,
 		);

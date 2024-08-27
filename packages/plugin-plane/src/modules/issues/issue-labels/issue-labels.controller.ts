@@ -5,12 +5,13 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ID } from '@plane-plugin/models';
 import { IssueLabelsService } from './issue-labels.service';
-import { CreateIssueLabelDTO } from './dto';
+import { CreateIssueLabelDTO, UpdateIssueLabelDTO } from './dto';
 
 @Controller('issue-labels')
 export class IssueLabelsController {
@@ -29,6 +30,13 @@ export class IssueLabelsController {
 		return await this._issueLabelService.getProjectIssueLabels(projectId);
 	}
 
+	/**
+	 * @description - Create issue label
+	 * @param {ID} projectId - the project ID for whom to associate with created label
+	 * @param {CreateIssueLabelDTO} payload - data for creating label
+	 * @returns - A promise that resolves after created label
+	 * @memberof IssueLabelsController
+	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue Label' })
 	@Post(':projectId')
@@ -37,6 +45,29 @@ export class IssueLabelsController {
 		@Param('projectId') projectId: ID,
 	) {
 		return await this._issueLabelService.createIssueLabel(
+			projectId,
+			payload,
+		);
+	}
+
+	/**
+	 * @description - Update issue label
+	 * @param {ID} id - the label ID to be updated
+	 * @param {ID} projectId - the project ID for whom to associate with Updated label
+	 * @param {UpdateIssueLabelDTO} payload - data for updating label
+	 * @returns - A promise that resolves after Updated label
+	 * @memberof IssueLabelsController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Issue Label' })
+	@Patch(':projectId/:id')
+	async updateIssueLabel(
+		@Body() payload: UpdateIssueLabelDTO,
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	) {
+		return await this._issueLabelService.updateIssueLabel(
+			id,
 			projectId,
 			payload,
 		);

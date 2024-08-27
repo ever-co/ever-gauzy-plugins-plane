@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
 	IsArray,
@@ -57,7 +57,7 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	@IsOptional()
 	project_lead: ID;
 
-	@ApiProperty({ type: () => Date })
+	@ApiPropertyOptional({ type: () => Date })
 	@Type(() => Date)
 	@IsOptional()
 	@IsDate()

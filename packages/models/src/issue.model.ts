@@ -1,16 +1,19 @@
+import { ID, TaskPriorityEnum } from './imports';
+
 export interface IIssue {
-	id?: string;
+	id?: ID;
 	name?: string;
-	state_id?: string;
+	description_html?: string;
+	state_id?: ID;
 	sort_order?: number;
 	completed_at?: Date;
-	estimate_point?: Date;
-	priority?: string;
+	estimate_point?: ID;
+	priority?: TaskPriorityEnum;
 	start_date?: Date;
 	target_date?: Date;
 	sequence_id?: number;
-	project_id?: string;
-	parent_id?: string;
+	project_id?: ID;
+	parent_id?: ID;
 	created_at?: Date;
 	updated_at?: Date;
 	created_by?: string;
@@ -19,11 +22,15 @@ export interface IIssue {
 	archived_at?: Date;
 	state__group?: string;
 	type_id?: string;
-	cycle_id?: string;
+	cycle_id?: ID;
 	link_count?: number;
 	attachment_count?: number;
 	sub_issues_count?: number;
-	assignee_ids?: string[];
-	label_ids?: string[];
-	module_ids?: string[];
+	assignee_ids?: ID[];
+	label_ids?: ID[];
+	module_ids?: ID[];
 }
+
+export interface IIssueCreateInput extends Omit<IIssue, 'id'> {}
+
+export type IIssueUpdateInput = IIssue;

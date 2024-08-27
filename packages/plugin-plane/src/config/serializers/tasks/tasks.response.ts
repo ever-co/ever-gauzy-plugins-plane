@@ -1,6 +1,17 @@
-import { ID, IIssue, ITask } from '@plane-plugin/models';
+import {
+	ID,
+	IEmployee,
+	IIssue,
+	IIssueCreateInput,
+	ITag,
+	ITask,
+	ITaskCreateInput,
+	TaskPriorityEnum,
+	TaskStatusEnum,
+} from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
+import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 
 export function issueAssigneesIds(issue: ITask): ID[] {
 	const assignees = issue.members;
@@ -22,7 +33,7 @@ export function issueTransformer(issue: ITask): IIssue {
 		sort_order: 65535.0, // TODO : Research usecase and add to API
 		completed_at: issue.resolvedAt,
 		estimate_point: null, // TODO : Research usecase and add to API
-		priority: issue.priority.toLocaleLowerCase(),
+		priority: issue.priority?.toLocaleLowerCase() as TaskPriorityEnum,
 		start_date: issue.startDate,
 		target_date: issue.dueDate,
 		sequence_id: 1, // TODO : Research usecase and add to API
@@ -117,3 +128,27 @@ export const getTaskQuery = (id: ID): Record<string, string> => {
 
 	return query;
 };
+
+export function createIssueInputTransformer(
+	issue: IIssueCreateInput,
+	status: TaskStatusEnum,
+): ITaskCreateInput {
+	const tags = issue.label_ids.map((id) => ({ id }) as ITag);
+	const members = issue.assignee_ids.map((id) => ({ id }) as IEmployee);
+	return {
+		title: issue.name,
+		description: issue.description_html,
+		priority: issue.priority,
+		startDate: issue.start_date,
+		dueDate: issue.target_date,
+		projectId: issue.project_id,
+		status,
+		tags,
+		members,
+		organizationSprintId: issue.cycle_id,
+		parentId: issue.parent_id,
+		taskStatusId: issue.state_id,
+		tenantId: defaultTestTenantId,
+		organizationId: defaultOrganizationId,
+	};
+}

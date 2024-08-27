@@ -13,7 +13,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
 import { CreateProjectDTO } from './dto';
-import { ID } from '@plane-plugin/models';
+import { ID, IIssue } from '@plane-plugin/models';
 import { StatesService } from '../states/states.service';
 import { IssuesService } from '../issues/issues.service';
 import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
@@ -21,6 +21,7 @@ import {
 	CreateIssueLabelDTO,
 	UpdateIssueLabelDTO,
 } from '../issues/issue-labels/dto';
+import { CreateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -191,6 +192,19 @@ export class WorkspaceController {
 	}
 
 	/**
+	 * @description - Create issue
+	 * @param {CreateIssueDTO} payload - data for creating new issue
+	 * @returns - A promise that resolves after issue created
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue' })
+	@Post(':worspace_name/projects/:id/issues')
+	async create(@Body() payload: CreateIssueDTO): Promise<IIssue> {
+		return await this._issueService.create(payload);
+	}
+
+	/**
 	 * @description - Update issue label
 	 * @param {ID} id - the label ID to be updated
 	 * @param {ID} projectId - the project ID for whom to associate with Updated label
@@ -213,6 +227,12 @@ export class WorkspaceController {
 		);
 	}
 
+	/**
+	 * @description - Delete label
+	 * @param {ID} id - The label ID to be deleted
+	 * @returns - A promise that resolves after label deleted
+	 * @memberof WorkspaceController
+	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete Issue Label' })
 	@Delete(':worspace_name/projects/:projectId/issue-labels/:id')

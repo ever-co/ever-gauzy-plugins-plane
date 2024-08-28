@@ -10,7 +10,6 @@ import {
 } from '../../config';
 import {
 	ICreateProjectInput,
-	ICreateStateInput,
 	ID,
 	IGetProjectMembersResponse,
 	IOrganizationProject,
@@ -19,15 +18,9 @@ import {
 	IState,
 	ITaskStatus,
 } from '@plane-plugin/models';
-import { StatesService } from '../states/states.service';
 
 @Injectable()
-export class WorkspaceService {
-	constructor(
-		private readonly _serverFetchService: ApiFetchService,
-		private readonly _stateService: StatesService,
-	) {}
-
+export class WorkspaceService extends ApiFetchService {
 	/**--------------------------------------------------------------
      * This function handlers should be updated after implementing authentication
      *--------------------------------------------------------------/
@@ -237,7 +230,7 @@ export class WorkspaceService {
 		const query = qs.stringify(getProjectsQuery);
 		try {
 			const projects: IPagination<IOrganizationProject> = (
-				await this._serverFetchService.apiFetch({
+				await this.apiFetch({
 					method: 'GET',
 					path: `/organization-projects?${query}`,
 				})
@@ -259,7 +252,7 @@ export class WorkspaceService {
 		const query = qs.stringify(getProjectsQuery);
 		try {
 			const project: IOrganizationProject = (
-				await this._serverFetchService.apiFetch({
+				await this.apiFetch({
 					method: 'GET',
 					path: `/organization-projects/${id}?${query}`,
 				})
@@ -365,7 +358,7 @@ export class WorkspaceService {
 		const body = createProjectInputTransformer(payload);
 		try {
 			const project: IOrganizationProject = (
-				await this._serverFetchService.apiFetch({
+				await this.apiFetch({
 					method: 'POST',
 					path: '/organization-projects',
 					body,
@@ -389,7 +382,7 @@ export class WorkspaceService {
 		const query = qs.stringify(getStatesQuery(id));
 		try {
 			const states: IPagination<ITaskStatus> = (
-				await this._serverFetchService.apiFetch({
+				await this.apiFetch({
 					method: 'GET',
 					path: `/task-statuses?${query}`,
 				})
@@ -455,25 +448,5 @@ export class WorkspaceService {
 		} catch (error) {
 			throw new InternalServerErrorException(error);
 		}
-	}
-
-	/**
-	 * @description - create project state
-	 * @param {ICreateStateInput} payload - input data
-	 * @returns - A promise that resolves after state created
-	 * @memberof WorkspaceService
-	 */
-	async createProjectState(payload: ICreateStateInput) {
-		return await this._stateService.create(payload);
-	}
-
-	/**
-	 * @description - delete project state
-	 * @param {ICreateStateInput} id - primary key of the state to be deleted
-	 * @returns - A promise that resolves after state created
-	 * @memberof WorkspaceService
-	 */
-	async deleteProjectState(id: ID) {
-		return await this._stateService.delete(id);
 	}
 }

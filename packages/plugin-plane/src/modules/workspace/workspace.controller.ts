@@ -6,18 +6,32 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
 import { CreateProjectDTO } from './dto';
-import { ID } from '@plane-plugin/models';
+import { ID, IIssue } from '@plane-plugin/models';
+import { StatesService } from '../states/states.service';
+import { IssuesService } from '../issues/issues.service';
+import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
+import {
+	CreateIssueLabelDTO,
+	UpdateIssueLabelDTO,
+} from '../issues/issue-labels/dto';
+import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
-	constructor(private readonly _workspaceService: WorkspaceService) {}
+	constructor(
+		private readonly _workspaceService: WorkspaceService,
+		private readonly _stateService: StatesService,
+		private readonly _issueService: IssuesService,
+		private readonly _issueLabelService: IssueLabelsService,
+	) {}
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
@@ -113,7 +127,7 @@ export class WorkspaceController {
 	 * @description - Create project state
 	 * @param {ICreateStateInput} payload
 	 * @returns - A promise that resolves after state created
-	 * @memberof StatesService
+	 * @memberof WorkspaceController
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create project state' })
@@ -122,7 +136,7 @@ export class WorkspaceController {
 		@Param('id') project_id: ID,
 		@Body() payload: CreateProjectDTO,
 	) {
-		return await this._workspaceService.createProjectState({
+		return await this._stateService.create({
 			...payload,
 			project_id,
 		});
@@ -132,13 +146,13 @@ export class WorkspaceController {
 	 * @description - Create project state
 	 * @param {ID} id - the of the state to be deleted
 	 * @returns - A promise that resolves after state deleted
-	 * @memberof StatesService
+	 * @memberof WorkspaceController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete project state' })
 	@Delete(':worspace_name/projects/:projectId/states/:id')
 	async deleteProjectState(@Param('id') id: ID) {
-		return await this._workspaceService.deleteProjectState(id);
+		return await this._stateService.delete(id);
 	}
 
 	/**--------------------------------------------------------------
@@ -155,6 +169,91 @@ export class WorkspaceController {
 	@Post(':worspace_name/projects')
 	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
 		return await this._workspaceService.createOrganizationProject(payload);
+	}
+
+	/**
+	 * @description - Create issue label
+	 * @param {ID} projectId - the project ID for whom to associate with created label
+	 * @param {CreateIssueLabelDTO} payload - data for creating label
+	 * @returns - A promise that resolves after created label
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Label' })
+	@Post(':worspace_name/projects/:id/issue-labels')
+	async createIssueLabel(
+		@Body() payload: CreateIssueLabelDTO,
+		@Param('id') projectId: ID,
+	) {
+		return await this._issueLabelService.createIssueLabel(
+			projectId,
+			payload,
+		);
+	}
+
+	/**
+	 * @description - Create issue
+	 * @param {CreateIssueDTO} payload - data for creating new issue
+	 * @returns - A promise that resolves after issue created
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue' })
+	@Post(':worspace_name/projects/:projectId/issues')
+	async createIssue(@Body() payload: CreateIssueDTO): Promise<IIssue> {
+		return await this._issueService.create(payload);
+	}
+
+	/**
+	 * @description - Update issue
+	 * @param {UpdateIssueDTO} payload - data for updating issue
+	 * @returns - A promise that resolves after issue updated
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Update Issue' })
+	@Patch(':worspace_name/projects/:projectId/issues/:id')
+	async updateIssue(
+		@Body() payload: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._issueService.update(id, payload);
+	}
+
+	/**
+	 * @description - Update issue label
+	 * @param {ID} id - the label ID to be updated
+	 * @param {ID} projectId - the project ID for whom to associate with Updated label
+	 * @param {UpdateIssueLabelDTO} payload - data for updating label
+	 * @returns - A promise that resolves after Updated label
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Issue Label' })
+	@Patch(':worspace_name/projects/:projectId/issue-labels/:id')
+	async updateIssueLabel(
+		@Body() payload: UpdateIssueLabelDTO,
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	) {
+		return await this._issueLabelService.updateIssueLabel(
+			id,
+			projectId,
+			payload,
+		);
+	}
+
+	/**
+	 * @description - Delete label
+	 * @param {ID} id - The label ID to be deleted
+	 * @returns - A promise that resolves after label deleted
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Issue Label' })
+	@Delete(':worspace_name/projects/:projectId/issue-labels/:id')
+	async deleteIssueLabel(@Param('id') id: ID) {
+		return await this._issueLabelService.deleteIssueLabel(id);
 	}
 
 	/**
@@ -202,5 +301,44 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects/:id/project-members/me')
 	async getWorkspaceProjectMemberMe(@Param('id') id: ID) {
 		return await this._workspaceService.getWorkspaceProjectMemberMe(id);
+	}
+
+	/**
+	 * @description - Get project issues
+	 * @param {ID} projectId - The ID of the project for whom get issues
+	 * @returns - A promise that resolves after got issues
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project issues' })
+	@Get(':worspace_name/projects/:projectId/issues')
+	async getWorkspaceProjectIssues(@Param('projectId') projectId: ID) {
+		return this._issueService.getAllIssuesByProject(projectId);
+	}
+
+	/**
+	 * @description - Find issue by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':worspace_name/projects/:projectId/issues/:id')
+	async findOne(@Param('id') id: ID) {
+		return await this._issueService.findOne(id);
+	}
+
+	/**
+	 * @description - Get project issue labels
+	 * @param {ID} id - The ID of the project for whom get issue labels
+	 * @returns - A promise that resolves after got issue labels
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project issues' })
+	@Get(':worspace_name/projects/:id/issue-labels')
+	async getProjectIssueLabels(@Param('id') id: ID) {
+		return this._issueLabelService.getProjectIssueLabels(id);
 	}
 }

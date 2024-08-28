@@ -1,0 +1,69 @@
+import {
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	Patch,
+	Post,
+} from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IssuesService } from './issues.service';
+import { ID, IIssue } from '@plane-plugin/models';
+import { CreateIssueDTO, UpdateIssueDTO } from './dto';
+
+@ApiTags('Issues routes')
+@Controller()
+export class IssuesController {
+	constructor(private readonly _issueService: IssuesService) {}
+
+	/**
+	 * @description - Find issue by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue fetched
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':id')
+	async findOne(@Param('id') id: ID) {
+		return await this._issueService.findOne(id);
+	}
+
+	/**
+	 * @description - Create issue
+	 * @param {CreateIssueDTO} payload - data for creating new issue
+	 * @returns - A promise that resolves after issue created
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue' })
+	@Post()
+	async create(@Body() payload: CreateIssueDTO): Promise<IIssue> {
+		return await this._issueService.create(payload);
+	}
+
+	/**
+	 * @description - Update issue
+	 * @param {UpdateIssueDTO} payload - data for updating issue
+	 * @returns - A promise that resolves after issue updated
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Update Issue' })
+	@Patch(':id')
+	async update(
+		@Body() payload: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._issueService.update(id, payload);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Issues' })
+	@Get('project/:projectId')
+	async getAllByProjectId(@Param('projectId') projectId: ID) {
+		return await this._issueService.getAllIssuesByProject(projectId);
+	}
+}

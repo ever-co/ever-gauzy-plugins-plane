@@ -18,8 +18,10 @@ function capitalizeWords(word: string) {
 		.join(' ');
 }
 
-const stateGroup = (state: ITaskStatus) => {
-	const templateOrValue = state.template || state.value;
+// From external API, transform template to group
+
+export const stateGroup = (state: ITaskStatus) => {
+	const templateOrValue = state?.template || state?.value;
 
 	if (!templateOrValue) return undefined;
 
@@ -37,6 +39,8 @@ const stateGroup = (state: ITaskStatus) => {
 
 	return groupMapping[templateOrValue];
 };
+
+// Transform group to template
 
 export const mapGroupToTemplate = (group: string): TaskStatusEnum => {
 	const groupToTemplateMapping: { [key: string]: TaskStatusEnum } = {
@@ -58,7 +62,9 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 			project_id:
 				status.projectId ?? '8e8e12b9-d8d9-4305-b673-466f632d6a93',
 			workspace_id: status.tenantId,
-			name: capitalizeWords(status.name.replace('-', ' ')),
+			name: capitalizeWords(
+				status.name.replace('-', ' '),
+			) as TaskStatusEnum,
 			color: status.color,
 			group,
 			default: false,

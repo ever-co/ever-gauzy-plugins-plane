@@ -36,8 +36,8 @@ export class StatesController {
 	 * @returns - A promise that resolves after state created
 	 * @memberof StatesService
 	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create state' })
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete state' })
 	@Delete(':id')
 	async delete(@Param('id') id: ID) {
 		return await this._stateService.delete(id);

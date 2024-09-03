@@ -1,23 +1,21 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import qs from 'qs';
-import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import {
-	getProjectsResponse,
-	getProjectsQuery,
-	createProjectInputTransformer,
-	getStatesQuery,
-	getStatesTransformer,
-} from '../../config';
 import {
 	ICreateProjectInput,
 	ID,
-	IGetProjectMembersResponse,
 	IOrganizationProject,
 	IPagination,
 	IProject,
 	IState,
 	ITaskStatus,
 } from '@plane-plugin/models';
+import {
+	getProjectsResponse,
+	createProjectInputTransformer,
+	getStatesQuery,
+	getStatesTransformer,
+} from '../../config';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -219,71 +217,6 @@ export class WorkspaceService extends ApiFetchService {
 	}
 
 	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------*/
-	/**
-	 * @description - Get all projects for a workspace
-	 * @returns - A promise that resolves after getting all projects for a workspace
-	 * @memberof WorkspaceController
-	 */
-	async getProjects(): Promise<Partial<IProject>[]> {
-		const query = qs.stringify(getProjectsQuery);
-		try {
-			const projects: IPagination<IOrganizationProject> = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `/organization-projects`,
-					query,
-				})
-			).data;
-			return getProjectsResponse(projects.items);
-		} catch (error) {
-			console.log(error);
-			throw new InternalServerErrorException(error);
-		}
-	}
-
-	/**
-	 * @description - Get workspace project by ID
-	 * @param {ID} id - The UUID primary key of the project to be fetched
-	 * @returns - A promise that resolves after getting the project
-	 * @memberof WorkspaceController
-	 */
-	async getProject(id: ID): Promise<IProject> {
-		const query = qs.stringify(getProjectsQuery);
-		try {
-			const project: IOrganizationProject = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `/organization-projects/${id}`,
-					query,
-				})
-			).data;
-			return getProjectsResponse([project])[0] as IProject;
-		} catch (error) {
-			console.log(error);
-			throw new InternalServerErrorException(error);
-		}
-	}
-
-	/**
-	 * @description - Get project members
-	 * @param {ID} id - The UUID primary key of the project for whom to get members
-	 * @returns - A promise that resolves after getting the project members
-	 * @memberof WorkspaceController
-	 */
-	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
-		const project = await this.getProject(id);
-		const members = project.members;
-		return members.map((member) => ({
-			id: member.member_id,
-			member: member.id,
-			role: 20, // Must be changed
-			project: project.id,
-		}));
-	}
-
-	/**--------------------------------------------------------------
 	 * This function handlers should be updated after implementing authentication and User features
 	 *--------------------------------------------------------------*/
 	/**
@@ -393,62 +326,6 @@ export class WorkspaceService extends ApiFetchService {
 			return getStatesTransformer(states.items);
 		} catch (error) {
 			console.log(error);
-			throw new InternalServerErrorException(error);
-		}
-	}
-
-	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
-		try {
-			const project = await this.getProject(id);
-			const memberInfos = await this.getMembersMe('');
-
-			return {
-				id: 'f6d11360-882d-44c1-a55c-dd3d5d8fe5d4',
-				workspace: {
-					name: 'Cardano',
-					slug: 'cardano',
-					id: project.workspace,
-				},
-				project: {
-					id: project.id,
-					identifier: project.identifier,
-					name: project.name,
-					cover_image: project.cover_image,
-					logo_props: project.logo_props,
-					desciption: project.description,
-				},
-				member: {
-					id: memberInfos.id,
-					first_name: 'Salva',
-					last_name: 'Cardano',
-					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
-					is_bot: false,
-					display_name: 'salva.cardano1',
-				},
-				created_at: memberInfos.created_at,
-				updated_at: memberInfos.updated_at,
-				deleted_at: memberInfos.deleted_at,
-				comment: null,
-				role: memberInfos.role,
-				view_props: {
-					filters: memberInfos.view_props.filters,
-					display_filters: memberInfos.view_props.display_filters,
-				},
-				default_props: {
-					filters: memberInfos.default_props.filters,
-					display_filters: memberInfos.default_props.display_filters,
-				},
-				preferences: {
-					pages: {
-						block_display: true,
-					},
-				},
-				sort_order: 65535.0,
-				is_active: memberInfos.is_active,
-				created_by: memberInfos.created_by,
-				updated_by: memberInfos.updated_by,
-			};
-		} catch (error) {
 			throw new InternalServerErrorException(error);
 		}
 	}

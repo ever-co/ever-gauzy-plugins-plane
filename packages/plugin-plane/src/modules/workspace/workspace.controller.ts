@@ -84,6 +84,18 @@ export class WorkspaceController {
 	}
 
 	/**
+	 * @description - Get members for a workspace
+	 * @returns - A promise that resolves after getting members for a workspace
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace members' })
+	@Get(':worspace_name/members')
+	async getMembers() {
+		return await this._workspaceService.getWorkspaceMembers();
+	}
+
+	/**
 	 * @description - Get workspace project by ID
 	 * @param {ID} id - The UUID primary key of the project to be fetched
 	 * @returns - A promise that resolves after getting the project
@@ -170,7 +182,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Create workspace projects' })
 	@Post(':worspace_name/projects')
 	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
-		return await this._workspaceService.createOrganizationProject(payload);
+		return await this._projectService.createOrganizationProject(payload);
 	}
 
 	/**
@@ -267,7 +279,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get project states' })
 	@Get(':worspace_name/projects/:id/states')
 	async getWorkspaceProjectStates(@Param('id') id: ID) {
-		return await this._workspaceService.getWorkspaceProjectStates(id);
+		return await this._stateService.getWorkspaceProjectStates(id);
 	}
 
 	// @HttpCode(HttpStatus.OK)

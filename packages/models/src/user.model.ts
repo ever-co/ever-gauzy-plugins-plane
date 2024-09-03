@@ -1,17 +1,47 @@
+import { ID } from './imports';
+import { IDefaultIssueProps, IDefaultProps, IViewProps, IWorkspaceInfo } from './base.model';
+
+export interface IWorkspaceUserInfo {
+	id?: ID;
+	member?: IMemberInfo;
+	workspace?: IWorkspaceInfo;
+	created_at?: Date;
+	updated_at?: Date;
+	deleted_at?: Date;
+	role?: number;
+	company_role?: string;
+	view_props?: IViewProps;
+	default_props?: IDefaultProps;
+	issue_props?: IDefaultIssueProps;
+	is_active?: boolean;
+	created_by?: ID;
+	updated_by?: ID;
+}
+
+export interface IMemberInfo {
+	id?: ID;
+	first_name?: string;
+	last_name?: string;
+	avatar?: string;
+	is_bot?: boolean;
+	display_name?: string;
+	email?: string;
+}
+
 export interface ICheckUserExist {
-    existing: boolean;
-    status: CheckUserExistEnum
+	existing: boolean;
+	status: CheckUserExistEnum;
 }
 
 export interface IEmailInput {
-    email: string;
+	email: string;
 }
 
 export interface IPasswordInput {
-    password?: string;
+	password?: string;
 }
 
 export enum CheckUserExistEnum {
-  MAGIC_CODE = "MAGIC_CODE",
-  CREDENTIALS = "CREDENTIAL",
+	MAGIC_CODE = 'MAGIC_CODE',
+	CREDENTIALS = 'CREDENTIAL'
 }

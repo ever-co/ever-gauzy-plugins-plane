@@ -1,13 +1,18 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import qs from 'qs';
 import {
+	ICreateProjectInput,
 	ID,
 	IGetProjectMembersResponse,
 	IOrganizationProject,
 	IPagination,
 	IProject,
 } from '@plane-plugin/models';
-import { getProjectsQuery, getProjectsResponse } from '../../config';
+import {
+	createProjectInputTransformer,
+	getProjectsQuery,
+	getProjectsResponse,
+} from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 
@@ -78,11 +83,40 @@ export class ProjectService extends ApiFetchService {
 		const project = await this.getProject(id);
 		const members = project.members;
 		return members.map((member) => ({
-			id: member.member_id,
-			member: member.id,
+			id: member.id,
+			member: member.member_id,
 			role: 20, // Must be changed
 			project: project.id,
 		}));
+	}
+
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Create new Project in workspace
+	 * @param {CreateProjectDTO} payload - input data with which to create project
+	 * @returns - A promise that resolves after created project
+	 * @memberof WorkspaceController
+	 */
+	async createOrganizationProject(
+		payload: ICreateProjectInput,
+	): Promise<IProject> {
+		const body = createProjectInputTransformer(payload);
+		try {
+			const project: IOrganizationProject = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/organization-projects',
+					body,
+				})
+			).data;
+
+			return getProjectsResponse([project])[0] as IProject;
+		} catch (error) {
+			console.log(error);
+			throw new InternalServerErrorException(error);
+		}
 	}
 
 	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
@@ -91,7 +125,7 @@ export class ProjectService extends ApiFetchService {
 			const memberInfos = await this._workspaceService.getMembersMe('');
 
 			return {
-				id: 'f6d11360-882d-44c1-a55c-dd3d5d8fe5d4',
+				id: memberInfos.id,
 				workspace: {
 					name: 'Cardano',
 					slug: 'cardano',
@@ -106,7 +140,7 @@ export class ProjectService extends ApiFetchService {
 					desciption: project.description,
 				},
 				member: {
-					id: memberInfos.id,
+					id: memberInfos.member,
 					first_name: 'Salva',
 					last_name: 'Cardano',
 					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',

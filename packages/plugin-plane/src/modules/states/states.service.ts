@@ -1,13 +1,20 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
+import qs from 'qs';
 import {
 	ICreateStateInput,
 	ID,
+	IPagination,
 	IState,
 	ITaskStatus,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createStateInputTransformer,
+	getStatesQuery,
 	getStatesTransformer,
 } from '../../config';
 
@@ -74,5 +81,28 @@ export class StatesService extends ApiFetchService {
 				path: `${this.path}/${id}`,
 			})
 		).data;
+	}
+
+	/**
+	 * @description - Get all states related to project
+	 * @param {ID} id - The UUID primary key of the project for whom to get states
+	 * @returns - A promise that resolves after getting all states
+	 * @memberof WorkspaceController
+	 */
+	async getWorkspaceProjectStates(id: ID): Promise<IState[]> {
+		const query = qs.stringify(getStatesQuery(id));
+		try {
+			const states: IPagination<ITaskStatus> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query,
+				})
+			).data;
+			return getStatesTransformer(states.items);
+		} catch (error) {
+			console.log(error);
+			throw new InternalServerErrorException(error);
+		}
 	}
 }

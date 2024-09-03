@@ -13,8 +13,8 @@ export function getProjectsResponse(
 	return projects.map((project) => {
 		const members = project.members
 			? project.members.map((member) => ({
-					id: member.id,
-					member_id: member.user.id,
+					id: member.user.id,
+					member_id: member.id,
 					member__display_name: member.fullName,
 					member__avatar: member.user.imageUrl,
 				}))

@@ -34,7 +34,8 @@ export class IssueLabelsService extends ApiFetchService {
 			const labels: IPagination<ITag> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `${this.path}?${query}`,
+					path: `${this.path}`,
+					query,
 				})
 			).data;
 

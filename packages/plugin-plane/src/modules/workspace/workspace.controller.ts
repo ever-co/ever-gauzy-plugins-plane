@@ -11,26 +11,28 @@ import {
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { WorkspaceService } from './workspace.service';
-import { CreateProjectDTO } from './dto';
 import { ID, IIssue } from '@plane-plugin/models';
+import { WorkspaceService } from './workspace.service';
 import { StatesService } from '../states/states.service';
 import { IssuesService } from '../issues/issues.service';
 import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
+import { ProjectService } from '../project/project.service';
 import {
 	CreateIssueLabelDTO,
 	UpdateIssueLabelDTO,
 } from '../issues/issue-labels/dto';
 import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
+import { CreateProjectDTO } from '../project/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
 	constructor(
-		private readonly _workspaceService: WorkspaceService,
-		private readonly _stateService: StatesService,
-		private readonly _issueService: IssuesService,
 		private readonly _issueLabelService: IssueLabelsService,
+		private readonly _issueService: IssuesService,
+		private readonly _projectService: ProjectService,
+		private readonly _stateService: StatesService,
+		private readonly _workspaceService: WorkspaceService,
 	) {}
 
 	/**
@@ -78,7 +80,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get workspace projects' })
 	@Get(':worspace_name/projects')
 	async getProjects() {
-		return await this._workspaceService.getProjects();
+		return await this._projectService.getProjects();
 	}
 
 	/**
@@ -91,7 +93,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get one project' })
 	@Get(':worspace_name/projects/:id')
 	async getProject(@Param('id') id: ID) {
-		return await this._workspaceService.getProject(id);
+		return await this._projectService.getProject(id);
 	}
 
 	/**
@@ -104,7 +106,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get workspace project members' })
 	@Get(':worspace_name/projects/:id/members')
 	async getProjectMembers(@Param('id') id: ID) {
-		return await this._workspaceService.getProjectMembers(id);
+		return await this._projectService.getProjectMembers(id);
 	}
 
 	/**--------------------------------------------------------------
@@ -300,7 +302,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get project members me' })
 	@Get(':worspace_name/projects/:id/project-members/me')
 	async getWorkspaceProjectMemberMe(@Param('id') id: ID) {
-		return await this._workspaceService.getWorkspaceProjectMemberMe(id);
+		return await this._projectService.getWorkspaceProjectMemberMe(id);
 	}
 
 	/**

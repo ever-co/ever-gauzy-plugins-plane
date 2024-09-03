@@ -3,6 +3,7 @@ export * from './imports';
 
 // Configs
 export * from './config.model';
+export * from './base.model';
 
 // Models
 export * from './user.model';

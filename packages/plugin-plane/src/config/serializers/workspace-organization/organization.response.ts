@@ -13,9 +13,9 @@ export function organizationMembersTransformer(
 	tenant: ITenant,
 ): IWorkspaceUserInfo[] {
 	return members.map((member) => ({
-		id: member.id,
+		id: member.userId,
 		member: {
-			id: member.userId,
+			id: member.id,
 			first_name: member.user.firstName,
 			last_name: member.user.lastName,
 			avatar: member.user.imageUrl,

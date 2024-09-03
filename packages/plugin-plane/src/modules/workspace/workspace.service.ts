@@ -269,12 +269,17 @@ export class WorkspaceService extends ApiFetchService {
 		};
 	}
 
+	/**
+	 * @description - Get Organization members
+	 * @returns A promise that resolves after get organization members
+	 * @memberof WorkspaceService
+	 */
 	async getWorkspaceMembers(): Promise<IWorkspaceUserInfo[]> {
 		const query = qs.stringify(getOrganizationQuery);
 		const organization: IOrganization = (
 			await this.apiFetch({
 				method: 'GET',
-				path: `/organization/${defaultOrganizationId}`,
+				path: `/organization/${defaultOrganizationId}`, // TODO : Get this organization ID from request
 				query,
 			})
 		).data;

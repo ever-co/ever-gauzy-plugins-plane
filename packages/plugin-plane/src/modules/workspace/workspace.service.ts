@@ -1,21 +1,12 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import qs from 'qs';
-import {
-	ICreateProjectInput,
-	ID,
-	IOrganizationProject,
-	IPagination,
-	IProject,
-	IState,
-	ITaskStatus,
-} from '@plane-plugin/models';
-import {
-	getProjectsResponse,
-	createProjectInputTransformer,
-	getStatesQuery,
-	getStatesTransformer,
-} from '../../config';
+import { ID, IOrganization, IWorkspaceUserInfo } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
+import { defaultOrganizationId } from '../../config';
+import {
+	getOrganizationQuery,
+	organizationMembersTransformer,
+} from '../../config/serializers/workspace-organization';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -278,55 +269,18 @@ export class WorkspaceService extends ApiFetchService {
 		};
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
-	 *--------------------------------------------------------------*/
-	/**
-	 * @description - Create new Project in workspace
-	 * @param {CreateProjectDTO} payload - input data with which to create project
-	 * @returns - A promise that resolves after created project
-	 * @memberof WorkspaceController
-	 */
-	async createOrganizationProject(
-		payload: ICreateProjectInput,
-	): Promise<IProject> {
-		const body = createProjectInputTransformer(payload);
-		try {
-			const project: IOrganizationProject = (
-				await this.apiFetch({
-					method: 'POST',
-					path: '/organization-projects',
-					body,
-				})
-			).data;
-
-			return getProjectsResponse([project])[0] as IProject;
-		} catch (error) {
-			console.log(error);
-			throw new InternalServerErrorException(error);
-		}
-	}
-
-	/**
-	 * @description - Get all states related to project
-	 * @param {ID} id - The UUID primary key of the project for whom to get states
-	 * @returns - A promise that resolves after getting all states
-	 * @memberof WorkspaceController
-	 */
-	async getWorkspaceProjectStates(id: ID): Promise<IState[]> {
-		const query = qs.stringify(getStatesQuery(id));
-		try {
-			const states: IPagination<ITaskStatus> = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `/task-statuses`,
-					query,
-				})
-			).data;
-			return getStatesTransformer(states.items);
-		} catch (error) {
-			console.log(error);
-			throw new InternalServerErrorException(error);
-		}
+	async getWorkspaceMembers(): Promise<IWorkspaceUserInfo[]> {
+		const query = qs.stringify(getOrganizationQuery);
+		const organization: IOrganization = (
+			await this.apiFetch({
+				method: 'GET',
+				path: `/organization/${defaultOrganizationId}`,
+				query,
+			})
+		).data;
+		return organizationMembersTransformer(
+			organization.employees,
+			organization.tenant,
+		);
 	}
 }

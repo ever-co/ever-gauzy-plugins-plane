@@ -44,6 +44,7 @@ export class StatesService extends ApiFetchService {
 	 */
 	async create(payload: ICreateStateInput): Promise<IState> {
 		const body = createStateInputTransformer(payload);
+
 		try {
 			const state: ITaskStatus = (
 				await this.apiFetch({

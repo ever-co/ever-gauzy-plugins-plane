@@ -232,7 +232,8 @@ export class WorkspaceService extends ApiFetchService {
 			const projects: IPagination<IOrganizationProject> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/organization-projects?${query}`,
+					path: `/organization-projects`,
+					query,
 				})
 			).data;
 			return getProjectsResponse(projects.items);
@@ -254,7 +255,8 @@ export class WorkspaceService extends ApiFetchService {
 			const project: IOrganizationProject = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/organization-projects/${id}?${query}`,
+					path: `/organization-projects/${id}`,
+					query,
 				})
 			).data;
 			return getProjectsResponse([project])[0] as IProject;
@@ -384,7 +386,8 @@ export class WorkspaceService extends ApiFetchService {
 			const states: IPagination<ITaskStatus> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/task-statuses?${query}`,
+					path: `/task-statuses`,
+					query,
 				})
 			).data;
 			return getStatesTransformer(states.items);

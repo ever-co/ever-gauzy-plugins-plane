@@ -55,12 +55,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findOne(id: ID): Promise<IIssue> {
 		try {
-			const issue: ITask = (
-				await this.apiFetch({
-					path: `${this.path}/${id}`,
-					method: 'GET',
-				})
-			).data;
+			const issue = await this.getRemoteIssue(id);
 
 			if (!issue) {
 				throw new BadRequestException('Issue cnot found');
@@ -155,7 +150,8 @@ export class IssuesService extends ApiFetchService {
 			const issues: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `${this.path}?${query}`,
+					path: `${this.path}`,
+					query,
 				})
 			).data;
 

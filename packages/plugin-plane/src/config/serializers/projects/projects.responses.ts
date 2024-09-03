@@ -43,7 +43,7 @@ export function getProjectsResponse(
 			description_text: null, // To add for external API
 			description_html: null, // To add for external API
 			network: project.public ? 2 : 0,
-			identifier: 'PLUGI', // To add for external API
+			identifier: project.code, // To add for external API
 			emoji: null, // To add for external API
 			icon_prop: null, // To add for external API
 			module_view: true, // To add for external API

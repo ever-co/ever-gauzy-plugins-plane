@@ -39,10 +39,12 @@ export class IssuesService extends ApiFetchService {
 	 * @memberof IssuesService
 	 */
 	private async getRemoteIssue(id: ID): Promise<ITask> {
+		const query = qs.stringify(getTaskQuery());
 		return (
 			await this.apiFetch({
 				path: `${this.path}/${id}`,
 				method: 'GET',
+				query,
 			})
 		).data;
 	}
@@ -160,5 +162,24 @@ export class IssuesService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException();
 		}
+	}
+
+	async findIssueChildren(
+		id: ID,
+	): Promise<{ sub_issues: IIssue[]; state_distribution: any }> {
+		try {
+			const sub_issues: IIssue[] = [];
+			const issue = await this.getRemoteIssue(id);
+			if (!issue) {
+				throw new BadRequestException('Issue could not be found');
+			}
+			if (issue.children.length > 0) {
+				const children = issue.children;
+				children.forEach((task) =>
+					sub_issues.push(issueTransformer(task)),
+				);
+			}
+			return { sub_issues, state_distribution: {} };
+		} catch (error) {}
 	}
 }

@@ -35,6 +35,8 @@ export interface IIssue {
 	assignee_ids?: ID[];
 	label_ids?: ID[];
 	module_ids?: ID[];
+	issue_reactions?: [];
+	issue_attachment?: [];
 }
 
 export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}

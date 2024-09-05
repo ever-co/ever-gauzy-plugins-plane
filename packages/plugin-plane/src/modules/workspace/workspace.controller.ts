@@ -339,8 +339,21 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Find issue by ID' })
 	@Get(':worspace_name/projects/:projectId/issues/:id')
-	async findOne(@Param('id') id: ID) {
+	async findOneIssue(@Param('id') id: ID) {
 		return await this._issueService.findOne(id);
+	}
+
+	/**
+	 * @description - Find issue children by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue children fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':worspace_name/projects/:projectId/issues/:id/sub-issues')
+	async findIssueSubIssues(@Param('id') id: ID) {
+		return await this._issueService.findIssueChildren(id);
 	}
 
 	/**

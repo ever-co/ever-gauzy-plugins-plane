@@ -55,6 +55,7 @@ export function issueTransformer(issue: ITask): IIssue {
 		archived_at: null, // TODO : Add to API
 		state__group: stateGroup(issue.taskStatus),
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
+		description_html: issue.description ?? '<p></p>',
 		cycle_id: issue.organizationSprintId,
 		link_count: 0, // TODO: Add to API
 		attachment_count: 0, // TODO : Add to API,
@@ -119,15 +120,19 @@ export const taskRelations = [
 	'taskStatus',
 ];
 
-export const getTaskQuery = (id: ID): Record<string, string> => {
+export const getTaskQuery = (id?: ID): Record<string, string> => {
 	// Base queries
 	const query: Record<string, string> = {
 		...baseGetItemsWhereQuery,
-		'where[projectId]': id,
+
 		// 'join[alias]': 'task',
 		// 'join[leftJoinAndSelect][members]': 'task.members',
 		// 'join[leftJoinAndSelect][user]': 'members.user',
 	};
+
+	if (id) {
+		query['where[projectId]'] = id;
+	}
 
 	// Add relations
 	taskRelations.forEach((relation, i) => {

@@ -9,6 +9,7 @@ import { IUser } from './user.model';
 import { ITaskStatus, TaskStatusEnum } from './task-status.model';
 import { ITaskPriority, TaskPriorityEnum } from './task-priority.model';
 import { ITaskSize, TaskSizeEnum } from './task-size.model';
+import { ITaskLinkedIssue } from './task-linked-issue.model';
 
 export interface ITask extends IBasePerTenantAndOrganizationEntityModel {
 	title: string;
@@ -25,6 +26,7 @@ export interface ITask extends IBasePerTenantAndOrganizationEntityModel {
 	project?: IOrganizationProject;
 	projectId?: ID;
 	tags?: ITag[];
+	linkedIssues?: ITaskLinkedIssue[];
 	members?: IEmployee[];
 	invoiceItems?: IInvoiceItem[];
 	teams?: IOrganizationTeam[];

@@ -1,11 +1,9 @@
-import { TaskRelatedIssuesRelationEnum } from '@plane-plugin/models';
-
-export enum IssueRelationTypeEnum {
-	BLOCKING = 'blocking',
-	BLOCKED_BY = 'blocked_by',
-	DUPLICATE = 'duplicate',
-	RELATES_TO = 'relates_to',
-}
+import {
+	IIssueRelation,
+	IssueRelationTypeEnum,
+	ITaskLinkedIssue,
+	TaskRelatedIssuesRelationEnum,
+} from '@plane-plugin/models';
 
 const issueRelationMap = {
 	[TaskRelatedIssuesRelationEnum.IS_BLOCKED_BY]:
@@ -36,4 +34,21 @@ export function getTaskRelatedIssueRelation(
 	};
 
 	return reverseMap[issueRelationType];
+}
+
+export function issueRelationTransformer(
+	linkedIssue: ITaskLinkedIssue,
+): IIssueRelation {
+	return {
+		id: linkedIssue.id,
+		relation_type: getIssueRelationType(linkedIssue.action),
+		issue_id: linkedIssue.taskFrom.id,
+		related_issue_id: linkedIssue.taskTo.id,
+		project_id: linkedIssue.taskFrom.projectId, // Should be consistent
+		workspace_id: linkedIssue.taskFrom.tenantId, // Should be consistent
+		created_at: linkedIssue.createdAt,
+		updated_at: linkedIssue.updatedAt,
+		created_by_id: null, // To update
+		updated_by_id: null, // To update
+	};
 }

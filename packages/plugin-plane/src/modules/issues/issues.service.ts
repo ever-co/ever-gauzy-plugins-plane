@@ -5,6 +5,7 @@ import {
 	ID,
 	IIssue,
 	IIssueCreateInput,
+	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
 	IState,
@@ -19,6 +20,7 @@ import {
 	updateIssueInputTransformer,
 } from '../../config';
 import { StatesService } from '../states/states.service';
+import { getIssueRelationType } from '../../config/serializers/tasks/issue-relations';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -164,6 +166,12 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * @description Find issu children
+	 * @param {ID} id - Issue ID to search
+	 * @returns A promise that resolves after found issue children
+	 * @memberof IssuesService
+	 */
 	async findIssueChildren(
 		id: ID,
 	): Promise<{ sub_issues: IIssue[]; state_distribution: any }> {
@@ -179,7 +187,43 @@ export class IssuesService extends ApiFetchService {
 					sub_issues.push(issueTransformer(task)),
 				);
 			}
+
 			return { sub_issues, state_distribution: {} };
-		} catch (error) {}
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException();
+		}
+	}
+
+	async findIssueRelations(id: ID) {
+		try {
+			const relatedIssues: IIssueRelationResponse = {
+				blocked_by: [],
+				blocking: [],
+				duplicate: [],
+				relates_to: [],
+			};
+			const issue = await this.getRemoteIssue(id);
+			if (!issue) {
+				throw new BadRequestException('Issue could not be found');
+			}
+			const linkedIssues = issue.linkedIssues;
+
+			linkedIssues.forEach((linkedIssue) => {
+				const relation_type = getIssueRelationType(linkedIssue.action);
+				if (relation_type) {
+					if (linkedIssue.taskFrom) {
+						relatedIssues[relation_type].push(
+							issueTransformer(linkedIssue.taskFrom),
+						);
+					}
+				}
+			});
+
+			return relatedIssues;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException();
+		}
 	}
 }

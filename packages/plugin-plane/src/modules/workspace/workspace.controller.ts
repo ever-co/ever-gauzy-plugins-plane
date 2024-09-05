@@ -357,6 +357,19 @@ export class WorkspaceController {
 	}
 
 	/**
+	 * @description - Find issue children by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue children fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':worspace_name/projects/:projectId/issues/:id/issue-relation')
+	async findIssueRelations(@Param('id') id: ID) {
+		return await this._issueService.findIssueRelations(id);
+	}
+
+	/**
 	 * @description - Get project issue labels
 	 * @param {ID} id - The ID of the project for whom get issue labels
 	 * @returns - A promise that resolves after got issue labels

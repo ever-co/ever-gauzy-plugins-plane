@@ -11,3 +11,4 @@ export * from './project.model';
 export * from './state.model';
 export * from './issue.model';
 export * from './issue-label.model';
+export * from './issue-relation.model';

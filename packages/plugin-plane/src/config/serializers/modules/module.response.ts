@@ -1,5 +1,6 @@
 import {
 	ICreateModuleInput,
+	ID,
 	IModule,
 	IOrganizationProjectModule,
 	IOrganizationProjectModuleCreateInput,
@@ -7,6 +8,7 @@ import {
 	TaskStatusEnum,
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
@@ -105,3 +107,32 @@ export function createModuleInputTransformer(
 		organizationId: defaultOrganizationId,
 	};
 }
+
+export const moduleRelations = [
+	'parent',
+	'project',
+	'creator',
+	'manager',
+	'members',
+	'members.user',
+	'children',
+	'tasks',
+];
+
+export const getModulesQuery = (projectId?: ID): Record<string, string> => {
+	// Base queries
+	const query: Record<string, string> = {
+		...baseGetItemsWhereQuery,
+	};
+
+	if (projectId) {
+		query['where[projectId]'] = projectId;
+	}
+
+	// Add relations
+	moduleRelations.forEach((relation, i) => {
+		query[`relations[${i}]`] = relation;
+	});
+
+	return query;
+};

@@ -120,7 +120,7 @@ export const taskRelations = [
 	'taskStatus',
 ];
 
-export const getTaskQuery = (id?: ID): Record<string, string> => {
+export const getTaskQuery = (projectId?: ID): Record<string, string> => {
 	// Base queries
 	const query: Record<string, string> = {
 		...baseGetItemsWhereQuery,
@@ -130,8 +130,8 @@ export const getTaskQuery = (id?: ID): Record<string, string> => {
 		// 'join[leftJoinAndSelect][user]': 'members.user',
 	};
 
-	if (id) {
-		query['where[projectId]'] = id;
+	if (projectId) {
+		query['where[projectId]'] = projectId;
 	}
 
 	// Add relations

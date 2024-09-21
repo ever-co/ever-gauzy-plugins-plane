@@ -1,11 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import qs from 'qs';
 import {
 	ICreateModuleInput,
+	ID,
 	IModule,
 	IOrganizationProjectModule,
+	IPagination,
 } from '@plane-plugin/models';
 import {
 	createModuleInputTransformer,
+	getModulesQuery,
 	modulesTransformer,
 } from '../../config/serializers/modules/module.response';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -36,6 +40,30 @@ export class ProjectModuleService extends ApiFetchService {
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description - Get project modules
+	 * @param {ID} projectId - The project ID for whom search modules
+	 * @returns A promise that resolves after getting modukes
+	 * @memberof ProjectModuleService
+	 */
+	async getAllModulesByProject(projectId: ID) {
+		try {
+			const query = qs.stringify(getModulesQuery(projectId));
+			const modules: IPagination<IOrganizationProjectModule> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}`,
+					query,
+				})
+			).data;
+
+			return modulesTransformer(modules.items);
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException();
 		}
 	}
 }

@@ -13,6 +13,7 @@ import { GlobalHttpModule } from './http.module';
 import { IssueLabelsModule } from './issues/issue-labels/issue-labels.module';
 import { ProjectModule } from './project/project.module';
 import { IssueRelationsModule } from './issue-relations/issue-relations.module';
+import { ProjectModuleModule } from './project-module/project-module.module';
 
 @Module({
 	imports: [
@@ -28,6 +29,7 @@ import { IssueRelationsModule } from './issue-relations/issue-relations.module';
 		IssueLabelsModule,
 		ProjectModule,
 		IssueRelationsModule,
+		ProjectModuleModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

@@ -11,18 +11,20 @@ import {
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID, IIssue } from '@plane-plugin/models';
+import { ID, IIssue, IModule } from '@plane-plugin/models';
 import { WorkspaceService } from './workspace.service';
 import { StatesService } from '../states/states.service';
 import { IssuesService } from '../issues/issues.service';
 import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
 import { ProjectService } from '../project/project.service';
+import { ProjectModuleService } from '../project-module/project-module.service';
 import {
 	CreateIssueLabelDTO,
 	UpdateIssueLabelDTO,
 } from '../issues/issue-labels/dto';
 import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 import { CreateProjectDTO } from '../project/dto';
+import { CreateModuleDTO } from '../project-module/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -33,6 +35,7 @@ export class WorkspaceController {
 		private readonly _projectService: ProjectService,
 		private readonly _stateService: StatesService,
 		private readonly _workspaceService: WorkspaceService,
+		private readonly _moduleService: ProjectModuleService,
 	) {}
 
 	/**
@@ -282,33 +285,33 @@ export class WorkspaceController {
 		return await this._stateService.getWorkspaceProjectStates(id);
 	}
 
-	// @HttpCode(HttpStatus.OK)
-	// @ApiOperation({ summary: 'Get project cycles' })
-	// @Get(':worspace_name/projects/:id/cycles')
-	// async getWorkspaceProjectCycles(@Param('id') id: ID) {
-	// 	return [];
-	// }
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project cycles' })
+	@Get(':worspace_name/projects/:id/cycles')
+	async getWorkspaceProjectCycles(@Param('id') id: ID) {
+		return [];
+	}
 
-	// @HttpCode(HttpStatus.OK)
-	// @ApiOperation({ summary: 'Get project estimates' })
-	// @Get(':worspace_name/projects/:id/estimates')
-	// async getWorkspaceProjectEstimates(@Param('id') id: ID) {
-	// 	return [];
-	// }
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project estimates' })
+	@Get(':worspace_name/projects/:id/estimates')
+	async getWorkspaceProjectEstimates(@Param('id') id: ID) {
+		return [];
+	}
 
-	// @HttpCode(HttpStatus.OK)
-	// @ApiOperation({ summary: 'Get project modules' })
-	// @Get(':worspace_name/projects/:id/modules')
-	// async getWorkspaceProjectModules(@Param('id') id: ID) {
-	// 	return [];
-	// }
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project modules' })
+	@Get(':worspace_name/projects/:id/modules')
+	async getWorkspaceProjectModules(@Param('id') id: ID) {
+		return [];
+	}
 
-	// @HttpCode(HttpStatus.OK)
-	// @ApiOperation({ summary: 'Get project cycles' })
-	// @Get(':worspace_name/projects/:id/views')
-	// async getWorkspaceProjectViews(@Param('id') id: ID) {
-	// 	return [];
-	// }
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project cycles' })
+	@Get(':worspace_name/projects/:id/views')
+	async getWorkspaceProjectViews(@Param('id') id: ID) {
+		return [];
+	}
 
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get project members me' })
@@ -367,6 +370,21 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects/:projectId/issues/:id/issue-relation')
 	async findIssueRelations(@Param('id') id: ID) {
 		return await this._issueService.findIssueRelations(id);
+	}
+
+	/**
+	 * @description - Create module
+	 * @param {ICreateModuleInput} payload - data for creating new module
+	 * @returns - A promise that resolves after module created
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create module' })
+	@Post(':worspace_name/projects/:projectId/modules')
+	async createModule(
+		@Body() payload: CreateModuleDTO,
+	): Promise<IModule | IModule[]> {
+		return await this._moduleService.create(payload);
 	}
 
 	/**

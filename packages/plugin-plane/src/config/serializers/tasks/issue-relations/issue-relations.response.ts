@@ -45,7 +45,7 @@ export function issueRelationTransformer(
 		issue_id: linkedIssue.taskFrom.id,
 		related_issue_id: linkedIssue.taskTo.id,
 		project_id: linkedIssue.taskFrom.projectId, // Should be consistent
-		workspace_id: linkedIssue.taskFrom.tenantId, // Should be consistent
+		workspace_id: linkedIssue.tenantId,
 		created_at: linkedIssue.createdAt,
 		updated_at: linkedIssue.updatedAt,
 		created_by_id: null, // To update

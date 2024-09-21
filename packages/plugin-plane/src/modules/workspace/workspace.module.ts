@@ -6,6 +6,7 @@ import { StatesModule } from '../states/states.module';
 import { IssuesModule } from '../issues/issues.module';
 import { IssueLabelsModule } from '../issues/issue-labels/issue-labels.module';
 import { ProjectModule } from '../project/project.module';
+import { ProjectModuleModule } from '../project-module/project-module.module';
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { ProjectModule } from '../project/project.module';
 		IssuesModule,
 		ProjectModule,
 		StatesModule,
+		ProjectModuleModule,
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

@@ -216,7 +216,7 @@ export function updateIssueInputTransformer(
 		transformedInput.tags = issue.label_ids.map((id) => ({ id }) as ITag);
 	}
 
-	// AAdd members only if assignee_ids is defined
+	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
 		transformedInput.members = issue.assignee_ids.map(
 			(id) => ({ id }) as IEmployee,

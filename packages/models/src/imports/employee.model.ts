@@ -42,8 +42,8 @@ export interface IEmployee extends IBasePerTenantAndOrganizationEntityModel {
 	[x: string]: any;
 	endWork?: Date;
 	startedWorkOn?: Date;
-	user: IUser;
-	userId: string;
+	user?: IUser;
+	userId?: string;
 	valueDate?: Date;
 	short_description?: string;
 	description?: string;
@@ -99,7 +99,7 @@ export interface IEmployee extends IBasePerTenantAndOrganizationEntityModel {
 	totalJobs?: number;
 	fullName?: string;
 	profile_link?: string;
-	isTrackingEnabled: boolean;
+	isTrackingEnabled?: boolean;
 	isDeleted?: boolean;
 	allowScreenshotCapture?: boolean;
 	/** Upwork ID For Gauzy AI*/

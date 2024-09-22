@@ -9,6 +9,7 @@ import {
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { mapGroupToTemplate } from '../tasks';
 
 function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
@@ -43,6 +44,7 @@ function getTaskCounts(tasks: ITask[]) {
 
 export function modulesTransformer(
 	modules: IOrganizationProjectModule[] | IOrganizationProjectModule,
+	managerId?: ID,
 ): IModule[] | IModule {
 	const transformModule = (projectModule: IOrganizationProjectModule) => {
 		const {
@@ -50,7 +52,7 @@ export function modulesTransformer(
 			startedIssues,
 			unstartedIssues,
 			backlogIssues,
-		} = getTaskCounts(projectModule.tasks);
+		} = getTaskCounts(projectModule?.tasks);
 
 		return {
 			id: projectModule.id,
@@ -62,7 +64,7 @@ export function modulesTransformer(
 			start_date: projectModule.startDate,
 			target_date: projectModule.endDate,
 			project_id: projectModule.projectId,
-			lead_id: projectModule.managerId,
+			lead_id: managerId ?? projectModule.managerId,
 			view_props: {},
 			sort_order: 0,
 			external_id: null,
@@ -93,12 +95,14 @@ export function modulesTransformer(
 
 export function createModuleInputTransformer(
 	module: ICreateModuleInput,
+	managerId?: ID,
 ): IOrganizationProjectModuleCreateInput {
 	return {
 		name: module.name,
 		description: module.description,
-		managerId: module.lead_id,
-		status: module.status as TaskStatusEnum,
+		manager: { id: managerId },
+		managerId,
+		status: mapGroupToTemplate(module.status),
 		startDate: module.start_date,
 		endDate: module.target_date,
 		members: module.member_ids.map((id) => ({ id })),

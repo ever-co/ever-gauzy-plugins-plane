@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
 	ICreateProjectInput,
@@ -51,21 +55,37 @@ export class ProjectService extends ApiFetchService {
 	}
 
 	/**
+	 * @description - Get remode API project
+	 * @private
+	 * @param {ID} id - The project ID
+	 * @returns - A promise that resolved after getting project
+	 * @memberof ProjectService
+	 */
+	async getRemoteProject(id: ID): Promise<IOrganizationProject> {
+		const query = qs.stringify(getProjectsQuery);
+		return (
+			await this.apiFetch({
+				method: 'GET',
+				path: `/organization-projects/${id}`,
+				query,
+			})
+		).data;
+	}
+
+	/**
 	 * @description - Get workspace project by ID
 	 * @param {ID} id - The UUID primary key of the project to be fetched
 	 * @returns - A promise that resolves after getting the project
 	 * @memberof WorkspaceController
 	 */
 	async getProject(id: ID): Promise<IProject> {
-		const query = qs.stringify(getProjectsQuery);
 		try {
-			const project: IOrganizationProject = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `/organization-projects/${id}`,
-					query,
-				})
-			).data;
+			const project: IOrganizationProject =
+				await this.getRemoteProject(id);
+
+			if (!project) {
+				throw new BadRequestException('Project not found');
+			}
 			return getProjectsResponse([project])[0] as IProject;
 		} catch (error) {
 			console.log(error);

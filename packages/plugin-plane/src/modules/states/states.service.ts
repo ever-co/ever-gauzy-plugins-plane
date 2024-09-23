@@ -85,12 +85,12 @@ export class StatesService extends ApiFetchService {
 
 	/**
 	 * @description - Get all states related to project
-	 * @param {ID} id - The UUID primary key of the project for whom to get states
+	 * @param {ID} projectId - The UUID primary key of the project for whom to get states
 	 * @returns - A promise that resolves after getting all states
 	 * @memberof WorkspaceController
 	 */
-	async getWorkspaceProjectStates(id: ID): Promise<IState[]> {
-		const query = qs.stringify(getStatesQuery(id));
+	async getWorkspaceProjectStates(projectId: ID): Promise<IState[]> {
+		const query = qs.stringify(getStatesQuery(projectId));
 		try {
 			const states: IPagination<ITaskStatus> = (
 				await this.apiFetch({

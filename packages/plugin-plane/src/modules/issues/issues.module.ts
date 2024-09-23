@@ -4,10 +4,7 @@ import { IssuesController } from './issues.controller';
 import { StatesModule } from '../states/states.module';
 
 @Module({
-	imports: [
-		// RouterModule.register([{ path: '/issues', module: IssuesModule }]),
-		StatesModule,
-	],
+	imports: [StatesModule],
 	providers: [IssuesService],
 	controllers: [IssuesController],
 	exports: [IssuesService],

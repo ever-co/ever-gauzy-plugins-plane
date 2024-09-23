@@ -13,7 +13,7 @@ import { ID } from '@plane-plugin/models';
 import { IssueLabelsService } from './issue-labels.service';
 import { CreateIssueLabelDTO, UpdateIssueLabelDTO } from './dto';
 
-@Controller('issue-labels')
+@Controller()
 export class IssueLabelsController {
 	constructor(private readonly _issueLabelService: IssueLabelsService) {}
 
@@ -25,7 +25,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Issue Labels By project' })
-	@Get(':projectId')
+	@Get()
 	async getAllByProjectId(@Param('projectId') projectId: ID) {
 		return await this._issueLabelService.getProjectIssueLabels(projectId);
 	}
@@ -39,7 +39,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue Label' })
-	@Post(':projectId')
+	@Post()
 	async createIssueLabel(
 		@Body() payload: CreateIssueLabelDTO,
 		@Param('projectId') projectId: ID,
@@ -60,7 +60,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update Issue Label' })
-	@Patch(':projectId/:id')
+	@Patch(':id')
 	async updateIssueLabel(
 		@Body() payload: UpdateIssueLabelDTO,
 		@Param('id') id: ID,
@@ -81,7 +81,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete Issue Label' })
-	@Patch(':projectId/:id')
+	@Patch(':id')
 	async deleteIssueLabel(@Param('id') id: ID) {
 		return await this._issueLabelService.deleteIssueLabel(id);
 	}

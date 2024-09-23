@@ -9,8 +9,8 @@ import {
 	Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { IssuesService } from './issues.service';
 import { ID, IIssue } from '@plane-plugin/models';
+import { IssuesService } from './issues.service';
 import { CreateIssueDTO, UpdateIssueDTO } from './dto';
 
 @ApiTags('Issues routes')

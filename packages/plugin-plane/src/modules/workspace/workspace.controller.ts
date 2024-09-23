@@ -11,18 +11,15 @@ import {
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID, IIssue, IModule } from '@plane-plugin/models';
+import { ID, IModule } from '@plane-plugin/models';
 import { WorkspaceService } from './workspace.service';
 import { StatesService } from '../states/states.service';
-import { IssuesService } from '../issues/issues.service';
 import { IssueLabelsService } from '../issues/issue-labels/issue-labels.service';
-import { ProjectService } from '../project/project.service';
 import { ProjectModuleService } from '../project-module/project-module.service';
 import {
 	CreateIssueLabelDTO,
 	UpdateIssueLabelDTO,
 } from '../issues/issue-labels/dto';
-import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 import { CreateProjectDTO } from '../project/dto';
 import { CreateModuleDTO } from '../project-module/dto';
 
@@ -31,8 +28,6 @@ import { CreateModuleDTO } from '../project-module/dto';
 export class WorkspaceController {
 	constructor(
 		private readonly _issueLabelService: IssueLabelsService,
-		private readonly _issueService: IssuesService,
-		private readonly _projectService: ProjectService,
 		private readonly _stateService: StatesService,
 		private readonly _workspaceService: WorkspaceService,
 		private readonly _moduleService: ProjectModuleService,
@@ -71,21 +66,6 @@ export class WorkspaceController {
 		return await this._workspaceService.getMembersMe(workspace_name);
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------*/
-	/**
-	 * @description - Get all projects for a workspace
-	 * @returns - A promise that resolves after getting all projects for a workspace
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get workspace projects' })
-	@Get(':worspace_name/projects')
-	async getProjects() {
-		return await this._projectService.getProjects();
-	}
-
 	/**
 	 * @description - Get members for a workspace
 	 * @returns - A promise that resolves after getting members for a workspace
@@ -96,32 +76,6 @@ export class WorkspaceController {
 	@Get(':worspace_name/members')
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
-	}
-
-	/**
-	 * @description - Get workspace project by ID
-	 * @param {ID} id - The UUID primary key of the project to be fetched
-	 * @returns - A promise that resolves after getting the project
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get one project' })
-	@Get(':worspace_name/projects/:id')
-	async getProject(@Param('id') id: ID) {
-		return await this._projectService.getProject(id);
-	}
-
-	/**
-	 * @description - Get project members
-	 * @param {ID} id - The UUID primary key of the project for whom to get members
-	 * @returns - A promise that resolves after getting the project members
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get workspace project members' })
-	@Get(':worspace_name/projects/:id/members')
-	async getProjectMembers(@Param('id') id: ID) {
-		return await this._projectService.getProjectMembers(id);
 	}
 
 	/**--------------------------------------------------------------
@@ -172,22 +126,6 @@ export class WorkspaceController {
 		return await this._stateService.delete(id);
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
-	 *--------------------------------------------------------------*/
-	/**
-	 * @description - Create new Project in workspace
-	 * @param {CreateProjectDTO} payload - input data with which to create project
-	 * @returns - A promise that resolves after created project
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create workspace projects' })
-	@Post(':worspace_name/projects')
-	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
-		return await this._projectService.createOrganizationProject(payload);
-	}
-
 	/**
 	 * @description - Create issue label
 	 * @param {ID} projectId - the project ID for whom to associate with created label
@@ -206,35 +144,6 @@ export class WorkspaceController {
 			projectId,
 			payload,
 		);
-	}
-
-	/**
-	 * @description - Create issue
-	 * @param {CreateIssueDTO} payload - data for creating new issue
-	 * @returns - A promise that resolves after issue created
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create Issue' })
-	@Post(':worspace_name/projects/:projectId/issues')
-	async createIssue(@Body() payload: CreateIssueDTO): Promise<IIssue> {
-		return await this._issueService.create(payload);
-	}
-
-	/**
-	 * @description - Update issue
-	 * @param {UpdateIssueDTO} payload - data for updating issue
-	 * @returns - A promise that resolves after issue updated
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Update Issue' })
-	@Patch(':worspace_name/projects/:projectId/issues/:id')
-	async updateIssue(
-		@Body() payload: UpdateIssueDTO,
-		@Param('id') id: ID,
-	): Promise<IIssue> {
-		return await this._issueService.update(id, payload);
 	}
 
 	/**
@@ -304,65 +213,6 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects/:id/views')
 	async getWorkspaceProjectViews(@Param('id') id: ID) {
 		return [];
-	}
-
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project members me' })
-	@Get(':worspace_name/projects/:id/project-members/me')
-	async getWorkspaceProjectMemberMe(@Param('id') id: ID) {
-		return await this._projectService.getWorkspaceProjectMemberMe(id);
-	}
-
-	/**
-	 * @description - Get project issues
-	 * @param {ID} projectId - The ID of the project for whom get issues
-	 * @returns - A promise that resolves after got issues
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project issues' })
-	@Get(':worspace_name/projects/:projectId/issues')
-	async getWorkspaceProjectIssues(@Param('projectId') projectId: ID) {
-		return this._issueService.getAllIssuesByProject(projectId);
-	}
-
-	/**
-	 * @description - Find issue by Id
-	 * @param {ID} id - The issue ID to search
-	 * @returns - A promise that resolves after issue fetched
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Find issue by ID' })
-	@Get(':worspace_name/projects/:projectId/issues/:id')
-	async findOneIssue(@Param('id') id: ID) {
-		return await this._issueService.findOne(id);
-	}
-
-	/**
-	 * @description - Find issue children by Id
-	 * @param {ID} id - The issue ID to search
-	 * @returns - A promise that resolves after issue children fetched
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Find issue by ID' })
-	@Get(':worspace_name/projects/:projectId/issues/:id/sub-issues')
-	async findIssueSubIssues(@Param('id') id: ID) {
-		return await this._issueService.findIssueChildren(id);
-	}
-
-	/**
-	 * @description - Find issue children by Id
-	 * @param {ID} id - The issue ID to search
-	 * @returns - A promise that resolves after issue children fetched
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Find issue by ID' })
-	@Get(':worspace_name/projects/:projectId/issues/:id/issue-relation')
-	async findIssueRelations(@Param('id') id: ID) {
-		return await this._issueService.findIssueRelations(id);
 	}
 
 	/**

@@ -19,6 +19,19 @@ export class IssuesController {
 	constructor(private readonly _issueService: IssuesService) {}
 
 	/**
+	 * @description - Get project issues
+	 * @param {ID} projectId - The ID of the project for whom get issues
+	 * @returns - A promise that resolves after got issues
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Issues' })
+	@Get()
+	async getAllByProjectId(@Param('projectId') projectId: ID) {
+		return await this._issueService.getAllIssuesByProject(projectId);
+	}
+
+	/**
 	 * @description - Find issue by Id
 	 * @param {ID} id - The issue ID to search
 	 * @returns - A promise that resolves after issue fetched
@@ -29,6 +42,32 @@ export class IssuesController {
 	@Get(':id')
 	async findOne(@Param('id') id: ID) {
 		return await this._issueService.findOne(id);
+	}
+
+	/**
+	 * @description - Find issue children by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue children fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':id/sub-issues')
+	async findIssueSubIssues(@Param('id') id: ID) {
+		return await this._issueService.findIssueChildren(id);
+	}
+
+	/**
+	 * @description - Find issue children by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue children fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':id/issue-relation')
+	async findIssueRelations(@Param('id') id: ID) {
+		return await this._issueService.findIssueRelations(id);
 	}
 
 	/**
@@ -58,12 +97,5 @@ export class IssuesController {
 		@Param('id') id: ID,
 	): Promise<IIssue> {
 		return await this._issueService.update(id, payload);
-	}
-
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get Issues' })
-	@Get('project/:projectId')
-	async getAllByProjectId(@Param('projectId') projectId: ID) {
-		return await this._issueService.getAllIssuesByProject(projectId);
 	}
 }

@@ -4,6 +4,7 @@ import { WorkspaceModule } from '../workspace/workspace.module';
 import { StatesModule } from '../states/states.module';
 import { IssuesModule } from '../issues/issues.module';
 import { IssueLabelsModule } from '../issues/issue-labels/issue-labels.module';
+import { ProjectModuleModule } from '../project-module/project-module.module';
 import { ProjectService } from './project.service';
 import { ProjectController } from './project.controller';
 
@@ -20,6 +21,10 @@ import { ProjectController } from './project.controller';
 						path: '/:projectId/issue-labels',
 						module: IssueLabelsModule,
 					},
+					{
+						path: '/:projectId/modules',
+						module: ProjectModuleModule,
+					},
 				],
 			},
 		]),
@@ -27,6 +32,7 @@ import { ProjectController } from './project.controller';
 		StatesModule,
 		IssuesModule,
 		IssueLabelsModule,
+		// ProjectModuleModule,
 	],
 	providers: [ProjectService],
 	controllers: [ProjectController],

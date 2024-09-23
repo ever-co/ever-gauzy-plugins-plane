@@ -1,26 +1,19 @@
 import {
-	Body,
 	Controller,
 	Get,
 	HttpCode,
 	HttpStatus,
 	Param,
-	Post,
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID, IModule } from '@plane-plugin/models';
+import { ID } from '@plane-plugin/models';
 import { WorkspaceService } from './workspace.service';
-import { ProjectModuleService } from '../project-module/project-module.service';
-import { CreateModuleDTO } from '../project-module/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
-	constructor(
-		private readonly _workspaceService: WorkspaceService,
-		private readonly _moduleService: ProjectModuleService,
-	) {}
+	constructor(private readonly _workspaceService: WorkspaceService) {}
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
@@ -102,33 +95,5 @@ export class WorkspaceController {
 	@Get(':worspace_name/projects/:id/views')
 	async getWorkspaceProjectViews(@Param('id') id: ID) {
 		return [];
-	}
-
-	/**
-	 * @description - Create module
-	 * @param {ICreateModuleInput} payload - data for creating new module
-	 * @returns - A promise that resolves after module created
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create module' })
-	@Post(':worspace_name/projects/:projectId/modules')
-	async createModule(
-		@Body() payload: CreateModuleDTO,
-	): Promise<IModule | IModule[]> {
-		return await this._moduleService.create(payload);
-	}
-
-	/**
-	 * @description - Get project modules
-	 * @param {ID} projectId - The ID of the project for whom get modules
-	 * @returns - A promise that resolves after got modules
-	 * @memberof WorkspaceController
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project modules' })
-	@Get(':worspace_name/projects/:projectId/modules')
-	async getWorkspaceProjectModules(@Param('projectId') projectId: ID) {
-		return this._moduleService.getAllModulesByProject(projectId);
 	}
 }

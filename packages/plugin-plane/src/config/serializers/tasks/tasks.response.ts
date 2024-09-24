@@ -50,9 +50,9 @@ export function issueTransformer(issue: ITask): IIssue {
 		created_at: issue.createdAt,
 		updated_at: issue.updatedAt,
 		created_by: issue.creatorId,
-		updated_by: issue.creatorId, // TODO : Add to API
-		is_draft: false, // TODO : Add to API
-		archived_at: null, // TODO : Add to API
+		updated_by: issue.creatorId,
+		is_draft: issue.isDraft,
+		archived_at: issue.archivedAt,
 		state__group: stateGroup(issue.taskStatus),
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
 		description_html: issue.description ?? '<p></p>',
@@ -62,7 +62,7 @@ export function issueTransformer(issue: ITask): IIssue {
 		sub_issues_count: issue.children?.length,
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
-		module_ids: [], // TODO: Add to APIs
+		module_ids: issue.projectModuleId ? [issue.projectModuleId] : [],
 	};
 }
 
@@ -167,6 +167,7 @@ export function createIssueInputTransformer(
 		taskStatusId: issue.state_id,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
+		projectModuleId: issue.module_ids[0],
 	};
 }
 
@@ -187,6 +188,7 @@ export function updateIssueInputTransformer(
 		cycle_id: 'organizationSprintId',
 		parent_id: 'parentId',
 		state_id: 'taskStatusId',
+		module_ids: 'projectModuleId',
 	};
 
 	// Include only user provided flelds in the final request
@@ -205,6 +207,7 @@ export function updateIssueInputTransformer(
 				acc['status'] = status;
 			}
 			acc['organizationId'] = defaultOrganizationId;
+			acc['projectModuleId'] = issue.module_ids[0];
 
 			return acc;
 		},

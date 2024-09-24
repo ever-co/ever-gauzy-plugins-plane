@@ -5,7 +5,12 @@ import { CLIENT_BASE_URL } from './config/constants';
 export async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	app.setGlobalPrefix('api/workspaces/:workspace_name', {
-		exclude: ['auth/:authEndPoint'], // Exclude all the routes starting with /auth from the "api" prefix
+		exclude: [
+			'auth/:authEndPoint',
+			'api/users/me',
+			'api/users/me/:slug',
+			'api/instances',
+		], // Exclude all the routes starting with /auth, /users and /instances from the global prefix
 	});
 
 	app.enableCors({

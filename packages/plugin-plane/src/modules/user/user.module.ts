@@ -4,7 +4,9 @@ import { UserController } from './user.controller';
 import { RouterModule } from '@nestjs/core';
 
 @Module({
-	imports: [RouterModule.register([{ path: 'users/', module: UserModule }])],
+	imports: [
+		RouterModule.register([{ path: '/api/users', module: UserModule }]),
+	],
 	providers: [UserService],
 	controllers: [UserController],
 })

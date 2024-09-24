@@ -24,7 +24,7 @@ export class WorkspaceController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get dashboard widgets' })
-	@Get(':worspace_name/dashboard')
+	@Get('dashboard')
 	async getDashboard(
 		@Param('worspace_name') workspace_name: string,
 		@Query('dashboard_type') dashboard_type: string,
@@ -43,7 +43,7 @@ export class WorkspaceController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get member info for given workspace' })
-	@Get(':worspace_name/workspace-members/me')
+	@Get('workspace-members/me')
 	async getMembersMe(@Param('worspace_name') workspace_name: string) {
 		return await this._workspaceService.getMembersMe(workspace_name);
 	}
@@ -55,7 +55,7 @@ export class WorkspaceController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace members' })
-	@Get(':worspace_name/members')
+	@Get('members')
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
 	}
@@ -71,7 +71,7 @@ export class WorkspaceController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user properties project' })
-	@Get(':worspace_name/projects/:id/user-properties')
+	@Get('projects/:id/user-properties')
 	async getProjectUserProperties(@Param('id') id: ID) {
 		return await this._workspaceService.getProjectUserProperties(id);
 	}

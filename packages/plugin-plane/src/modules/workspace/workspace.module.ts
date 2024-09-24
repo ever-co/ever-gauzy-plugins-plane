@@ -6,9 +6,7 @@ import { ProjectModule } from '../project/project.module';
 
 @Module({
 	imports: [
-		RouterModule.register([
-			{ path: '/workspaces', module: WorkspaceModule },
-		]),
+		RouterModule.register([{ path: '/', module: WorkspaceModule }]),
 		ProjectModule,
 	],
 	providers: [WorkspaceService],

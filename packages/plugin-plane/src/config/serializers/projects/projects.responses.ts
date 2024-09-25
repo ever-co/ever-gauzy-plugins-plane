@@ -10,13 +10,13 @@ import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 export function getProjectsResponse(
 	projects: IOrganizationProject[],
 ): Partial<IProject>[] {
-	return projects.map((project) => {
+	return projects?.map((project) => {
 		const members = project.members
 			? project.members.map((member) => ({
-					id: member.user.id,
+					id: member.employee.user.id,
 					member_id: member.id,
-					member__display_name: member.fullName,
-					member__avatar: member.user.imageUrl,
+					member__display_name: member.employee.user.fullName,
+					member__avatar: member.employee.user.imageUrl,
 				}))
 			: [];
 		return {
@@ -65,8 +65,8 @@ export function getProjectsResponse(
 				in_use: 'emoji',
 			},
 			archived_at: null, // To add for external API
-			created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e', // To add for external API
-			updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e', // To add for external API
+			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b', // To add for external API
+			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b', // To add for external API
 			workspace: project.tenantId,
 			default_assignee: null, // To add for external API
 			project_lead: null, // To add for external API
@@ -92,7 +92,8 @@ export function createProjectInputTransformer(
 export const projectRelations = [
 	'organization',
 	'members',
-	'members.user',
+	'members.employee',
+	'members.employee.user',
 	'tags',
 	'teams',
 ];

@@ -47,6 +47,7 @@ export class ProjectService extends ApiFetchService {
 					query,
 				})
 			).data;
+			console.log({ projects });
 			return getProjectsResponse(projects.items);
 		} catch (error) {
 			console.log(error);

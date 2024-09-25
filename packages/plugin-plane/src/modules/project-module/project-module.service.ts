@@ -3,8 +3,8 @@ import qs from 'qs';
 import {
 	ICreateModuleInput,
 	ID,
-	IEmployee,
 	IModule,
+	IOrganizationProjectEmployee,
 	IOrganizationProjectModule,
 	IPagination,
 } from '@plane-plugin/models';
@@ -43,17 +43,17 @@ export class ProjectModuleService extends ApiFetchService {
 				throw new BadRequestException('Project could not be found');
 			}
 
-			let lead: IEmployee | undefined;
+			let lead: IOrganizationProjectEmployee | undefined;
 
 			if (payload.lead_id) {
 				lead = project.members.find(
-					(employee) => employee.id === payload.lead_id,
+					(member) => member.employee.id === payload.lead_id,
 				);
 			}
 
 			const body = createModuleInputTransformer(
 				payload,
-				lead && lead.userId,
+				lead && lead.employee.userId,
 			);
 
 			const projectModule: IOrganizationProjectModule = (
@@ -98,7 +98,7 @@ export class ProjectModuleService extends ApiFetchService {
 
 			modules.items.forEach((module) => {
 				const lead = project.members.find(
-					(employee) => employee.userId === module.managerId,
+					(member) => member.employee.userId === module.managerId,
 				);
 				return {
 					...module,

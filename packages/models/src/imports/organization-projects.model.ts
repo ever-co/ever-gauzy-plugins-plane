@@ -1,56 +1,52 @@
-import { IEmployee } from './employee.model';
-import { IOrganizationContact, IRelationalOrganizationContact } from './organization-contact.model';
-import { CrudActionEnum, ProjectBillingEnum, ProjectOwnerEnum } from './organization.model';
-import { ITag } from './tag.model';
+import { IEmployee, IEmployeeEntityInput } from './employee.model';
+import { IRelationalOrganizationContact } from './organization-contact.model';
 import { ITask } from './task.model';
 import { IOrganizationSprint } from './organization-sprint.model';
 import { IPayment } from './payment.model';
-import { IBasePerTenantAndOrganizationEntityModel, ID } from './base-entity.model';
-import { CurrenciesEnum } from './currency.model';
 import { ITimeLog } from './timesheet.model';
 import { IRelationalImageAsset } from './image-asset.model';
 import { IOrganizationTeam } from './organization-team.model';
-import { CustomFieldsObject } from './shared-types';
+import { IOrganizationProjectModule } from './organization-project-module.model';
+import { CrudActionEnum, ProjectBillingEnum, ProjectOwnerEnum } from './organization.model';
+import { CurrenciesEnum } from './currency.model';
+import { TaskStatusEnum } from './task-status.model';
+import { IRelationalRole } from './role.model';
+import { IBasePerTenantAndOrganizationEntityModel, ID } from './base-entity.model'; // Base Entities
+import { CustomFieldsObject } from './shared-types'; // Shared Types
+import { ITaggable } from './tag.model copy';
 
+// Base interface with optional properties
 export interface IRelationalOrganizationProject {
 	project?: IOrganizationProject;
 	projectId?: ID;
 }
 
-export interface IOrganizationProjectSetting extends IBasePerTenantAndOrganizationEntityModel {
-	customFields?: CustomFieldsObject;
-	isTasksAutoSync?: boolean;
-	isTasksAutoSyncOnLabel?: boolean;
-	syncTag?: string;
-}
-
-export interface IOrganizationProject
-	extends IRelationalImageAsset,
+// Base interface with optional properties
+export interface IOrganizationProjectBase
+	extends IBasePerTenantAndOrganizationEntityModel,
+		IRelationalImageAsset,
 		IRelationalOrganizationContact,
-		IOrganizationProjectSetting {
-	name: string;
+		IOrganizationProjectSetting,
+		ITaggable {
+	name?: string;
 	startDate?: Date;
 	endDate?: Date;
-	billing: ProjectBillingEnum;
-	currency: CurrenciesEnum;
-	members?: IEmployee[];
-	public: boolean;
-	tags: ITag[];
-	owner: ProjectOwnerEnum;
+	billing?: ProjectBillingEnum;
+	currency?: CurrenciesEnum;
+	members?: IOrganizationProjectEmployee[];
+	public?: boolean;
+	owner?: ProjectOwnerEnum;
 	tasks?: ITask[];
 	teams?: IOrganizationTeam[];
 	timeLogs?: ITimeLog[];
 	organizationSprints?: IOrganizationSprint[];
-	taskListType: TaskListTypeEnum;
+	modules?: IOrganizationProjectModule[];
+	taskListType?: TaskListTypeEnum;
 	payments?: IPayment[];
-	// prefix to project tasks / issues, e.g. GA-XXXX (GA is prefix)
 	code?: string;
 	description?: string;
-	// the color of project which is used in UI
 	color?: string;
-	// is project billable?
 	billable?: boolean;
-	// true if the project is flat rate, false if the project is time / materials billable
 	billingFlat?: boolean;
 	openSource?: boolean;
 	projectUrl?: string;
@@ -59,59 +55,65 @@ export interface IOrganizationProject
 	budgetType?: OrganizationProjectBudgetTypeEnum;
 	membersCount?: number;
 	imageUrl?: string;
+	status?: TaskStatusEnum;
+	icon?: string;
+	archiveTasksIn?: number;
+	closeTasksIn?: number;
+	defaultAssigneeId?: ID;
+	defaultAssignee?: IEmployee;
 }
 
+// Base interface with optional properties of organization project setting
+export interface IOrganizationProjectSetting extends IBasePerTenantAndOrganizationEntityModel {
+	customFields?: CustomFieldsObject;
+	isTasksAutoSync?: boolean;
+	isTasksAutoSyncOnLabel?: boolean;
+	syncTag?: string;
+}
+
+export interface IOrganizationProject extends IOrganizationProjectBase {
+	name: string; // Make sure these are required
+}
+
+export interface IOrganizationProjectsFindInput
+	extends IBasePerTenantAndOrganizationEntityModel,
+		IRelationalOrganizationContact {
+	name?: string;
+	public?: boolean;
+	billable?: boolean;
+	billingFlat?: boolean;
+	organizationTeamId?: ID;
+}
+
+export interface IOrganizationProjectCreateInput extends IOrganizationProjectBase {
+	managers?: IOrganizationProjectEmployee[];
+}
+
+export interface IOrganizationProjectUpdateInput extends IOrganizationProjectCreateInput {}
+
+export interface IOrganizationProjectStoreState {
+	project: IOrganizationProject;
+	action: CrudActionEnum;
+}
+
+export interface IOrganizationProjectEmployee
+	extends IBasePerTenantAndOrganizationEntityModel,
+		IEmployeeEntityInput,
+		IRelationalRole {
+	organizationProject: IOrganizationProject;
+	organizationProjectId: ID;
+	isManager?: boolean;
+	assignedAt?: Date;
+}
+
+// Task List Type Enum
 export enum TaskListTypeEnum {
 	GRID = 'GRID',
 	SPRINT = 'SPRINT'
 }
 
+// Organization Project Budget Type Enum
 export enum OrganizationProjectBudgetTypeEnum {
 	HOURS = 'hours',
 	COST = 'cost'
-}
-
-export interface IOrganizationProjectsFindInput extends IBasePerTenantAndOrganizationEntityModel {
-	name?: string;
-	organizationTeamId?: IOrganizationTeam['id'];
-	organizationContactId?: IOrganizationContact['id'];
-	organizationContact?: IOrganizationContact;
-	public?: boolean;
-	billable?: boolean;
-	billingFlat?: boolean;
-}
-
-export interface IOrganizationProjectCreateInput
-	extends IBasePerTenantAndOrganizationEntityModel,
-		IRelationalImageAsset {
-	name?: string;
-	organizationContact?: IOrganizationContact;
-	organizationContactId?: IOrganizationContact['id'];
-	startDate?: Date;
-	endDate?: Date;
-	billing?: ProjectBillingEnum;
-	currency?: CurrenciesEnum;
-	members?: IEmployee[];
-	public?: boolean;
-	tags?: ITag[];
-	owner?: ProjectOwnerEnum;
-	code?: string;
-	description?: string;
-	color?: string;
-	billable?: boolean;
-	billingFlat?: boolean;
-	status?: string;
-	openSource?: boolean;
-	projectUrl?: string;
-	openSourceProjectUrl?: string;
-	taskListType?: TaskListTypeEnum;
-}
-
-export interface IOrganizationProjectUpdateInput extends IOrganizationProjectCreateInput, IOrganizationProjectSetting {
-	id?: IOrganizationContact['id'];
-}
-
-export interface IOrganizationProjectStoreState {
-	project: IOrganizationProject;
-	action: CrudActionEnum;
 }

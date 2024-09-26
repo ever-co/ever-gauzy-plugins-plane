@@ -1,4 +1,6 @@
 import {
+	CompletionDateType,
+	ICompletionChart,
 	ICreateModuleInput,
 	ID,
 	IModule,
@@ -119,7 +121,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		distribution: {
 			assignees,
 			labels: [],
-			completion_chart: {},
+			completion_chart: completionChartMapping(module),
 		},
 	};
 }
@@ -171,3 +173,42 @@ export const getModulesQuery = (projectId?: ID): Record<string, string> => {
 
 	return query;
 };
+/**
+ * @description Generate an object completion_chart with dates between start_date and target_date.
+ * @param {IOrganizationProjectModule} module A project module for build chart
+ * @returns An object { "YYYY-MM-DD": 0 | null } representing the completion_chart
+ */
+export function completionChartMapping(module: IOrganizationProjectModule) {
+	const startDate: CompletionDateType = module.startDate
+		.toString()
+		.split('T')[0];
+	const targetDate: CompletionDateType = module.endDate
+		.toString()
+		.split('T')[0];
+
+	const chart: ICompletionChart = {};
+
+	const start = new Date(startDate);
+	const end = new Date(targetDate);
+	const currentDate = new Date(start);
+
+	// Iterate all dates between start and date, and add each date to chart object
+	while (currentDate <= end) {
+		const formattedDate = currentDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+		chart[formattedDate] = 0; // Initiate each date to 0
+
+		// Go to next date
+		currentDate.setDate(currentDate.getDate() + 1);
+	}
+	// Counting completed tasks number at some date
+	module.tasks.forEach((task) => {
+		const completedAt: CompletionDateType = task.resolvedAt
+			.toString()
+			.split('T')[0];
+		if (chart.hasOwnProperty(completedAt)) {
+			chart[completedAt]! += 1; // Increment the value for corresponding date
+		}
+	});
+
+	return chart;
+}

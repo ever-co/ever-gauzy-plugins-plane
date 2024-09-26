@@ -138,7 +138,6 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ module });
 			return modulesTransformer(module);
 		} catch (error) {
 			console.log(error);

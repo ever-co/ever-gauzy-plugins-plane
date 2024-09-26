@@ -39,3 +39,7 @@ export interface ICreateModuleInput {
 	member_ids?: string[];
 	project_id: string;
 }
+
+export type CompletionDateType = string;
+
+export type ICompletionChart = Record<CompletionDateType, number | null>;

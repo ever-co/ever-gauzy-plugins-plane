@@ -14,8 +14,11 @@ export function getProjectsResponse(
 		const members = project.members
 			? project.members.map((member) => ({
 					id: member.employee.user.id,
-					member_id: member.id,
-					member__display_name: member.employee.user.fullName,
+					member_id: member.employeeId,
+					member__display_name:
+						member.employee.user.fullName ||
+						member.employee.fullName ||
+						`${member.employee.user.firstName} ${member.employee.user.lastName}`,
 					member__avatar: member.employee.user.imageUrl,
 				}))
 			: [];
@@ -25,7 +28,7 @@ export function getProjectsResponse(
 			total_members: project.membersCount,
 			total_cycles: project.organizationSprints?.length,
 			total_issues: project.tasks?.length,
-			total_modules: 0, // Must add modules feature on external API
+			total_modules: project.modules?.length,
 			is_member: true, // Research and know what it is excatly
 			sort_order: 66373.5, // Research and know what it is excatly
 			member_role: 20, // Seems it should be a project creator/owner/etc. role associated to that user.
@@ -94,6 +97,7 @@ export const projectRelations = [
 	'members',
 	'members.employee',
 	'members.employee.user',
+	'modules',
 	'tags',
 	'teams',
 ];

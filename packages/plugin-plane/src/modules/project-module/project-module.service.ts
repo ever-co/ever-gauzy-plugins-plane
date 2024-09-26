@@ -74,7 +74,7 @@ export class ProjectModuleService extends ApiFetchService {
 	/**
 	 * @description - Get project modules
 	 * @param {ID} projectId - The project ID for whom search modules
-	 * @returns A promise that resolves after getting modukes
+	 * @returns A promise that resolves after getting modules
 	 * @memberof ProjectModuleService
 	 */
 	async getAllModulesByProject(projectId: ID) {
@@ -108,6 +108,39 @@ export class ProjectModuleService extends ApiFetchService {
 
 			return modulesTransformer(modules.items);
 		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException();
+		}
+	}
+	/**
+	 * @description - Get project module
+	 * @param {ID} id - The module ID to search
+	 * @param {ID} projectId - The project ID filter condition
+	 * @returns A promise that resolves after getting module
+	 * @memberof ProjectModuleService
+	 */
+	async getModule(id: ID, projectId: ID) {
+		try {
+			const query = qs.stringify(getModulesQuery(projectId));
+
+			const project =
+				await this._projectService.getRemoteProject(projectId);
+
+			if (!project) {
+				throw new BadRequestException('Project could not be found');
+			}
+
+			const module: IOrganizationProjectModule = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/${id}`,
+					query,
+				})
+			).data;
+
+			console.log({ module });
+			return modulesTransformer(module);
+		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();
 		}

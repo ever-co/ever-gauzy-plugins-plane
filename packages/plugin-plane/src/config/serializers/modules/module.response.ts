@@ -83,6 +83,7 @@ export function modulesTransformer(
 			total_estimate_points: 0,
 			member_ids: projectModule.members.map((member) => member.id),
 			workspace_id: projectModule.tenantId,
+			...moduleDetailsAdapter(projectModule),
 		};
 	};
 
@@ -91,6 +92,36 @@ export function modulesTransformer(
 	}
 
 	return transformModule(modules);
+}
+
+export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
+	// Module members
+	const assignees = module.members.map((member) => {
+		const user = member.user;
+		return {
+			first_name: user.firstName,
+			last_name: user.lastName,
+			assignee_id: member.id,
+			display_name: member.fullName,
+			avatar: user.imageUrl,
+			total_estimates: 0,
+			completed_estimates: 0,
+			pending_estimates: 0,
+		};
+	});
+
+	return {
+		estimate_distribution: {
+			assignees,
+			labels: [],
+			completion_chart: {},
+		},
+		distribution: {
+			assignees,
+			labels: [],
+			completion_chart: {},
+		},
+	};
 }
 
 export function createModuleInputTransformer(

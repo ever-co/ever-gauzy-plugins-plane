@@ -21,7 +21,9 @@ export function organizationMembersTransformer(
 			avatar: member.user.imageUrl,
 			is_bot: false,
 			email: member.user.email,
-			display_name: member.fullName,
+			display_name:
+				member.fullName ||
+				`${member.user.firstName} ${member.user.lastName}`,
 		},
 		workspace: {
 			id: tenant.id,

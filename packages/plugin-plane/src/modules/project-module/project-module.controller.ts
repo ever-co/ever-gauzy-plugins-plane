@@ -43,4 +43,20 @@ export class ProjectModuleController {
 	async getWorkspaceProjectModules(@Param('projectId') projectId: ID) {
 		return this._projectModuleService.getAllModulesByProject(projectId);
 	}
+
+	/**
+	 * @description - Get project modules
+	 * @param {ID} projectId - The ID of the project for whom get modules
+	 * @returns - A promise that resolves after got modules
+	 * @memberof ProjectModuleController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project modules' })
+	@Get(':id')
+	async getWorkspaceProjectModule(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	) {
+		return this._projectModuleService.getModule(id, projectId);
+	}
 }

@@ -226,4 +226,19 @@ export class IssuesService extends ApiFetchService {
 			throw new BadRequestException();
 		}
 	}
+
+	/**
+	 * @description Delete issue
+	 * @param {ID} id - The issue ID to be deleted
+	 * @returns {*}  A promise resolved to delete result
+	 * @memberof IssuesService
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
+	}
 }

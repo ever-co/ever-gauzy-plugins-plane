@@ -4,6 +4,7 @@ import {
 	IIssue,
 	IIssueCreateInput,
 	IIssueUpdateInput,
+	IOrganizationProjectModule,
 	ITag,
 	ITask,
 	ITaskCreateInput,
@@ -62,7 +63,7 @@ export function issueTransformer(issue: ITask): IIssue {
 		sub_issues_count: issue.children?.length,
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
-		module_ids: issue.projectModuleId ? [issue.projectModuleId] : [],
+		module_ids: issue.modules?.map(({ id }) => id),
 	};
 }
 
@@ -118,6 +119,7 @@ export const taskRelations = [
 	'parent',
 	'children',
 	'taskStatus',
+	// 'modules',
 ];
 
 export const getTaskQuery = (projectId?: ID): Record<string, string> => {
@@ -167,7 +169,9 @@ export function createIssueInputTransformer(
 		taskStatusId: issue.state_id,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
-		projectModuleId: issue.module_ids[0],
+		modules: issue.module_ids.map(
+			(id) => ({ id }) as IOrganizationProjectModule,
+		),
 	};
 }
 
@@ -188,7 +192,7 @@ export function updateIssueInputTransformer(
 		cycle_id: 'organizationSprintId',
 		parent_id: 'parentId',
 		state_id: 'taskStatusId',
-		module_ids: 'projectModuleId',
+		module_ids: 'modules',
 	};
 
 	// Include only user provided flelds in the final request

@@ -180,10 +180,10 @@ export const getModulesQuery = (projectId?: ID): Record<string, string> => {
  */
 export function completionChartMapping(module: IOrganizationProjectModule) {
 	const startDate: CompletionDateType = module.startDate
-		.toString()
+		?.toString()
 		.split('T')[0];
 	const targetDate: CompletionDateType = module.endDate
-		.toString()
+		?.toString()
 		.split('T')[0];
 
 	const chart: ICompletionChart = {};

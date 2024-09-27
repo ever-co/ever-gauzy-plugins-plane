@@ -15,7 +15,7 @@ export interface IRelationalOrganizationProjectModule {
 export interface IOrganizationProjectModule
 	extends IBasePerTenantAndOrganizationEntityModel,
 		IRelationalOrganizationProject {
-	name: string;
+	name?: string;
 	description?: string;
 	status?: TaskStatusEnum;
 	startDate?: Date;

@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -97,5 +98,12 @@ export class IssuesController {
 		@Param('id') id: ID,
 	): Promise<IIssue> {
 		return await this._issueService.update(id, payload);
+	}
+
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete issue' })
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._issueService.delete(id);
 	}
 }

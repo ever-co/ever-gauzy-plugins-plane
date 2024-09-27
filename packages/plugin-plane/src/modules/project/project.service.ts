@@ -1,4 +1,5 @@
 import {
+	BadGatewayException,
 	BadRequestException,
 	Injectable,
 	InternalServerErrorException,
@@ -11,6 +12,7 @@ import {
 	IOrganizationProject,
 	IPagination,
 	IProject,
+	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import {
 	createProjectInputTransformer,
@@ -125,6 +127,8 @@ export class ProjectService extends ApiFetchService {
 	): Promise<IProject> {
 		const body = createProjectInputTransformer(payload);
 		try {
+			console.log({ body });
+
 			const project: IOrganizationProject = (
 				await this.apiFetch({
 					method: 'POST',
@@ -137,6 +141,44 @@ export class ProjectService extends ApiFetchService {
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);
+		}
+	}
+
+	/**
+	 * @description Update project
+	 * @param {ID} id The project ID
+	 * @param {IUpdateProjectInput} payload Data to be updated
+	 * @returns A promise that resolves after project updated
+	 * @memberof ProjectService
+	 */
+	async update(id: ID, payload: IUpdateProjectInput): Promise<IProject> {
+		try {
+			const { members } = payload;
+
+			let project: IOrganizationProject = await this.getRemoteProject(id);
+
+			if (!project) {
+				throw new BadRequestException('Project could not be found');
+			}
+			const body = createProjectInputTransformer(payload);
+			if (!members) {
+				body.members = project.members;
+			}
+
+			console.log({ members: body.members });
+
+			project = (
+				await this.apiFetch({
+					method: 'PUT',
+					path: `/organization-projects/${id}`,
+					body,
+				})
+			).data;
+
+			return getProjectsResponse([project])[0] as IProject;
+		} catch (error) {
+			console.log(error);
+			throw new BadGatewayException(error);
 		}
 	}
 

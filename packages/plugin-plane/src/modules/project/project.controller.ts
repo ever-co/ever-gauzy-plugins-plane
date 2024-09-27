@@ -6,6 +6,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 } from '@nestjs/common';
 import { ID } from '@plane-plugin/models';
@@ -76,8 +77,22 @@ export class ProjectController {
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create workspace projects' })
-	@Post(':worspace_name/projects')
+	@Post()
 	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
 		return await this._projectService.createOrganizationProject(payload);
+	}
+
+	/**
+	 * @description Update project
+	 * @param {ID} id The project ID
+	 * @param {CreateProjectDTO} payload Data to be updated
+	 * @returns A promise that resolves after project updated
+	 * @memberof ProjectController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update workspace projects' })
+	@Patch(':id')
+	async update(@Param('id') id: ID, @Body() payload: CreateProjectDTO) {
+		return await this._projectService.update(id, payload);
 	}
 }

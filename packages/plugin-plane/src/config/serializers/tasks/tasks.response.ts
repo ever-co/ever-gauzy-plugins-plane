@@ -46,7 +46,7 @@ export function issueTransformer(issue: ITask): IIssue {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
 			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
-			sequence_id: issue.parent.number,
+			sequence_id: issue.parent?.number,
 		},
 		created_at: issue.createdAt,
 		updated_at: issue.updatedAt,

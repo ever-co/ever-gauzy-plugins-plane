@@ -2,7 +2,9 @@ import {
 	ICreateProjectInput,
 	IOrganizationProject,
 	IOrganizationProjectCreateInput,
+	IOrganizationProjectEmployee,
 	IProject,
+	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
@@ -81,14 +83,25 @@ export function getProjectsResponse(
 }
 
 export function createProjectInputTransformer(
-	input: ICreateProjectInput,
+	input: ICreateProjectInput | IUpdateProjectInput,
 ): IOrganizationProjectCreateInput {
+	let members: IOrganizationProjectEmployee[] = [];
+
+	if (input.members) {
+		members = input.members.map((member) => ({
+			employeeId: member.member_id,
+		}));
+	}
+
 	return {
 		name: input.name,
 		code: input.identifier,
 		description: input.description,
 		startDate: input.start_date,
 		endDate: input.target_date,
+		imageUrl: input.cover_image,
+		public: input.network === 0 ? false : true,
+		members,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
 	};

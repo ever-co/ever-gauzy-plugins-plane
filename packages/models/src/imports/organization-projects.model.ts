@@ -100,8 +100,8 @@ export interface IOrganizationProjectEmployee
 	extends IBasePerTenantAndOrganizationEntityModel,
 		IEmployeeEntityInput,
 		IRelationalRole {
-	organizationProject: IOrganizationProject;
-	organizationProjectId: ID;
+	organizationProject?: IOrganizationProject;
+	organizationProjectId?: ID;
 	isManager?: boolean;
 	assignedAt?: Date;
 }

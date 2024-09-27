@@ -8,6 +8,7 @@ import { ProjectModuleModule } from '../project-module/project-module.module';
 import { ProjectService } from './project.service';
 import { ProjectController } from './project.controller';
 import { SearchIssuesModule } from '../issues/search-issues/search-issues.module';
+import { ProjectIdentifiersModule } from './project-identifiers/project-identifiers.module';
 
 @Module({
 	imports: [
@@ -37,6 +38,7 @@ import { SearchIssuesModule } from '../issues/search-issues/search-issues.module
 		StatesModule,
 		IssuesModule,
 		IssueLabelsModule,
+		ProjectIdentifiersModule,
 		// ProjectModuleModule,
 	],
 	providers: [ProjectService],

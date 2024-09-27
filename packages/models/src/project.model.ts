@@ -45,8 +45,8 @@ export interface IProject {
 	is_time_tracking_enabled: false;
 	is_issue_type_enabled: false;
 	cover_image: string;
-	archive_in: 0;
-	close_in: 0;
+	archive_in: number;
+	close_in: number;
 	logo_props: {
 		emoji: {
 			value: string;
@@ -70,4 +70,15 @@ export interface IGetProjectMembersResponse {
 	role: number;
 	member: ID;
 	project: ID;
+}
+
+export interface IProjectIdentifierResponse {
+	exists: number;
+	identifiers: IProjectIdentifier[];
+}
+
+export interface IProjectIdentifier {
+	id?: number;
+	name?: string;
+	project?: ID;
 }

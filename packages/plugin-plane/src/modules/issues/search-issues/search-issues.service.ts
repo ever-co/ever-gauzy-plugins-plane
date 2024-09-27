@@ -21,6 +21,13 @@ export class SearchIssuesService extends ApiFetchService {
 
 	private readonly path = '/tasks';
 
+	/**
+	 * @description Get issues by options
+	 * @param {ID} projectId issues find filters
+	 * @param {IParentableIssuesQueruParams} options Options finders
+	 * @returns A promise that resolves to found issues
+	 * @memberof SearchIssuesService
+	 */
 	async findParentableIssues(
 		projectId: ID,
 		options: IParentableIssuesQueruParams,

@@ -74,7 +74,9 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		start_date: issue.startDate,
 		sequence_id: issue.number,
 		project__name: issue.project.name,
-		project__identifier: issue.project.code,
+		project__identifier:
+			issue.project.code ||
+			issue.project.name.slice(0, 4).toLocaleUpperCase(),
 		project_id: issue.projectId,
 		workspace__slug: 'cardano', // TODO : Make this as dynamic as possible
 		state__name: issue.taskStatus?.name,

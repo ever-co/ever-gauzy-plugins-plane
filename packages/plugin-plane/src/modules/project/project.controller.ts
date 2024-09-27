@@ -1,4 +1,4 @@
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
 	Body,
 	Controller,
@@ -12,6 +12,7 @@ import { ID } from '@plane-plugin/models';
 import { ProjectService } from './project.service';
 import { CreateProjectDTO } from './dto';
 
+@ApiTags('Projects')
 @Controller()
 export class ProjectController {
 	constructor(private readonly _projectService: ProjectService) {}
@@ -22,7 +23,7 @@ export class ProjectController {
 	/**
 	 * @description - Get all projects for a workspace
 	 * @returns - A promise that resolves after getting all projects for a workspace
-	 * @memberof WorkspaceController
+	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace projects' })
@@ -35,7 +36,7 @@ export class ProjectController {
 	 * @description - Get workspace project by ID
 	 * @param {ID} id - The UUID primary key of the project to be fetched
 	 * @returns - A promise that resolves after getting the project
-	 * @memberof WorkspaceController
+	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get one project' })
@@ -55,7 +56,7 @@ export class ProjectController {
 	 * @description - Get project members
 	 * @param {ID} id - The UUID primary key of the project for whom to get members
 	 * @returns - A promise that resolves after getting the project members
-	 * @memberof WorkspaceController
+	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace project members' })
@@ -71,7 +72,7 @@ export class ProjectController {
 	 * @description - Create new Project in workspace
 	 * @param {CreateProjectDTO} payload - input data with which to create project
 	 * @returns - A promise that resolves after created project
-	 * @memberof WorkspaceController
+	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create workspace projects' })

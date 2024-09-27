@@ -46,7 +46,8 @@ export function getProjectsResponse(
 			description_text: null, // To add for external API
 			description_html: null, // To add for external API
 			network: project.public ? 2 : 0,
-			identifier: project.code, // To add for external API
+			identifier:
+				project.code || project.name.slice(0, 4).toLocaleUpperCase(),
 			emoji: null, // To add for external API
 			icon_prop: null, // To add for external API
 			module_view: true, // To add for external API
@@ -57,8 +58,8 @@ export function getProjectsResponse(
 			is_time_tracking_enabled: false, // To add for external API
 			is_issue_type_enabled: false, // To add for external API
 			cover_image: project.imageUrl,
-			archive_in: 0, // Research and know what it is excatly,
-			close_in: 0, // Research and know what it is excatly,
+			archive_in: project.archiveTasksIn,
+			close_in: project.closeTasksIn,
 
 			// Research and know what it is excatly,
 			logo_props: {
@@ -84,6 +85,7 @@ export function createProjectInputTransformer(
 ): IOrganizationProjectCreateInput {
 	return {
 		name: input.name,
+		code: input.identifier,
 		description: input.description,
 		startDate: input.start_date,
 		endDate: input.target_date,
@@ -108,4 +110,11 @@ export const getProjectsQuery: Record<string, string> = {
 
 projectRelations.forEach((relation, i) => {
 	getProjectsQuery[`relations[${i}]`] = relation;
+});
+
+export const getProjectByIdentifiersQuery = (
+	identifier: string,
+): Record<string, string> => ({
+	...getProjectsQuery,
+	'where[code]': identifier,
 });

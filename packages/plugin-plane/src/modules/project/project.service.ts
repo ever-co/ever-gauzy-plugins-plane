@@ -35,7 +35,7 @@ export class ProjectService extends ApiFetchService {
 	/**
 	 * @description - Get all projects for a workspace
 	 * @returns - A promise that resolves after getting all projects for a workspace
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async getProjects(): Promise<Partial<IProject>[]> {
 		const query = qs.stringify(getProjectsQuery);
@@ -77,7 +77,7 @@ export class ProjectService extends ApiFetchService {
 	 * @description - Get workspace project by ID
 	 * @param {ID} id - The UUID primary key of the project to be fetched
 	 * @returns - A promise that resolves after getting the project
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async getProject(id: ID): Promise<IProject> {
 		try {
@@ -98,7 +98,7 @@ export class ProjectService extends ApiFetchService {
 	 * @description - Get project members
 	 * @param {ID} id - The UUID primary key of the project for whom to get members
 	 * @returns - A promise that resolves after getting the project members
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
 		const project = await this.getProject(id);
@@ -118,7 +118,7 @@ export class ProjectService extends ApiFetchService {
 	 * @description - Create new Project in workspace
 	 * @param {CreateProjectDTO} payload - input data with which to create project
 	 * @returns - A promise that resolves after created project
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async createOrganizationProject(
 		payload: ICreateProjectInput,

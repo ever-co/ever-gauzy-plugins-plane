@@ -27,3 +27,10 @@ export interface IIssueRelationResponse {
 	[IssueRelationTypeEnum.DUPLICATE]: IIssue[];
 	[IssueRelationTypeEnum.RELATES_TO]: IIssue[];
 }
+
+export interface IParentableIssuesQueruParams {
+	search: string;
+	parent: boolean;
+	issue_id: ID;
+	workspace_search: boolean;
+}

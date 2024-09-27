@@ -39,14 +39,14 @@ export function issueTransformer(issue: ITask): IIssue {
 		priority: issue.priority?.toLocaleLowerCase() as TaskPriorityEnum,
 		start_date: issue.startDate,
 		target_date: issue.dueDate,
-		sequence_id: 1, // TODO : Research usecase and add to API
+		sequence_id: issue.number,
 		project_id: issue.projectId,
 		parent_id: issue.parentId,
 		parent: {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
 			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
-			sequence_id: 1,
+			sequence_id: issue.parent.number,
 		},
 		created_at: issue.createdAt,
 		updated_at: issue.updatedAt,
@@ -65,6 +65,23 @@ export function issueTransformer(issue: ITask): IIssue {
 		label_ids: issueLabelsIds(issue),
 		module_ids: issue.modules?.map(({ id }) => id),
 	};
+}
+
+export function parentableIssuesTransformer(issues: ITask[]) {
+	return issues.map((issue) => ({
+		id: issue.id,
+		name: issue.title,
+		start_date: issue.startDate,
+		sequence_id: issue.number,
+		project__name: issue.project.name,
+		project__identifier: issue.project.code,
+		project_id: issue.projectId,
+		workspace__slug: 'cardano', // TODO : Make this as dynamic as possible
+		state__name: issue.taskStatus?.name,
+		state__group: stateGroup(issue.taskStatus),
+		state__color: issue.taskStatus?.color,
+		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
+	}));
 }
 
 export function getProjectTasksTransformer() {
@@ -113,6 +130,7 @@ export const taskRelations = [
 	'members',
 	'members.user',
 	'creator',
+	'project',
 	'linkedIssues',
 	'linkedIssues.taskTo',
 	'linkedIssues.taskFrom',
@@ -211,7 +229,6 @@ export function updateIssueInputTransformer(
 				acc['status'] = status;
 			}
 			acc['organizationId'] = defaultOrganizationId;
-			acc['projectModuleId'] = issue.module_ids[0];
 
 			return acc;
 		},

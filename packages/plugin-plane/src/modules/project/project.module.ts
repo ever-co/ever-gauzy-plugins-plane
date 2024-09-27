@@ -7,6 +7,7 @@ import { IssueLabelsModule } from '../issues/issue-labels/issue-labels.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
 import { ProjectService } from './project.service';
 import { ProjectController } from './project.controller';
+import { SearchIssuesModule } from '../issues/search-issues/search-issues.module';
 
 @Module({
 	imports: [
@@ -17,6 +18,10 @@ import { ProjectController } from './project.controller';
 				children: [
 					{ path: '/:projectId/states', module: StatesModule },
 					{ path: '/:projectId/issues', module: IssuesModule },
+					{
+						path: '/:projectId/search-issues',
+						module: SearchIssuesModule,
+					},
 					{
 						path: '/:projectId/issue-labels',
 						module: IssueLabelsModule,

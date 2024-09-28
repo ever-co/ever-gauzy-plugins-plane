@@ -204,7 +204,12 @@ export class IssuesService extends ApiFetchService {
 			throw new BadRequestException();
 		}
 	}
-
+	/**
+	 * @description Find issue relation (Issues associates)
+	 * @param {ID} id - Issue ID
+	 * @returns A promise resolved to fetched issue relations
+	 * @memberof IssuesService
+	 */
 	async findIssueRelations(id: ID) {
 		try {
 			const relatedIssues: IIssueRelationResponse = {
@@ -240,7 +245,7 @@ export class IssuesService extends ApiFetchService {
 	/**
 	 * @description Delete issue
 	 * @param {ID} id - The issue ID to be deleted
-	 * @returns {*}  A promise resolved to delete result
+	 * @returns A promise resolved to delete result
 	 * @memberof IssuesService
 	 */
 	async delete(id: ID): Promise<any> {
@@ -254,7 +259,6 @@ export class IssuesService extends ApiFetchService {
 
 	/**
 	 * @description Create issue comment
-	 * @author GloireMutaliko
 	 * @param {ID} entityId - Issue ID for creating comment
 	 * @param {ID} projectId - Project ID for returning project data
 	 * @param {ICreateCommentInput} input - Body request
@@ -296,6 +300,57 @@ export class IssuesService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException();
 		}
+	}
+
+	/**
+	 * @description Create issue comment
+	 * @param {ID} id - Comment ID to be updated
+	 * @param {ID} projectId - Project ID for find details
+	 * @param {ICreateCommentInput} input - Body Request data
+	 * @returns A promise resolved to updated comment and details
+	 * @memberof IssuesService
+	 */
+	async updateComment(
+		id: ID,
+		projectId: ID,
+		input: ICreateCommentInput,
+	): Promise<IIssueComment> {
+		try {
+			// Update comment
+			const comment = await this._commentService.update(id, input);
+
+			const { actor, issue, project, workspace } =
+				await this.getIssueCommentDetails(
+					comment.entityId,
+					projectId,
+					comment.creatorId,
+				);
+
+			const transformedComment = issueCommentTrasnsformer(
+				comment,
+				issue,
+				actor,
+				project,
+				workspace,
+			);
+
+			return Array.isArray(transformedComment)
+				? transformedComment[0]
+				: transformedComment;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Delete issue comment
+	 * @param {ID} id -The issue comment ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssuesService
+	 */
+	async deleteComment(id: ID): Promise<any> {
+		return await this._commentService.delete(id);
 	}
 
 	/**

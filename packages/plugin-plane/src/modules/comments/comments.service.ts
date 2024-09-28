@@ -70,6 +70,8 @@ export class CommentsService extends ApiFetchService {
 				})
 			).data;
 
+			console.log({ comment });
+
 			return comment;
 		} catch (error) {
 			console.log(error);
@@ -98,5 +100,20 @@ export class CommentsService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException();
 		}
+	}
+
+	/**
+	 * @description Delete comment
+	 * @param {ID} id - The issue ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof CommentsService
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
 	}
 }

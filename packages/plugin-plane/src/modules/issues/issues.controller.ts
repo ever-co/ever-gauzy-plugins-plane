@@ -72,6 +72,14 @@ export class IssuesController {
 		return await this._issueService.findIssueRelations(id);
 	}
 
+	/**
+	 * @description Get issue activity and comments
+	 * @param {ID} id - Issue ID
+	 * @param {ID} projectId - Project ID
+	 * @param {IssueActivityTypeEnum} activity_type Activity type
+	 * @returns A promise resolved after got comments or Activity Logs
+	 * @memberof IssuesController
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Find issue activity' })
 	@Get(':id/history')
@@ -100,6 +108,14 @@ export class IssuesController {
 		return await this._issueService.create(input);
 	}
 
+	/**
+	 * @description Create issue comment
+	 * @param {ID} entityId - Issue ID for creating comment
+	 * @param {ID} projectId - Project ID for returning project data
+	 * @param {CreateIssueCommentDTO} input - Body request
+	 * @returns A promise resoved to comment created and returned related data
+	 * @memberof IssuesController
+	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue Comment' })
 	@Post(':id/comments')
@@ -113,6 +129,23 @@ export class IssuesController {
 			projectId,
 			input,
 		);
+	}
+
+	/**
+	 * @description - Update issue comment
+	 * @param {UpdateIssueDTO} input - data for updating issue comment
+	 * @returns - A promise that resolves after issue comment updated
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Issue comment' })
+	@Patch(':id/comments/:commentId')
+	async updateComment(
+		@Body() input: CreateIssueCommentDTO,
+		@Param('commentId') id: ID,
+		@Param('projectId') projectId: ID,
+	): Promise<IIssue> {
+		return await this._issueService.updateComment(id, projectId, input);
 	}
 
 	/**
@@ -136,5 +169,12 @@ export class IssuesController {
 	@Delete(':id')
 	async delete(@Param('id') id: ID) {
 		return await this._issueService.delete(id);
+	}
+
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete issue' })
+	@Delete(':id/comments/:commentId')
+	async deleteComment(@Param('commentId') id: ID) {
+		return await this._issueService.deleteComment(id);
 	}
 }

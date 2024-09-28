@@ -298,6 +298,13 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * @description Get issues comments
+	 * @param {Partial<ICommentFindInput>} options Option filters
+	 * @param {ID} projectId - Project ID
+	 * @returns A promise resolved after fetch comments
+	 * @memberof IssuesService
+	 */
 	async getIssueComments(
 		options: Partial<ICommentFindInput>,
 		projectId: ID,
@@ -333,7 +340,15 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
-	async getActivity(
+	/**
+	 * @description Get issue activity and comments
+	 * @param {ID} id - Issue ID
+	 * @param {ID} projectId - Project ID
+	 * @param {IssueActivityTypeEnum} activity_type Activity type
+	 * @returns A promise resolved after got comments or Activity Logs
+	 * @memberof IssuesService
+	 */
+	async findActivity(
 		id: ID,
 		projectId: ID,
 		activity_type: IssueActivityTypeEnum,
@@ -375,15 +390,31 @@ export class IssuesService extends ApiFetchService {
 			// Workspace details
 			const tenant = project.tenant;
 			const workspace = {
-				name: tenant.name,
-				id: tenant.id,
-				slug: tenant.name.toLowerCase(),
+				name: tenant?.name,
+				id: tenant?.id,
+				slug: tenant?.name.toLowerCase(),
 			};
 
+			/**
+			 * Should be refacted and implement APIs for members
+			 */
 			// Find actor by userId
-			const actor = task.members.find(
-				(member) => member.userId === creatorId,
+			const member = project.members.find(
+				(member) => member.employee.userId === creatorId,
 			);
+
+			const actor = {
+				id:
+					member?.employeeId ||
+					'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				first_name: member?.employee.user.firstName || 'Salva',
+				last_name: member?.employee.user.lastName || 'Cardano',
+				avatar:
+					member?.employee.user.imageUrl ||
+					'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
+				is_bot: false,
+				display_name: member?.employee?.fullName || 'salva.cardano1',
+			};
 
 			return { issue, project, workspace, actor };
 		} catch (error) {

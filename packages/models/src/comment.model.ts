@@ -1,4 +1,4 @@
-import { ID } from './imports';
+import { ActorTypeEnum, ID } from './imports';
 import { IWorkspaceInfo } from './base.model';
 import { IMemberInfo } from './user.model';
 import { IIssue, IIssueReaction } from './issue.model';
@@ -30,5 +30,6 @@ export interface IIssueComment {
 }
 
 export interface ICreateCommentInput {
+	actorType?: ActorTypeEnum;
 	comment_html: string;
 }

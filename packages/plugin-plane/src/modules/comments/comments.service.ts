@@ -17,7 +17,7 @@ import {
 
 @Injectable()
 export class CommentsService extends ApiFetchService {
-	private readonly path = '/comments';
+	private readonly path = '/comment';
 
 	/**
 	 * @description Create comment
@@ -39,7 +39,7 @@ export class CommentsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body: { ...body, defaultOrganizationId },
+					body: { ...body, organizationId: defaultOrganizationId },
 				})
 			).data;
 

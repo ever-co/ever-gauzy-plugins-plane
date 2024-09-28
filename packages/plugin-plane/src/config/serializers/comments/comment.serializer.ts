@@ -12,6 +12,7 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
+import { ActorTypeEnum } from 'packages/models/src/imports/base-entity.model';
 
 export function issueCommentTrasnsformer(
 	comments: IComment[] | IComment,
@@ -25,12 +26,17 @@ export function issueCommentTrasnsformer(
 			id: comment.id,
 			issue_detail: issue,
 			actor_detail: {
-				id: actor.id,
-				first_name: actor.user.firstName,
-				last_name: actor.user.lastName,
-				avatar: actor.user.imageUrl,
+				id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				// id: actor?.id,
+				first_name: 'Salva',
+				// first_name: actor?.user?.firstName,
+				last_name: 'Cardano',
+				// last_name: actor?.user?.lastName,
+				avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
+				// avatar: actor?.user?.imageUrl,
 				is_bot: false,
-				display_name: actor.fullName,
+				display_name: 'salva.cardano1',
+				// display_name: actor?.fullName,
 			},
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail,
@@ -40,7 +46,7 @@ export function issueCommentTrasnsformer(
 			deleted_at: comment.deletedAt,
 			comment_stripped: comment.comment,
 			comment_json: {},
-			comment_html: `<p>${comment.comment}</p>`,
+			comment_html: comment.comment,
 			attachments: [],
 			access: 'INTERNAL',
 			external_source: null,
@@ -50,7 +56,7 @@ export function issueCommentTrasnsformer(
 			project: project.id,
 			workspace: workspace_detail.id,
 			issue: issue.id,
-			actor: actor.id,
+			actor: actor?.id,
 		};
 	};
 
@@ -70,6 +76,7 @@ export function createCommentInputTransformer(
 		entity,
 		entityId,
 		comment: input.comment_html,
+		actorType: ActorTypeEnum.User,
 	};
 }
 

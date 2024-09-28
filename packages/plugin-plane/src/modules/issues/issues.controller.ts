@@ -8,11 +8,12 @@ import {
 	Param,
 	Patch,
 	Post,
+	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID, IIssue } from '@plane-plugin/models';
+import { ID, IIssue, IssueActivityTypeEnum } from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
-import { CreateIssueDTO, UpdateIssueDTO } from './dto';
+import { CreateIssueCommentDTO, CreateIssueDTO, UpdateIssueDTO } from './dto';
 
 @ApiTags('Issues routes')
 @Controller()
@@ -71,6 +72,21 @@ export class IssuesController {
 		return await this._issueService.findIssueRelations(id);
 	}
 
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue activity' })
+	@Get(':id/history')
+	async findActivity(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+		@Query('activity_type') activity_type: IssueActivityTypeEnum,
+	) {
+		return await this._issueService.findActivity(
+			id,
+			projectId,
+			activity_type,
+		);
+	}
+
 	/**
 	 * @description - Create issue
 	 * @param {CreateIssueDTO} input - data for creating new issue
@@ -82,6 +98,21 @@ export class IssuesController {
 	@Post()
 	async create(@Body() input: CreateIssueDTO): Promise<IIssue> {
 		return await this._issueService.create(input);
+	}
+
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Comment' })
+	@Post(':id/comments')
+	async createComment(
+		@Param('id') entityId: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: CreateIssueCommentDTO,
+	): Promise<IIssue> {
+		return await this._issueService.createComment(
+			entityId,
+			projectId,
+			input,
+		);
 	}
 
 	/**

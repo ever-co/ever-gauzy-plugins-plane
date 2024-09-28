@@ -115,6 +115,7 @@ export const projectRelations = [
 	'modules',
 	'tags',
 	'teams',
+	'tenant',
 ];
 
 export const getProjectsQuery: Record<string, string> = {

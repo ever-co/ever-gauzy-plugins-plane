@@ -133,7 +133,8 @@ export {
 	IBasePerTenantAndOrganizationEntityModel,
 	IBasePerTenantEntityModel,
 	IBaseSoftDeleteEntityModel,
-	IBaseRelationsEntityModel
+	IBaseRelationsEntityModel,
+	ActorTypeEnum
 } from './base-entity.model';
 
 export * from './proxy.model';

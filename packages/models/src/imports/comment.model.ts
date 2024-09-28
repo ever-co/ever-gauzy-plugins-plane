@@ -47,6 +47,7 @@ export interface ICommentCreateInput {
 	parentId?: ID;
 	members?: IEmployee[];
 	teams?: IOrganizationTeam[];
+	actorType?: ActorTypeEnum;
 }
 
 export interface ICommentUpdateInput extends Partial<Omit<IComment, 'entity' | 'entityId' | 'creatorId' | 'creator'>> {}

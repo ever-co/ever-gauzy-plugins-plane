@@ -57,3 +57,8 @@ export interface IIssueReaction {
 	workspace?: ID;
 	actor?: ID;
 }
+
+export enum IssueActivityTypeEnum {
+	COMMENT = 'issue-comment',
+	PROPERTY = 'issue-property'
+}

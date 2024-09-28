@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	CommentEntityEnum,
+	ICommentFindInput,
 	ICreateCommentInput,
 	ID,
 	IIssue,
@@ -11,6 +12,7 @@ import {
 	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
+	IssueActivityTypeEnum,
 	IState,
 	ITask,
 	TaskStatusEnum,
@@ -250,14 +252,118 @@ export class IssuesService extends ApiFetchService {
 		).data;
 	}
 
+	/**
+	 * @description Create issue comment
+	 * @author GloireMutaliko
+	 * @param {ID} entityId - Issue ID for creating comment
+	 * @param {ID} projectId - Project ID for returning project data
+	 * @param {ICreateCommentInput} input - Body request
+	 * @returns A promise resoved to comment created and returned related data
+	 * @memberof IssuesService
+	 */
 	async createComment(
 		entityId: ID,
 		projectId: ID,
 		input: ICreateCommentInput,
 	): Promise<IIssueComment> {
 		try {
+			// Create comment
+			const comment = await this._commentService.create(
+				input,
+				CommentEntityEnum.Task,
+				entityId,
+			);
+
+			const { actor, issue, project, workspace } =
+				await this.getIssueCommentDetails(
+					entityId,
+					projectId,
+					comment.creatorId,
+				);
+
+			const transformedComment = issueCommentTrasnsformer(
+				comment,
+				issue,
+				actor,
+				project,
+				workspace,
+			);
+
+			return Array.isArray(transformedComment)
+				? transformedComment[0]
+				: transformedComment;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException();
+		}
+	}
+
+	async getIssueComments(
+		options: Partial<ICommentFindInput>,
+		projectId: ID,
+	): Promise<any> {
+		try {
+			const comments = await this._commentService.findAll(options);
+
+			const issueComments: IIssueComment[] = await Promise.all(
+				comments.map(async (comment) => {
+					const { actor, issue, project, workspace } =
+						await this.getIssueCommentDetails(
+							options.entityId,
+							projectId,
+							comment.creatorId,
+						);
+					const transformedComment = issueCommentTrasnsformer(
+						comment,
+						issue,
+						actor,
+						project,
+						workspace,
+					);
+					return Array.isArray(transformedComment)
+						? transformedComment[0]
+						: transformedComment;
+				}),
+			);
+
+			return issueComments;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async getActivity(
+		id: ID,
+		projectId: ID,
+		activity_type: IssueActivityTypeEnum,
+	): Promise<any> {
+		try {
+			if (activity_type === IssueActivityTypeEnum.COMMENT) {
+				return await this.getIssueComments(
+					{ entityId: id, entity: CommentEntityEnum.Task },
+					projectId,
+				);
+			}
+			return []; // TODO: Implement activity log APIs
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Get Issue comment details
+	 * @param {ID} id - Issue ID
+	 * @param {ID} projectId - Project ID
+	 * @param {ID} creatorId Creator ID for returning actor details
+	 * @returns - A promise resolced afet got details
+	 * @memberof IssuesService
+	 */
+	async getIssueCommentDetails(id: ID, projectId: ID, creatorId: ID) {
+		try {
 			// remote issue to find creator member
-			const task = await this.getRemoteIssue(entityId);
+			const task = await this.getRemoteIssue(id);
 
 			// Commented issue
 			const issue = issueTransformer(task);
@@ -274,32 +380,15 @@ export class IssuesService extends ApiFetchService {
 				slug: tenant.name.toLowerCase(),
 			};
 
-			// Create comment
-			const comment = await this._commentService.create(
-				input,
-				CommentEntityEnum.Task,
-				entityId,
-			);
-
 			// Find actor by userId
 			const actor = task.members.find(
-				(member) => (member.userId = comment.creatorId),
+				(member) => member.userId === creatorId,
 			);
 
-			const transformedComment = issueCommentTrasnsformer(
-				comment,
-				issue,
-				actor,
-				project,
-				workspace,
-			);
-
-			return Array.isArray(transformedComment)
-				? transformedComment[0]
-				: transformedComment;
+			return { issue, project, workspace, actor };
 		} catch (error) {
 			console.log(error);
-			throw new BadRequestException();
+			throw new BadRequestException(error);
 		}
 	}
 }

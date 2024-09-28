@@ -307,6 +307,7 @@ export class IssuesService extends ApiFetchService {
 	 * @param {ID} id - Comment ID to be updated
 	 * @param {ID} projectId - Project ID for find details
 	 * @param {ICreateCommentInput} input - Body Request data
+	 * @param {ID} entityId
 	 * @returns A promise resolved to updated comment and details
 	 * @memberof IssuesService
 	 */
@@ -314,20 +315,30 @@ export class IssuesService extends ApiFetchService {
 		id: ID,
 		projectId: ID,
 		input: ICreateCommentInput,
+		entityId: ID,
 	): Promise<IIssueComment> {
 		try {
 			// Update comment
-			const comment = await this._commentService.update(id, input);
+			const options: ICommentFindInput = {
+				entity: CommentEntityEnum.Task,
+				entityId,
+			};
+			await this._commentService.update(id, options, input);
+
+			const updatedComment = await this._commentService.findOne(
+				id,
+				options,
+			);
 
 			const { actor, issue, project, workspace } =
 				await this.getIssueCommentDetails(
-					comment.entityId,
+					updatedComment.entityId,
 					projectId,
-					comment.creatorId,
+					updatedComment.creatorId,
 				);
 
 			const transformedComment = issueCommentTrasnsformer(
-				comment,
+				updatedComment,
 				issue,
 				actor,
 				project,
@@ -453,7 +464,7 @@ export class IssuesService extends ApiFetchService {
 			// Find actor by userId
 			const actor = project.members.find(
 				(member) => member.employee.userId === creatorId,
-			).employee;
+			)?.employee;
 
 			return { issue, project, workspace, actor };
 		} catch (error) {

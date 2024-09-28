@@ -13,6 +13,7 @@ import {
 	createCommentInputTransformer,
 	defaultOrganizationId,
 	getCommentsQuery,
+	updateCommentInputTransformer,
 } from '../../config';
 
 @Injectable()
@@ -59,18 +60,25 @@ export class CommentsService extends ApiFetchService {
 	 */
 	async update(
 		id: ID,
-		input: Partial<ICreateCommentInput>,
+		options: ICommentFindInput,
+		input: ICreateCommentInput,
 	): Promise<IComment> {
 		try {
+			const existingComment = await this.findOne(id, options);
+
+			if (!existingComment) {
+				throw new BadRequestException('Comment Not Found');
+			}
+
+			const body = updateCommentInputTransformer(input, existingComment);
+
 			const comment: IComment = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body: input,
+					body,
 				})
 			).data;
-
-			console.log({ comment });
 
 			return comment;
 		} catch (error) {
@@ -103,8 +111,36 @@ export class CommentsService extends ApiFetchService {
 	}
 
 	/**
+	 * @description Find one comment
+	 * @param {ID} id - Comment ID
+	 * @param {ICommentFindInput} options - find filter options
+	 * @returns A promise resolved to found comment
+	 * @memberof CommentsService
+	 */
+	async findOne(id: ID, options: ICommentFindInput): Promise<IComment> {
+		try {
+			const { entity, entityId } = options;
+
+			const query = qs.stringify(getCommentsQuery(entityId, entity));
+
+			const comment: IComment = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/${id}`,
+					query,
+				})
+			).data;
+
+			return comment;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException();
+		}
+	}
+
+	/**
 	 * @description Delete comment
-	 * @param {ID} id - The issue ID to be deleted
+	 * @param {ID} id - The comment ID to be deleted
 	 * @returns A promise resolved to delete result
 	 * @memberof CommentsService
 	 */

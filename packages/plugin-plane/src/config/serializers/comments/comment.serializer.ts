@@ -2,6 +2,7 @@ import {
 	CommentEntityEnum,
 	IComment,
 	ICommentCreateInput,
+	ICommentUpdateInput,
 	ICreateCommentInput,
 	ID,
 	IEmployee,
@@ -72,6 +73,16 @@ export function createCommentInputTransformer(
 		entityId,
 		comment: input.comment_html,
 		actorType: ActorTypeEnum.User,
+	};
+}
+
+export function updateCommentInputTransformer(
+	input: ICreateCommentInput,
+	commentUpdate: IComment,
+): ICommentUpdateInput {
+	return {
+		...commentUpdate,
+		comment: input.comment_html,
 	};
 }
 

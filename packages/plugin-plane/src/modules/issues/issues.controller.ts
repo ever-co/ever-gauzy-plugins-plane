@@ -132,9 +132,12 @@ export class IssuesController {
 	}
 
 	/**
-	 * @description - Update issue comment
-	 * @param {UpdateIssueDTO} input - data for updating issue comment
-	 * @returns - A promise that resolves after issue comment updated
+	 * @description Create issue comment
+	 * @param {ID} id - Comment ID to be updated
+	 * @param {ID} projectId - Project ID for find details
+	 * @param {ICreateCommentInput} input - Body Request data
+	 * @param {ID} entityId
+	 * @returns A promise resolved to updated comment and details
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.OK)
@@ -142,10 +145,16 @@ export class IssuesController {
 	@Patch(':id/comments/:commentId')
 	async updateComment(
 		@Body() input: CreateIssueCommentDTO,
+		@Param('entityId') entityId: ID,
 		@Param('commentId') id: ID,
 		@Param('projectId') projectId: ID,
 	): Promise<IIssue> {
-		return await this._issueService.updateComment(id, projectId, input);
+		return await this._issueService.updateComment(
+			id,
+			projectId,
+			input,
+			entityId,
+		);
 	}
 
 	/**

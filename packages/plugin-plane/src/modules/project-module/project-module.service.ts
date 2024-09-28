@@ -12,7 +12,7 @@ import {
 	createModuleInputTransformer,
 	getModulesQuery,
 	modulesTransformer,
-} from '../../config/serializers/modules/module.response';
+} from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 
@@ -29,14 +29,14 @@ export class ProjectModuleService extends ApiFetchService {
 
 	/**
 	 * @description - Create module
-	 * @param {ICreateModuleInput} payload - data for creating new module
+	 * @param {ICreateModuleInput} input - data for creating new module
 	 * @returns - A promise that resolves after module created
 	 * @memberof ProjectModuleService
 	 */
-	async create(payload: ICreateModuleInput): Promise<IModule | IModule[]> {
+	async create(input: ICreateModuleInput): Promise<IModule | IModule[]> {
 		try {
 			const project = await this._projectService.getRemoteProject(
-				payload.project_id,
+				input.project_id,
 			);
 
 			if (!project) {
@@ -45,14 +45,14 @@ export class ProjectModuleService extends ApiFetchService {
 
 			let lead: IOrganizationProjectEmployee | undefined;
 
-			if (payload.lead_id) {
+			if (input.lead_id) {
 				lead = project.members.find(
-					(member) => member.employee.id === payload.lead_id,
+					(member) => member.employee.id === input.lead_id,
 				);
 			}
 
 			const body = createModuleInputTransformer(
-				payload,
+				input,
 				lead && lead.employee.userId,
 			);
 

@@ -7,10 +7,7 @@ import {
 	IParentableIssuesQueruParams,
 	ITask,
 } from '@plane-plugin/models';
-import {
-	getTaskQuery,
-	parentableIssuesTransformer,
-} from '../../../config/serializers/tasks/tasks.response';
+import { getTaskQuery, parentableIssuesTransformer } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 
 @Injectable()
@@ -44,6 +41,7 @@ export class SearchIssuesService extends ApiFetchService {
 					query,
 				})
 			).data;
+
 			let parentableIssues = issues.items;
 			if (parent) {
 				parentableIssues = parentableIssues.filter(

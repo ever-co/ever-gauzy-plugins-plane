@@ -73,20 +73,20 @@ export class IssuesController {
 
 	/**
 	 * @description - Create issue
-	 * @param {CreateIssueDTO} payload - data for creating new issue
+	 * @param {CreateIssueDTO} input - data for creating new issue
 	 * @returns - A promise that resolves after issue created
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue' })
 	@Post()
-	async create(@Body() payload: CreateIssueDTO): Promise<IIssue> {
-		return await this._issueService.create(payload);
+	async create(@Body() input: CreateIssueDTO): Promise<IIssue> {
+		return await this._issueService.create(input);
 	}
 
 	/**
 	 * @description - Update issue
-	 * @param {UpdateIssueDTO} payload - data for updating issue
+	 * @param {UpdateIssueDTO} input - data for updating issue
 	 * @returns - A promise that resolves after issue updated
 	 * @memberof IssuesController
 	 */
@@ -94,10 +94,10 @@ export class IssuesController {
 	@ApiOperation({ summary: 'Update Issue' })
 	@Patch(':id')
 	async update(
-		@Body() payload: UpdateIssueDTO,
+		@Body() input: UpdateIssueDTO,
 		@Param('id') id: ID,
 	): Promise<IIssue> {
-		return await this._issueService.update(id, payload);
+		return await this._issueService.update(id, input);
 	}
 
 	@HttpCode(HttpStatus.NO_CONTENT)

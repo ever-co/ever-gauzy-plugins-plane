@@ -14,18 +14,20 @@ import {
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
+	getIssueRelationType,
 	getTaskQuery,
 	groupIssuesByStateId,
 	issueTransformer,
 	updateIssueInputTransformer,
 } from '../../config';
 import { StatesService } from '../states/states.service';
-import { getIssueRelationType } from '../../config/serializers/tasks/issue-relations';
+import { CommentsService } from '../comments/comments.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
 	constructor(
 		private readonly _stateSerive: StatesService,
+		private readonly _commentService: CommentsService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -73,16 +75,16 @@ export class IssuesService extends ApiFetchService {
 
 	/**
 	 * @description - Create issue
-	 * @param {IIssueCreateInput} payload - data for creating new issue
+	 * @param {IIssueCreateInput} input - data for creating new issue
 	 * @returns - A promise that resolves after issue created
 	 * @memberof IssuesService
 	 */
-	async create(payload: IIssueCreateInput): Promise<IIssue> {
+	async create(input: IIssueCreateInput): Promise<IIssue> {
 		try {
-			const state = await this._stateSerive.getOne(payload.state_id);
+			const state = await this._stateSerive.getOne(input.state_id);
 
 			const body = createIssueInputTransformer(
-				payload,
+				input,
 				state.name as TaskStatusEnum,
 			);
 
@@ -103,16 +105,16 @@ export class IssuesService extends ApiFetchService {
 
 	/**
 	 * @description - Update issue
-	 * @param {IIssueCreateInput} payload - data for updating issue
+	 * @param {IIssueCreateInput} input - data for updating issue
 	 * @param {ID} id - The issue ID to be updated
 	 * @returns - A promise that resolves after issue updated
 	 * @memberof IssuesService
 	 */
-	async update(id: ID, payload: IIssueUpdateInput): Promise<IIssue> {
+	async update(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
 		try {
 			let state: IState;
-			if (payload.state_id) {
-				state = await this._stateSerive.getOne(payload.state_id);
+			if (input.state_id) {
+				state = await this._stateSerive.getOne(input.state_id);
 			}
 			const issue = await this.findOne(id);
 
@@ -123,7 +125,7 @@ export class IssuesService extends ApiFetchService {
 			}
 
 			const body = updateIssueInputTransformer(
-				payload,
+				input,
 				state?.name as TaskStatusEnum,
 			);
 
@@ -133,8 +135,8 @@ export class IssuesService extends ApiFetchService {
 					method: 'PUT',
 					body: {
 						...body,
-						title: payload.name ?? issue.name,
-						status: payload.state_id
+						title: input.name ?? issue.name,
+						status: input.state_id
 							? state.name
 							: nativeIssue.status,
 					},
@@ -241,4 +243,6 @@ export class IssuesService extends ApiFetchService {
 			})
 		).data;
 	}
+
+	async createComment(id: )
 }

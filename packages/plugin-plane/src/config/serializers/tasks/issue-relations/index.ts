@@ -1,1 +1,1 @@
-export * from './issue-relations.response';
+export * from './issue-relations.serializer';

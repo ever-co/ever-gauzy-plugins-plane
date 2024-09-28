@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	CheckUserExistEnum,
 	ICheckUserExist,
 	IEmailInput,
 	IPasswordInput,
 } from '@plane-plugin/models';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
 @Injectable()
 export class AuthService {
 	constructor(private readonly _serverFetchService: ApiFetchService) {}
 	async checkExistingUser(
-		payload: IEmailInput & Partial<IPasswordInput>,
+		input: IEmailInput & Partial<IPasswordInput>,
 	): Promise<ICheckUserExist> {
-		console.log(payload);
+		console.log(input);
 		// try {
 		// 	const user = await this._serverFetchService.apiFetch({
 		// 		method: 'POST',
 		// 		path: '/auth/login',
-		// 		body: { email: payload.email, password: 'admine' },
+		// 		body: { email: input.email, password: 'admine' },
 		// 	});
 
 		// 	console.log(user.data);

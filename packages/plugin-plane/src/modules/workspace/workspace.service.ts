@@ -6,7 +6,7 @@ import { defaultOrganizationId } from '../../config';
 import {
 	getOrganizationQuery,
 	organizationMembersTransformer,
-} from '../../config/serializers/workspace-organization';
+} from '../../config';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {

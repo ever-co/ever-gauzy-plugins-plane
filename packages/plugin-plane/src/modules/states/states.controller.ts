@@ -32,7 +32,7 @@ export class StatesController {
 
 	/**
 	 * @description - Create project state
-	 * @param {ICreateStateInput} payload
+	 * @param {ICreateStateInput} input
 	 * @returns - A promise that resolves after state created
 	 * @memberof StatesController
 	 */
@@ -41,10 +41,10 @@ export class StatesController {
 	@Post()
 	async create(
 		@Param('projectId') project_id: ID,
-		@Body() payload: CreateStateDto,
+		@Body() input: CreateStateDto,
 	) {
 		return await this._stateService.create({
-			...payload,
+			...input,
 			project_id,
 		});
 	}

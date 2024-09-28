@@ -118,14 +118,14 @@ export class ProjectService extends ApiFetchService {
 	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Create new Project in workspace
-	 * @param {CreateProjectDTO} payload - input data with which to create project
+	 * @param {CreateProjectDTO} input - input data with which to create project
 	 * @returns - A promise that resolves after created project
 	 * @memberof ProjectService
 	 */
 	async createOrganizationProject(
-		payload: ICreateProjectInput,
+		input: ICreateProjectInput,
 	): Promise<IProject> {
-		const body = createProjectInputTransformer(payload);
+		const body = createProjectInputTransformer(input);
 		try {
 			console.log({ body });
 
@@ -147,20 +147,20 @@ export class ProjectService extends ApiFetchService {
 	/**
 	 * @description Update project
 	 * @param {ID} id The project ID
-	 * @param {IUpdateProjectInput} payload Data to be updated
+	 * @param {IUpdateProjectInput} input Data to be updated
 	 * @returns A promise that resolves after project updated
 	 * @memberof ProjectService
 	 */
-	async update(id: ID, payload: IUpdateProjectInput): Promise<IProject> {
+	async update(id: ID, input: IUpdateProjectInput): Promise<IProject> {
 		try {
-			const { members } = payload;
+			const { members } = input;
 
 			let project: IOrganizationProject = await this.getRemoteProject(id);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
 			}
-			const body = createProjectInputTransformer(payload);
+			const body = createProjectInputTransformer(input);
 			if (!members) {
 				body.members = project.members;
 			}

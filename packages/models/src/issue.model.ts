@@ -4,6 +4,7 @@ export interface IIssue {
 	id?: ID;
 	name?: string;
 	description_html?: string;
+	description?: any;
 	state_id?: ID;
 	sort_order?: number;
 	completed_at?: Date;
@@ -42,3 +43,17 @@ export interface IIssue {
 export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 
 export type IIssueUpdateInput = IIssue;
+
+export interface IIssueReaction {
+	id?: ID;
+	reaction: string;
+	comment: ID;
+	created_at?: Date;
+	updated_at?: Date;
+	deleted_at?: Date | null;
+	created_by?: ID;
+	updated_by?: ID;
+	project?: ID;
+	workspace?: ID;
+	actor?: ID;
+}

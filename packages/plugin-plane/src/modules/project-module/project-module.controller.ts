@@ -18,7 +18,7 @@ export class ProjectModuleController {
 
 	/**
 	 * @description - Create module
-	 * @param {ICreateModuleInput} payload - data for creating new module
+	 * @param {ICreateModuleInput} input - data for creating new module
 	 * @returns - A promise that resolves after module created
 	 * @memberof ProjectModuleController
 	 */
@@ -26,9 +26,9 @@ export class ProjectModuleController {
 	@ApiOperation({ summary: 'Create module' })
 	@Post()
 	async createModule(
-		@Body() payload: CreateModuleDTO,
+		@Body() input: CreateModuleDTO,
 	): Promise<IModule | IModule[]> {
-		return await this._projectModuleService.create(payload);
+		return await this._projectModuleService.create(input);
 	}
 
 	/**

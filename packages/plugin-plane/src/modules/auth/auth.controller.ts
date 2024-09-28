@@ -18,8 +18,8 @@ export class AuthController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Check email' })
 	@Post('email-check')
-	async checkExistingUser(@Body() payload: CheckExistUserDTO) {
-		return await this._authService.checkExistingUser(payload);
+	async checkExistingUser(@Body() input: CheckExistUserDTO) {
+		return await this._authService.checkExistingUser(input);
 	}
 
 	@HttpCode(HttpStatus.OK)

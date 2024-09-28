@@ -71,28 +71,28 @@ export class ProjectController {
 	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Create new Project in workspace
-	 * @param {CreateProjectDTO} payload - input data with which to create project
+	 * @param {CreateProjectDTO} input - input data with which to create project
 	 * @returns - A promise that resolves after created project
 	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create workspace projects' })
 	@Post()
-	async createOrganizationProject(@Body() payload: CreateProjectDTO) {
-		return await this._projectService.createOrganizationProject(payload);
+	async createOrganizationProject(@Body() input: CreateProjectDTO) {
+		return await this._projectService.createOrganizationProject(input);
 	}
 
 	/**
 	 * @description Update project
 	 * @param {ID} id The project ID
-	 * @param {CreateProjectDTO} payload Data to be updated
+	 * @param {CreateProjectDTO} input Data to be updated
 	 * @returns A promise that resolves after project updated
 	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update workspace projects' })
 	@Patch(':id')
-	async update(@Param('id') id: ID, @Body() payload: CreateProjectDTO) {
-		return await this._projectService.update(id, payload);
+	async update(@Param('id') id: ID, @Body() input: CreateProjectDTO) {
+		return await this._projectService.update(id, input);
 	}
 }

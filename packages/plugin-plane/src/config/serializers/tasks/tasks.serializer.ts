@@ -189,9 +189,10 @@ export function createIssueInputTransformer(
 		taskStatusId: issue.state_id,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
-		modules: issue.module_ids.map(
-			(id) => ({ id }) as IOrganizationProjectModule,
-		),
+		modules:
+			issue.module_ids?.map(
+				(id) => ({ id }) as IOrganizationProjectModule,
+			) || [],
 	};
 }
 

@@ -5,7 +5,7 @@ import {
 	IPagination,
 	IProjectIdentifierResponse,
 } from '@plane-plugin/models';
-import { getProjectByIdentifiersQuery } from '../../../config/serializers/projects/projects.responses';
+import { getProjectByIdentifiersQuery } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 
 @Injectable()

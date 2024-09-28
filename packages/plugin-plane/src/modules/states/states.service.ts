@@ -45,12 +45,12 @@ export class StatesService extends ApiFetchService {
 
 	/**
 	 * @description - Create state
-	 * @param {ICreateStateInput} payload - data for creating new state
+	 * @param {ICreateStateInput} input - data for creating new state
 	 * @returns - A promise that resolves after state created
 	 * @memberof StatesService
 	 */
-	async create(payload: ICreateStateInput): Promise<IState> {
-		const body = createStateInputTransformer(payload);
+	async create(input: ICreateStateInput): Promise<IState> {
+		const body = createStateInputTransformer(input);
 
 		try {
 			const state: ITaskStatus = (

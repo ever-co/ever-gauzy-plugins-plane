@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { InstancesModule } from './instances/instances.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
@@ -14,6 +12,7 @@ import { IssueLabelsModule } from './issues/issue-labels/issue-labels.module';
 import { ProjectModule } from './project/project.module';
 import { IssueRelationsModule } from './issue-relations/issue-relations.module';
 import { ProjectModuleModule } from './project-module/project-module.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
 	imports: [
@@ -30,8 +29,7 @@ import { ProjectModuleModule } from './project-module/project-module.module';
 		ProjectModule,
 		IssueRelationsModule,
 		ProjectModuleModule,
+		CommentsModule,
 	],
-	controllers: [AppController],
-	providers: [AppService],
 })
 export class AppModule {}

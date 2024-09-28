@@ -395,26 +395,10 @@ export class IssuesService extends ApiFetchService {
 				slug: tenant?.name.toLowerCase(),
 			};
 
-			/**
-			 * Should be refacted and implement APIs for members
-			 */
 			// Find actor by userId
-			const member = project.members.find(
+			const actor = project.members.find(
 				(member) => member.employee.userId === creatorId,
-			);
-
-			const actor = {
-				id:
-					member?.employeeId ||
-					'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-				first_name: member?.employee.user.firstName || 'Salva',
-				last_name: member?.employee.user.lastName || 'Cardano',
-				avatar:
-					member?.employee.user.imageUrl ||
-					'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
-				is_bot: false,
-				display_name: member?.employee?.fullName || 'salva.cardano1',
-			};
+			).employee;
 
 			return { issue, project, workspace, actor };
 		} catch (error) {

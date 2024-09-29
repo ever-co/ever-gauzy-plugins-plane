@@ -6,13 +6,13 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
+	IAssignMembersToProject,
 	ICreateProjectInput,
 	ID,
 	IGetProjectMembersResponse,
 	IOrganizationProject,
 	IPagination,
 	IProject,
-	IProjectMember,
 	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import {
@@ -208,9 +208,10 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async assignMembersToProject(
 		id: ID,
-		members: IProjectMember[],
+		input: IAssignMembersToProject,
 	): Promise<IProject> {
 		try {
+			const { members } = input;
 			const project = await this.getRemoteProject(id);
 
 			if (!project) {

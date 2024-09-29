@@ -93,10 +93,10 @@ export class ProjectController {
 	@ApiOperation({ summary: 'Assign members to project' })
 	@Post(':id/members')
 	async assignMembersToProject(
-		@Body() members: ProjectMemberDTO[],
+		@Body() input: { members: ProjectMemberDTO[] },
 		@Param('id') id: ID,
 	) {
-		return await this._projectService.assignMembersToProject(id, members);
+		return await this._projectService.assignMembersToProject(id, input);
 	}
 
 	/**

@@ -66,6 +66,10 @@ export interface IProjectMember {
 	role?: number;
 }
 
+export interface IAssignMembersToProject {
+	members: IProjectMember[];
+}
+
 export interface ICreateProjectInput extends Partial<Omit<IProject, 'id'>> {}
 
 export type IUpdateProjectInput = IProject;

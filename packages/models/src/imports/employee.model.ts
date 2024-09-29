@@ -23,7 +23,7 @@ import { ICandidate } from './candidate.model';
 import { IEmployeeAward } from './employee-award.model';
 import { IOrganizationProjectModule } from './organization-project-module.model';
 import { CurrenciesEnum } from './currency.model';
-import { ITaggable } from './tag.model copy';
+import { ITaggable } from './tag.model';
 import { IFavorite } from './favorite.model';
 import { IComment } from './comment.model';
 

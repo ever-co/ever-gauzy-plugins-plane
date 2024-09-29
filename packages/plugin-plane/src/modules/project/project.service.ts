@@ -12,9 +12,11 @@ import {
 	IOrganizationProject,
 	IPagination,
 	IProject,
+	IProjectMember,
 	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import {
+	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
 	getProjectsQuery,
 	getProjectsResponse,
@@ -89,6 +91,7 @@ export class ProjectService extends ApiFetchService {
 			if (!project) {
 				throw new BadRequestException('Project not found');
 			}
+
 			return getProjectsResponse([project])[0] as IProject;
 		} catch (error) {
 			console.log(error);
@@ -108,7 +111,7 @@ export class ProjectService extends ApiFetchService {
 		return members.map((member) => ({
 			id: member.id,
 			member: member.member_id,
-			role: 20, // Must be changed
+			role: member.role,
 			project: project.id,
 		}));
 	}
@@ -127,8 +130,6 @@ export class ProjectService extends ApiFetchService {
 	): Promise<IProject> {
 		const body = createProjectInputTransformer(input);
 		try {
-			console.log({ body });
-
 			const project: IOrganizationProject = (
 				await this.apiFetch({
 					method: 'POST',
@@ -155,30 +156,69 @@ export class ProjectService extends ApiFetchService {
 		try {
 			const { members } = input;
 
-			let project: IOrganizationProject = await this.getRemoteProject(id);
+			const project: IOrganizationProject =
+				await this.getRemoteProject(id);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
 			}
-			const body = createProjectInputTransformer(input);
+			const body: any = createProjectInputTransformer(input);
 			if (!members) {
-				body.members = project.members;
+				body.memberIds = project.members.map((m) => m.employeeId);
 			}
 
-			console.log({ members: body.members });
+			delete project.members;
 
-			project = (
+			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `/organization-projects/${id}`,
-					body,
+					body: { ...project, ...body },
 				})
 			).data;
 
-			return getProjectsResponse([project])[0] as IProject;
+			return getProjectsResponse([updatedProject])[0] as IProject;
 		} catch (error) {
 			console.log(error);
 			throw new BadGatewayException(error);
+		}
+	}
+
+	/**
+	 * @description - Add other members to project
+	 * @param {ID} id - The project ID
+	 * @param {IProjectMember[]} members - New Members to be added
+	 * @returns A promise resoved after members assigned to projec
+	 * @memberof ProjectService
+	 */
+	async assignMembersToProject(
+		id: ID,
+		members: IProjectMember[],
+	): Promise<IProject> {
+		try {
+			const project = await this.getRemoteProject(id);
+
+			if (!project) {
+				throw new BadRequestException('Project could not be found');
+			}
+
+			const memberIds = assignMembersToProjectTransformer(members).concat(
+				project.members.map((m) => m.employeeId),
+			);
+			delete project.members;
+
+			const updatedProject = (
+				await this.apiFetch({
+					method: 'PUT',
+					path: `/organization-projects/${id}`,
+					body: { ...project, memberIds },
+				})
+			).data;
+
+			return getProjectsResponse([updatedProject])[0];
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 

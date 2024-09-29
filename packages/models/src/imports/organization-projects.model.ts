@@ -1,5 +1,6 @@
 import { IEmployee, IEmployeeEntityInput } from './employee.model';
 import { IRelationalOrganizationContact } from './organization-contact.model';
+import { ITaggable } from './tag.model';
 import { ITask } from './task.model';
 import { IOrganizationSprint } from './organization-sprint.model';
 import { IPayment } from './payment.model';
@@ -13,7 +14,6 @@ import { TaskStatusEnum } from './task-status.model';
 import { IRelationalRole } from './role.model';
 import { IBasePerTenantAndOrganizationEntityModel, ID } from './base-entity.model'; // Base Entities
 import { CustomFieldsObject } from './shared-types'; // Shared Types
-import { ITaggable } from './tag.model copy';
 
 // Base interface with optional properties
 export interface IRelationalOrganizationProject {
@@ -86,7 +86,8 @@ export interface IOrganizationProjectsFindInput
 }
 
 export interface IOrganizationProjectCreateInput extends IOrganizationProjectBase {
-	managers?: IOrganizationProjectEmployee[];
+	memberIds?: ID[]; // Manager of the organization project
+	managerIds?: ID[]; // Manager of the organization project
 }
 
 export interface IOrganizationProjectUpdateInput extends IOrganizationProjectCreateInput {}
@@ -100,8 +101,8 @@ export interface IOrganizationProjectEmployee
 	extends IBasePerTenantAndOrganizationEntityModel,
 		IEmployeeEntityInput,
 		IRelationalRole {
-	organizationProject?: IOrganizationProject;
-	organizationProjectId?: ID;
+	organizationProject: IOrganizationProject;
+	organizationProjectId: ID;
 	isManager?: boolean;
 	assignedAt?: Date;
 }
@@ -116,4 +117,10 @@ export enum TaskListTypeEnum {
 export enum OrganizationProjectBudgetTypeEnum {
 	HOURS = 'hours',
 	COST = 'cost'
+}
+
+export interface IOrganizationProjectEditByEmployeeInput extends IBasePerTenantAndOrganizationEntityModel {
+	addedProjectIds?: ID[];
+	removedProjectIds?: ID[];
+	member: IOrganizationProjectEmployee;
 }

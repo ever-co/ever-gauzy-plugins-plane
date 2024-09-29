@@ -16,12 +16,7 @@ export interface IProject {
 	sort_order?: number;
 	member_role?: number;
 	anchor?: any;
-	members?: {
-		id: string;
-		member_id: string;
-		member__display_name: string;
-		member__avatar: string;
-	}[];
+	members?: IProjectMember[];
 	state_id?: any;
 	priority?: any;
 	start_date?: Date;
@@ -61,6 +56,14 @@ export interface IProject {
 	project_lead?: ID;
 	estimate?: any;
 	default_state?: any;
+}
+
+export interface IProjectMember {
+	id?: string;
+	member_id?: string;
+	member__display_name?: string;
+	member__avatar?: string;
+	role?: number;
 }
 
 export interface ICreateProjectInput extends Partial<Omit<IProject, 'id'>> {}

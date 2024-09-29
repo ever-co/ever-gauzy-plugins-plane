@@ -1,19 +1,22 @@
 import {
 	ICreateProjectInput,
+	ID,
 	IOrganizationProject,
 	IOrganizationProjectCreateInput,
-	IOrganizationProjectEmployee,
 	IProject,
+	IProjectMember,
 	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { roleTransformer } from '../workspace-organization';
 
 export function getProjectsResponse(
 	projects: IOrganizationProject[],
 ): Partial<IProject>[] {
 	return projects?.map((project) => {
-		const members = project.members
+		// Safely handle the presence of `project.members` by using a fallback to an empty array.
+		const members = Array.isArray(project.members)
 			? project.members.map((member) => ({
 					id: member.employee.user.id,
 					member_id: member.employeeId,
@@ -22,21 +25,28 @@ export function getProjectsResponse(
 						member.employee.fullName ||
 						`${member.employee.user.firstName} ${member.employee.user.lastName}`,
 					member__avatar: member.employee.user.imageUrl,
+					role: roleTransformer(member.employee.user.role),
 				}))
-			: [];
+			: []; // If `project.members` is undefined, set `members` to an empty array
+
+		// Ensure safe access to `project.members` to find the first manager
+		const manager = Array.isArray(project.members)
+			? project.members.find((member) => member.isManager)
+			: null;
+
 		return {
 			id: project.id,
-			is_favorite: false, // To be add on external API,
+			is_favorite: false, // To be implemented after Auth,
 			total_members: project.membersCount,
-			total_cycles: project.organizationSprints?.length,
-			total_issues: project.tasks?.length,
-			total_modules: project.modules?.length,
-			is_member: true, // Research and know what it is excatly
-			sort_order: 66373.5, // Research and know what it is excatly
+			total_cycles: project.organizationSprints?.length || 0,
+			total_issues: project.tasks?.length || 0,
+			total_modules: project.modules?.length || 0,
+			is_member: true, // Research and know what it is exactly
+			sort_order: 66373.5, // Research and know what it is exactly
 			member_role: 20, // Seems it should be a project creator/owner/etc. role associated to that user.
-			anchor: null, // Research and know what it is excatly,
+			anchor: null, // Research and know what it is exactly
 			members,
-			state_id: null, // Research and know what it is excatly,
+			state_id: null, // Research and know what it is exactly,
 			priority: null, // To add for external API
 			start_date: project.startDate,
 			target_date: project.endDate,
@@ -48,8 +58,7 @@ export function getProjectsResponse(
 			description_text: null, // To add for external API
 			description_html: null, // To add for external API
 			network: project.public ? 2 : 0,
-			identifier:
-				project.code || project.name.slice(0, 4).toLocaleUpperCase(),
+			identifier: project.code || project.name.slice(0, 4).toUpperCase(),
 			emoji: null, // To add for external API
 			icon_prop: null, // To add for external API
 			module_view: true, // To add for external API
@@ -62,20 +71,18 @@ export function getProjectsResponse(
 			cover_image: project.imageUrl,
 			archive_in: project.archiveTasksIn,
 			close_in: project.closeTasksIn,
-
-			// Research and know what it is excatly,
 			logo_props: {
 				emoji: {
 					value: '127891',
 				},
 				in_use: 'emoji',
 			},
-			archived_at: null, // To add for external API
+			archived_at: project.archivedAt,
 			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b', // To add for external API
 			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b', // To add for external API
 			workspace: project.tenantId,
-			default_assignee: null, // To add for external API
-			project_lead: null, // To add for external API
+			default_assignee: project.defaultAssigneeId,
+			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
 			estimate: null, // To add for external API
 			default_state: null, // To add for external API
 		};
@@ -85,12 +92,17 @@ export function getProjectsResponse(
 export function createProjectInputTransformer(
 	input: ICreateProjectInput | IUpdateProjectInput,
 ): IOrganizationProjectCreateInput {
-	let members: IOrganizationProjectEmployee[] = [];
+	let memberIds = [];
+	let managerIds = [];
 
 	if (input.members) {
-		members = input.members.map((member) => ({
+		memberIds = input.members.map((member) => ({
 			employeeId: member.member_id,
 		}));
+	}
+
+	if (input.project_lead) {
+		managerIds = [input.project_lead];
 	}
 
 	return {
@@ -101,17 +113,27 @@ export function createProjectInputTransformer(
 		endDate: input.target_date,
 		imageUrl: input.cover_image,
 		public: input.network === 0 ? false : true,
-		members,
+		defaultAssigneeId: input.default_assignee,
+		memberIds,
+		managerIds,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
 	};
 }
 
+export function assignMembersToProjectTransformer(
+	projectMembers: IProjectMember[],
+): ID[] {
+	const memberIds = projectMembers.map((member) => member.member_id);
+	return memberIds;
+}
+
 export const projectRelations = [
 	'organization',
 	'members',
-	'members.employee',
-	'members.employee.user',
+	// 'members.employee',
+	// 'members.employee.user',
+	'members.employee.user.role',
 	'modules',
 	'tags',
 	'teams',

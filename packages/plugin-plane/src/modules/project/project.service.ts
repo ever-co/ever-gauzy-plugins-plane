@@ -154,20 +154,34 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async update(id: ID, input: IUpdateProjectInput): Promise<IProject> {
 		try {
-			const { members } = input;
+			// Extract members from the input if provided
+			const { members, ...restInput } = input;
 
-			const project: IOrganizationProject =
-				await this.getRemoteProject(id);
+			// Retrieve the project details from a remote source
+			const project = await this.getRemoteProject(id);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
 			}
-			const body: any = createProjectInputTransformer(input);
-			if (!members) {
-				body.memberIds = project.members.map((m) => m.employeeId);
-			}
 
-			delete project.members;
+			// Transform the input using the transformer function
+			const transformedInput = createProjectInputTransformer(restInput);
+
+			// Destructure the project object to exclude 'members' and construct `projectWithoutMembers`
+			const { members: existingMembers = [], ...projectWithoutMembers } =
+				project;
+
+			// Assign existing members if new members are not provided
+			const memberIds = members
+				? assignMembersToProjectTransformer(members)
+				: existingMembers.map((m) => m.employeeId);
+
+			// Create the final body for the PUT request by merging objects
+			const body = {
+				...projectWithoutMembers,
+				...transformedInput,
+				memberIds,
+			};
 
 			const updatedProject = (
 				await this.apiFetch({
@@ -177,6 +191,7 @@ export class ProjectService extends ApiFetchService {
 				})
 			).data;
 
+			// Transform the response to match the expected IProject format
 			return getProjectsResponse([updatedProject])[0] as IProject;
 		} catch (error) {
 			console.log(error);
@@ -202,16 +217,23 @@ export class ProjectService extends ApiFetchService {
 				throw new BadRequestException('Project could not be found');
 			}
 
-			const memberIds = assignMembersToProjectTransformer(members).concat(
-				project.members.map((m) => m.employeeId),
-			);
-			delete project.members;
+			// Extract existing members and prepare `projectWithoutMembers`
+			const { members: existingMembers = [], ...projectWithoutMembers } =
+				project;
+
+			// Create a Set to eliminate duplicates and include new member IDs
+			const memberIds = [
+				...new Set([
+					...assignMembersToProjectTransformer(members),
+					...existingMembers.map((m) => m.employeeId),
+				]),
+			];
 
 			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `/organization-projects/${id}`,
-					body: { ...project, memberIds },
+					body: { ...projectWithoutMembers, memberIds },
 				})
 			).data;
 

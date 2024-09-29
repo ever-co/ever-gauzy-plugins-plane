@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ID } from '@plane-plugin/models';
 import { ProjectService } from './project.service';
-import { CreateProjectDTO } from './dto';
+import { CreateProjectDTO, ProjectMemberDTO } from './dto';
 
 @ApiTags('Projects')
 @Controller()
@@ -80,6 +80,23 @@ export class ProjectController {
 	@Post()
 	async createOrganizationProject(@Body() input: CreateProjectDTO) {
 		return await this._projectService.createOrganizationProject(input);
+	}
+
+	/**
+	 * @description - Add other members to project
+	 * @param {ID} id - The project ID
+	 * @param {IProjectMember[]} members - New Members to be added
+	 * @returns A promise resoved after members assigned to projec
+	 * @memberof ProjectController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Assign members to project' })
+	@Post(':id/members')
+	async assignMembersToProject(
+		@Body() members: ProjectMemberDTO[],
+		@Param('id') id: ID,
+	) {
+		return await this._projectService.assignMembersToProject(id, members);
 	}
 
 	/**

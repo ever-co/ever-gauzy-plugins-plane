@@ -2,6 +2,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -23,7 +24,7 @@ export class ProjectModuleController {
 	 * @memberof ProjectModuleController
 	 */
 	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create module' })
+	@ApiOperation({ summary: 'Create Project Module' })
 	@Post()
 	async createModule(
 		@Body() input: CreateModuleDTO,
@@ -38,7 +39,7 @@ export class ProjectModuleController {
 	 * @memberof ProjectModuleController
 	 */
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project modules' })
+	@ApiOperation({ summary: 'Get Project Modules' })
 	@Get()
 	async getWorkspaceProjectModules(@Param('projectId') projectId: ID) {
 		return this._projectModuleService.getAllModulesByProject(projectId);
@@ -51,12 +52,25 @@ export class ProjectModuleController {
 	 * @memberof ProjectModuleController
 	 */
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project modules' })
+	@ApiOperation({ summary: 'Get Project Podules' })
 	@Get(':id')
 	async getWorkspaceProjectModule(
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID,
 	) {
 		return this._projectModuleService.getModule(id, projectId);
+	}
+
+	/**
+	 * @description Delete project module
+	 * @param {ID} id - The project module to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof ProjectModuleController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Project Module' })
+	@Delete(':id')
+	async deleteComment(@Param('id') id: ID) {
+		return await this._projectModuleService.delete(id);
 	}
 }

@@ -53,7 +53,7 @@ export class ProjectModuleService extends ApiFetchService {
 
 			const body = createModuleInputTransformer(
 				input,
-				lead && lead.employee.userId,
+				lead.employee.userId,
 			);
 
 			const projectModule: IOrganizationProjectModule = (
@@ -63,6 +63,8 @@ export class ProjectModuleService extends ApiFetchService {
 					body,
 				})
 			).data;
+
+			console.log({ projectModule });
 
 			return modulesTransformer(projectModule, lead && lead.id);
 		} catch (error: any) {
@@ -106,6 +108,8 @@ export class ProjectModuleService extends ApiFetchService {
 				};
 			});
 
+			// console.log(modules);
+
 			return modulesTransformer(modules.items);
 		} catch (error: any) {
 			console.log(error);
@@ -143,5 +147,20 @@ export class ProjectModuleService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException();
 		}
+	}
+
+	/**
+	 * @description Delete project module
+	 * @param {ID} id - The project module to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof ProjectModuleService
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
 	}
 }

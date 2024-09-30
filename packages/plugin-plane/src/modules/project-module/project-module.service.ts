@@ -115,8 +115,7 @@ export class ProjectModuleService extends ApiFetchService {
 				managerId: memberMap.get(module.managerId),
 			}));
 
-			console.log({ memberMap });
-
+			// Return the transformed modules
 			return modulesTransformer(modulesWithManagers);
 		} catch (error: any) {
 			console.log(error);
@@ -132,14 +131,24 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async getModule(id: ID, projectId: ID) {
 		try {
+			// Construct the query string once
 			const query = qs.stringify(getModulesQuery(projectId));
 
+			// Retrieve the project data
 			const project =
 				await this._projectService.getRemoteProject(projectId);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
 			}
+
+			// Build a Map for quick employee lookup using `userId`
+			const memberMap = new Map(
+				project.members.map((member) => [
+					member.employee.userId,
+					member.employeeId,
+				]),
+			);
 
 			const module: IOrganizationProjectModule = (
 				await this.apiFetch({
@@ -149,11 +158,10 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			const lead = project.members.find(
-				(member) => member.employee.userId === module.managerId,
-			);
-			const managerId = (module.managerId = lead?.employeeId);
+			// Transform the module with the correct `managerId`
+			const managerId = memberMap.get(module.managerId);
 
+			// Return the transformed module using `modulesTransformer`
 			return modulesTransformer({ ...module, managerId });
 		} catch (error) {
 			console.log(error);

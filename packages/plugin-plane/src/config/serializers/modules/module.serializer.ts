@@ -133,7 +133,6 @@ export function createModuleInputTransformer(
 	return {
 		name: module.name,
 		description: module.description,
-		manager: { id: managerId },
 		managerId,
 		status: mapGroupToTemplate(module.status),
 		startDate: module.start_date,

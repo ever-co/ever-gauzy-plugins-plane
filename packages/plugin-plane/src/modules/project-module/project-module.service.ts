@@ -81,8 +81,10 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async getAllModulesByProject(projectId: ID) {
 		try {
+			// Build the query string once
 			const query = qs.stringify(getModulesQuery(projectId));
 
+			// Retrieve the project information
 			const project =
 				await this._projectService.getRemoteProject(projectId);
 
@@ -90,6 +92,15 @@ export class ProjectModuleService extends ApiFetchService {
 				throw new BadRequestException('Project could not be found');
 			}
 
+			// Create a Map for quick access to employees by `userId`
+			const memberMap = new Map(
+				project.members.map((member) => [
+					member.employee.userId,
+					member.employeeId,
+				]),
+			);
+
+			// Perform the API call to fetch the modules
 			const modules: IPagination<IOrganizationProjectModule> = (
 				await this.apiFetch({
 					method: 'GET',
@@ -98,19 +109,15 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			modules.items.forEach((module) => {
-				const lead = project.members.find(
-					(member) => member.employee.userId === module.managerId,
-				);
-				return {
-					...module,
-					managerId: lead?.id,
-				};
-			});
+			// Transform modules and link them to the corresponding managers
+			const modulesWithManagers = modules.items.map((module) => ({
+				...module,
+				managerId: memberMap.get(module.managerId),
+			}));
 
-			// console.log(modules);
+			console.log({ memberMap });
 
-			return modulesTransformer(modules.items);
+			return modulesTransformer(modulesWithManagers);
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException();
@@ -142,7 +149,12 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			return modulesTransformer(module);
+			const lead = project.members.find(
+				(member) => member.employee.userId === module.managerId,
+			);
+			const managerId = (module.managerId = lead?.employeeId);
+
+			return modulesTransformer({ ...module, managerId });
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();

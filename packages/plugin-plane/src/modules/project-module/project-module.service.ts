@@ -26,6 +26,22 @@ export class ProjectModuleService extends ApiFetchService {
 
 	private readonly path = '/organization-project-modules';
 
+	async getExternalModule(
+		id: ID,
+		projectId?: ID,
+	): Promise<IOrganizationProjectModule> {
+		// Construct the query string once
+		const query = qs.stringify(getModulesQuery(projectId));
+
+		return (
+			await this.apiFetch({
+				method: 'GET',
+				path: `${this.path}/${id}`,
+				query,
+			})
+		).data;
+	}
+
 	/**
 	 * @description - Create module
 	 * @param {ICreateModuleInput} input - data for creating new module
@@ -35,7 +51,7 @@ export class ProjectModuleService extends ApiFetchService {
 	async create(input: ICreateModuleInput): Promise<IModule | IModule[]> {
 		try {
 			// Fetch the project to ensure it exists and get its members
-			const project = await this._projectService.getRemoteProject(
+			const project = await this._projectService.getExternalProject(
 				input.project_id,
 			);
 
@@ -85,7 +101,7 @@ export class ProjectModuleService extends ApiFetchService {
 
 			// Retrieve the project information
 			const project =
-				await this._projectService.getRemoteProject(projectId);
+				await this._projectService.getExternalProject(projectId);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
@@ -130,12 +146,9 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async getModule(id: ID, projectId: ID) {
 		try {
-			// Construct the query string once
-			const query = qs.stringify(getModulesQuery(projectId));
-
 			// Retrieve the project data
 			const project =
-				await this._projectService.getRemoteProject(projectId);
+				await this._projectService.getExternalProject(projectId);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
@@ -149,13 +162,7 @@ export class ProjectModuleService extends ApiFetchService {
 				]),
 			);
 
-			const module: IOrganizationProjectModule = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `${this.path}/${id}`,
-					query,
-				})
-			).data;
+			const module = await this.getExternalModule(id, projectId);
 
 			// Transform the module with the correct `managerId`
 			const managerId = memberMap.get(module.managerId);
@@ -165,6 +172,67 @@ export class ProjectModuleService extends ApiFetchService {
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();
+		}
+	}
+
+	/**
+	 * @description Update Project Module
+	 * @param {ID} id Project Module ID to be updated
+	 * @param {ICreateModuleInput} input Body Request data
+	 * @returns A promise resolved to updated Module
+	 * @memberof ProjectModuleService
+	 */
+	async update(
+		id: ID,
+		projectId: ID,
+		input: Partial<ICreateModuleInput>,
+	): Promise<IModule | IModule[]> {
+		try {
+			// Retrieve the project and check its existence
+			const project = await this._projectService.getExternalProject(
+				input.project_id || projectId,
+			);
+			if (!project) {
+				throw new BadRequestException('Project could not be found');
+			}
+
+			// Retrieve the existing module to ensure it exists
+			const existingModule = await this.getExternalModule(id, project.id);
+
+			if (!existingModule) {
+				throw new BadRequestException(
+					`Module with id ${id} could not be found`,
+				);
+			}
+
+			// Identify the lead (manager) if lead_id is provided in input
+			const lead = input.lead_id
+				? project.members.find(
+						(member) => member.employee.id === input.lead_id,
+					)
+				: undefined;
+
+			// Transform the update input for API compatibility, using the correct managerId (userId)
+			const body = createModuleInputTransformer(
+				input,
+				lead?.employee.userId,
+			);
+
+			// Update the module using a PATCH request
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body,
+			});
+
+			const module = await this.getExternalModule(id);
+
+			// Return the updated module, with managerId set to employeeId instead of userId
+			return modulesTransformer(module, lead?.employeeId);
+		} catch (error) {
+			// Log the error and throw a BadRequestException
+			console.error(error);
+			throw new BadRequestException(error);
 		}
 	}
 

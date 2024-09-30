@@ -127,7 +127,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 }
 
 export function createModuleInputTransformer(
-	module: ICreateModuleInput,
+	module: ICreateModuleInput | Partial<ICreateModuleInput>,
 	managerId?: ID,
 ): IOrganizationProjectModuleCreateInput {
 	return {
@@ -137,7 +137,7 @@ export function createModuleInputTransformer(
 		status: module.status as ProjectModuleStatusEnum,
 		startDate: module.start_date,
 		endDate: module.target_date,
-		members: module.member_ids.map((id) => ({ id })),
+		members: (module.member_ids ?? []).map((id) => ({ id })),
 		projectId: module.project_id,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,

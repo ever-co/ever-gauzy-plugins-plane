@@ -42,6 +42,8 @@ export interface ICreateModuleInput {
 	project_id: string;
 }
 
+export type IUpdateModuleInput = Omit<IModule, 'id'>;
+
 export type CompletionDateType = string;
 
 export type ICompletionChart = Record<CompletionDateType, number | null>;

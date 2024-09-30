@@ -7,11 +7,12 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 } from '@nestjs/common';
 import { ID, IModule } from '@plane-plugin/models';
 import { ProjectModuleService } from './project-module.service';
-import { CreateModuleDTO } from './dto';
+import { CreateModuleDTO, UpdateModuleDTO } from './dto';
 
 @Controller()
 export class ProjectModuleController {
@@ -59,6 +60,17 @@ export class ProjectModuleController {
 		@Param('projectId') projectId: ID,
 	) {
 		return this._projectModuleService.getModule(id, projectId);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Project Module' })
+	@Patch(':id')
+	async update(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: UpdateModuleDTO,
+	) {
+		return await this._projectModuleService.update(id, projectId, input);
 	}
 
 	/**

@@ -50,7 +50,7 @@ export class IssuesService extends ApiFetchService {
 	 * @returns - A promise that resolved after getting issue
 	 * @memberof IssuesService
 	 */
-	private async getRemoteIssue(id: ID): Promise<ITask> {
+	private async getExternalIssue(id: ID): Promise<ITask> {
 		const query = qs.stringify(getTaskQuery());
 		return (
 			await this.apiFetch({
@@ -69,7 +69,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findOne(id: ID): Promise<IIssue> {
 		try {
-			const issue = await this.getRemoteIssue(id);
+			const issue = await this.getExternalIssue(id);
 
 			if (!issue) {
 				throw new BadRequestException('Issue cnot found');
@@ -126,7 +126,7 @@ export class IssuesService extends ApiFetchService {
 			}
 			const issue = await this.findOne(id);
 
-			const nativeIssue = await this.getRemoteIssue(id);
+			const nativeIssue = await this.getExternalIssue(id);
 
 			if (!issue) {
 				throw new BadRequestException('Issue not found');
@@ -187,7 +187,7 @@ export class IssuesService extends ApiFetchService {
 	): Promise<{ sub_issues: IIssue[]; state_distribution: any }> {
 		try {
 			const sub_issues: IIssue[] = [];
-			const issue = await this.getRemoteIssue(id);
+			const issue = await this.getExternalIssue(id);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}
@@ -218,7 +218,7 @@ export class IssuesService extends ApiFetchService {
 				duplicate: [],
 				relates_to: [],
 			};
-			const issue = await this.getRemoteIssue(id);
+			const issue = await this.getExternalIssue(id);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}
@@ -444,14 +444,14 @@ export class IssuesService extends ApiFetchService {
 	async getIssueCommentDetails(id: ID, projectId: ID, creatorId: ID) {
 		try {
 			// remote issue to find creator member
-			const task = await this.getRemoteIssue(id);
+			const task = await this.getExternalIssue(id);
 
 			// Commented issue
 			const issue = issueTransformer(task);
 
 			// Find project
 			const project =
-				await this._projectService.getRemoteProject(projectId);
+				await this._projectService.getExternalProject(projectId);
 
 			// Workspace details
 			const tenant = project.tenant;

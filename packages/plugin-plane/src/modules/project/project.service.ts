@@ -66,7 +66,7 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolved after getting project
 	 * @memberof ProjectService
 	 */
-	async getRemoteProject(id: ID): Promise<IOrganizationProject> {
+	async getExternalProject(id: ID): Promise<IOrganizationProject> {
 		const query = qs.stringify(getProjectsQuery);
 		return (
 			await this.apiFetch({
@@ -86,7 +86,7 @@ export class ProjectService extends ApiFetchService {
 	async getProject(id: ID): Promise<IProject> {
 		try {
 			const project: IOrganizationProject =
-				await this.getRemoteProject(id);
+				await this.getExternalProject(id);
 
 			if (!project) {
 				throw new BadRequestException('Project not found');
@@ -158,7 +158,7 @@ export class ProjectService extends ApiFetchService {
 			const { members, ...restInput } = input;
 
 			// Retrieve the project details from a remote source
-			const project = await this.getRemoteProject(id);
+			const project = await this.getExternalProject(id);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
@@ -212,7 +212,7 @@ export class ProjectService extends ApiFetchService {
 	): Promise<IProject> {
 		try {
 			const { members } = input;
-			const project = await this.getRemoteProject(id);
+			const project = await this.getExternalProject(id);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');

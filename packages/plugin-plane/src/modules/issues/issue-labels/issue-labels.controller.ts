@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -78,7 +79,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete Issue Label' })
-	@Patch(':id')
+	@Delete(':id')
 	async deleteIssueLabel(@Param('id') id: ID) {
 		return await this._issueLabelService.deleteIssueLabel(id);
 	}

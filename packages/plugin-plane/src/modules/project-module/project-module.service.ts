@@ -4,7 +4,6 @@ import {
 	ICreateModuleInput,
 	ID,
 	IModule,
-	IOrganizationProjectEmployee,
 	IOrganizationProjectModule,
 	IPagination,
 } from '@plane-plugin/models';
@@ -35,6 +34,7 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async create(input: ICreateModuleInput): Promise<IModule | IModule[]> {
 		try {
+			// Fetch the project to ensure it exists and get its members
 			const project = await this._projectService.getRemoteProject(
 				input.project_id,
 			);
@@ -43,17 +43,17 @@ export class ProjectModuleService extends ApiFetchService {
 				throw new BadRequestException('Project could not be found');
 			}
 
-			let lead: IOrganizationProjectEmployee | undefined;
+			// Find the lead (manager) in the project members based on the input lead_id
+			const lead = input.lead_id
+				? project.members.find(
+						(member) => member.employee.id === input.lead_id,
+					)
+				: undefined;
 
-			if (input.lead_id) {
-				lead = project.members.find(
-					(member) => member.employee.id === input.lead_id,
-				);
-			}
-
+			// Transform input data for creating a module, assigning the correct manager's userId
 			const body = createModuleInputTransformer(
 				input,
-				lead.employee.userId,
+				lead?.employee.userId,
 			);
 
 			const projectModule: IOrganizationProjectModule = (
@@ -64,9 +64,8 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ projectModule });
-
-			return modulesTransformer(projectModule, lead && lead.id);
+			// Return the transformed module, including the managerId if lead is found
+			return modulesTransformer(projectModule, lead?.employeeId);
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error);

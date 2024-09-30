@@ -2,13 +2,18 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
 	IsArray,
 	IsDate,
+	IsEnum,
 	IsNotEmpty,
 	IsOptional,
 	IsString,
 	IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ICreateModuleInput, ID } from '@plane-plugin/models';
+import {
+	ICreateModuleInput,
+	ID,
+	ProjectModuleStatusEnum,
+} from '@plane-plugin/models';
 
 export class CreateModuleDTO implements ICreateModuleInput {
 	@ApiProperty({ type: () => String })
@@ -34,9 +39,9 @@ export class CreateModuleDTO implements ICreateModuleInput {
 	target_date?: Date;
 
 	@ApiPropertyOptional({ type: () => String })
-	@IsString()
+	@IsEnum(ProjectModuleStatusEnum)
 	@IsOptional()
-	status?: string;
+	status?: ProjectModuleStatusEnum;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsUUID()

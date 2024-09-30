@@ -1,3 +1,5 @@
+import { ProjectModuleStatusEnum } from './imports';
+
 export interface IModule {
 	id: string;
 	workspace_id?: string;
@@ -8,7 +10,7 @@ export interface IModule {
 	description_html?: string | null;
 	start_date?: Date | null;
 	target_date?: Date | null;
-	status?: string;
+	status?: ProjectModuleStatusEnum;
 	lead_id?: string;
 	view_props?: any;
 	sort_order?: number;
@@ -34,7 +36,7 @@ export interface ICreateModuleInput {
 	description?: string;
 	start_date?: Date;
 	target_date?: Date;
-	status?: string;
+	status?: ProjectModuleStatusEnum;
 	lead_id?: string;
 	member_ids?: string[];
 	project_id: string;

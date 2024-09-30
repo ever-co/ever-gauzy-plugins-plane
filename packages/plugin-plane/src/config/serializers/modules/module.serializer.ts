@@ -7,11 +7,11 @@ import {
 	IOrganizationProjectModule,
 	IOrganizationProjectModuleCreateInput,
 	ITask,
+	ProjectModuleStatusEnum,
 	TaskStatusEnum,
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
-import { mapGroupToTemplate } from '../tasks';
 
 function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
@@ -134,7 +134,7 @@ export function createModuleInputTransformer(
 		name: module.name,
 		description: module.description,
 		managerId,
-		status: mapGroupToTemplate(module.status),
+		status: module.status as ProjectModuleStatusEnum,
 		startDate: module.start_date,
 		endDate: module.target_date,
 		members: module.member_ids.map((id) => ({ id })),
@@ -178,6 +178,7 @@ export const getModulesQuery = (projectId?: ID): Record<string, string> => {
  * @returns An object { "YYYY-MM-DD": 0 | null } representing the completion_chart
  */
 export function completionChartMapping(module: IOrganizationProjectModule) {
+	// Format startDate and targetDate to YYYY-MM-DD
 	const startDate: CompletionDateType = module.startDate
 		?.toString()
 		.split('T')[0];
@@ -187,25 +188,28 @@ export function completionChartMapping(module: IOrganizationProjectModule) {
 
 	const chart: ICompletionChart = {};
 
+	// Check if both startDate and endDate exist
+	if (!startDate || !targetDate) return chart;
+
+	// Initialize date range between startDate and targetDate
 	const start = new Date(startDate);
 	const end = new Date(targetDate);
 	const currentDate = new Date(start);
 
-	// Iterate all dates between start and date, and add each date to chart object
+	// Iterate all dates between start and end, and add each date to chart object
 	while (currentDate <= end) {
 		const formattedDate = currentDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
-		chart[formattedDate] = 0; // Initiate each date to 0
-
-		// Go to next date
-		currentDate.setDate(currentDate.getDate() + 1);
+		chart[formattedDate] = 0; // Initialize each date with 0
+		currentDate.setDate(currentDate.getDate() + 1); // Move to next date
 	}
-	// Counting completed tasks number at some date
-	module.tasks.forEach((task) => {
+
+	// Safely iterate over tasks if they exist and are an array
+	(module.tasks ?? []).forEach((task) => {
 		const completedAt: CompletionDateType = task.resolvedAt
-			.toString()
+			?.toString()
 			.split('T')[0];
-		if (chart.hasOwnProperty(completedAt)) {
-			chart[completedAt]! += 1; // Increment the value for corresponding date
+		if (completedAt && chart.hasOwnProperty(completedAt)) {
+			chart[completedAt]! += 1; // Increment the value for the corresponding date
 		}
 	});
 

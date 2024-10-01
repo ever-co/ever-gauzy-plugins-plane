@@ -242,14 +242,11 @@ export function updateIssueInputTransformer(
 			if ('state_id' in issue) {
 				acc['status'] = status;
 
-				if (
-					status.toLocaleLowerCase() === TaskStatusEnum.COMPLETED ||
-					status.toLocaleLowerCase() === TaskStatusEnum.DONE
-				) {
-					acc['resolvedAt'] = new Date();
-				} else {
-					acc['resolvedAt'] = null;
-				}
+				transformedInput['resolvedAt'] =
+					status.toLowerCase() === TaskStatusEnum.COMPLETED ||
+					status.toLowerCase() === TaskStatusEnum.DONE
+						? new Date()
+						: null;
 			}
 			acc['organizationId'] = defaultOrganizationId;
 

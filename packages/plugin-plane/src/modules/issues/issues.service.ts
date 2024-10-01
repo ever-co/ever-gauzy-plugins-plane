@@ -9,11 +9,11 @@ import {
 	IIssue,
 	IIssueComment,
 	IIssueCreateInput,
+	IIssueFindInput,
 	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
 	IssueActivityTypeEnum,
-	IState,
 	ITask,
 	TaskStatusEnum,
 } from '@plane-plugin/models';
@@ -120,21 +120,35 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async update(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
 		try {
-			let state: IState;
-			if (input.state_id) {
-				state = await this._stateSerive.getOne(input.state_id);
-			}
-			const issue = await this.findOne(id);
+			// Extract modules to be added and removed from the input
+			const { modules: added_modules = [], removed_modules = [] } = input;
 
-			const nativeIssue = await this.getExternalIssue(id);
+			// Fetch the state only if a state_id is provided
+			const state = input.state_id
+				? await this._stateSerive.getOne(input.state_id)
+				: undefined;
+
+			// Retrieve the existing issue and external issue details simultaneously
+			const [issue, externalIssue] = await Promise.all([
+				this.findOne(id),
+				this.getExternalIssue(id),
+			]);
 
 			if (!issue) {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// Calculate the final set of modules after additions and removals
+			const existingModules =
+				externalIssue?.modules.map((module) => module.id) || [];
+			const modules = new Set([...existingModules, ...added_modules]);
+			removed_modules.forEach((module) => modules.delete(module)); // Remove the modules marked for deletion
+
+			// Transform the input data for the update request
 			const body = updateIssueInputTransformer(
 				input,
 				state?.name as TaskStatusEnum,
+				Array.from(modules),
 			);
 
 			const task = (
@@ -144,9 +158,7 @@ export class IssuesService extends ApiFetchService {
 					body: {
 						...body,
 						title: input.name ?? issue.name,
-						status: input.state_id
-							? state.name
-							: nativeIssue.status,
+						status: state?.name || externalIssue.status,
 					},
 				})
 			).data;
@@ -158,13 +170,19 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
-	async getAllIssuesByProject(projectId: ID) {
+	async getAllIssuesByProject(projectId: ID, options?: IIssueFindInput) {
 		try {
-			const query = qs.stringify(getTaskQuery(projectId));
+			const query = qs.stringify(getTaskQuery(projectId, options));
+
+			let path = '';
+			if (options.module) {
+				path = 'module';
+			}
+
 			const issues: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `${this.path}`,
+					path: `${this.path}/${path}`,
 					query,
 				})
 			).data;

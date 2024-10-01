@@ -16,24 +16,34 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
 		(task) =>
-			task.status === TaskStatusEnum.DONE ||
-			task.status === TaskStatusEnum.COMPLETED,
+			task.status.toLocaleLowerCase() ===
+				TaskStatusEnum.DONE.toLocaleLowerCase() ||
+			task.status.toLocaleLowerCase() ===
+				TaskStatusEnum.COMPLETED.toLocaleLowerCase(),
 	).length;
 
 	const startedIssues = tasks?.filter(
 		(task) =>
-			task.status === TaskStatusEnum.IN_PROGRESS ||
-			task.status === TaskStatusEnum.READY_FOR_REVIEW ||
-			task.status === TaskStatusEnum.IN_REVIEW ||
-			task.status === TaskStatusEnum.BLOCKED,
+			task.status.toLocaleLowerCase() ===
+				TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase() ||
+			task.status.toLocaleLowerCase() ===
+				TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase() ||
+			task.status.toLocaleLowerCase() ===
+				TaskStatusEnum.IN_REVIEW.toLocaleLowerCase() ||
+			task.status.toLocaleLowerCase() ===
+				TaskStatusEnum.BLOCKED.toLocaleLowerCase(),
 	).length;
 
 	const unstartedIssues = tasks?.filter(
-		(task) => task.status === TaskStatusEnum.OPEN,
+		(task) =>
+			task.status.toLocaleLowerCase() ===
+			TaskStatusEnum.OPEN.toLocaleLowerCase(),
 	).length;
 
 	const backlogIssues = tasks?.filter(
-		(task) => task.status === TaskStatusEnum.BACKLOG,
+		(task) =>
+			task.status.toLocaleLowerCase() ===
+			TaskStatusEnum.BACKLOG.toLocaleLowerCase(),
 	).length;
 
 	return {
@@ -155,9 +165,9 @@ export const moduleRelations = [
 	'tasks',
 ];
 
-export const getModulesQuery = (projectId?: ID): Record<string, string> => {
+export const getModulesQuery = (projectId?: ID): Record<string, any> => {
 	// Base queries
-	const query: Record<string, string> = {
+	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery,
 	};
 

@@ -3,6 +3,7 @@ import {
 	IEmployee,
 	IIssue,
 	IIssueCreateInput,
+	IIssueFindInput,
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
 	ITag,
@@ -139,12 +140,15 @@ export const taskRelations = [
 	'parent',
 	'children',
 	'taskStatus',
-	// 'modules',
+	'modules',
 ];
 
-export const getTaskQuery = (projectId?: ID): Record<string, string> => {
+export const getTaskQuery = (
+	projectId?: ID,
+	options?: IIssueFindInput,
+): Record<string, any> => {
 	// Base queries
-	const query: Record<string, string> = {
+	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery,
 
 		// 'join[alias]': 'task',
@@ -154,6 +158,11 @@ export const getTaskQuery = (projectId?: ID): Record<string, string> => {
 
 	if (projectId) {
 		query['where[projectId]'] = projectId;
+	}
+
+	if (options?.module) {
+		query['join[alias]'] = 'task';
+		query['where[modules][0]'] = options.module;
 	}
 
 	// Add relations
@@ -199,6 +208,7 @@ export function createIssueInputTransformer(
 export function updateIssueInputTransformer(
 	issue: IIssueUpdateInput,
 	status: TaskStatusEnum,
+	modules?: ID[],
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
 	const keyMapping: Partial<
@@ -228,10 +238,24 @@ export function updateIssueInputTransformer(
 				const value = issue[issueKey as keyof IIssueUpdateInput];
 				acc[taskKey] = value;
 			}
+
 			if ('state_id' in issue) {
 				acc['status'] = status;
+
+				if (
+					status.toLocaleLowerCase() === TaskStatusEnum.COMPLETED ||
+					status.toLocaleLowerCase() === TaskStatusEnum.DONE
+				) {
+					acc['resolvedAt'] = new Date();
+				} else {
+					acc['resolvedAt'] = null;
+				}
 			}
 			acc['organizationId'] = defaultOrganizationId;
+
+			if (modules) {
+				acc['modules'] = modules.map((module) => ({ id: module }));
+			}
 
 			return acc;
 		},

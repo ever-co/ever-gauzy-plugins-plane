@@ -11,7 +11,12 @@ import {
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID, IIssue, IssueActivityTypeEnum } from '@plane-plugin/models';
+import {
+	ID,
+	IIssue,
+	IIssueFindInput,
+	IssueActivityTypeEnum,
+} from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
 import { CreateIssueCommentDTO, CreateIssueDTO, UpdateIssueDTO } from './dto';
 
@@ -29,8 +34,14 @@ export class IssuesController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Issues' })
 	@Get()
-	async getAllByProjectId(@Param('projectId') projectId: ID) {
-		return await this._issueService.getAllIssuesByProject(projectId);
+	async getAllByProjectId(
+		@Param('projectId') projectId: ID,
+		@Query() options: IIssueFindInput,
+	) {
+		return await this._issueService.getAllIssuesByProject(
+			projectId,
+			options,
+		);
 	}
 
 	/**
@@ -109,6 +120,23 @@ export class IssuesController {
 	}
 
 	/**
+	 * @description Add issue to Module
+	 * @param {ID} id - Issue ID for asssign module
+	 * @param {IIssueCreateInput} input - data for updating issue
+	 * @returns A promise resoved to comment created and returned related data
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Add issue to module' })
+	@Post(':id/modules')
+	async addIssueToModule(
+		@Param('id') id: ID,
+		@Body() input: UpdateIssueDTO,
+	): Promise<IIssue> {
+		return await this._issueService.update(id, input);
+	}
+
+	/**
 	 * @description Create issue comment
 	 * @param {ID} entityId - Issue ID for creating comment
 	 * @param {ID} projectId - Project ID for returning project data
@@ -173,6 +201,12 @@ export class IssuesController {
 		return await this._issueService.update(id, input);
 	}
 
+	/**
+	 * @description Delete issue
+	 * @param {ID} id - The issue ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssuesController
+	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete issue' })
 	@Delete(':id')
@@ -180,6 +214,12 @@ export class IssuesController {
 		return await this._issueService.delete(id);
 	}
 
+	/**
+	 * @description Delete issue comment
+	 * @param {ID} id -The issue comment ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssuesController
+	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete issue' })
 	@Delete(':id/comments/:commentId')

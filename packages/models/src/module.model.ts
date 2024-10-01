@@ -1,4 +1,4 @@
-import { ProjectModuleStatusEnum } from './imports';
+import { ID, ProjectModuleStatusEnum } from './imports';
 
 export interface IModule {
 	id: string;
@@ -40,6 +40,10 @@ export interface ICreateModuleInput {
 	lead_id?: string;
 	member_ids?: string[];
 	project_id: string;
+}
+
+export interface IModuleFindInput {
+	module: ID;
 }
 
 export type IUpdateModuleInput = Omit<IModule, 'id'>;

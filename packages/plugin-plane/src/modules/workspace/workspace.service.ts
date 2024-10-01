@@ -214,7 +214,7 @@ export class WorkspaceService extends ApiFetchService {
 	 * @description - Get user properties workspace project
 	 * @param {ID} id - The UUID primary key of the project for whom get properties
 	 * @returns - A promise that resolves after getting the user properties
-	 * @memberof WorkspaceController
+	 * @memberof WorkspaceService
 	 */
 	async getProjectUserProperties(id: ID) {
 		return {

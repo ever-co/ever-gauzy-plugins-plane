@@ -62,6 +62,29 @@ export class ProjectModuleController {
 		return this._projectModuleService.getModule(id, projectId);
 	}
 
+	/**--------------------------------------------------------------
+	 * This API route handlers should be updated after implementing authentication and User features
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description Get user modules properties
+	 * @param {ID} id - Module ID of module for whom get properties
+	 * @param {ID} projectId - Project ID of module for whom get properties
+	 * @returns A promise resolved to user properties
+	 * @memberof ProjectModuleService
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Project Podules User properties' })
+	@Get(':id/user-properties')
+	async getModuleUserProperties(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	) {
+		return this._projectModuleService.getModuleUserProperties(
+			id,
+			projectId,
+		);
+	}
+
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update Project Module' })
 	@Patch(':id')

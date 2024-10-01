@@ -36,6 +36,8 @@ export interface IIssue {
 	assignee_ids?: ID[];
 	label_ids?: ID[];
 	module_ids?: ID[];
+	modules?: ID[];
+	removed_modules?: ID[];
 	issue_reactions?: [];
 	issue_attachment?: [];
 }
@@ -56,6 +58,10 @@ export interface IIssueReaction {
 	project?: ID;
 	workspace?: ID;
 	actor?: ID;
+}
+
+export interface IIssueFindInput {
+	module?: ID;
 }
 
 export enum IssueActivityTypeEnum {

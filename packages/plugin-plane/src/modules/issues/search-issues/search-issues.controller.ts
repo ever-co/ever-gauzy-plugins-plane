@@ -7,7 +7,7 @@ import {
 	Param,
 	Query,
 } from '@nestjs/common';
-import { ID, IParentableIssuesQueruParams } from '@plane-plugin/models';
+import { ID, IParentableIssuesQueryParams } from '@plane-plugin/models';
 import { SearchIssuesService } from './search-issues.service';
 
 @Controller()
@@ -17,7 +17,7 @@ export class SearchIssuesController {
 	/**
 	 * @description Get issues by options
 	 * @param {ID} projectId issues find filters
-	 * @param {IParentableIssuesQueruParams} options Options finders
+	 * @param {IParentableIssuesQueryParams} options Options finders
 	 * @returns A promise that resolves to found issues
 	 * @memberof SearchIssuesService
 	 */
@@ -26,7 +26,7 @@ export class SearchIssuesController {
 	@Get()
 	async findParentableIssues(
 		@Param('projectId') projectId: ID,
-		@Query() options: IParentableIssuesQueruParams,
+		@Query() options: IParentableIssuesQueryParams,
 	) {
 		return await this._searchIssuesService.findParentableIssues(
 			projectId,

@@ -28,9 +28,10 @@ export interface IIssueRelationResponse {
 	[IssueRelationTypeEnum.RELATES_TO]: IIssue[];
 }
 
-export interface IParentableIssuesQueruParams {
-	search: string;
-	parent: boolean;
-	issue_id: ID;
-	workspace_search: boolean;
+export interface IParentableIssuesQueryParams {
+	search?: string;
+	parent?: boolean;
+	sub_issue?: boolean;
+	issue_id?: ID;
+	workspace_search?: boolean;
 }

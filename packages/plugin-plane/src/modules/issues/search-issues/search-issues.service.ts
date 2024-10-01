@@ -50,28 +50,18 @@ export class SearchIssuesService extends ApiFetchService {
 					!search ||
 					issue.title.toLowerCase().includes(search.toLowerCase());
 
-				// Apply specific conditions based on the type of search
-				if (parent) {
-					// Exclude the issue itself and any issues that are already children of the current issue
-					return (
-						isNotSelf &&
-						matchesSearch &&
-						!issue.children?.some(
-							(child) => child.id === issue_id,
-						) && // Exclude if the current issue is a child
-						issue.parentId !== issue_id // Exclude if the current issue is a parent
-					);
-				} else if (sub_issue) {
-					// Exclude the issue itself and any issues that have the current issue as a parent
-					return (
-						isNotSelf &&
-						matchesSearch &&
-						issue.parentId !== issue_id &&
-						!issue.children?.some((child) => child.id === issue_id)
-					);
-				}
+				// Check exclusion of the current issue and relationship conflicts
+				const isNotConflicting =
+					!issue.children?.some((child) => child.id === issue_id) &&
+					issue.parentId !== issue_id;
 
-				return false; // If none of the conditions are met
+				// If `parent` or `sub_issue` is specified, ensure the criteria match
+				return (
+					isNotSelf &&
+					matchesSearch &&
+					isNotConflicting &&
+					(parent || sub_issue)
+				);
 			});
 
 			return parentableIssuesTransformer(filteredIssues);

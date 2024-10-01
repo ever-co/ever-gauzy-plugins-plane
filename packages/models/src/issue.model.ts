@@ -69,3 +69,8 @@ export enum IssueActivityTypeEnum {
 	COMMENT = 'issue-comment',
 	PROPERTY = 'issue-property'
 }
+
+export interface ISubIssueResponse {
+	sub_issues: IIssue[];
+	state_distribution: any;
+}

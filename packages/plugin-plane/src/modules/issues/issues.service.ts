@@ -14,6 +14,7 @@ import {
 	IIssueUpdateInput,
 	IPagination,
 	IssueActivityTypeEnum,
+	ISubIssueResponse,
 	ITask,
 	TaskStatusEnum,
 } from '@plane-plugin/models';
@@ -172,29 +173,37 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Updates the parent-child relationship between a parent task and multiple sub-tasks.
+	 *
+	 * @param {ID} id - The ID of the parent task.
+	 * @param {Pick<IIssueUpdateInput, 'sub_issue_ids'>} input - Object containing the IDs of the sub-tasks (`sub_issue_ids`).
+	 * @returns {Promise<ITask[]>} - A promise that resolves to an array of updated tasks
+	 * @throws {BadRequestException} - Throws an exception in case of an update error.
+	 */
 	async updateRelationnalIssueParent(
 		id: ID,
 		input: Pick<IIssueUpdateInput, 'sub_issue_ids'>,
-	): Promise<any> {
+	): Promise<ISubIssueResponse> {
 		try {
 			const { sub_issue_ids } = input;
-			const updatedIssues: ITask[] = await Promise.all(
+			const subIssues: IIssue[] = await Promise.all(
 				sub_issue_ids.map(async (issueId) => {
 					const issue = await this.getExternalIssue(issueId);
-					return (
-						await this.apiFetch({
-							path: `${this.path}/${issueId}`,
-							method: 'PUT',
-							body: {
-								...issue,
-								parentId: id,
-							},
-						})
-					).data;
+
+					await this.apiFetch({
+						path: `${this.path}/${issueId}`,
+						method: 'PUT',
+						body: {
+							...issue,
+							parentId: id,
+						},
+					});
+					return issueTransformer(issue);
 				}),
 			);
 
-			return groupIssuesByStateId(updatedIssues);
+			return { sub_issues: subIssues, state_distribution: {} };
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);
@@ -231,9 +240,7 @@ export class IssuesService extends ApiFetchService {
 	 * @returns A promise that resolves after found issue children
 	 * @memberof IssuesService
 	 */
-	async findIssueChildren(
-		id: ID,
-	): Promise<{ sub_issues: IIssue[]; state_distribution: any }> {
+	async findIssueChildren(id: ID): Promise<ISubIssueResponse> {
 		try {
 			const sub_issues: IIssue[] = [];
 			const issue = await this.getExternalIssue(id);

@@ -16,6 +16,7 @@ import {
 	IIssue,
 	IIssueFindInput,
 	IssueActivityTypeEnum,
+	ISubIssueResponse,
 } from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
 import { CreateIssueCommentDTO, CreateIssueDTO, UpdateIssueDTO } from './dto';
@@ -120,19 +121,20 @@ export class IssuesController {
 	}
 
 	/**
-	 * @description Add children to Issue
-	 * @param {ID} id - Issue ID for asssign children
-	 * @param {IIssueCreateInput} input - data for updating issue
-	 * @returns A promise resoved to updated Issue
-	 * @memberof IssuesController
+	 * Updates the parent-child relationship between a parent task and multiple sub-tasks.
+	 *
+	 * @param {ID} id - The ID of the parent task.
+	 * @param {Pick<IIssueUpdateInput, 'sub_issue_ids'>} input - Object containing the IDs of the sub-tasks (`sub_issue_ids`).
+	 * @returns {Promise<ITask[]>} - A promise that resolves to an array of updated tasks
+	 * @throws {BadRequestException} - Throws an exception in case of an update error.
 	 */
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Add children to Issue' })
 	@Post(':id/sub-issues')
 	async addChildrenToIssue(
 		@Param('id') id: ID,
 		@Body() input: UpdateIssueDTO,
-	): Promise<IIssue> {
+	): Promise<ISubIssueResponse> {
 		return await this._issueService.updateRelationnalIssueParent(id, input);
 	}
 

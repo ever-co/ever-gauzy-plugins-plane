@@ -250,7 +250,7 @@ export function updateIssueInputTransformer(
 			}
 			acc['organizationId'] = defaultOrganizationId;
 
-			if (modules) {
+			if (issue.module_ids || issue.modules) {
 				acc['modules'] = modules.map((module) => ({ id: module }));
 			}
 

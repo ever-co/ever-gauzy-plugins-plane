@@ -163,7 +163,38 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			return issueTransformer(task);
+			const updatedTask = await this.getExternalIssue(task.id);
+
+			return issueTransformer(updatedTask);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async updateRelationnalIssueParent(
+		id: ID,
+		input: Pick<IIssueUpdateInput, 'sub_issue_ids'>,
+	): Promise<any> {
+		try {
+			const { sub_issue_ids } = input;
+			const updatedIssues: ITask[] = await Promise.all(
+				sub_issue_ids.map(async (issueId) => {
+					const issue = await this.getExternalIssue(issueId);
+					return (
+						await this.apiFetch({
+							path: `${this.path}/${issueId}`,
+							method: 'PUT',
+							body: {
+								...issue,
+								parentId: id,
+							},
+						})
+					).data;
+				}),
+			);
+
+			return groupIssuesByStateId(updatedIssues);
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);

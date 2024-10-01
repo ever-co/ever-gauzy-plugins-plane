@@ -50,18 +50,27 @@ export class SearchIssuesService extends ApiFetchService {
 					!search ||
 					issue.title.toLowerCase().includes(search.toLowerCase());
 
-				// Check exclusion of the current issue and relationship conflicts
-				const isNotConflicting =
-					!issue.children?.some((child) => child.id === issue_id) &&
-					issue.parentId !== issue_id;
+				// If searching for children (`sub_issue`), only include issues with no parent
+				if (sub_issue) {
+					return (
+						isNotSelf && matchesSearch && issue.parentId === null
+					);
+				}
 
-				// If `parent` or `sub_issue` is specified, ensure the criteria match
-				return (
-					isNotSelf &&
-					matchesSearch &&
-					isNotConflicting &&
-					(parent || sub_issue)
-				);
+				// If searching for parent (`parent`), exclude tasks that are already children or the current issue itself
+				if (parent) {
+					const isNotChild = !issue.children?.some(
+						(child) => child.id === issue_id,
+					);
+					return (
+						isNotSelf &&
+						matchesSearch &&
+						isNotChild &&
+						issue.parentId !== issue_id
+					);
+				}
+
+				return false;
 			});
 
 			return parentableIssuesTransformer(filteredIssues);

@@ -39,6 +39,7 @@ export interface IIssue {
 	modules?: ID[];
 	removed_modules?: ID[];
 	issue_reactions?: [];
+	sub_issue_ids?: ID[];
 	issue_attachment?: [];
 }
 

@@ -120,10 +120,27 @@ export class IssuesController {
 	}
 
 	/**
+	 * @description Add children to Issue
+	 * @param {ID} id - Issue ID for asssign children
+	 * @param {IIssueCreateInput} input - data for updating issue
+	 * @returns A promise resoved to updated Issue
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Add children to Issue' })
+	@Post(':id/sub-issues')
+	async addChildrenToIssue(
+		@Param('id') id: ID,
+		@Body() input: UpdateIssueDTO,
+	): Promise<IIssue> {
+		return await this._issueService.updateRelationnalIssueParent(id, input);
+	}
+
+	/**
 	 * @description Add issue to Module
 	 * @param {ID} id - Issue ID for asssign module
 	 * @param {IIssueCreateInput} input - data for updating issue
-	 * @returns A promise resoved to comment created and returned related data
+	 * @returns A promise resoved to updated Issue
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.CREATED)

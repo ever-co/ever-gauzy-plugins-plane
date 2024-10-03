@@ -105,7 +105,7 @@ export class ProjectModuleController {
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete Project Module' })
 	@Delete(':id')
-	async deleteComment(@Param('id') id: ID) {
+	async delete(@Param('id') id: ID) {
 		return await this._projectModuleService.delete(id);
 	}
 }

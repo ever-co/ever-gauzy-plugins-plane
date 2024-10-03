@@ -72,5 +72,12 @@ export enum IssueActivityTypeEnum {
 
 export interface ISubIssueResponse {
 	sub_issues: IIssue[];
-	state_distribution: any;
+	state_distribution: ICompletedIssuesDistribution;
+}
+
+export interface ICompletedIssuesDistribution {
+	backlog: ID[];
+	completed: ID[];
+	unstarted: ID[];
+	started: ID[];
 }

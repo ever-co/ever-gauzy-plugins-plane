@@ -21,6 +21,7 @@ import {
 import {
 	createIssueInputTransformer,
 	getIssueRelationType,
+	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByStateId,
 	issueCommentTrasnsformer,
@@ -187,6 +188,7 @@ export class IssuesService extends ApiFetchService {
 	): Promise<ISubIssueResponse> {
 		try {
 			const { sub_issue_ids } = input;
+			const tasks: ITask[] = [];
 			const subIssues: IIssue[] = await Promise.all(
 				sub_issue_ids.map(async (issueId) => {
 					const issue = await this.getExternalIssue(issueId);
@@ -199,11 +201,18 @@ export class IssuesService extends ApiFetchService {
 							parentId: id,
 						},
 					});
+					tasks.push(issue);
+
 					return issueTransformer(issue);
 				}),
 			);
 
-			return { sub_issues: subIssues, state_distribution: {} };
+			const stateDistribution = getTaskDistribution(tasks);
+
+			return {
+				sub_issues: subIssues,
+				state_distribution: stateDistribution,
+			};
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);
@@ -254,7 +263,9 @@ export class IssuesService extends ApiFetchService {
 				);
 			}
 
-			return { sub_issues, state_distribution: {} };
+			const stateDistribution = getTaskDistribution(issue.children);
+
+			return { sub_issues, state_distribution: stateDistribution };
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();

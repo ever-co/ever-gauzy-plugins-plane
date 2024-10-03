@@ -13,7 +13,7 @@ import {
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
-function getTaskCounts(tasks: ITask[]) {
+export function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
 		(task) =>
 			task.status.toLocaleLowerCase() ===

@@ -61,6 +61,8 @@ export class StatesService extends ApiFetchService {
 				})
 			).data;
 
+			console.log({ state });
+
 			return getStatesTransformer([state])[0] as IState;
 		} catch (error) {
 			console.log(error);

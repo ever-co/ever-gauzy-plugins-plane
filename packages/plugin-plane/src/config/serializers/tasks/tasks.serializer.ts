@@ -1,4 +1,5 @@
 import {
+	ICompletedIssuesDistribution,
 	ID,
 	IEmployee,
 	IIssue,
@@ -139,6 +140,7 @@ export const taskRelations = [
 	'linkedIssues.taskFrom',
 	'parent',
 	'children',
+	'children.taskStatus',
 	'taskStatus',
 	'modules',
 ];
@@ -162,7 +164,7 @@ export const getTaskQuery = (
 
 	if (options?.module) {
 		query['join[alias]'] = 'task';
-		query['where[modules][0]'] = options.module;
+		// query['where[modules][0]'] = options.module;
 	}
 
 	// Add relations
@@ -242,7 +244,7 @@ export function updateIssueInputTransformer(
 			if ('state_id' in issue) {
 				acc['status'] = status;
 
-				transformedInput['resolvedAt'] =
+				acc['resolvedAt'] =
 					status.toLowerCase() === TaskStatusEnum.COMPLETED ||
 					status.toLowerCase() === TaskStatusEnum.DONE
 						? new Date()
@@ -272,4 +274,47 @@ export function updateIssueInputTransformer(
 	}
 
 	return transformedInput;
+}
+
+export function getTaskDistribution(tasks: ITask[]) {
+	const stateDistribution: ICompletedIssuesDistribution = {
+		completed: [],
+		started: [],
+		unstarted: [],
+		backlog: [],
+	};
+
+	const statusMap: { [key: string]: keyof typeof stateDistribution } = {
+		[TaskStatusEnum.DONE.toLocaleLowerCase()]: 'completed',
+		[TaskStatusEnum.COMPLETED.toLocaleLowerCase()]: 'completed',
+		[TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.BLOCKED.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.OPEN.toLocaleLowerCase()]: 'unstarted',
+		[TaskStatusEnum.BACKLOG.toLocaleLowerCase()]: 'backlog',
+	};
+
+	tasks.forEach((task) => {
+		const status = task.status.toLocaleLowerCase();
+		const category = statusMap[status];
+
+		if (category) {
+			stateDistribution[category].push(task.id);
+		}
+
+		if (task.taskStatus.isTodo) {
+			stateDistribution['unstarted'].push(task.id);
+		}
+
+		if (task.taskStatus.isInProgress) {
+			stateDistribution['started'].push(task.id);
+		}
+
+		if (task.taskStatus.isDone) {
+			stateDistribution['completed'].push(task.id);
+		}
+	});
+
+	return stateDistribution;
 }

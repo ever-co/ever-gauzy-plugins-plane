@@ -188,11 +188,17 @@ export class UserFavoritesService extends ApiFetchService {
 	 * @memberof UserFavoritesService
 	 */
 	async delete(id: ID): Promise<any> {
-		return (
-			await this.apiFetch({
-				method: 'DELETE',
-				path: `${this.path}/${id}`,
-			})
-		).data;
+		try {
+			const deleted = (
+				await this.apiFetch({
+					method: 'DELETE',
+					path: `${this.path}/${id}`,
+				})
+			).data;
+			console.log({ deleted });
+			return deleted;
+		} catch (error) {
+			console.log(error);
+		}
 	}
 }

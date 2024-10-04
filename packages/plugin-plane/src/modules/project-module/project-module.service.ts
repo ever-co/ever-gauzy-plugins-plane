@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
+	FavoriteEntityEnum,
 	ICreateModuleInput,
 	ID,
 	IModule,
@@ -19,11 +20,14 @@ import {
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
+import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 
 @Injectable()
 export class ProjectModuleService extends ApiFetchService {
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
+		@Inject(forwardRef(() => UserFavoritesService))
+		private readonly _userFavoriteService: UserFavoritesService,
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 	) {
@@ -87,7 +91,7 @@ export class ProjectModuleService extends ApiFetchService {
 			).data;
 
 			// Return the transformed module, including the managerId if lead is found
-			return modulesTransformer(projectModule, lead?.employeeId);
+			return modulesTransformer(projectModule, [], lead?.employeeId);
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -121,6 +125,11 @@ export class ProjectModuleService extends ApiFetchService {
 				]),
 			);
 
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProjectModule,
+				);
+
 			// Perform the API call to fetch the modules
 			const modules: IPagination<IOrganizationProjectModule> = (
 				await this.apiFetch({
@@ -137,7 +146,7 @@ export class ProjectModuleService extends ApiFetchService {
 			}));
 
 			// Return the transformed modules
-			return modulesTransformer(modulesWithManagers);
+			return modulesTransformer(modulesWithManagers, favoriteIds);
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException();
@@ -170,11 +179,17 @@ export class ProjectModuleService extends ApiFetchService {
 
 			const module = await this.getExternalModule(id, projectId);
 
+			// Favorites
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProjectModule,
+				);
+
 			// Transform the module with the correct `managerId`
 			const managerId = memberMap.get(module.managerId);
 
 			// Return the transformed module using `modulesTransformer`
-			return modulesTransformer({ ...module, managerId });
+			return modulesTransformer({ ...module, managerId }, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();
@@ -231,10 +246,15 @@ export class ProjectModuleService extends ApiFetchService {
 				body,
 			});
 
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProjectModule,
+				);
+
 			const module = await this.getExternalModule(id);
 
 			// Return the updated module, with managerId set to employeeId instead of userId
-			return modulesTransformer(module, lead?.employeeId);
+			return modulesTransformer(module, favoriteIds, lead?.employeeId);
 		} catch (error) {
 			// Log the error and throw a BadRequestException
 			console.error(error);

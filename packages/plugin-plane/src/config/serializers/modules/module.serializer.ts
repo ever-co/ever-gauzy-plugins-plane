@@ -56,6 +56,7 @@ export function getTaskCounts(tasks: ITask[]) {
 
 export function modulesTransformer(
 	modules: IOrganizationProjectModule[] | IOrganizationProjectModule,
+	favoriteIds?: ID[],
 	managerId?: ID,
 ): IModule[] | IModule {
 	const transformModule = (projectModule: IOrganizationProjectModule) => {
@@ -65,6 +66,8 @@ export function modulesTransformer(
 			unstartedIssues,
 			backlogIssues,
 		} = getTaskCounts(projectModule?.tasks);
+
+		const isFavorite = favoriteIds?.includes(projectModule.id);
 
 		return {
 			id: projectModule.id,
@@ -84,7 +87,7 @@ export function modulesTransformer(
 			logo_props: {},
 			created_at: projectModule.createdAt,
 			updated_at: projectModule.updatedAt,
-			is_favorite: projectModule.isFavorite,
+			is_favorite: isFavorite,
 			completed_issues: completedIssues,
 			started_issues: startedIssues,
 			unstarted_issues: unstartedIssues,

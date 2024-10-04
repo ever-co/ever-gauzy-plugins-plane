@@ -7,6 +7,7 @@ export * from './base.model';
 
 // Models
 export * from './comment.model';
+export * from './favorite.model';
 export * from './issue.model';
 export * from './issue-label.model';
 export * from './issue-relation.model';

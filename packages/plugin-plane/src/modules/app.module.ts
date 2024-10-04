@@ -13,6 +13,7 @@ import { ProjectModule } from './project/project.module';
 import { IssueRelationsModule } from './issue-relations/issue-relations.module';
 import { ProjectModuleModule } from './project-module/project-module.module';
 import { CommentsModule } from './comments/comments.module';
+import { UserFavoritesModule } from './user-favorites/user-favorites.module';
 
 @Module({
 	imports: [
@@ -30,6 +31,7 @@ import { CommentsModule } from './comments/comments.module';
 		IssueRelationsModule,
 		ProjectModuleModule,
 		CommentsModule,
+		UserFavoritesModule,
 	],
 })
 export class AppModule {}

@@ -1,6 +1,14 @@
 import { ApiOperation } from '@nestjs/swagger';
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { IFavoriteData } from '@plane-plugin/models';
+import {
+	Body,
+	Controller,
+	Delete,
+	HttpCode,
+	HttpStatus,
+	Param,
+	Post,
+} from '@nestjs/common';
+import { ID, IFavoriteData } from '@plane-plugin/models';
 import { UserFavoritesService } from './user-favorites.service';
 import { CreateFavoriteDTO } from './dto';
 
@@ -19,5 +27,18 @@ export class UserFavoritesController {
 	@Post()
 	async create(@Body() input: CreateFavoriteDTO): Promise<IFavoriteData> {
 		return await this._favoriteService.create(input);
+	}
+
+	/**
+	 * @description Delete element from favorites
+	 * @param {ID} id - The ID of favorite to be deleted
+	 * @returns - A promise resolved after favorite deleted
+	 * @memberof UserFavoritesService
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete element from favorites' })
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._favoriteService.delete(id);
 	}
 }

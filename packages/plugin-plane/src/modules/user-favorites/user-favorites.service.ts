@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import {
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
+	ID,
 	IFavorite,
 	IFavoriteData,
 } from '@plane-plugin/models';
@@ -75,11 +76,26 @@ export class UserFavoritesService extends ApiFetchService {
 				projectId:
 					entity_type === FavoriteEntityTypeEnum.PROJECT
 						? entityData.id
-						: entityData.projectId,
+						: entityData.project_id,
 			});
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/**
+	 * @description Delete element from favorites
+	 * @param {ID} id - The ID of favorite to be deleted
+	 * @returns - A promise resolved after favorite deleted
+	 * @memberof UserFavoritesService
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
 	}
 }

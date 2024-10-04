@@ -16,7 +16,7 @@ export interface IFavoriteData {
 export interface IFavoriteEntityData {
 	id?: ID;
 	name?: string;
-	logo_props?: {};
+	logo_props?: any;
 	project_id?: ID;
 }
 

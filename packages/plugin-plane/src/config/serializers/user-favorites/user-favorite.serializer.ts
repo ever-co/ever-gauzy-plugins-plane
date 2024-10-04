@@ -2,8 +2,11 @@ import {
 	FavoriteEntityEnum,
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
+	IFavorite,
 	IFavoriteCreateInput,
+	IFavoriteData,
 } from '@plane-plugin/models';
+import { defaultTestTenantId } from '../../credentials';
 
 export function mapFavoriteEntityType(
 	entityType: FavoriteEntityTypeEnum,
@@ -16,6 +19,38 @@ export function mapFavoriteEntityType(
 			FavoriteEntityEnum.OrganizationProject,
 	};
 	return entityMapping[entityType];
+}
+
+export function apiFavoriteEntityToProxy(
+	entity: FavoriteEntityEnum,
+): FavoriteEntityTypeEnum {
+	const entityMapping: { [key: string]: FavoriteEntityTypeEnum } = {
+		[FavoriteEntityEnum.OrganizationSprint]: FavoriteEntityTypeEnum.CYCLE,
+		[FavoriteEntityEnum.OrganizationProjectModule]:
+			FavoriteEntityTypeEnum.MODULE,
+		[FavoriteEntityEnum.OrganizationProject]:
+			FavoriteEntityTypeEnum.PROJECT,
+	};
+	return entityMapping[entity];
+}
+
+export function favoriteTransformer(
+	favorite: IFavorite,
+	data: any,
+): IFavoriteData {
+	return {
+		id: favorite.id,
+		entity_type: apiFavoriteEntityToProxy(favorite.entity),
+		entity_identifier: favorite.entityId,
+		entity_data: {
+			id: data.id || favorite.entityId,
+			name: data.name,
+			project_id: data.projectId,
+			logo_props: {},
+		},
+		project_id: data.projectId,
+		workspace_id: defaultTestTenantId,
+	};
 }
 
 export function createFavoriteInputTransformer(

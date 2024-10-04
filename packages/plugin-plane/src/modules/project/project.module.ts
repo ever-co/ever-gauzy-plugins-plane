@@ -9,6 +9,7 @@ import { ProjectService } from './project.service';
 import { ProjectController } from './project.controller';
 import { SearchIssuesModule } from '../issues/search-issues/search-issues.module';
 import { ProjectIdentifiersModule } from './project-identifiers/project-identifiers.module';
+import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
 
 @Module({
 	imports: [
@@ -39,6 +40,7 @@ import { ProjectIdentifiersModule } from './project-identifiers/project-identifi
 		IssuesModule,
 		IssueLabelsModule,
 		ProjectIdentifiersModule,
+		UserFavoritesModule,
 		// ProjectModuleModule,
 	],
 	providers: [ProjectService],

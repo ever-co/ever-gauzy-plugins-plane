@@ -1,17 +1,18 @@
 import { RouterModule } from '@nestjs/core';
-import { Module } from '@nestjs/common';
+import { Global, Module, forwardRef } from '@nestjs/common';
 import { UserFavoritesService } from './user-favorites.service';
 import { UserFavoritesController } from './user-favorites.controller';
 import { ProjectModule } from '../project/project.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
 
+@Global()
 @Module({
 	imports: [
 		RouterModule.register([
 			{ path: '/user-favorites', module: UserFavoritesModule },
 		]),
-		ProjectModule,
-		ProjectModuleModule,
+		forwardRef(() => ProjectModule),
+		forwardRef(() => ProjectModuleModule),
 	],
 	providers: [UserFavoritesService],
 	controllers: [UserFavoritesController],

@@ -13,6 +13,7 @@ import { roleTransformer } from '../workspace-organization';
 
 export function getProjectsResponse(
 	projects: IOrganizationProject[],
+	favoriteIds?: ID[],
 ): Partial<IProject>[] {
 	return projects?.map((project) => {
 		// Safely handle the presence of `project.members` by using a fallback to an empty array.
@@ -29,6 +30,8 @@ export function getProjectsResponse(
 				}))
 			: []; // If `project.members` is undefined, set `members` to an empty array
 
+		const isFavorite = favoriteIds?.includes(project.id);
+
 		// Ensure safe access to `project.members` to find the first manager
 		const manager = Array.isArray(project.members)
 			? project.members.find((member) => member.isManager)
@@ -36,7 +39,7 @@ export function getProjectsResponse(
 
 		return {
 			id: project.id,
-			is_favorite: false, // To be implemented after Auth,
+			is_favorite: isFavorite, // To be implemented after Auth,
 			total_members: project.membersCount,
 			total_cycles: project.organizationSprints?.length || 0,
 			total_issues: project.tasks?.length || 0,

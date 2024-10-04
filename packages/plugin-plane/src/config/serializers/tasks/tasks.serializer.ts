@@ -152,10 +152,6 @@ export const getTaskQuery = (
 	// Base queries
 	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery,
-
-		// 'join[alias]': 'task',
-		// 'join[leftJoinAndSelect][members]': 'task.members',
-		// 'join[leftJoinAndSelect][user]': 'members.user',
 	};
 
 	if (projectId) {

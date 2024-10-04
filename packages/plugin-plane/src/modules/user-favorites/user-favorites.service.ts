@@ -1,5 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable,
+} from '@nestjs/common';
+import qs from 'qs';
+import {
+	FavoriteEntityEnum,
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
 	ID,
@@ -12,6 +19,7 @@ import {
 	createFavoriteInputTransformer,
 	defaultOrganizationId,
 	favoriteTransformer,
+	getFavoriteQuery,
 	modulesTransformer,
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -24,8 +32,9 @@ export class UserFavoritesService extends ApiFetchService {
 
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
-		private readonly _projectService: ProjectService,
 		private readonly _projectModuleService: ProjectModuleService,
+		@Inject(forwardRef(() => ProjectService))
+		private readonly _projectService: ProjectService,
 		// TODO : Add here Cycle service also
 	) {
 		super(_serverFetchService['_httpService']);
@@ -146,10 +155,26 @@ export class UserFavoritesService extends ApiFetchService {
 				}),
 			);
 
-			console.log({ enrichedFavorites });
-
 			// Return transformed favorites
 			return enrichedFavorites;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findEmployeeFavoriteEntityIds(entity: FavoriteEntityEnum) {
+		const query = qs.stringify(getFavoriteQuery({ entity }));
+		try {
+			const favorites: IPagination<IFavorite> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path, // WARNING : Change this endpoint after PR for employee deployed. Should be `${this.path}/employee`
+					query,
+				})
+			).data;
+
+			return favorites.items.map((favorite) => favorite.entityId);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

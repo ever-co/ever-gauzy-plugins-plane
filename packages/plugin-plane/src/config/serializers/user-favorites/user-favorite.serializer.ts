@@ -5,8 +5,10 @@ import {
 	IFavorite,
 	IFavoriteCreateInput,
 	IFavoriteData,
+	IFavoriteFindInput,
 } from '@plane-plugin/models';
 import { defaultTestTenantId } from '../../credentials';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 export function mapFavoriteEntityType(
 	entityType: FavoriteEntityTypeEnum,
@@ -52,6 +54,24 @@ export function favoriteTransformer(
 		workspace_id: defaultTestTenantId,
 	};
 }
+
+export const getFavoriteQuery = (
+	options?: IFavoriteFindInput,
+): Record<string, any> => {
+	const query: Record<string, any> = {
+		...baseGetItemsWhereQuery,
+	};
+
+	if (options.entity) {
+		query['where[entity]'] = options.entity;
+	}
+
+	if (options.entityId) {
+		query['where[entityId]'] = options.entityId;
+	}
+
+	return query;
+};
 
 export function createFavoriteInputTransformer(
 	input: ICreateFavoriteInput,

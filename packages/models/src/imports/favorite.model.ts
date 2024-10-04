@@ -18,3 +18,5 @@ export enum FavoriteEntityEnum {
 }
 
 export interface IFavoriteCreateInput extends IFavorite {}
+
+export interface IFavoriteFindInput extends Partial<IFavorite> {}

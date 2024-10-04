@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
+	FavoriteEntityEnum,
 	IAssignMembersToProject,
 	ICreateProjectInput,
 	ID,
@@ -23,11 +24,13 @@ import {
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
+import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 
 @Injectable()
 export class ProjectService extends ApiFetchService {
 	constructor(
 		private readonly _workspaceService: WorkspaceService,
+		private readonly _userFavoriteService: UserFavoritesService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -52,7 +55,12 @@ export class ProjectService extends ApiFetchService {
 				})
 			).data;
 
-			return getProjectsResponse(projects.items);
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProject,
+				);
+
+			return getProjectsResponse(projects.items, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);
@@ -92,7 +100,12 @@ export class ProjectService extends ApiFetchService {
 				throw new BadRequestException('Project not found');
 			}
 
-			return getProjectsResponse([project])[0] as IProject;
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProject,
+				);
+
+			return getProjectsResponse([project], favoriteIds)[0] as IProject;
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);

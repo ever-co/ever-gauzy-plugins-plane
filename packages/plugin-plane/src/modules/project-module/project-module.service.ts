@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
 	ICreateModuleInput,
@@ -19,6 +24,7 @@ import { ProjectService } from '../project/project.service';
 export class ProjectModuleService extends ApiFetchService {
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
+		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 	) {
 		super(_serverFetchService['_httpService']);

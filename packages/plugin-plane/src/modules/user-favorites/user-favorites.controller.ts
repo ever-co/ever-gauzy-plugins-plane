@@ -3,6 +3,7 @@ import {
 	Body,
 	Controller,
 	Delete,
+	Get,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -15,6 +16,18 @@ import { CreateFavoriteDTO } from './dto';
 @Controller()
 export class UserFavoritesController {
 	constructor(private readonly _favoriteService: UserFavoritesService) {}
+
+	/**
+	 * @description Find employee favorites
+	 * @returns  A promise resolved to transformed favorites
+	 * @memberof UserFavoritesController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get User Favorites' })
+	@Get()
+	async findEmployeeFavorites() {
+		return await this._favoriteService.findEmployeeFavorites();
+	}
 
 	/**
 	 * @description Add element as favorite
@@ -33,7 +46,7 @@ export class UserFavoritesController {
 	 * @description Delete element from favorites
 	 * @param {ID} id - The ID of favorite to be deleted
 	 * @returns - A promise resolved after favorite deleted
-	 * @memberof UserFavoritesService
+	 * @memberof UserFavoritesController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete element from favorites' })

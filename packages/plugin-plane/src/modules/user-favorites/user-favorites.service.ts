@@ -5,11 +5,14 @@ import {
 	ID,
 	IFavorite,
 	IFavoriteData,
+	IPagination,
 } from '@plane-plugin/models';
 import {
+	apiFavoriteEntityToProxy,
 	createFavoriteInputTransformer,
 	defaultOrganizationId,
 	favoriteTransformer,
+	modulesTransformer,
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -78,6 +81,75 @@ export class UserFavoritesService extends ApiFetchService {
 						? entityData.id
 						: entityData.project_id,
 			});
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Find employee favorites
+	 * @returns  A promise resolved to transformed favorites
+	 * @memberof UserFavoritesService
+	 */
+	async findEmployeeFavorites(): Promise<IFavoriteData[]> {
+		try {
+			// Retrieve all favorites
+			const favorites: IPagination<IFavorite> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path, // WARNING : Change this endpoint after PR for employee deployed. Should be `${this.path}/employee`
+				})
+			).data;
+			const favoritesItems = favorites.items;
+
+			// Retrieve favorites related data
+			const enrichedFavorites = await Promise.all(
+				favoritesItems.map(async (favorite) => {
+					const entityType = apiFavoriteEntityToProxy(
+						favorite.entity,
+					);
+					let entityData: any = null;
+
+					// Check the entity type and Get related data
+					switch (entityType) {
+						case FavoriteEntityTypeEnum.MODULE:
+							const module = modulesTransformer(
+								await this._projectModuleService.getExternalModule(
+									favorite.entityId,
+								),
+							);
+							entityData = module;
+							break;
+
+						case FavoriteEntityTypeEnum.PROJECT:
+							entityData = await this._projectService.getProject(
+								favorite.entityId,
+							);
+							break;
+
+						case FavoriteEntityTypeEnum.CYCLE:
+							// TODO : Implement cycle retrive after cycle feature implemented
+							entityData = null;
+							break;
+
+						default:
+							break;
+					}
+					return favoriteTransformer(favorite, {
+						...entityData,
+						projectId:
+							entityType === FavoriteEntityTypeEnum.PROJECT
+								? entityData.id
+								: entityData.project_id,
+					});
+				}),
+			);
+
+			console.log({ enrichedFavorites });
+
+			// Return transformed favorites
+			return enrichedFavorites;
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

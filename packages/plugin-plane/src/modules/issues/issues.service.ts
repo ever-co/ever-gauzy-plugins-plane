@@ -11,7 +11,6 @@ import {
 	IIssueComment,
 	IIssueCreateInput,
 	IIssueFindInput,
-	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
 	IReaction,
@@ -24,7 +23,6 @@ import {
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
-	getIssueRelationType,
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByStateId,
@@ -37,6 +35,7 @@ import { StatesService } from '../states/states.service';
 import { CommentsService } from '../comments/comments.service';
 import { ProjectService } from '../project/project.service';
 import { ReactionsService } from '../reactions/reactions.service';
+import { IssueRelationsService } from '../issue-relations/issue-relations.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -45,6 +44,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _projectService: ProjectService,
+		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -54,12 +54,11 @@ export class IssuesService extends ApiFetchService {
 
 	/**
 	 * @description - Get remode API issue
-	 * @private
 	 * @param {ID} id - The issue ID
 	 * @returns - A promise that resolved after getting issue
 	 * @memberof IssuesService
 	 */
-	private async getExternalIssue(id: ID): Promise<ITask> {
+	async getExternalIssue(id: ID): Promise<ITask> {
 		const query = qs.stringify(getTaskQuery());
 		return (
 			await this.apiFetch({
@@ -294,30 +293,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findIssueRelations(id: ID) {
 		try {
-			const relatedIssues: IIssueRelationResponse = {
-				blocked_by: [],
-				blocking: [],
-				duplicate: [],
-				relates_to: [],
-			};
-			const issue = await this.getExternalIssue(id);
-			if (!issue) {
-				throw new BadRequestException('Issue could not be found');
-			}
-			const linkedIssues = issue.linkedIssues;
-
-			linkedIssues.forEach((linkedIssue) => {
-				const relation_type = getIssueRelationType(linkedIssue.action);
-				if (relation_type) {
-					if (linkedIssue.taskFrom) {
-						relatedIssues[relation_type].push(
-							issueTransformer(linkedIssue.taskFrom),
-						);
-					}
-				}
-			});
-
-			return relatedIssues;
+			return await this._issueRelationService.findRelationsByIssueId(id);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();

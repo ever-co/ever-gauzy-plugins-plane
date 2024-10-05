@@ -6,6 +6,7 @@ import { SearchIssuesModule } from './search-issues/search-issues.module';
 import { CommentsModule } from '../comments/comments.module';
 import { ProjectModule } from '../project/project.module';
 import { ReactionsModule } from '../reactions/reactions.module';
+import { IssueRelationsModule } from '../issue-relations/issue-relations.module';
 
 @Module({
 	imports: [
@@ -13,6 +14,7 @@ import { ReactionsModule } from '../reactions/reactions.module';
 		SearchIssuesModule,
 		CommentsModule,
 		ReactionsModule,
+		forwardRef(() => IssueRelationsModule),
 		forwardRef(() => ProjectModule),
 	],
 	providers: [IssuesService],

@@ -30,6 +30,7 @@ export interface IIssueRelationResponse {
 
 export interface IParentableIssuesQueryParams {
 	search?: string;
+	issue_relation?: boolean;
 	parent?: boolean;
 	sub_issue?: boolean;
 	issue_id?: ID;

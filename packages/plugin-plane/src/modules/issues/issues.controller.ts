@@ -284,7 +284,7 @@ export class IssuesController {
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue' })
+	@ApiOperation({ summary: 'Delete issue reaction' })
 	@Delete(':id/reactions/:emoji')
 	async deleteReaction(
 		@Param('id') issueId: ID,

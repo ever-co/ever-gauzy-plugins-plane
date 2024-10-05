@@ -25,12 +25,13 @@ export class SearchIssuesService extends ApiFetchService {
 	 * @returns A promise that resolves to found issues
 	 * @memberof SearchIssuesService
 	 */
-	async findParentableIssues(
+	async findIssuesByOptions(
 		projectId: ID,
 		options: IParentableIssuesQueryParams,
 	): Promise<IIssue[]> {
 		try {
-			const { issue_id, parent, sub_issue, search } = options;
+			const { issue_id, parent, sub_issue, issue_relation, search } =
+				options;
 
 			const query = qs.stringify(getTaskQuery(projectId));
 
@@ -41,6 +42,16 @@ export class SearchIssuesService extends ApiFetchService {
 					query,
 				})
 			).data;
+
+			const linkedIssuesIds = issues.items.reduce((acc, issue) => {
+				// Add all taskFromId of current issue in the accumulator
+				if (issue.id === issue_id) {
+					issue.linkedIssues?.forEach((linked) => {
+						acc.add(linked.taskFromId);
+					});
+				}
+				return acc;
+			}, new Set<ID>());
 
 			// Filter issues based on the type ('parentable' or 'childable') and search criteria
 			const filteredIssues = issues.items.filter((issue) => {
@@ -68,6 +79,11 @@ export class SearchIssuesService extends ApiFetchService {
 						isNotChild &&
 						issue.parentId !== issue_id
 					);
+				}
+
+				if (issue_relation) {
+					const isAlreadyLinked = linkedIssuesIds.has(issue.id);
+					return isNotSelf && matchesSearch && !isAlreadyLinked;
 				}
 
 				return false;

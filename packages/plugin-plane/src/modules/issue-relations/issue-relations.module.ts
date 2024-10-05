@@ -1,19 +1,10 @@
-import { Module } from '@nestjs/common';
-import { RouterModule } from '@nestjs/core';
+import { forwardRef, Module } from '@nestjs/common';
+import { IssuesModule } from '../issues/issues.module';
 import { IssueRelationsService } from './issue-relations.service';
-import { IssueRelationsController } from './issue-relations.controller';
 
 @Module({
-	imports: [
-		RouterModule.register([
-			{
-				path: '/issue-relation',
-				module: IssueRelationsModule,
-			},
-		]),
-	],
+	imports: [forwardRef(() => IssuesModule)],
 	providers: [IssueRelationsService],
-	controllers: [IssueRelationsController],
 	exports: [IssueRelationsService],
 })
 export class IssueRelationsModule {}

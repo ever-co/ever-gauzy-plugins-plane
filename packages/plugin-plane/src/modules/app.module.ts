@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { InstancesModule } from './instances/instances.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
@@ -12,6 +10,11 @@ import { IssuesModule } from './issues/issues.module';
 import { GlobalHttpModule } from './http.module';
 import { IssueLabelsModule } from './issues/issue-labels/issue-labels.module';
 import { ProjectModule } from './project/project.module';
+import { IssueRelationsModule } from './issue-relations/issue-relations.module';
+import { ProjectModuleModule } from './project-module/project-module.module';
+import { CommentsModule } from './comments/comments.module';
+import { UserFavoritesModule } from './user-favorites/user-favorites.module';
+import { ReactionsModule } from './reactions/reactions.module';
 
 @Module({
 	imports: [
@@ -26,8 +29,11 @@ import { ProjectModule } from './project/project.module';
 		IssuesModule,
 		IssueLabelsModule,
 		ProjectModule,
+		IssueRelationsModule,
+		ProjectModuleModule,
+		CommentsModule,
+		UserFavoritesModule,
+		ReactionsModule,
 	],
-	controllers: [AppController],
-	providers: [AppService],
 })
 export class AppModule {}

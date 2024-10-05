@@ -1,1 +1,1 @@
-export * from './statuses.response';
+export * from './statuses.serializer';

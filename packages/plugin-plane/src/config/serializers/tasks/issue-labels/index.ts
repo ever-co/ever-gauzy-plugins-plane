@@ -1,1 +1,1 @@
-export * from './issue-labels.response';
+export * from './issue-labels.serializer';

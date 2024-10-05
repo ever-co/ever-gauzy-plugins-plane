@@ -1,25 +1,36 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	BadGatewayException,
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
+	FavoriteEntityEnum,
+	IAssignMembersToProject,
 	ICreateProjectInput,
 	ID,
 	IGetProjectMembersResponse,
 	IOrganizationProject,
 	IPagination,
 	IProject,
+	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import {
+	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
 	getProjectsQuery,
 	getProjectsResponse,
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
+import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 
 @Injectable()
 export class ProjectService extends ApiFetchService {
 	constructor(
 		private readonly _workspaceService: WorkspaceService,
+		private readonly _userFavoriteService: UserFavoritesService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -31,7 +42,7 @@ export class ProjectService extends ApiFetchService {
 	/**
 	 * @description - Get all projects for a workspace
 	 * @returns - A promise that resolves after getting all projects for a workspace
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async getProjects(): Promise<Partial<IProject>[]> {
 		const query = qs.stringify(getProjectsQuery);
@@ -43,7 +54,13 @@ export class ProjectService extends ApiFetchService {
 					query,
 				})
 			).data;
-			return getProjectsResponse(projects.items);
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProject,
+				);
+
+			return getProjectsResponse(projects.items, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);
@@ -51,22 +68,44 @@ export class ProjectService extends ApiFetchService {
 	}
 
 	/**
+	 * @description - Get remode API project
+	 * @private
+	 * @param {ID} id - The project ID
+	 * @returns - A promise that resolved after getting project
+	 * @memberof ProjectService
+	 */
+	async getExternalProject(id: ID): Promise<IOrganizationProject> {
+		const query = qs.stringify(getProjectsQuery);
+		return (
+			await this.apiFetch({
+				method: 'GET',
+				path: `/organization-projects/${id}`,
+				query,
+			})
+		).data;
+	}
+
+	/**
 	 * @description - Get workspace project by ID
 	 * @param {ID} id - The UUID primary key of the project to be fetched
 	 * @returns - A promise that resolves after getting the project
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async getProject(id: ID): Promise<IProject> {
-		const query = qs.stringify(getProjectsQuery);
 		try {
-			const project: IOrganizationProject = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `/organization-projects/${id}`,
-					query,
-				})
-			).data;
-			return getProjectsResponse([project])[0] as IProject;
+			const project: IOrganizationProject =
+				await this.getExternalProject(id);
+
+			if (!project) {
+				throw new BadRequestException('Project not found');
+			}
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					FavoriteEntityEnum.OrganizationProject,
+				);
+
+			return getProjectsResponse([project], favoriteIds)[0] as IProject;
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);
@@ -77,7 +116,7 @@ export class ProjectService extends ApiFetchService {
 	 * @description - Get project members
 	 * @param {ID} id - The UUID primary key of the project for whom to get members
 	 * @returns - A promise that resolves after getting the project members
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
 		const project = await this.getProject(id);
@@ -85,7 +124,7 @@ export class ProjectService extends ApiFetchService {
 		return members.map((member) => ({
 			id: member.id,
 			member: member.member_id,
-			role: 20, // Must be changed
+			role: member.role,
 			project: project.id,
 		}));
 	}
@@ -95,14 +134,14 @@ export class ProjectService extends ApiFetchService {
 	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Create new Project in workspace
-	 * @param {CreateProjectDTO} payload - input data with which to create project
+	 * @param {CreateProjectDTO} input - input data with which to create project
 	 * @returns - A promise that resolves after created project
-	 * @memberof WorkspaceController
+	 * @memberof ProjectService
 	 */
 	async createOrganizationProject(
-		payload: ICreateProjectInput,
+		input: ICreateProjectInput,
 	): Promise<IProject> {
-		const body = createProjectInputTransformer(payload);
+		const body = createProjectInputTransformer(input);
 		try {
 			const project: IOrganizationProject = (
 				await this.apiFetch({
@@ -116,6 +155,106 @@ export class ProjectService extends ApiFetchService {
 		} catch (error) {
 			console.log(error);
 			throw new InternalServerErrorException(error);
+		}
+	}
+
+	/**
+	 * @description Update project
+	 * @param {ID} id The project ID
+	 * @param {IUpdateProjectInput} input Data to be updated
+	 * @returns A promise that resolves after project updated
+	 * @memberof ProjectService
+	 */
+	async update(id: ID, input: IUpdateProjectInput): Promise<IProject> {
+		try {
+			// Extract members from the input if provided
+			const { members, ...restInput } = input;
+
+			// Retrieve the project details from a remote source
+			const project = await this.getExternalProject(id);
+
+			if (!project) {
+				throw new BadRequestException('Project could not be found');
+			}
+
+			// Transform the input using the transformer function
+			const transformedInput = createProjectInputTransformer(restInput);
+
+			// Destructure the project object to exclude 'members' and construct `projectWithoutMembers`
+			const { members: existingMembers = [], ...projectWithoutMembers } =
+				project;
+
+			// Assign existing members if new members are not provided
+			const memberIds = members
+				? assignMembersToProjectTransformer(members)
+				: existingMembers.map((m) => m.employeeId);
+
+			// Create the final body for the PUT request by merging objects
+			const body = {
+				...projectWithoutMembers,
+				...transformedInput,
+				memberIds,
+			};
+
+			const updatedProject = (
+				await this.apiFetch({
+					method: 'PUT',
+					path: `/organization-projects/${id}`,
+					body: { ...project, ...body },
+				})
+			).data;
+
+			// Transform the response to match the expected IProject format
+			return getProjectsResponse([updatedProject])[0] as IProject;
+		} catch (error) {
+			console.log(error);
+			throw new BadGatewayException(error);
+		}
+	}
+
+	/**
+	 * @description - Add other members to project
+	 * @param {ID} id - The project ID
+	 * @param {IProjectMember[]} members - New Members to be added
+	 * @returns A promise resoved after members assigned to projec
+	 * @memberof ProjectService
+	 */
+	async assignMembersToProject(
+		id: ID,
+		input: IAssignMembersToProject,
+	): Promise<IProject> {
+		try {
+			const { members } = input;
+			const project = await this.getExternalProject(id);
+
+			if (!project) {
+				throw new BadRequestException('Project could not be found');
+			}
+
+			// Extract existing members and prepare `projectWithoutMembers`
+			const { members: existingMembers = [], ...projectWithoutMembers } =
+				project;
+
+			// Create a Set to eliminate duplicates and include new member IDs
+			const memberIds = [
+				...new Set([
+					...assignMembersToProjectTransformer(members),
+					...existingMembers.map((m) => m.employeeId),
+				]),
+			];
+
+			const updatedProject = (
+				await this.apiFetch({
+					method: 'PUT',
+					path: `/organization-projects/${id}`,
+					body: { ...projectWithoutMembers, memberIds },
+				})
+			).data;
+
+			return getProjectsResponse([updatedProject])[0];
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 

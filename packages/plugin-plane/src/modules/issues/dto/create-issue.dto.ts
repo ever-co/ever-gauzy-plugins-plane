@@ -99,4 +99,9 @@ export class CreateIssueDTO implements IIssueCreateInput {
 	@IsUUID('4', { each: true })
 	@IsOptional()
 	module_ids: ID[];
+
+	@ApiPropertyOptional({ type: () => Array })
+	@IsUUID('4', { each: true })
+	@IsOptional()
+	modules?: ID[];
 }

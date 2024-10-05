@@ -1,9 +1,13 @@
 import {
+	ICompletedIssuesDistribution,
 	ID,
 	IEmployee,
 	IIssue,
 	IIssueCreateInput,
+	IIssueFindInput,
 	IIssueUpdateInput,
+	IOrganizationProjectModule,
+	IReactionData,
 	ITag,
 	ITask,
 	ITaskCreateInput,
@@ -27,7 +31,10 @@ export function issueLabelsIds(issue: ITask): ID[] {
 	return labels?.map((member) => member.id);
 }
 
-export function issueTransformer(issue: ITask): IIssue {
+export function issueTransformer(
+	issue: ITask,
+	reactions?: IReactionData[],
+): IIssue {
 	return {
 		id: issue.id,
 		name: issue.title,
@@ -38,31 +45,52 @@ export function issueTransformer(issue: ITask): IIssue {
 		priority: issue.priority?.toLocaleLowerCase() as TaskPriorityEnum,
 		start_date: issue.startDate,
 		target_date: issue.dueDate,
-		sequence_id: 1, // TODO : Research usecase and add to API
+		sequence_id: issue.number,
 		project_id: issue.projectId,
 		parent_id: issue.parentId,
 		parent: {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
 			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
-			sequence_id: 1,
+			sequence_id: issue.parent?.number,
 		},
 		created_at: issue.createdAt,
 		updated_at: issue.updatedAt,
 		created_by: issue.creatorId,
-		updated_by: issue.creatorId, // TODO : Add to API
-		is_draft: false, // TODO : Add to API
-		archived_at: null, // TODO : Add to API
+		updated_by: issue.creatorId,
+		is_draft: issue.isDraft,
+		archived_at: issue.archivedAt,
 		state__group: stateGroup(issue.taskStatus),
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
+		description_html: issue.description ?? '<p></p>',
 		cycle_id: issue.organizationSprintId,
 		link_count: 0, // TODO: Add to API
 		attachment_count: 0, // TODO : Add to API,
 		sub_issues_count: issue.children?.length,
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
-		module_ids: [], // TODO: Add to APIs
+		module_ids: issue.modules?.map(({ id }) => id),
+		issue_reactions: reactions || [],
 	};
+}
+
+export function parentableIssuesTransformer(issues: ITask[]) {
+	return issues.map((issue) => ({
+		id: issue.id,
+		name: issue.title,
+		start_date: issue.startDate,
+		sequence_id: issue.number,
+		project__name: issue.project.name,
+		project__identifier:
+			issue.project.code ||
+			issue.project.name.slice(0, 4).toLocaleUpperCase(),
+		project_id: issue.projectId,
+		workspace__slug: 'cardano', // TODO : Make this as dynamic as possible
+		state__name: issue.taskStatus?.name,
+		state__group: stateGroup(issue.taskStatus),
+		state__color: issue.taskStatus?.color,
+		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
+	}));
 }
 
 export function getProjectTasksTransformer() {
@@ -111,23 +139,34 @@ export const taskRelations = [
 	'members',
 	'members.user',
 	'creator',
+	'project',
 	'linkedIssues',
 	'linkedIssues.taskTo',
 	'linkedIssues.taskFrom',
 	'parent',
 	'children',
+	'children.taskStatus',
 	'taskStatus',
+	'modules',
 ];
 
-export const getTaskQuery = (id: ID): Record<string, string> => {
+export const getTaskQuery = (
+	projectId?: ID,
+	options?: IIssueFindInput,
+): Record<string, any> => {
 	// Base queries
-	const query: Record<string, string> = {
+	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery,
-		'where[projectId]': id,
-		// 'join[alias]': 'task',
-		// 'join[leftJoinAndSelect][members]': 'task.members',
-		// 'join[leftJoinAndSelect][user]': 'members.user',
 	};
+
+	if (projectId) {
+		query['where[projectId]'] = projectId;
+	}
+
+	if (options?.module) {
+		query['join[alias]'] = 'task';
+		// query['where[modules][0]'] = options.module;
+	}
 
 	// Add relations
 	taskRelations.forEach((relation, i) => {
@@ -162,12 +201,17 @@ export function createIssueInputTransformer(
 		taskStatusId: issue.state_id,
 		tenantId: defaultTestTenantId,
 		organizationId: defaultOrganizationId,
+		modules:
+			issue.module_ids?.map(
+				(id) => ({ id }) as IOrganizationProjectModule,
+			) || [],
 	};
 }
 
 export function updateIssueInputTransformer(
 	issue: IIssueUpdateInput,
 	status: TaskStatusEnum,
+	modules?: ID[],
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
 	const keyMapping: Partial<
@@ -182,6 +226,7 @@ export function updateIssueInputTransformer(
 		cycle_id: 'organizationSprintId',
 		parent_id: 'parentId',
 		state_id: 'taskStatusId',
+		module_ids: 'modules',
 	};
 
 	// Include only user provided flelds in the final request
@@ -196,10 +241,21 @@ export function updateIssueInputTransformer(
 				const value = issue[issueKey as keyof IIssueUpdateInput];
 				acc[taskKey] = value;
 			}
+
 			if ('state_id' in issue) {
 				acc['status'] = status;
+
+				acc['resolvedAt'] =
+					status.toLowerCase() === TaskStatusEnum.COMPLETED ||
+					status.toLowerCase() === TaskStatusEnum.DONE
+						? new Date()
+						: null;
 			}
 			acc['organizationId'] = defaultOrganizationId;
+
+			if (issue.module_ids || issue.modules) {
+				acc['modules'] = modules.map((module) => ({ id: module }));
+			}
 
 			return acc;
 		},
@@ -211,7 +267,7 @@ export function updateIssueInputTransformer(
 		transformedInput.tags = issue.label_ids.map((id) => ({ id }) as ITag);
 	}
 
-	// AAdd members only if assignee_ids is defined
+	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
 		transformedInput.members = issue.assignee_ids.map(
 			(id) => ({ id }) as IEmployee,
@@ -219,4 +275,47 @@ export function updateIssueInputTransformer(
 	}
 
 	return transformedInput;
+}
+
+export function getTaskDistribution(tasks: ITask[]) {
+	const stateDistribution: ICompletedIssuesDistribution = {
+		completed: [],
+		started: [],
+		unstarted: [],
+		backlog: [],
+	};
+
+	const statusMap: { [key: string]: keyof typeof stateDistribution } = {
+		[TaskStatusEnum.DONE.toLocaleLowerCase()]: 'completed',
+		[TaskStatusEnum.COMPLETED.toLocaleLowerCase()]: 'completed',
+		[TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.BLOCKED.toLocaleLowerCase()]: 'started',
+		[TaskStatusEnum.OPEN.toLocaleLowerCase()]: 'unstarted',
+		[TaskStatusEnum.BACKLOG.toLocaleLowerCase()]: 'backlog',
+	};
+
+	tasks.forEach((task) => {
+		const status = task.status.toLocaleLowerCase();
+		const category = statusMap[status];
+
+		if (category) {
+			stateDistribution[category].push(task.id);
+		}
+
+		if (task.taskStatus.isTodo) {
+			stateDistribution['unstarted'].push(task.id);
+		}
+
+		if (task.taskStatus.isInProgress) {
+			stateDistribution['started'].push(task.id);
+		}
+
+		if (task.taskStatus.isDone) {
+			stateDistribution['completed'].push(task.id);
+		}
+	});
+
+	return stateDistribution;
 }

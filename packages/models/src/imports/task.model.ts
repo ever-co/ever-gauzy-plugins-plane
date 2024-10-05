@@ -1,7 +1,7 @@
 import { IBasePerTenantAndOrganizationEntityModel, IBaseRelationsEntityModel, ID } from './base-entity.model';
 import { IEmployee } from './employee.model';
 import { IInvoiceItem } from './invoice-item.model';
-import { IOrganizationProject } from './organization-projects.model';
+import { IRelationalOrganizationProject } from './organization-projects.model';
 import { IOrganizationSprint } from './organization-sprint.model';
 import { IOrganizationTeam } from './organization-team.model';
 import { ITag } from './tag.model';
@@ -9,9 +9,11 @@ import { IUser } from './user.model';
 import { ITaskStatus, TaskStatusEnum } from './task-status.model';
 import { ITaskPriority, TaskPriorityEnum } from './task-priority.model';
 import { ITaskSize, TaskSizeEnum } from './task-size.model';
+import { IOrganizationProjectModule } from './organization-project-module.model';
+import { ITaskLinkedIssue } from './task-linked-issue.model';
 
-export interface ITask extends IBasePerTenantAndOrganizationEntityModel {
-	title: string;
+export interface ITask extends IBasePerTenantAndOrganizationEntityModel, IRelationalOrganizationProject {
+	title?: string;
 	number?: number;
 	public?: boolean;
 	prefix?: string;
@@ -19,20 +21,21 @@ export interface ITask extends IBasePerTenantAndOrganizationEntityModel {
 	status?: TaskStatusEnum;
 	priority?: TaskPriorityEnum;
 	size?: TaskSizeEnum;
-	startDate?: Date;
 	dueDate?: Date;
+	linkedIssues?: ITaskLinkedIssue[];
+	resolvedAt?: Date;
 	estimate?: number;
-	project?: IOrganizationProject;
-	projectId?: ID;
+	startDate?: Date;
 	tags?: ITag[];
 	members?: IEmployee[];
 	invoiceItems?: IInvoiceItem[];
+	modules?: IOrganizationProjectModule[];
 	teams?: IOrganizationTeam[];
 	organizationSprint?: IOrganizationSprint;
 	organizationSprintId?: ID;
 	creator?: IUser;
 	creatorId?: ID;
-	resolvedAt?: Date;
+	isDraft?: boolean; // Define if task is still draft (E.g : Task description not completed yet)
 
 	parent?: ITask;
 	parentId?: ID; // Optional field for specifying the parent task ID

@@ -9,7 +9,7 @@ export interface IState {
 	group?: string; // Equals to external API Standard Statuses
 	default?: boolean; // Can be added to external API
 	description?: string;
-	sequence?: number; // Search for its usecase and can be add to external API
+	sequence?: number; // Search for its usecase and can be add to external API or adapt it to order
 }
 
 export interface ICreateStateInput extends Partial<Omit<IState, 'id'>> {}

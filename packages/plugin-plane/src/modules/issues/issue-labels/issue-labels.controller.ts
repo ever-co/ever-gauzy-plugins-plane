@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -13,7 +14,7 @@ import { ID } from '@plane-plugin/models';
 import { IssueLabelsService } from './issue-labels.service';
 import { CreateIssueLabelDTO, UpdateIssueLabelDTO } from './dto';
 
-@Controller('issue-labels')
+@Controller()
 export class IssueLabelsController {
 	constructor(private readonly _issueLabelService: IssueLabelsService) {}
 
@@ -25,7 +26,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Issue Labels By project' })
-	@Get(':projectId')
+	@Get()
 	async getAllByProjectId(@Param('projectId') projectId: ID) {
 		return await this._issueLabelService.getProjectIssueLabels(projectId);
 	}
@@ -33,43 +34,40 @@ export class IssueLabelsController {
 	/**
 	 * @description - Create issue label
 	 * @param {ID} projectId - the project ID for whom to associate with created label
-	 * @param {CreateIssueLabelDTO} payload - data for creating label
+	 * @param {CreateIssueLabelDTO} input - data for creating label
 	 * @returns - A promise that resolves after created label
 	 * @memberof IssueLabelsController
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue Label' })
-	@Post(':projectId')
+	@Post()
 	async createIssueLabel(
-		@Body() payload: CreateIssueLabelDTO,
+		@Body() input: CreateIssueLabelDTO,
 		@Param('projectId') projectId: ID,
 	) {
-		return await this._issueLabelService.createIssueLabel(
-			projectId,
-			payload,
-		);
+		return await this._issueLabelService.createIssueLabel(projectId, input);
 	}
 
 	/**
 	 * @description - Update issue label
 	 * @param {ID} id - the label ID to be updated
 	 * @param {ID} projectId - the project ID for whom to associate with Updated label
-	 * @param {UpdateIssueLabelDTO} payload - data for updating label
+	 * @param {UpdateIssueLabelDTO} input - data for updating label
 	 * @returns - A promise that resolves after Updated label
 	 * @memberof IssueLabelsController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update Issue Label' })
-	@Patch(':projectId/:id')
+	@Patch(':id')
 	async updateIssueLabel(
-		@Body() payload: UpdateIssueLabelDTO,
+		@Body() input: UpdateIssueLabelDTO,
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID,
 	) {
 		return await this._issueLabelService.updateIssueLabel(
 			id,
 			projectId,
-			payload,
+			input,
 		);
 	}
 
@@ -81,7 +79,7 @@ export class IssueLabelsController {
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@ApiOperation({ summary: 'Delete Issue Label' })
-	@Patch(':projectId/:id')
+	@Delete(':id')
 	async deleteIssueLabel(@Param('id') id: ID) {
 		return await this._issueLabelService.deleteIssueLabel(id);
 	}

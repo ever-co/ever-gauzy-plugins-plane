@@ -45,12 +45,12 @@ export class StatesService extends ApiFetchService {
 
 	/**
 	 * @description - Create state
-	 * @param {ICreateStateInput} payload - data for creating new state
+	 * @param {ICreateStateInput} input - data for creating new state
 	 * @returns - A promise that resolves after state created
 	 * @memberof StatesService
 	 */
-	async create(payload: ICreateStateInput): Promise<IState> {
-		const body = createStateInputTransformer(payload);
+	async create(input: ICreateStateInput): Promise<IState> {
+		const body = createStateInputTransformer(input);
 
 		try {
 			const state: ITaskStatus = (
@@ -60,6 +60,8 @@ export class StatesService extends ApiFetchService {
 					body,
 				})
 			).data;
+
+			console.log({ state });
 
 			return getStatesTransformer([state])[0] as IState;
 		} catch (error) {
@@ -85,12 +87,12 @@ export class StatesService extends ApiFetchService {
 
 	/**
 	 * @description - Get all states related to project
-	 * @param {ID} id - The UUID primary key of the project for whom to get states
+	 * @param {ID} projectId - The UUID primary key of the project for whom to get states
 	 * @returns - A promise that resolves after getting all states
 	 * @memberof WorkspaceController
 	 */
-	async getWorkspaceProjectStates(id: ID): Promise<IState[]> {
-		const query = qs.stringify(getStatesQuery(id));
+	async getWorkspaceProjectStates(projectId: ID): Promise<IState[]> {
+		const query = qs.stringify(getStatesQuery(projectId));
 		try {
 			const states: IPagination<ITaskStatus> = (
 				await this.apiFetch({

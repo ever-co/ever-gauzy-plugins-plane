@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class UserService {
 	async getMe() {
 		return {
-			id: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
 			cover_image: null,
 			date_joined: '2024-06-25T12:23:12.642525Z',
@@ -43,13 +43,13 @@ export class UserService {
 			billing_address: null,
 			has_billing_address: false,
 			company_name: '',
-			user: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			user: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 		};
 	}
 
 	async getMySettings() {
 		return {
-			id: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			email: 'salva.cardano1@gmail.com',
 			workspace: {
 				last_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
@@ -66,7 +66,7 @@ export class UserService {
 			{
 				id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
 				owner: {
-					id: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+					id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 					first_name: 'Salva',
 					last_name: 'Cardano',
 					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
@@ -82,8 +82,8 @@ export class UserService {
 				logo: null,
 				slug: 'cardano',
 				organization_size: '11-50',
-				created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
-				updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+				created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			},
 		];
 	}

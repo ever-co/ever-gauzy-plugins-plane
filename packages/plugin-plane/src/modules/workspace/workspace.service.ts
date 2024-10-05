@@ -6,7 +6,7 @@ import { defaultOrganizationId } from '../../config';
 import {
 	getOrganizationQuery,
 	organizationMembersTransformer,
-} from '../../config/serializers/workspace-organization';
+} from '../../config';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -34,9 +34,9 @@ export class WorkspaceService extends ApiFetchService {
 				is_default: true,
 				type_identifier: 'home',
 				logo_props: {},
-				created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
-				updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
-				owned_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+				created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				owned_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			},
 			widgets: [
 				{
@@ -113,7 +113,7 @@ export class WorkspaceService extends ApiFetchService {
 	async getMembersMe(workspace_name: string) {
 		console.log({ workspace_name });
 		return {
-			id: 'd9657344-06a1-4965-8d3e-b98fd984e58a',
+			id: '275c7587-021f-4d09-960c-e3aa0b609de6',
 			created_at: '2024-08-13T11:47:19.039549Z',
 			updated_at: '2024-08-13T11:47:19.039558Z',
 			deleted_at: null,
@@ -200,10 +200,10 @@ export class WorkspaceService extends ApiFetchService {
 				subscribed: true,
 			},
 			is_active: true,
-			created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
-			updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
-			member: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			member: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 		};
 	}
 
@@ -214,7 +214,7 @@ export class WorkspaceService extends ApiFetchService {
 	 * @description - Get user properties workspace project
 	 * @param {ID} id - The UUID primary key of the project for whom get properties
 	 * @returns - A promise that resolves after getting the user properties
-	 * @memberof WorkspaceController
+	 * @memberof WorkspaceService
 	 */
 	async getProjectUserProperties(id: ID) {
 		return {
@@ -261,11 +261,11 @@ export class WorkspaceService extends ApiFetchService {
 				sub_issue_count: true,
 				attachment_count: true,
 			},
-			created_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
-			updated_by: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			project: id,
 			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
-			user: '61498b95-ca39-4464-93b3-acb8b14dee3e',
+			user: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 		};
 	}
 

@@ -1,1 +1,1 @@
-export * from './projects.responses';
+export * from './projects.serializer';

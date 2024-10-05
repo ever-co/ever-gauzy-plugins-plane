@@ -12,30 +12,30 @@ import {
 import { ICreateProjectInput, ID } from '@plane-plugin/models';
 
 export class CreateProjectDTO implements ICreateProjectInput {
-	@ApiProperty({ type: () => String })
+	@ApiPropertyOptional({ type: () => String })
 	@IsString()
 	@IsOptional()
-	cover_image: string;
+	cover_image?: string;
 
-	@ApiProperty({ type: () => String })
+	@ApiPropertyOptional({ type: () => String })
 	@IsString()
 	@IsOptional()
-	description: string;
+	description?: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
 	identifier: string;
 
-	@ApiProperty({ type: () => Object })
+	@ApiPropertyOptional({ type: () => Object })
 	@IsObject()
 	@IsOptional()
-	logo_props: any;
+	logo_props?: any;
 
-	@ApiProperty({ type: () => Array })
+	@ApiPropertyOptional({ type: () => Array })
 	@IsArray()
 	@IsOptional()
-	members: any;
+	members?: any;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
@@ -47,30 +47,30 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	@IsNotEmpty()
 	network: number;
 
-	@ApiProperty({ type: () => String })
+	@ApiPropertyOptional({ type: () => String })
 	@IsString()
 	@IsOptional()
-	priority: string;
+	priority?: string;
 
-	@ApiProperty({ type: () => String })
+	@ApiPropertyOptional({ type: () => String })
 	@IsString()
 	@IsOptional()
-	project_lead: ID;
+	project_lead?: ID;
 
 	@ApiPropertyOptional({ type: () => Date })
 	@Type(() => Date)
 	@IsOptional()
 	@IsDate()
-	start_date: Date;
+	start_date?: Date;
 
-	@ApiProperty({ type: () => String })
+	@ApiPropertyOptional({ type: () => String })
 	@IsString()
 	@IsOptional()
-	state_id: ID;
+	state_id?: ID;
 
-	@ApiProperty({ type: () => Date })
+	@ApiPropertyOptional({ type: () => Date })
 	@Type(() => Date)
 	@IsOptional()
 	@IsDate()
-	target_date: Date;
+	target_date?: Date;
 }

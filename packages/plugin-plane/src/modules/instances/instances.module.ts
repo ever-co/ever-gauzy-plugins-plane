@@ -5,10 +5,12 @@ import { InstancesController } from './instances.controller';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [
-    RouterModule.register([{ path: '/instances', module: InstancesModule }]),
-  ],
-  providers: [InstancesService, ConfigService],
-  controllers: [InstancesController],
+	imports: [
+		RouterModule.register([
+			{ path: '/api/instances', module: InstancesModule },
+		]),
+	],
+	providers: [InstancesService, ConfigService],
+	controllers: [InstancesController],
 })
 export class InstancesModule {}

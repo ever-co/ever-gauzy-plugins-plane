@@ -1,9 +1,11 @@
 import { ID, TaskPriorityEnum } from './imports';
+import { IReactionData } from './reaction.model';
 
 export interface IIssue {
 	id?: ID;
 	name?: string;
 	description_html?: string;
+	description?: any;
 	state_id?: ID;
 	sort_order?: number;
 	completed_at?: Date;
@@ -35,8 +37,34 @@ export interface IIssue {
 	assignee_ids?: ID[];
 	label_ids?: ID[];
 	module_ids?: ID[];
+	modules?: ID[];
+	removed_modules?: ID[];
+	issue_reactions?: IReactionData[];
+	sub_issue_ids?: ID[];
+	issue_attachment?: [];
 }
 
 export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 
 export type IIssueUpdateInput = IIssue;
+
+export interface IIssueFindInput {
+	module?: ID;
+}
+
+export enum IssueActivityTypeEnum {
+	COMMENT = 'issue-comment',
+	PROPERTY = 'issue-property'
+}
+
+export interface ISubIssueResponse {
+	sub_issues: IIssue[];
+	state_distribution: ICompletedIssuesDistribution;
+}
+
+export interface ICompletedIssuesDistribution {
+	backlog: ID[];
+	completed: ID[];
+	unstarted: ID[];
+	started: ID[];
+}

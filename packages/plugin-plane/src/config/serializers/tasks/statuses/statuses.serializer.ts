@@ -37,7 +37,7 @@ export const stateGroup = (state: ITaskStatus) => {
 		[TaskStatusEnum.COMPLETED]: TaskStatusEnum.COMPLETED,
 	};
 
-	return groupMapping[templateOrValue];
+	return groupMapping[templateOrValue] || TaskStatusEnum.CUSTOM;
 };
 
 // Transform group to template

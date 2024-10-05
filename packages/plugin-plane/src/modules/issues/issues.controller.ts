@@ -14,12 +14,19 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
 	ID,
 	IIssue,
+	IIssueComment,
 	IIssueFindInput,
+	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
 } from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
-import { CreateIssueCommentDTO, CreateIssueDTO, UpdateIssueDTO } from './dto';
+import {
+	CreateIssueCommentDTO,
+	CreateIssueDTO,
+	CreateIssueReactionDTO,
+	UpdateIssueDTO,
+} from './dto';
 
 @ApiTags('Issues routes')
 @Controller()
@@ -170,8 +177,31 @@ export class IssuesController {
 		@Param('id') entityId: ID,
 		@Param('projectId') projectId: ID,
 		@Body() input: CreateIssueCommentDTO,
-	): Promise<IIssue> {
+	): Promise<IIssueComment> {
 		return await this._issueService.createComment(
+			entityId,
+			projectId,
+			input,
+		);
+	}
+
+	/**
+	 * @description Create Issue reaction
+	 * @param {ID} entityId - Issue ID for whom create reaction.
+	 * @param {ID} projectId - The project ID for returning project data.
+	 * @param {CreateIssueReactionDTO} input -  Body request data
+	 * @returns A promise resolved to created and transformed reaction.
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Reaction' })
+	@Post(':id/reactions')
+	async createReaction(
+		@Param('id') entityId: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: CreateIssueReactionDTO,
+	): Promise<IReactionData> {
+		return await this._issueService.createReaction(
 			entityId,
 			projectId,
 			input,

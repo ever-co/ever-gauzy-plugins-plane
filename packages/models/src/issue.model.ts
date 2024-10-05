@@ -1,4 +1,5 @@
 import { ID, TaskPriorityEnum } from './imports';
+import { IReactionData } from './reaction.model';
 
 export interface IIssue {
 	id?: ID;
@@ -38,7 +39,7 @@ export interface IIssue {
 	module_ids?: ID[];
 	modules?: ID[];
 	removed_modules?: ID[];
-	issue_reactions?: [];
+	issue_reactions?: IReactionData[];
 	sub_issue_ids?: ID[];
 	issue_attachment?: [];
 }

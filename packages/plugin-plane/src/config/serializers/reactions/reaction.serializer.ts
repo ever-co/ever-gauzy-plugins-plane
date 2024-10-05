@@ -14,7 +14,7 @@ import {
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 export function reactionTransformer(
-	reactions: IReaction,
+	reactions: IReaction[] | IReaction,
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspace_detail: IWorkspaceInfo,

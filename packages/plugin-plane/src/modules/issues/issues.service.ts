@@ -5,6 +5,7 @@ import {
 	CommentEntityEnum,
 	ICommentFindInput,
 	ICreateCommentInput,
+	ICreateReactionInput,
 	ID,
 	IIssue,
 	IIssueComment,
@@ -13,9 +14,11 @@ import {
 	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
+	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
 	ITask,
+	ReactionEntityEnum,
 	TaskStatusEnum,
 } from '@plane-plugin/models';
 import {
@@ -26,17 +29,20 @@ import {
 	groupIssuesByStateId,
 	issueCommentTrasnsformer,
 	issueTransformer,
+	reactionTransformer,
 	updateIssueInputTransformer,
 } from '../../config';
 import { StatesService } from '../states/states.service';
 import { CommentsService } from '../comments/comments.service';
 import { ProjectService } from '../project/project.service';
+import { ReactionsService } from '../reactions/reactions.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
 	constructor(
 		private readonly _stateSerive: StatesService,
 		private readonly _commentService: CommentsService,
+		private readonly _reactionService: ReactionsService,
 		private readonly _projectService: ProjectService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
@@ -467,6 +473,52 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			return issueComments;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Create Reaction to issue
+	 * @param {ID} entityId - Issue ID for whom create reaction
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {ICreateReactionInput} input - Body request data
+	 * @returns A promise resolved to created and transformed reaction
+	 * @memberof IssuesService
+	 */
+	async createReaction(
+		entityId: ID,
+		projectId: ID,
+		input: ICreateReactionInput,
+	): Promise<IReactionData> {
+		try {
+			// Create reaction
+			const reaction = await this._reactionService.create(
+				input,
+				ReactionEntityEnum.Task,
+				entityId,
+			);
+
+			// Reaction details
+			const { actor, project, workspace } =
+				await this.getIssueCommentDetails(
+					entityId,
+					projectId,
+					reaction.creatorId,
+				);
+
+			// Transform Reaction
+			const transformedReaction = reactionTransformer(
+				reaction,
+				actor,
+				project,
+				workspace,
+			);
+
+			return Array.isArray(transformedReaction)
+				? transformedReaction[0]
+				: transformedReaction;
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

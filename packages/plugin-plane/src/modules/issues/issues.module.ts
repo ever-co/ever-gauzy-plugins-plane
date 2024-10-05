@@ -5,12 +5,14 @@ import { StatesModule } from '../states/states.module';
 import { SearchIssuesModule } from './search-issues/search-issues.module';
 import { CommentsModule } from '../comments/comments.module';
 import { ProjectModule } from '../project/project.module';
+import { ReactionsModule } from '../reactions/reactions.module';
 
 @Module({
 	imports: [
 		StatesModule,
 		SearchIssuesModule,
 		CommentsModule,
+		ReactionsModule,
 		forwardRef(() => ProjectModule),
 	],
 	providers: [IssuesService],

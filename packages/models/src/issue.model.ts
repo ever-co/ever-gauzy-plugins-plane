@@ -47,20 +47,6 @@ export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 
 export type IIssueUpdateInput = IIssue;
 
-export interface IIssueReaction {
-	id?: ID;
-	reaction: string;
-	comment: ID;
-	created_at?: Date;
-	updated_at?: Date;
-	deleted_at?: Date | null;
-	created_by?: ID;
-	updated_by?: ID;
-	project?: ID;
-	workspace?: ID;
-	actor?: ID;
-}
-
 export interface IIssueFindInput {
 	module?: ID;
 }

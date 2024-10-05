@@ -1,8 +1,9 @@
 import { ActorTypeEnum, ID } from './imports';
 import { IWorkspaceInfo } from './base.model';
 import { IMemberInfo } from './user.model';
-import { IIssue, IIssueReaction } from './issue.model';
+import { IIssue } from './issue.model';
 import { IProject } from './project.model';
+import { IReactionData } from './reaction.model';
 
 export interface IIssueComment {
 	id?: ID;
@@ -10,7 +11,7 @@ export interface IIssueComment {
 	issue_detail: IIssue;
 	project_detail: IProject;
 	workspace_detail: IWorkspaceInfo;
-	comment_reactions: IIssueReaction[];
+	comment_reactions: IReactionData[];
 	created_at?: Date;
 	updated_at?: Date;
 	deleted_at?: Date | null;

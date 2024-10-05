@@ -13,5 +13,6 @@ export * from './issue-label.model';
 export * from './issue-relation.model';
 export * from './module.model';
 export * from './project.model';
+export * from './reaction.model';
 export * from './state.model';
 export * from './user.model';

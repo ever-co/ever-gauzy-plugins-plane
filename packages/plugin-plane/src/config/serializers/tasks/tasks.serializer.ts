@@ -7,6 +7,7 @@ import {
 	IIssueFindInput,
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
+	IReactionData,
 	ITag,
 	ITask,
 	ITaskCreateInput,
@@ -30,7 +31,10 @@ export function issueLabelsIds(issue: ITask): ID[] {
 	return labels?.map((member) => member.id);
 }
 
-export function issueTransformer(issue: ITask): IIssue {
+export function issueTransformer(
+	issue: ITask,
+	reactions?: IReactionData[],
+): IIssue {
 	return {
 		id: issue.id,
 		name: issue.title,
@@ -66,6 +70,7 @@ export function issueTransformer(issue: ITask): IIssue {
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
 		module_ids: issue.modules?.map(({ id }) => id),
+		issue_reactions: reactions || [],
 	};
 }
 

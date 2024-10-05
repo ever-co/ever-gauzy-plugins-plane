@@ -14,6 +14,7 @@ import {
 	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
+	IReaction,
 	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
@@ -82,7 +83,15 @@ export class IssuesService extends ApiFetchService {
 			if (!issue) {
 				throw new BadRequestException('Issue cnot found');
 			}
-			return issueTransformer(issue);
+			const reactions = await this.findIssueReactions(
+				{
+					entityId: id,
+					entity: ReactionEntityEnum.Task,
+				},
+				issue.projectId,
+			);
+
+			return issueTransformer(issue, reactions);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -526,6 +535,49 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
+	 * @description Find issue reactions with associated data
+	 * @param {Partial<IReaction>} options Find options filter
+	 * @param {ID} projectId - Project ID for returning data
+	 * @returns A promise resolved to found and transformed reactions
+	 * @memberof IssuesService
+	 */
+	async findIssueReactions(
+		options: Partial<IReaction>,
+		projectId: ID,
+	): Promise<any> {
+		try {
+			const reactions = await this._reactionService.findAll(options);
+
+			const issueReactions: IReactionData[] = await Promise.all(
+				reactions.map(async (reaction) => {
+					const { actor, project, workspace } =
+						await this.getIssueCommentDetails(
+							options.entityId,
+							projectId,
+							reaction.creatorId,
+						);
+
+					const transformedReaction = reactionTransformer(
+						reaction,
+						actor,
+						project,
+						workspace,
+					);
+
+					return Array.isArray(transformedReaction)
+						? transformedReaction[0]
+						: transformedReaction;
+				}),
+			);
+
+			return issueReactions;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
 	 * @description Get issue activity and comments
 	 * @param {ID} id - Issue ID
 	 * @param {ID} projectId - Project ID
@@ -553,7 +605,7 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
-	 * @description Get Issue comment details
+	 * @description Get Issue comment and reaction details
 	 * @param {ID} id - Issue ID
 	 * @param {ID} projectId - Project ID
 	 * @param {ID} creatorId Creator ID for returning actor details

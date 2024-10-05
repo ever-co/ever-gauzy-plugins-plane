@@ -578,6 +578,24 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
+	 * @description Delete Issue Reaction By Emoji.
+	 * @param {string} reaction - Emoji
+	 * @param {ID} entityId - Issue ID from whom to delete reaction
+	 * @returns A promise resolved to deleted result
+	 * @memberof IssuesService
+	 */
+	async deleteIsssueReactionByEmoji(
+		reaction: string,
+		entityId: ID,
+	): Promise<any> {
+		return await this._reactionService.deleteByEmoji(
+			reaction,
+			ReactionEntityEnum.Task,
+			entityId,
+		);
+	}
+
+	/**
 	 * @description Get issue activity and comments
 	 * @param {ID} id - Issue ID
 	 * @param {ID} projectId - Project ID

@@ -265,7 +265,7 @@ export class IssuesController {
 
 	/**
 	 * @description Delete issue comment
-	 * @param {ID} id -The issue comment ID to be deleted
+	 * @param {ID} id - The issue comment ID to be deleted
 	 * @returns A promise resolved to delete result
 	 * @memberof IssuesController
 	 */
@@ -274,5 +274,25 @@ export class IssuesController {
 	@Delete(':id/comments/:commentId')
 	async deleteComment(@Param('commentId') id: ID) {
 		return await this._issueService.deleteComment(id);
+	}
+
+	/**
+	 * @description Delete issue reaction
+	 * @param {ID} issueId - The issue ID from to delete reaction
+	 * @param {string} emoji - The emoji to be deleted
+	 * @returns A promise resolved to deleted reaction result
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete issue' })
+	@Delete(':id/reactions/:emoji')
+	async deleteReaction(
+		@Param('id') issueId: ID,
+		@Param('emoji') emoji: string,
+	) {
+		return await this._issueService.deleteIsssueReactionByEmoji(
+			emoji,
+			issueId,
+		);
 	}
 }

@@ -74,6 +74,7 @@ export function createReactionInputTransformer(
 export function getReactionsQuery(
 	entityId?: ID,
 	entity?: ReactionEntityEnum,
+	emoji?: string,
 ): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
@@ -86,6 +87,10 @@ export function getReactionsQuery(
 
 	if (entity) {
 		query['where[entity]'] = entity;
+	}
+
+	if (emoji) {
+		query['where[emoji]'] = emoji;
 	}
 
 	return query;

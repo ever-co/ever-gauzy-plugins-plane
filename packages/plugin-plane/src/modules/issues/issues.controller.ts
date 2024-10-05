@@ -290,7 +290,7 @@ export class IssuesController {
 		@Param('id') issueId: ID,
 		@Param('emoji') emoji: string,
 	) {
-		return await this._issueService.deleteIsssueReactionByEmoji(
+		return await this._issueService.deleteIssueReactionByEmoji(
 			emoji,
 			issueId,
 		);

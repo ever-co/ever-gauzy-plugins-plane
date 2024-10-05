@@ -2,6 +2,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import {
 	Body,
 	Controller,
+	Delete,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -35,6 +36,26 @@ export class CommentsController {
 			entityId,
 			projectId,
 			input,
+		);
+	}
+
+	/**
+	 * @description Delete Comment reaction
+	 * @param {ID} commentId - The Comment ID from to delete reaction
+	 * @param {string} emoji - The emoji to be deleted
+	 * @returns A promise resolved to deleted reaction result
+	 * @memberof CommentsController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete comment reaction' })
+	@Delete(':id/reactions/:emoji')
+	async deleteReaction(
+		@Param('id') commentId: ID,
+		@Param('emoji') emoji: string,
+	) {
+		return await this._commentService.deleteCommentReactionByEmoji(
+			emoji,
+			commentId,
 		);
 	}
 }

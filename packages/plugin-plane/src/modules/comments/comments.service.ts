@@ -287,4 +287,22 @@ export class CommentsService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
+
+	/**
+	 * @description Delete Comment Reaction By Emoji.
+	 * @param {string} reaction - Emoji
+	 * @param {ID} entityId - Comment ID from whom to delete reaction
+	 * @returns A promise resolved to deleted result
+	 * @memberof CommentsService
+	 */
+	async deleteCommentReactionByEmoji(
+		reaction: string,
+		entityId: ID,
+	): Promise<any> {
+		return await this._reactionService.deleteByEmoji(
+			reaction,
+			ReactionEntityEnum.Comment,
+			entityId,
+		);
+	}
 }

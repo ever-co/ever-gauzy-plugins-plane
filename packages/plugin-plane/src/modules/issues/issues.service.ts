@@ -604,7 +604,7 @@ export class IssuesService extends ApiFetchService {
 	 * @returns A promise resolved to deleted result
 	 * @memberof IssuesService
 	 */
-	async deleteIsssueReactionByEmoji(
+	async deleteIssueReactionByEmoji(
 		reaction: string,
 		entityId: ID,
 	): Promise<any> {

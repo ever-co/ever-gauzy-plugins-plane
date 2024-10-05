@@ -10,6 +10,7 @@ import { ProjectController } from './project.controller';
 import { SearchIssuesModule } from '../issues/search-issues/search-issues.module';
 import { ProjectIdentifiersModule } from './project-identifiers/project-identifiers.module';
 import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
+import { CommentsModule } from '../comments/comments.module';
 
 @Module({
 	imports: [
@@ -32,6 +33,7 @@ import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
 						path: '/:projectId/modules',
 						module: ProjectModuleModule,
 					},
+					{ path: '/:projectId/comments', module: CommentsModule },
 				],
 			},
 		]),

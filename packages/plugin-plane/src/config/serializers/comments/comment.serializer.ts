@@ -9,6 +9,7 @@ import {
 	IIssue,
 	IIssueComment,
 	IOrganizationProject,
+	IReactionData,
 	IWorkspaceInfo,
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
@@ -21,6 +22,7 @@ export function issueCommentTrasnsformer(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspace_detail: IWorkspaceInfo,
+	reactions: IReactionData[],
 ): IIssueComment[] | IIssueComment {
 	const transformIssueComment = (comment: IComment): IIssueComment => {
 		return {
@@ -36,7 +38,7 @@ export function issueCommentTrasnsformer(
 			},
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail,
-			comment_reactions: [],
+			comment_reactions: reactions,
 			created_at: comment.createdAt,
 			updated_at: comment.updatedAt,
 			deleted_at: comment.deletedAt,

@@ -373,6 +373,7 @@ export class IssuesService extends ApiFetchService {
 				actor,
 				project,
 				workspace,
+				[], // On creation, comment has no reaction yet
 			);
 
 			return Array.isArray(transformedComment)
@@ -385,7 +386,7 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
-	 * @description Create issue comment
+	 * @description Update issue comment
 	 * @param {ID} id - Comment ID to be updated
 	 * @param {ID} projectId - Project ID for find details
 	 * @param {ICreateCommentInput} input - Body Request data
@@ -419,12 +420,21 @@ export class IssuesService extends ApiFetchService {
 					updatedComment.creatorId,
 				);
 
+			const reactions = await this._commentService.findCommentReactions(
+				{
+					entityId: updatedComment.id,
+					entity: ReactionEntityEnum.Comment,
+				},
+				projectId,
+			);
+
 			const transformedComment = issueCommentTrasnsformer(
 				updatedComment,
 				issue,
 				actor,
 				project,
 				workspace,
+				reactions,
 			);
 
 			return Array.isArray(transformedComment)
@@ -462,6 +472,15 @@ export class IssuesService extends ApiFetchService {
 
 			const issueComments: IIssueComment[] = await Promise.all(
 				comments.map(async (comment) => {
+					const reactions =
+						await this._commentService.findCommentReactions(
+							{
+								entityId: comment.id,
+								entity: ReactionEntityEnum.Comment,
+							},
+							projectId,
+						);
+
 					const { actor, issue, project, workspace } =
 						await this.getIssueCommentDetails(
 							options.entityId,
@@ -474,6 +493,7 @@ export class IssuesService extends ApiFetchService {
 						actor,
 						project,
 						workspace,
+						reactions,
 					);
 					return Array.isArray(transformedComment)
 						? transformedComment[0]
@@ -571,8 +591,8 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			return issueReactions;
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}
@@ -616,8 +636,8 @@ export class IssuesService extends ApiFetchService {
 				);
 			}
 			return []; // TODO: Implement activity log APIs
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response.data);
 			throw new BadRequestException(error);
 		}
 	}

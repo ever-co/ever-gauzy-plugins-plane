@@ -5,19 +5,34 @@ import {
 	IComment,
 	ICommentFindInput,
 	ICreateCommentInput,
+	ICreateReactionInput,
 	ID,
 	IPagination,
+	IReaction,
+	IReactionData,
+	ReactionEntityEnum,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createCommentInputTransformer,
 	defaultOrganizationId,
 	getCommentsQuery,
+	reactionTransformer,
 	updateCommentInputTransformer,
 } from '../../config';
+import { ProjectService } from '../project/project.service';
+import { ReactionsService } from '../reactions/reactions.service';
 
 @Injectable()
 export class CommentsService extends ApiFetchService {
+	constructor(
+		private readonly _projectService: ProjectService,
+		private readonly _reactionService: ReactionsService,
+		private readonly _serverFetchService: ApiFetchService,
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	private readonly path = '/comment';
 
 	/**
@@ -151,5 +166,125 @@ export class CommentsService extends ApiFetchService {
 				path: `${this.path}/${id}`,
 			})
 		).data;
+	}
+
+	/**
+	 * @description Create Reaction to comment
+	 * @param {ID} entityId - Comment ID for whom create reaction
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {ICreateReactionInput} input - Body request data
+	 * @returns A promise resolved to created and transformed reaction
+	 * @memberof CommentsService
+	 */
+	async createReaction(
+		entityId: ID,
+		projectId: ID,
+		input: ICreateReactionInput,
+	): Promise<IReactionData> {
+		try {
+			// Create reaction
+			const reaction = await this._reactionService.create(
+				input,
+				ReactionEntityEnum.Comment,
+				entityId,
+			);
+
+			// Reaction details
+			const { actor, project, workspace } =
+				await this.getCommentReactionDetails(
+					projectId,
+					reaction.creatorId,
+				);
+
+			// Transform Reaction
+			const transformedReaction = reactionTransformer(
+				reaction,
+				actor,
+				project,
+				workspace,
+			);
+
+			return Array.isArray(transformedReaction)
+				? transformedReaction[0]
+				: transformedReaction;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Get comment reaction details
+	 * @param {ID} projectId - Project ID
+	 * @param {ID} creatorId Creator ID for returning actor details
+	 * @returns - A promise resolced afet got details
+	 * @memberof CommentsService
+	 */
+	async getCommentReactionDetails(projectId: ID, creatorId: ID) {
+		try {
+			// Find project
+			const project =
+				await this._projectService.getExternalProject(projectId);
+
+			// Workspace details
+			const tenant = project.tenant;
+			const workspace = {
+				name: tenant?.name,
+				id: tenant?.id,
+				slug: tenant?.name.toLowerCase(),
+			};
+
+			// Find actor by userId
+			const actor = project.members.find(
+				(member) => member.employee.userId === creatorId,
+			)?.employee;
+
+			return { project, workspace, actor };
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Find comment reactions with associated data
+	 * @param {Partial<IReaction>} options Find options filter
+	 * @param {ID} projectId - Project ID for returning data
+	 * @returns A promise resolved to found and transformed reactions
+	 * @memberof CommentsService
+	 */
+	async findCommentReactions(
+		options: Partial<IReaction>,
+		projectId: ID,
+	): Promise<any> {
+		try {
+			const reactions = await this._reactionService.findAll(options);
+
+			const commentReactions: IReactionData[] = await Promise.all(
+				reactions.map(async (reaction) => {
+					const { actor, project, workspace } =
+						await this.getCommentReactionDetails(
+							projectId,
+							reaction.creatorId,
+						);
+
+					const transformedReaction = reactionTransformer(
+						reaction,
+						actor,
+						project,
+						workspace,
+					);
+
+					return Array.isArray(transformedReaction)
+						? transformedReaction[0]
+						: transformedReaction;
+				}),
+			);
+
+			return commentReactions;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 }

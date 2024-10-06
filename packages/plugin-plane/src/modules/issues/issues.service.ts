@@ -5,6 +5,8 @@ import {
 	CommentEntityEnum,
 	ICommentFindInput,
 	ICreateCommentInput,
+	ICreatedIssueRelation,
+	ICreateIssueRelationInput,
 	ICreateReactionInput,
 	ID,
 	IIssue,
@@ -285,6 +287,31 @@ export class IssuesService extends ApiFetchService {
 			throw new BadRequestException();
 		}
 	}
+
+	/**
+	 * @description Create issue relations.
+	 * @param {ID} taskToId Issue ID for whom to create main relations.
+	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.
+	 * @returns A promise resolved to created and transformed main relations.
+	 * @memberof IssuesService
+	 */
+	async createIssueRelations(
+		taskToId: ID,
+		input: ICreateIssueRelationInput,
+	): Promise<ICreatedIssueRelation[]> {
+		try {
+			const { issues, relation_type } = input;
+			return await this._issueRelationService.create(
+				taskToId,
+				issues,
+				relation_type,
+			);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
 	/**
 	 * @description Find issue relation (Issues associates)
 	 * @param {ID} id - Issue ID

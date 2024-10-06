@@ -27,6 +27,7 @@ import {
 	CreateIssueReactionDTO,
 	UpdateIssueDTO,
 } from './dto';
+import { CreateIssueRelationDTO } from '../issue-relations/dto';
 
 @ApiTags('Issues routes')
 @Controller()
@@ -206,6 +207,23 @@ export class IssuesController {
 			projectId,
 			input,
 		);
+	}
+
+	/**
+	 * @description Create issue relations.
+	 * @param {ID} taskToId Issue ID for whom to create main relations.
+	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.
+	 * @returns A promise resolved to created and transformed main relations.
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Relation' })
+	@Post(':id/issue-relation')
+	async createIssueRelations(
+		@Param('id') taskToId: ID,
+		@Body() input: CreateIssueRelationDTO,
+	) {
+		return await this._issueService.createIssueRelations(taskToId, input);
 	}
 
 	/**

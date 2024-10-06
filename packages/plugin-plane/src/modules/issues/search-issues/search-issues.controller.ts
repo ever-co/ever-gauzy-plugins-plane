@@ -24,11 +24,11 @@ export class SearchIssuesController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Search issues' })
 	@Get()
-	async findParentableIssues(
+	async findIssuesByOptions(
 		@Param('projectId') projectId: ID,
 		@Query() options: IParentableIssuesQueryParams,
 	) {
-		return await this._searchIssuesService.findParentableIssues(
+		return await this._searchIssuesService.findIssuesByOptions(
 			projectId,
 			options,
 		);

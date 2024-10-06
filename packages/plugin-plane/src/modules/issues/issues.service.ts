@@ -5,13 +5,15 @@ import {
 	CommentEntityEnum,
 	ICommentFindInput,
 	ICreateCommentInput,
+	ICreatedIssueRelation,
+	ICreateIssueRelationInput,
 	ICreateReactionInput,
 	ID,
+	IDeleteRelationInput,
 	IIssue,
 	IIssueComment,
 	IIssueCreateInput,
 	IIssueFindInput,
-	IIssueRelationResponse,
 	IIssueUpdateInput,
 	IPagination,
 	IReaction,
@@ -24,7 +26,6 @@ import {
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
-	getIssueRelationType,
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByStateId,
@@ -37,6 +38,7 @@ import { StatesService } from '../states/states.service';
 import { CommentsService } from '../comments/comments.service';
 import { ProjectService } from '../project/project.service';
 import { ReactionsService } from '../reactions/reactions.service';
+import { IssueRelationsService } from '../issue-relations/issue-relations.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -45,6 +47,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _projectService: ProjectService,
+		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -54,12 +57,11 @@ export class IssuesService extends ApiFetchService {
 
 	/**
 	 * @description - Get remode API issue
-	 * @private
 	 * @param {ID} id - The issue ID
 	 * @returns - A promise that resolved after getting issue
 	 * @memberof IssuesService
 	 */
-	private async getExternalIssue(id: ID): Promise<ITask> {
+	async getExternalIssue(id: ID): Promise<ITask> {
 		const query = qs.stringify(getTaskQuery());
 		return (
 			await this.apiFetch({
@@ -286,6 +288,50 @@ export class IssuesService extends ApiFetchService {
 			throw new BadRequestException();
 		}
 	}
+
+	/**
+	 * @description Create issue relations.
+	 * @param {ID} taskToId Issue ID for whom to create main relations.
+	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.
+	 * @returns A promise resolved to created and transformed main relations.
+	 * @memberof IssuesService
+	 */
+	async createIssueRelations(
+		taskToId: ID,
+		input: ICreateIssueRelationInput,
+	): Promise<ICreatedIssueRelation[]> {
+		try {
+			const { issues, relation_type } = input;
+			return await this._issueRelationService.create(
+				taskToId,
+				issues,
+				relation_type,
+			);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Delete main and inverse relations
+	 * @param {ID} id - Main Issue ID for delete the main relation
+	 * @param {IDeleteRelationInput} input - Body Request data for related issue and relation type
+	 * @returns - Delete Result
+	 * @memberof IssuesService
+	 */
+	async deleteIssueRelation(
+		id: ID,
+		input: IDeleteRelationInput,
+	): Promise<any> {
+		try {
+			return await this._issueRelationService.delete(id, input);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
+	}
+
 	/**
 	 * @description Find issue relation (Issues associates)
 	 * @param {ID} id - Issue ID
@@ -294,30 +340,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findIssueRelations(id: ID) {
 		try {
-			const relatedIssues: IIssueRelationResponse = {
-				blocked_by: [],
-				blocking: [],
-				duplicate: [],
-				relates_to: [],
-			};
-			const issue = await this.getExternalIssue(id);
-			if (!issue) {
-				throw new BadRequestException('Issue could not be found');
-			}
-			const linkedIssues = issue.linkedIssues;
-
-			linkedIssues.forEach((linkedIssue) => {
-				const relation_type = getIssueRelationType(linkedIssue.action);
-				if (relation_type) {
-					if (linkedIssue.taskFrom) {
-						relatedIssues[relation_type].push(
-							issueTransformer(linkedIssue.taskFrom),
-						);
-					}
-				}
-			});
-
-			return relatedIssues;
+			return await this._issueRelationService.findRelationsByIssueId(id);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();

@@ -12,13 +12,21 @@ export interface IIssueRelation {
 	created_at?: Date;
 	updated_at?: Date;
 	id?: ID;
-	relation_type?: string;
+	relation_type?: IssueRelationTypeEnum;
 	created_by_id?: ID;
 	issue_id?: ID;
 	project_id?: ID;
 	related_issue_id?: ID;
 	updated_by_id?: ID;
 	workspace_id?: ID;
+}
+
+export interface ICreatedIssueRelation {
+	id: ID;
+	project_id?: ID;
+	sequence_id: number;
+	relation_type: IssueRelationTypeEnum;
+	name: string;
 }
 
 export interface IIssueRelationResponse {
@@ -30,8 +38,18 @@ export interface IIssueRelationResponse {
 
 export interface IParentableIssuesQueryParams {
 	search?: string;
+	issue_relation?: boolean;
 	parent?: boolean;
 	sub_issue?: boolean;
 	issue_id?: ID;
 	workspace_search?: boolean;
+}
+
+export interface ICreateIssueRelationInput {
+	issues: ID[];
+	relation_type: IssueRelationTypeEnum;
+}
+
+export interface IDeleteRelationInput extends Pick<ICreateIssueRelationInput, 'relation_type'> {
+	related_issue: ID;
 }

@@ -83,6 +83,11 @@ export class IssueRelationsService extends ApiFetchService {
 							})
 						).data;
 
+						const issueTo =
+							await this._issueService.getExternalIssue(
+								relation.taskFromId,
+							);
+
 						// Create inversed relation
 						await this.apiFetch({
 							method: 'POST',
@@ -94,7 +99,10 @@ export class IssueRelationsService extends ApiFetchService {
 						});
 
 						// Transform the main relation
-						return createdIssueRelationTranformer(relation);
+						return createdIssueRelationTranformer(
+							relation,
+							issueTo,
+						);
 					},
 				),
 			);

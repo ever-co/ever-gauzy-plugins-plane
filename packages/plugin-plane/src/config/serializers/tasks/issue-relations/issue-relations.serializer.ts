@@ -2,6 +2,7 @@ import {
 	ICreatedIssueRelation,
 	ID,
 	IssueRelationTypeEnum,
+	ITask,
 	ITaskLinkedIssue,
 	ITaskLinkedIssueCreateInput,
 	TaskRelatedIssuesRelationEnum,
@@ -53,13 +54,14 @@ export function createIssueRelationInputTranformer(
 
 export function createdIssueRelationTranformer(
 	linkedIssue: ITaskLinkedIssue,
+	issue: ITask,
 ): ICreatedIssueRelation {
 	return {
-		id: linkedIssue.id,
+		id: linkedIssue.taskFromId,
 		relation_type: getIssueRelationType(linkedIssue.action),
-		name: linkedIssue?.taskFrom?.title,
+		name: issue?.title,
 		sequence_id: 0, // TODO : Search usecase
-		project_id: linkedIssue?.taskTo?.projectId, // Best to be consistent
+		project_id: issue?.projectId, // Best to be consistent
 	};
 }
 

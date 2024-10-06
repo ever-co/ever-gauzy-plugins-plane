@@ -9,6 +9,7 @@ import {
 	ICreateIssueRelationInput,
 	ICreateReactionInput,
 	ID,
+	IDeleteRelationInput,
 	IIssue,
 	IIssueComment,
 	IIssueCreateInput,
@@ -308,6 +309,25 @@ export class IssuesService extends ApiFetchService {
 			);
 		} catch (error) {
 			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Delete main and inverse relations
+	 * @param {ID} id - Main Issue ID for delete the main relation
+	 * @param {IDeleteRelationInput} input - Body Request data for related issue and relation type
+	 * @returns - Delete Result
+	 * @memberof IssuesService
+	 */
+	async deleteIssueRelation(
+		id: ID,
+		input: IDeleteRelationInput,
+	): Promise<any> {
+		try {
+			return await this._issueRelationService.delete(id, input);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}

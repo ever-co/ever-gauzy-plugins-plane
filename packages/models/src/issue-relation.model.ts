@@ -49,3 +49,7 @@ export interface ICreateIssueRelationInput {
 	issues: ID[];
 	relation_type: IssueRelationTypeEnum;
 }
+
+export interface IDeleteRelationInput extends Pick<ICreateIssueRelationInput, 'relation_type'> {
+	related_issue: ID;
+}

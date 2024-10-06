@@ -8,7 +8,9 @@ import qs from 'qs';
 import {
 	ICreatedIssueRelation,
 	ID,
+	IDeleteRelationInput,
 	IIssueRelationResponse,
+	IPagination,
 	IssueRelationTypeEnum,
 	ITaskLinkedIssue,
 } from '@plane-plugin/models';
@@ -16,7 +18,9 @@ import {
 	createdIssueRelationTranformer,
 	createIssueRelationInputTranformer,
 	defaultOrganizationId,
+	findByOptionsQuery,
 	getIssueRelationType,
+	getTaskRelatedIssueRelation,
 	getTaskRelationQuery,
 	issueTransformer,
 } from '../../config';
@@ -166,6 +170,111 @@ export class IssueRelationsService extends ApiFetchService {
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Delete main and inverse relations
+	 * @param {ID} id - Main Issue ID for delete the main relation
+	 * @param {IDeleteRelationInput} input - Body Request data for related issue and relation type
+	 * @returns - Delete Result
+	 * @memberof IssueRelationsService
+	 */
+	async delete(id: ID, input: IDeleteRelationInput): Promise<any> {
+		try {
+			const { related_issue, relation_type } = input;
+
+			// Determine the inverse relation type
+			const inverseRelationType =
+				relation_type === IssueRelationTypeEnum.BLOCKED_BY
+					? IssueRelationTypeEnum.BLOCKING
+					: relation_type === IssueRelationTypeEnum.BLOCKING
+						? IssueRelationTypeEnum.BLOCKED_BY
+						: relation_type;
+
+			// Build queries to fetch main and inverse relations
+			const mainQuery = qs.stringify(
+				findByOptionsQuery({
+					taskToId: id,
+					taskFromId: related_issue,
+					action: getTaskRelatedIssueRelation(relation_type),
+				}),
+			);
+
+			const inverseQuery = qs.stringify(
+				findByOptionsQuery({
+					taskToId: related_issue,
+					taskFromId: id,
+					action: getTaskRelatedIssueRelation(inverseRelationType),
+				}),
+			);
+
+			// Fetch both relations in parallel
+			const [mainRelation, inverseRelation] = await Promise.all([
+				this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/pagination`,
+					query: mainQuery,
+				}),
+				this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/pagination`,
+					query: inverseQuery,
+				}),
+			]);
+
+			// Get the main and inverse relation objects
+			const mainRelationToDelete = (
+				mainRelation.data as IPagination<ITaskLinkedIssue>
+			).items[0];
+			const inverseRelationToDelete = (
+				inverseRelation.data as IPagination<ITaskLinkedIssue>
+			).items[0];
+
+			// If one of the relations is not found, abort the deletion process
+			if (!mainRelationToDelete || !inverseRelationToDelete) {
+				throw new Error('Relations to delete were not found.');
+			}
+
+			// Delete the main relation
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${mainRelationToDelete.id}`,
+			});
+
+			try {
+				// Attempt to delete the inverse relation
+				await this.apiFetch({
+					method: 'DELETE',
+					path: `${this.path}/${inverseRelationToDelete.id}`,
+				});
+			} catch (inverseError) {
+				console.error(
+					'Failed to delete the inverse relation. Attempting to restore the main relation.',
+				);
+
+				// Rollback: recreate the main relation if the inverse deletion fails
+				await this.apiFetch({
+					method: 'POST',
+					path: this.path,
+					body: {
+						taskToId: mainRelationToDelete.taskToId,
+						taskFromId: mainRelationToDelete.taskFromId,
+						action: mainRelationToDelete.action,
+						organizationId: defaultOrganizationId,
+					},
+				});
+
+				// Throw an error after rollback to indicate the process was incomplete
+				throw new BadRequestException(
+					'Failed to delete the inverse relation. Rollback performed for the main relation.',
+				);
+			}
+
+			return { success: true };
+		} catch (error) {
+			console.error('Failed to delete relations:', error);
+			throw new BadRequestException('One or more deletions failed.');
 		}
 	}
 }

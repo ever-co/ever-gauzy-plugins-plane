@@ -27,7 +27,10 @@ import {
 	CreateIssueReactionDTO,
 	UpdateIssueDTO,
 } from './dto';
-import { CreateIssueRelationDTO } from '../issue-relations/dto';
+import {
+	CreateIssueRelationDTO,
+	DeleteIssueRelationDTO,
+} from '../issue-relations/dto';
 
 @ApiTags('Issues routes')
 @Controller()
@@ -224,6 +227,23 @@ export class IssuesController {
 		@Body() input: CreateIssueRelationDTO,
 	) {
 		return await this._issueService.createIssueRelations(taskToId, input);
+	}
+
+	/**
+	 * @description Delete issue relation.
+	 * @param {ID} taskToId Issue ID for whom to delete main relation.
+	 * @param {ICreateIssueRelationInput} input - Body request data for delete main and inversed relation.
+	 * @returns A promise resolved to deleted result.
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Issue Relation' })
+	@Post(':id/remove-relation')
+	async deleteIssueRelation(
+		@Param('id') taskToId: ID,
+		@Body() input: DeleteIssueRelationDTO,
+	) {
+		return await this._issueService.deleteIssueRelation(taskToId, input);
 	}
 
 	/**

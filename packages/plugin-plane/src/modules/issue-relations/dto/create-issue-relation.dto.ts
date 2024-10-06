@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsEnum, IsNotEmpty } from 'class-validator';
 import {
 	ICreateIssueRelationInput,
 	ID,
 	IssueRelationTypeEnum,
 } from '@plane-plugin/models';
-import { IsArray, IsEnum, IsNotEmpty } from 'class-validator';
 
 export class CreateIssueRelationDTO implements ICreateIssueRelationInput {
 	@ApiProperty({ type: () => Array })

@@ -81,6 +81,28 @@ export const getTaskRelationQuery = (): Record<string, string> => {
 	return query;
 };
 
+export const findByOptionsQuery = (options: ITaskLinkedIssue) => {
+	// Base queries
+	const query: Record<string, any> = {
+		...baseGetItemsWhereQuery,
+	};
+	const { action, taskFromId, taskToId } = options;
+
+	if (action) {
+		query['where[action]'] = action;
+	}
+
+	if (taskFromId) {
+		query['where[taskFromId]'] = taskFromId;
+	}
+
+	if (taskToId) {
+		query['where[taskToId]'] = taskToId;
+	}
+
+	return query;
+};
+
 // export function issueRelationTransformer(
 // 	linkedIssue: ITaskLinkedIssue,
 // ): IIssueRelation {

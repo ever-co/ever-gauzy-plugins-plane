@@ -47,6 +47,43 @@ export function filtersToQueryParams(
 }
 
 /**
+ * @description Transform queryParams from external API Response to 'filters' for internal use
+ * @param {IGetTasksByViewFilters} queryParams - The transformed object from external API
+ * @returns {ICreateViewInput['filters']} - An object that matches internal API naming
+ */
+export function queryParamsToFilters(
+	queryParams: IGetTasksByViewFilters,
+): ICreateViewInput['filters'] {
+	const {
+		projects = [],
+		modules = [],
+		tags = [],
+		statusIds = [],
+		statuses = [],
+		priorities = [],
+		sprints = [],
+		members = [],
+		startDates = [],
+		dueDates = [],
+		creators = [],
+	} = queryParams;
+
+	return {
+		project: projects,
+		module: modules,
+		labels: tags,
+		state: statusIds,
+		state_group: statuses as string[], // assuming statuses are internally handled as strings
+		priority: priorities as string[], // assuming priorities are internally handled as strings
+		cycle: sprints,
+		assignees: members,
+		start_date: startDates.map((date) => date.toISOString().split('T')[0]), // converting back to string date format
+		target_date: dueDates.map((date) => date.toISOString().split('T')[0]), // same here
+		created_by: creators,
+	};
+}
+
+/**
  * @description Transform data from incoming body request to accepted naming of external API
  * @param {ICreateViewInput} view - Incoming Body Request
  * @param {ID} [organizationId] - Optional Organization ID (If view belongs to specific Organization)

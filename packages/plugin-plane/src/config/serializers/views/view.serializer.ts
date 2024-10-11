@@ -77,8 +77,8 @@ export function queryParamsToFilters(
 		priority: priorities as string[], // assuming priorities are internally handled as strings
 		cycle: sprints,
 		assignees: members,
-		start_date: startDates.map((date) => date.toISOString().split('T')[0]), // converting back to string date format
-		target_date: dueDates.map((date) => date.toISOString().split('T')[0]), // same here
+		start_date: startDates as string[],
+		target_date: dueDates as string[],
 		created_by: creators,
 	};
 }

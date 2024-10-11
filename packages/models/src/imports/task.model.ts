@@ -90,8 +90,8 @@ export interface IGetTasksByViewFilters extends IBasePerTenantAndOrganizationEnt
 	sizeIds?: ID[];
 	sizes?: TaskSizeEnum[];
 	types?: string[];
-	startDates?: Date[];
-	dueDates?: Date[];
+	startDates?: Date[] | string[];
+	dueDates?: Date[] | string[];
 	creators?: ID[];
 
 	// Relations

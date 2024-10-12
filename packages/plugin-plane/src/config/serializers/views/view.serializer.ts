@@ -13,6 +13,7 @@ import {
 	TaskStatusEnum,
 	VisibilityLevelEnum,
 } from '@plane-plugin/models';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 /**
  * @description Transform filters from incoming Body Request To 'queryParams' To be sent to external API
@@ -102,9 +103,9 @@ export function queryParamsToFilters(
 export function createViewInputTransformer(
 	view: ICreateViewInput,
 	projectId?: ID,
+	organizationId?: ID,
 	moduleId?: ID,
 	sprintId?: ID,
-	organizationId?: ID,
 ): ITaskViewCreateInput {
 	const {
 		filters,
@@ -149,9 +150,9 @@ export function createViewInputTransformer(
 export function updateViewInputTransformer(
 	view: IUpdateViewInput,
 	projectId?: ID,
+	organizationId?: ID,
 	moduleId?: ID,
 	sprintId?: ID,
-	organizationId?: ID,
 ): ITaskViewUpdateInput {
 	// Default values if some properties are missing
 	const defaultView: ICreateViewInput = {
@@ -211,4 +212,34 @@ export function issueViewTransformer(
 	}
 
 	return transformIssueView(taskViews);
+}
+
+export const viewRelations = [
+	'project',
+	'organizationTeam',
+	'projectModule',
+	'organizationSprint',
+];
+
+/**
+ * @description Query params for getting views
+ * @param {ID} [projectId] - Optional Project ID to get views by Project filter
+ * @returns {Record<string, string>} A object with queries filters and relations
+ */
+export function getViewsQuery(projectId?: ID): Record<string, string> {
+	// Tenant and Organization based Query
+	const query: Record<string, string> = {
+		...baseGetItemsWhereQuery,
+	};
+
+	if (projectId) {
+		query['where[projectId]'] = projectId;
+	}
+
+	// Add relations
+	viewRelations.forEach((relation, i) => {
+		query[`relations[${i}]`] = relation;
+	});
+
+	return query;
 }

@@ -1,13 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import qs from 'qs';
 import {
 	ICreateViewInput,
 	ID,
+	IPagination,
 	ITaskView,
 	IUpdateViewInput,
 	IView,
 } from '@plane-plugin/models';
 import {
 	createViewInputTransformer,
+	defaultOrganizationId,
+	getViewsQuery,
 	issueViewTransformer,
 	updateViewInputTransformer,
 } from '../../config';
@@ -16,6 +20,26 @@ import { ApiFetchService } from '../api-fetch/api-fetch.service';
 @Injectable()
 export class IssueViewService extends ApiFetchService {
 	private readonly path = '/task-views';
+
+	/**
+	 * @description  Find a task view from external API
+	 * @param {ID} id - The Task View ID to find
+	 * @param {ID} [projectId] - Optional Project ID to filter research
+	 * @returns {Promise<ITaskView>} - A promise resolved to found Task View
+	 * @memberof IssueViewService
+	 */
+	async getExternalView(id: ID, projectId?: ID): Promise<ITaskView> {
+		// Build the query string once
+		const query = qs.stringify(getViewsQuery(projectId));
+
+		return await (
+			await this.apiFetch({
+				method: 'GET',
+				path: `${this.path}/${id}`,
+				query,
+			})
+		).data;
+	}
 
 	/**
 	 * @description - Create Issue View
@@ -29,7 +53,13 @@ export class IssueViewService extends ApiFetchService {
 		projectId?: ID,
 	): Promise<IView | IView[]> {
 		try {
-			const body = { ...createViewInputTransformer(input, projectId) };
+			const body = {
+				...createViewInputTransformer(
+					input,
+					projectId,
+					defaultOrganizationId,
+				),
+			};
 
 			const view: ITaskView = (
 				await this.apiFetch({
@@ -60,7 +90,13 @@ export class IssueViewService extends ApiFetchService {
 		projectId?: ID,
 	): Promise<IView | IView[]> {
 		try {
-			const body = { ...updateViewInputTransformer(input, projectId) };
+			const body = {
+				...updateViewInputTransformer(
+					input,
+					projectId,
+					defaultOrganizationId,
+				),
+			};
 
 			const view: ITaskView = (
 				await this.apiFetch({
@@ -72,6 +108,50 @@ export class IssueViewService extends ApiFetchService {
 
 			console.log({ view });
 
+			return issueViewTransformer(view);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description - Find issue views
+	 * @param {ID} [projectId] - Optional Project ID for filtering by project
+	 * @returns - A promise resolved to found and transformed views
+	 * @memberof IssueViewService
+	 */
+	async findAll(projectId?: ID): Promise<IView | IView[]> {
+		try {
+			// Build the query string once
+			const query = qs.stringify(getViewsQuery(projectId));
+
+			// Perform the API call to fetch the views
+			const views: IPagination<ITaskView> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query,
+				})
+			).data;
+
+			// Return the transformed views
+			return issueViewTransformer(views.items);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description - Find View By ID
+	 * @param {ID} [id] - View ID to find
+	 * @returns {(Promise<IView | IView[]>)} A promise resolved to found and tranformed Issue View
+	 * @memberof IssueViewService
+	 */
+	async findOne(id?: ID): Promise<IView | IView[]> {
+		try {
+			const view = await this.getExternalView(id);
 			return issueViewTransformer(view);
 		} catch (error) {
 			console.log(error);

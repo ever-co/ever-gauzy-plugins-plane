@@ -3,6 +3,7 @@ import {
 	Body,
 	Controller,
 	Delete,
+	Get,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -51,6 +52,32 @@ export class IssueViewController {
 		@Body() input: UpdateViewDTO,
 	): Promise<IView | IView[]> {
 		return await this._issueViewService.update(id, input, projectId);
+	}
+
+	/**
+	 * @description - Find issue views
+	 * @param {ID} [projectId] - Optional Project ID for filtering by project
+	 * @returns - A promise resolved to found and transformed views
+	 * @memberof IssueViewController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Views' })
+	@Get()
+	async findAll(@Param('projectId') projectId: ID) {
+		return this._issueViewService.findAll(projectId);
+	}
+
+	/**
+	 * @description - Find View By ID
+	 * @param {ID} [id] - View ID to find
+	 * @returns {(Promise<IView | IView[]>)} A promise resolved to found and tranformed Issue View
+	 * @memberof IssueViewController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get View' })
+	@Get(':id')
+	async findOne(@Param('id') id: ID): Promise<IView | IView[]> {
+		return this._issueViewService.findOne(id);
 	}
 
 	/**

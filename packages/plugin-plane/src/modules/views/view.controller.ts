@@ -2,6 +2,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import {
 	Body,
 	Controller,
+	Delete,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -39,7 +40,7 @@ export class IssueViewController {
 	 * @param {IUpdateViewInput} input - Body Request data for updating
 	 * @param {ID} [projectId] - Optional Project ID
 	 * @returns {(Promise<IView | IView[]>)} - A promise that resolved to updated and transformed Issue view
-	 * @memberof IssueViewService
+	 * @memberof IssueViewController
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update View' })
@@ -50,5 +51,18 @@ export class IssueViewController {
 		@Body() input: UpdateViewDTO,
 	): Promise<IView | IView[]> {
 		return await this._issueViewService.update(id, input, projectId);
+	}
+
+	/**
+	 * @description Delete View
+	 * @param {ID} id - The View ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssueViewController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete View' })
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._issueViewService.delete(id);
 	}
 }

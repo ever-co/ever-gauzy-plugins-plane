@@ -78,4 +78,19 @@ export class IssueViewService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
+
+	/**
+	 * @description Delete View
+	 * @param {ID} id - The View ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssueViewService
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
+	}
 }

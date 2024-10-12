@@ -3,6 +3,7 @@ import qs from 'qs';
 import {
 	ID,
 	IIssue,
+	IIssueTagetFilterValueEnum,
 	IPagination,
 	IParentableIssuesQueryParams,
 	ITask,
@@ -30,8 +31,14 @@ export class SearchIssuesService extends ApiFetchService {
 		options: IParentableIssuesQueryParams,
 	): Promise<IIssue[]> {
 		try {
-			const { issue_id, parent, sub_issue, issue_relation, search } =
-				options;
+			const {
+				issue_id,
+				parent,
+				sub_issue,
+				issue_relation,
+				target_date,
+				search,
+			} = options;
 
 			const query = qs.stringify(getTaskQuery(projectId));
 
@@ -81,9 +88,15 @@ export class SearchIssuesService extends ApiFetchService {
 					);
 				}
 
+				// Filter issues that should be in relation with current. Exclude those who are already linked
 				if (issue_relation) {
 					const isAlreadyLinked = linkedIssuesIds.has(issue.id);
 					return isNotSelf && matchesSearch && !isAlreadyLinked;
+				}
+
+				// Filter issues with Target date `undefined`. This is used when search to add issues in calendar layout
+				if (target_date === IIssueTagetFilterValueEnum.NONE) {
+					return !issue.dueDate;
 				}
 
 				return false;

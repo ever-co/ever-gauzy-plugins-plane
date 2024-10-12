@@ -38,8 +38,8 @@ export class StatesService extends ApiFetchService {
 			).data;
 
 			return getStatesTransformer([state])[0] as IState;
-		} catch (error) {
-			throw new BadRequestException(error);
+		} catch (error: any) {
+			throw new BadRequestException(error.response);
 		}
 	}
 

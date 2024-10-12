@@ -20,6 +20,7 @@ import {
 	IReactionData,
 	IssueActivityTypeEnum,
 	IssueGroupBy,
+	IState,
 	ISubIssueResponse,
 	ITask,
 	ReactionEntityEnum,
@@ -111,7 +112,13 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async create(input: IIssueCreateInput): Promise<IIssue> {
 		try {
-			const state = await this._stateSerive.getOne(input.state_id);
+			const { state_id } = input;
+
+			// Set default status
+			let state: IState = { name: TaskStatusEnum.BACKLOG };
+			if (state_id) {
+				state = await this._stateSerive.getOne(input.state_id);
+			}
 
 			const body = createIssueInputTransformer(
 				input,

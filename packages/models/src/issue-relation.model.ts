@@ -42,7 +42,12 @@ export interface IParentableIssuesQueryParams {
 	parent?: boolean;
 	sub_issue?: boolean;
 	issue_id?: ID;
+	target_date?: IIssueTagetFilterValueEnum;
 	workspace_search?: boolean;
+}
+
+export enum IIssueTagetFilterValueEnum {
+	NONE = 'none'
 }
 
 export interface ICreateIssueRelationInput {

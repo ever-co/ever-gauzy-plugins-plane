@@ -79,6 +79,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		id: issue.id,
 		name: issue.title,
 		start_date: issue.startDate,
+		targe_date: issue.dueDate,
 		sequence_id: issue.number,
 		project__name: issue.project.name,
 		project__identifier:

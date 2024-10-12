@@ -34,6 +34,7 @@ export interface IViewPropsFilters {
 	target_date?: string[];
 	subscriber?: string[];
 	state?: string[];
+	state_in?: ID[];
 }
 
 export interface IViewPropsDisplayFilters {
@@ -43,7 +44,7 @@ export interface IViewPropsDisplayFilters {
 		layout?: string;
 		show_weekends?: boolean;
 	};
-	group_by: string | null;
+	group_by?: string | null;
 	order_by?: string | null;
 	sub_issue?: boolean;
 	sub_group_by?: string;

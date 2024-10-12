@@ -40,3 +40,5 @@ export interface ICreateViewInput extends IViewProps {
 	description?: string;
 	access?: number;
 }
+
+export interface IUpdateViewInput extends Partial<ICreateViewInput> {}

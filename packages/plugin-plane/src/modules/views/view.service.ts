@@ -1,6 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ICreateViewInput, ID, ITaskView, IView } from '@plane-plugin/models';
-import { createViewInputTransformer, issueViewTransformer } from '../../config';
+import {
+	ICreateViewInput,
+	ID,
+	ITaskView,
+	IUpdateViewInput,
+	IView,
+} from '@plane-plugin/models';
+import {
+	createViewInputTransformer,
+	issueViewTransformer,
+	updateViewInputTransformer,
+} from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
 @Injectable()
@@ -20,6 +30,7 @@ export class IssueViewService extends ApiFetchService {
 	): Promise<IView | IView[]> {
 		try {
 			const body = { ...createViewInputTransformer(input, projectId) };
+
 			const view: ITaskView = (
 				await this.apiFetch({
 					method: 'POST',
@@ -27,6 +38,39 @@ export class IssueViewService extends ApiFetchService {
 					body,
 				})
 			).data;
+
+			return issueViewTransformer(view);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description - Update Issue view
+	 * @param {ID} id - Issue View ID to be updated
+	 * @param {IUpdateViewInput} input - Body Request data for updating
+	 * @param {ID} [projectId] - Optional Project ID
+	 * @returns {(Promise<IView | IView[]>)} - A promise that resolved to updated and transformed Issue view
+	 * @memberof IssueViewService
+	 */
+	async update(
+		id: ID,
+		input: IUpdateViewInput,
+		projectId?: ID,
+	): Promise<IView | IView[]> {
+		try {
+			const body = { ...updateViewInputTransformer(input, projectId) };
+
+			const view: ITaskView = (
+				await this.apiFetch({
+					method: 'PUT',
+					path: `${this.path}/${id}`,
+					body,
+				})
+			).data;
+
+			console.log({ view });
 
 			return issueViewTransformer(view);
 		} catch (error) {

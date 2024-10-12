@@ -4,6 +4,8 @@ import {
 	IGetTasksByViewFilters,
 	ITaskView,
 	ITaskViewCreateInput,
+	ITaskViewUpdateInput,
+	IUpdateViewInput,
 	IView,
 	IViewPropsDisplayFilters,
 	IViewPropsFilters,
@@ -77,6 +79,7 @@ export function queryParamsToFilters(
 		module: modules,
 		labels: tags,
 		state: statusIds,
+		state_in: statusIds,
 		state_group: statuses as string[], // assuming statuses are internally handled as strings
 		priority: priorities as string[], // assuming priorities are internally handled as strings
 		cycle: sprints,
@@ -88,7 +91,7 @@ export function queryParamsToFilters(
 }
 
 /**
- * @description Transform data from incoming body request to accepted naming of external API
+ * @description Transform create data from incoming body request to accepted naming of external API
  * @param {ICreateViewInput} view - Incoming Body Request
  * @param {ID} [organizationId] - Optional Organization ID (If view belongs to specific Organization)
  * @param {ID} [projectId] - Optional Project ID (If view belongs to specific Project)
@@ -132,6 +135,43 @@ export function createViewInputTransformer(
 		organizationSprintId: sprintId,
 		projectModuleId: moduleId,
 	};
+}
+
+/**
+ * @description Transform update data from incoming body request to accepted naming of external API
+ * @param {IUpdateViewInput} view - Incoming Body Request
+ * @param {ID} [organizationId] - Optional Organization ID (If view belongs to specific Organization)
+ * @param {ID} [projectId] - Optional Project ID (If view belongs to specific Project)
+ * @param {ID} [moduleId] - Optional Module ID (If view belongs to specific Module)
+ * @param {ID} [sprintId] - Optional Sprint ID (If view belongs to specific Sprint)
+ * @returns {ITaskViewUpdateInput} A transformed body request
+ */
+export function updateViewInputTransformer(
+	view: IUpdateViewInput,
+	projectId?: ID,
+	moduleId?: ID,
+	sprintId?: ID,
+	organizationId?: ID,
+): ITaskViewUpdateInput {
+	// Default values if some properties are missing
+	const defaultView: ICreateViewInput = {
+		filters: {},
+		display_filters: {},
+		display_properties: {},
+		name: view.name,
+	};
+
+	// Merge partial `view` with default values
+	const completeView = { ...defaultView, ...view };
+
+	// Reuse of create transform function
+	return createViewInputTransformer(
+		completeView,
+		projectId,
+		moduleId,
+		sprintId,
+		organizationId,
+	);
 }
 
 /**

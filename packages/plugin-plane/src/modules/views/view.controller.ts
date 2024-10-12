@@ -5,11 +5,12 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 } from '@nestjs/common';
 import { ID, IView } from '@plane-plugin/models';
 import { IssueViewService } from './view.service';
-import { CreateViewDTO } from './dto';
+import { CreateViewDTO, UpdateViewDTO } from './dto';
 
 @Controller()
 export class IssueViewController {
@@ -30,5 +31,24 @@ export class IssueViewController {
 		@Param('projectId') projectId?: ID,
 	): Promise<IView | IView[]> {
 		return await this._issueViewService.create(input, projectId);
+	}
+
+	/**
+	 * @description - Update Issue view
+	 * @param {ID} id - Issue View ID to be updated
+	 * @param {IUpdateViewInput} input - Body Request data for updating
+	 * @param {ID} [projectId] - Optional Project ID
+	 * @returns {(Promise<IView | IView[]>)} - A promise that resolved to updated and transformed Issue view
+	 * @memberof IssueViewService
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update View' })
+	@Patch(':id')
+	async update(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: UpdateViewDTO,
+	): Promise<IView | IView[]> {
+		return await this._issueViewService.update(id, input, projectId);
 	}
 }

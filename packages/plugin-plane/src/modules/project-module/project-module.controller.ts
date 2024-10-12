@@ -85,6 +85,13 @@ export class ProjectModuleController {
 		);
 	}
 
+	/**
+	 * @description Update Project Module
+	 * @param {ID} id Project Module ID to be updated
+	 * @param {ICreateModuleInput} input Body Request data
+	 * @returns A promise resolved to updated Module
+	 * @memberof ProjectModuleController
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update Project Module' })
 	@Patch(':id')

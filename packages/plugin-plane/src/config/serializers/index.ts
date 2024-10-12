@@ -5,4 +5,5 @@ export * from './projects';
 export * from './query-params.serializers';
 export * from './reactions';
 export * from './tasks';
+export * from './views';
 export * from './workspace-organization';

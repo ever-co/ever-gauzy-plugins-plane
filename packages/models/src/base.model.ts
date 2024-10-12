@@ -22,39 +22,51 @@ export interface IDefaultIssueProps {
 }
 
 export interface IViewPropsFilters {
-	state: any;
-	labels: any;
-	priority: any;
-	assignees: any;
-	created_by: any;
-	start_date: any;
-	subscriber: any;
-	state_group: any;
-	target_date: any;
+	labels?: ID[];
+	project?: ID[];
+	priority?: string[];
+	assignees?: ID[];
+	cycle?: ID[];
+	module?: ID[];
+	created_by?: ID[];
+	start_date?: string[];
+	state_group?: string[];
+	target_date?: string[];
+	subscriber?: string[];
+	state?: string[];
+	state_in?: ID[];
 }
 
 export interface IViewPropsDisplayFilters {
 	type?: any;
 	layout?: string | null;
-	group_by: string | null;
+	calendar?: {
+		layout?: string;
+		show_weekends?: boolean;
+	};
+	group_by?: string | null;
 	order_by?: string | null;
 	sub_issue?: boolean;
+	sub_group_by?: string;
 	show_empty_groups?: boolean;
 	calendar_date_range?: string;
 }
 
 export interface IDisplayProperties {
-	key: boolean;
-	link: boolean;
-	state: boolean;
-	labels: boolean;
-	assignee: boolean;
-	due_date: boolean;
-	estimate: boolean;
-	priority: boolean;
-	created_on: boolean;
-	start_date: boolean;
-	updated_on: boolean;
-	sub_issue_count: boolean;
-	attachment_count: boolean;
+	key?: boolean;
+	link?: boolean;
+	cycle?: boolean;
+	state?: boolean;
+	labels?: boolean;
+	modules?: boolean;
+	assignee?: boolean;
+	due_date?: boolean;
+	estimate?: boolean;
+	priority?: boolean;
+	created_on?: boolean;
+	issue_type?: boolean;
+	start_date?: boolean;
+	updated_on?: boolean;
+	sub_issue_count?: boolean;
+	attachment_count?: boolean;
 }

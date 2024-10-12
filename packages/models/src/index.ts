@@ -16,3 +16,4 @@ export * from './project.model';
 export * from './reaction.model';
 export * from './state.model';
 export * from './user.model';
+export * from './view.model';

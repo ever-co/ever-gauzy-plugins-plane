@@ -75,3 +75,25 @@ export interface ITaskUpdateInput extends Partial<Omit<ITaskCreateInput, 'create
 export interface IGetTaskById {
 	includeRootEpic?: boolean;
 }
+
+export interface IGetTasksByViewFilters extends IBasePerTenantAndOrganizationEntityModel {
+	projects?: ID[];
+	teams?: ID[];
+	modules?: ID[];
+	sprints?: ID[];
+	members?: ID[];
+	tags?: ID[];
+	statusIds?: ID[];
+	statuses?: TaskStatusEnum[];
+	priorityIds?: ID[];
+	priorities?: TaskPriorityEnum[];
+	sizeIds?: ID[];
+	sizes?: TaskSizeEnum[];
+	types?: string[];
+	startDates?: Date[] | string[];
+	dueDates?: Date[] | string[];
+	creators?: ID[];
+
+	// Relations
+	relations?: string[];
+}

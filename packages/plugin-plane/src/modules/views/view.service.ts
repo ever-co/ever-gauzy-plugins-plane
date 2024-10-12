@@ -149,9 +149,9 @@ export class IssueViewService extends ApiFetchService {
 	 * @returns {(Promise<IView | IView[]>)} A promise resolved to found and tranformed Issue View
 	 * @memberof IssueViewService
 	 */
-	async findOne(id?: ID): Promise<IView | IView[]> {
+	async findOne(id?: ID, projectId?: ID): Promise<IView | IView[]> {
 		try {
-			const view = await this.getExternalView(id);
+			const view = await this.getExternalView(id, projectId);
 			return issueViewTransformer(view);
 		} catch (error) {
 			console.log(error);

@@ -16,6 +16,7 @@ import { CommentsModule } from './comments/comments.module';
 import { UserFavoritesModule } from './user-favorites/user-favorites.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { IssueViewModule } from './views/view.module';
+import { WorkspaceIssueViewModule } from './views/workspace-view.module';
 
 @Module({
 	imports: [
@@ -36,6 +37,7 @@ import { IssueViewModule } from './views/view.module';
 		UserFavoritesModule,
 		ReactionsModule,
 		IssueViewModule,
+		WorkspaceIssueViewModule,
 	],
 })
 export class AppModule {}

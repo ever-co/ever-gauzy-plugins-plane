@@ -70,3 +70,9 @@ export interface IDisplayProperties {
 	sub_issue_count?: boolean;
 	attachment_count?: boolean;
 }
+
+export interface IUpdateUserPropertiesInput {
+	display_filters?: IViewPropsDisplayFilters;
+	filters?: IViewPropsFilters;
+	display_properties?: IDisplayProperties;
+}

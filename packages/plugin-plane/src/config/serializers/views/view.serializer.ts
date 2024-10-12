@@ -2,7 +2,11 @@ import {
 	ICreateViewInput,
 	ID,
 	IGetTasksByViewFilters,
+	ITaskView,
 	ITaskViewCreateInput,
+	IView,
+	IViewPropsDisplayFilters,
+	IViewPropsFilters,
 	TaskPriorityEnum,
 	TaskStatusEnum,
 	VisibilityLevelEnum,
@@ -94,10 +98,10 @@ export function queryParamsToFilters(
  */
 export function createViewInputTransformer(
 	view: ICreateViewInput,
-	organizationId?: ID,
 	projectId?: ID,
 	moduleId?: ID,
 	sprintId?: ID,
+	organizationId?: ID,
 ): ITaskViewCreateInput {
 	const {
 		filters,
@@ -128,4 +132,43 @@ export function createViewInputTransformer(
 		organizationSprintId: sprintId,
 		projectModuleId: moduleId,
 	};
+}
+
+/**
+ * @description Transform Task View From external API to issue view for internal use
+ * @param {(ITaskView | ITaskView[])} taskViews - External API Task view(s)
+ * @returns  {(IView | IView[])} An array of or a single Issue View
+ */
+export function issueViewTransformer(
+	taskViews: ITaskView | ITaskView[],
+): IView | IView[] {
+	const transformIssueView = (taskView: ITaskView): IView => ({
+		id: taskView.id,
+		created_at: taskView.createdAt,
+		updated_at: taskView.updatedAt,
+		deleted_at: taskView.deletedAt,
+		name: taskView.name,
+		description: taskView.description,
+		query: queryParamsToFilters(
+			taskView.queryParams as IGetTasksByViewFilters,
+		),
+		filters: taskView.filterOptions as IViewPropsFilters,
+		display_filters: taskView.displayOptions as IViewPropsDisplayFilters,
+		display_properties: taskView.properties,
+		access: taskView.visibilityLevel, // TODO : Use some transforms here
+		sort_order: 9, // TODO : Search for usescase and use right value
+		logo_props: {},
+		is_locked: taskView.isLocked,
+		created_by: '', // TODO : Make sure we have this working
+		updated_by: '', // TODO : Make sure we have this working
+		workspace: taskView.tenantId,
+		project: taskView.projectId,
+		owned_by: '', // TODO : Make sure we have this working
+	});
+
+	if (Array.isArray(taskViews)) {
+		return taskViews.map(transformIssueView);
+	}
+
+	return transformIssueView(taskViews);
 }

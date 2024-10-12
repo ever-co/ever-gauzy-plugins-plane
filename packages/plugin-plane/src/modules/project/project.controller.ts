@@ -67,6 +67,22 @@ export class ProjectController {
 	}
 
 	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication and User features
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get user properties project
+	 * @param {ID} id - The UUID primary key of the project for whom get properties
+	 * @returns - A promise that resolves after getting the promises
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user properties project' })
+	@Get(':id/user-properties')
+	async getProjectUserProperties(@Param('id') id: ID) {
+		return await this._projectService.getProjectUserProperties(id);
+	}
+
+	/**--------------------------------------------------------------
 	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
 	 *--------------------------------------------------------------*/
 	/**
@@ -111,5 +127,22 @@ export class ProjectController {
 	@Patch(':id')
 	async update(@Param('id') id: ID, @Body() input: CreateProjectDTO) {
 		return await this._projectService.update(id, input);
+	}
+
+	/**
+	 * @description Update project
+	 * @param {ID} id The project ID
+	 * @param {CreateProjectDTO} input Data to be updated
+	 * @returns A promise that resolves after project updated
+	 * @memberof ProjectController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update workspace projects' })
+	@Patch(':id/user-properties')
+	async updateProjectUserProperties(@Param('id') id: ID, @Body() input: any) {
+		return await this._projectService.updateProjectUserProperties(
+			id,
+			input,
+		);
 	}
 }

@@ -19,6 +19,7 @@ import {
 	IReaction,
 	IReactionData,
 	IssueActivityTypeEnum,
+	IssueGroupBy,
 	ISubIssueResponse,
 	ITask,
 	ReactionEntityEnum,
@@ -29,8 +30,10 @@ import {
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByStateId,
+	groupIssuesByTargetDate,
 	issueCommentTrasnsformer,
 	issueTransformer,
+	nonGroupedIssues,
 	reactionTransformer,
 	updateIssueInputTransformer,
 } from '../../config';
@@ -238,14 +241,15 @@ export class IssuesService extends ApiFetchService {
 
 	async getAllIssuesByProject(projectId: ID, options?: IIssueFindInput) {
 		try {
+			const { group_by, module } = options;
 			const query = qs.stringify(getTaskQuery(projectId, options));
 
 			let path = '';
-			if (options.module) {
+			if (module) {
 				path = 'module';
 			}
 
-			const issues: IPagination<ITask> = (
+			const tasks: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/${path}`,
@@ -253,7 +257,16 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			return groupIssuesByStateId(issues.items);
+			const issues = tasks.items;
+
+			switch (group_by) {
+				case IssueGroupBy.STATE:
+					return groupIssuesByStateId(issues);
+				case IssueGroupBy.TARGET_DATE:
+					return groupIssuesByTargetDate(issues);
+				default:
+					return nonGroupedIssues(issues);
+			}
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException();

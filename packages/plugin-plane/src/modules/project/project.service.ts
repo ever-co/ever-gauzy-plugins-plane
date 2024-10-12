@@ -15,6 +15,7 @@ import {
 	IPagination,
 	IProject,
 	IUpdateProjectInput,
+	IUpdateUserPropertiesInput,
 } from '@plane-plugin/models';
 import {
 	assignMembersToProjectTransformer,
@@ -378,40 +379,23 @@ export class ProjectService extends ApiFetchService {
 
 	async updateProjectUserProperties(
 		id: ID,
-		diplayFilters: Record<string, string>,
+		input: IUpdateUserPropertiesInput,
 	) {
+		const { display_filters, display_properties, filters } = input;
 		return {
 			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
 			created_at: '2024-08-20T14:27:11.217949Z',
 			updated_at: '2024-08-23T06:33:05.401050Z',
 			deleted_at: null,
-			filters: {
-				state: null,
-				labels: null,
-				priority: null,
-				assignees: null,
-				created_by: null,
-				start_date: null,
-				subscriber: null,
-				state_group: null,
-				target_date: null,
-			},
-			display_filters: diplayFilters,
-			display_properties: {
-				key: true,
-				link: true,
-				state: true,
-				labels: true,
-				assignee: true,
-				due_date: true,
-				estimate: true,
-				priority: true,
-				created_on: true,
-				start_date: true,
-				updated_on: true,
-				sub_issue_count: true,
-				attachment_count: true,
-			},
+			filters: filters
+				? filters
+				: (await this.getProjectUserProperties(id)).filters,
+			display_filters: display_filters
+				? display_filters
+				: (await this.getProjectUserProperties(id)).display_filters,
+			display_properties: display_properties
+				? display_properties
+				: (await this.getProjectUserProperties(id)).display_properties,
 			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
 			project: id,

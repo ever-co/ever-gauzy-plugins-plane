@@ -97,6 +97,11 @@ export function getProjectTasksTransformer() {
 	return;
 }
 
+/**
+ * @description - Group issues by state ID for Kanban and list Layouts
+ * @param {ITask[]} issues - Tasks to be trasnformed and grouped
+ * @returns Tranformed and grouped by state Issues
+ */
 export function groupIssuesByStateId(issues: ITask[]) {
 	return issues.reduce(
 		(acc, item) => {
@@ -131,6 +136,69 @@ export function groupIssuesByStateId(issues: ITask[]) {
 			results: {},
 		},
 	);
+}
+
+/**
+ * @description - Group Issue by Target Date for Calendar Layout display
+ * @param {ITask[]} issues - Tasks to be trasnformed and grouped
+ * @returns Tranformed and grouped by target date Issues
+ */
+export function groupIssuesByTargetDate(issues: ITask[]) {
+	return issues.reduce(
+		(acc, item) => {
+			const targetDate = item.dueDate?.toString().split('T')[0];
+
+			if (!acc.results[targetDate]) {
+				acc.results[targetDate] = {
+					results: [],
+					total_results: 0,
+				};
+			}
+			const issue = issueTransformer(item);
+
+			acc.results[targetDate].results.push(issue);
+			acc.results[targetDate].total_results++;
+
+			acc.total_results++;
+			return acc;
+		},
+		{
+			grouped_by: 'target_date',
+			sub_grouped_by: null,
+			total_count: issues.length,
+			next_cursor: '30:1:0',
+			prev_cursor: '30:-1:1',
+			next_page_results: false,
+			prev_page_results: false,
+			count: issues.length,
+			total_pages: 1,
+			total_results: issues.length,
+			extra_stats: null,
+			results: {},
+		},
+	);
+}
+
+/**
+ * @description - Transform issues for spreadsheet (Table) Layout view
+ * @param {ITask[]} issues - Tasks to be trasnformed
+ * @returns Tranformed by target date Issues
+ */
+export function nonGroupedIssues(issues: ITask[]) {
+	return {
+		grouped_by: null,
+		sub_grouped_by: null,
+		total_count: issues.length,
+		next_cursor: '30:1:0',
+		prev_cursor: '30:-1:1',
+		next_page_results: false,
+		prev_page_results: false,
+		count: issues.length,
+		total_pages: 1,
+		total_results: issues.length,
+		extra_stats: null,
+		results: issues.map((issue) => issueTransformer(issue)),
+	};
 }
 
 export const taskRelations = [

@@ -50,6 +50,12 @@ export type IIssueUpdateInput = IIssue;
 
 export interface IIssueFindInput {
 	module?: ID;
+	group_by?: IssueGroupBy;
+}
+
+export enum IssueGroupBy {
+	STATE = 'state_id',
+	TARGET_DATE = 'target_date'
 }
 
 export enum IssueActivityTypeEnum {

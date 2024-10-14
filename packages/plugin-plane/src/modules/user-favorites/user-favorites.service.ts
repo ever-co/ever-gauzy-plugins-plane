@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-	EntityEnum,
+	BaseEntityEnum,
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
 	ID,
@@ -176,7 +176,7 @@ export class UserFavoritesService extends ApiFetchService {
 		}
 	}
 
-	async findEmployeeFavoriteEntityIds(entity: EntityEnum) {
+	async findEmployeeFavoriteEntityIds(entity: BaseEntityEnum) {
 		const query = qs.stringify(getFavoriteQuery({ entity }));
 		try {
 			const favorites: IPagination<IFavorite> = (

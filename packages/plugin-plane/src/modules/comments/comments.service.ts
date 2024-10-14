@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
-	CommentEntityEnum,
+	BaseEntityEnum,
 	IComment,
 	ICommentFindInput,
 	ICreateCommentInput,
@@ -38,14 +38,14 @@ export class CommentsService extends ApiFetchService {
 	/**
 	 * @description Create comment
 	 * @param {ICreateCommentInput} input body request for comment creation
-	 * @param {CommentEntityEnum} entity commented entity type
+	 * @param {BaseEntityEnum} entity commented entity type
 	 * @param {ID} entityId commented entity ID
 	 * @returns A promise resolved to created comment
 	 * @memberof CommentsService
 	 */
 	async create(
 		input: ICreateCommentInput,
-		entity: CommentEntityEnum,
+		entity: BaseEntityEnum,
 		entityId: ID,
 	): Promise<IComment> {
 		try {

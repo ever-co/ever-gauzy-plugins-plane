@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-	FavoriteEntityEnum,
+	EntityEnum,
 	IAssignMembersToProject,
 	ICreateProjectInput,
 	ID,
@@ -58,7 +58,7 @@ export class ProjectService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					FavoriteEntityEnum.OrganizationProject,
+					EntityEnum.OrganizationProject,
 				);
 
 			return getProjectsResponse(projects.items, favoriteIds);
@@ -103,7 +103,7 @@ export class ProjectService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					FavoriteEntityEnum.OrganizationProject,
+					EntityEnum.OrganizationProject,
 				);
 
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;

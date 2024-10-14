@@ -1,6 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
+	EntityEnum,
 	ICreateViewInput,
 	ID,
 	IPagination,
@@ -16,9 +22,18 @@ import {
 	updateViewInputTransformer,
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
+import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 
 @Injectable()
 export class IssueViewService extends ApiFetchService {
+	constructor(
+		private readonly _serverFetchService: ApiFetchService,
+		@Inject(forwardRef(() => UserFavoritesService))
+		private readonly _userFavoriteService: UserFavoritesService,
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	private readonly path = '/task-views';
 
 	/**
@@ -106,9 +121,12 @@ export class IssueViewService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ view });
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					EntityEnum.TaskView,
+				);
 
-			return issueViewTransformer(view);
+			return issueViewTransformer(view, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -126,6 +144,12 @@ export class IssueViewService extends ApiFetchService {
 			// Build the query string once
 			const query = qs.stringify(getViewsQuery(projectId));
 
+			// Search for user favorites
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					EntityEnum.TaskView,
+				);
+
 			// Perform the API call to fetch the views
 			const views: IPagination<ITaskView> = (
 				await this.apiFetch({
@@ -136,7 +160,7 @@ export class IssueViewService extends ApiFetchService {
 			).data;
 
 			// Return the transformed views
-			return issueViewTransformer(views.items);
+			return issueViewTransformer(views.items, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -152,7 +176,14 @@ export class IssueViewService extends ApiFetchService {
 	async findOne(id?: ID, projectId?: ID): Promise<IView | IView[]> {
 		try {
 			const view = await this.getExternalView(id, projectId);
-			return issueViewTransformer(view);
+
+			// Search for user favorites
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					EntityEnum.TaskView,
+				);
+
+			return issueViewTransformer(view, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

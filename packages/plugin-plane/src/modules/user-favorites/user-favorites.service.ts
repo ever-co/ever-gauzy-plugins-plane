@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-	FavoriteEntityEnum,
+	EntityEnum,
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
 	ID,
@@ -25,6 +25,7 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { ProjectModuleService } from '../project-module/project-module.service';
+import { IssueViewService } from '../views/view.service';
 
 @Injectable()
 export class UserFavoritesService extends ApiFetchService {
@@ -35,6 +36,7 @@ export class UserFavoritesService extends ApiFetchService {
 		private readonly _projectModuleService: ProjectModuleService,
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
+		private readonly _issueViewService: IssueViewService,
 		// TODO : Add here Cycle service also
 	) {
 		super(_serverFetchService['_httpService']);
@@ -71,8 +73,12 @@ export class UserFavoritesService extends ApiFetchService {
 						entity_identifier,
 						project_id,
 					),
+
 				[FavoriteEntityTypeEnum.PROJECT]: () =>
 					this._projectService.getProject(project_id),
+
+				[FavoriteEntityTypeEnum.VIEW]: () =>
+					this._issueViewService.findOne(entity_identifier),
 
 				// TODO : Find Cycle here after cycle integration
 			};
@@ -137,6 +143,13 @@ export class UserFavoritesService extends ApiFetchService {
 							);
 							break;
 
+						case FavoriteEntityTypeEnum.VIEW:
+							entityData =
+								await this._issueViewService.getExternalView(
+									favorite.entityId,
+								);
+							break;
+
 						case FavoriteEntityTypeEnum.CYCLE:
 							// TODO : Implement cycle retrive after cycle feature implemented
 							entityData = null;
@@ -163,7 +176,7 @@ export class UserFavoritesService extends ApiFetchService {
 		}
 	}
 
-	async findEmployeeFavoriteEntityIds(entity: FavoriteEntityEnum) {
+	async findEmployeeFavoriteEntityIds(entity: EntityEnum) {
 		const query = qs.stringify(getFavoriteQuery({ entity }));
 		try {
 			const favorites: IPagination<IFavorite> = (

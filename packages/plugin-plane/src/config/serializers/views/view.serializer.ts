@@ -182,30 +182,37 @@ export function updateViewInputTransformer(
  */
 export function issueViewTransformer(
 	taskViews: ITaskView | ITaskView[],
+	favoriteIds?: ID[],
 ): IView | IView[] {
-	const transformIssueView = (taskView: ITaskView): IView => ({
-		id: taskView.id,
-		created_at: taskView.createdAt,
-		updated_at: taskView.updatedAt,
-		deleted_at: taskView.deletedAt,
-		name: taskView.name,
-		description: taskView.description,
-		query: queryParamsToFilters(
-			taskView.queryParams as IGetTasksByViewFilters,
-		),
-		filters: taskView.filterOptions as IViewPropsFilters,
-		display_filters: taskView.displayOptions as IViewPropsDisplayFilters,
-		display_properties: taskView.properties,
-		access: taskView.visibilityLevel, // TODO : Use some transforms here
-		sort_order: 9, // TODO : Search for usescase and use right value
-		logo_props: {},
-		is_locked: taskView.isLocked,
-		created_by: '', // TODO : Make sure we have this working
-		updated_by: '', // TODO : Make sure we have this working
-		workspace: taskView.tenantId,
-		project: taskView.projectId,
-		owned_by: '', // TODO : Make sure we have this working
-	});
+	const transformIssueView = (taskView: ITaskView): IView => {
+		const isFavorite = favoriteIds?.includes(taskView.id);
+
+		return {
+			id: taskView.id,
+			created_at: taskView.createdAt,
+			updated_at: taskView.updatedAt,
+			deleted_at: taskView.deletedAt,
+			is_favorite: isFavorite,
+			name: taskView.name,
+			description: taskView.description,
+			query: queryParamsToFilters(
+				taskView.queryParams as IGetTasksByViewFilters,
+			),
+			filters: taskView.filterOptions as IViewPropsFilters,
+			display_filters:
+				taskView.displayOptions as IViewPropsDisplayFilters,
+			display_properties: taskView.properties,
+			access: taskView.visibilityLevel, // TODO : Use some transforms here
+			sort_order: 9, // TODO : Search for usescase and use right value
+			logo_props: {},
+			is_locked: taskView.isLocked,
+			created_by: '', // TODO : Make sure we have this working
+			updated_by: '', // TODO : Make sure we have this working
+			workspace: taskView.tenantId,
+			project: taskView.projectId,
+			owned_by: '', // TODO : Make sure we have this working
+		};
+	};
 
 	if (Array.isArray(taskViews)) {
 		return taskViews.map(transformIssueView);

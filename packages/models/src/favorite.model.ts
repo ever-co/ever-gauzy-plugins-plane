@@ -32,5 +32,6 @@ export interface ICreateFavoriteInput {
 export enum FavoriteEntityTypeEnum {
 	MODULE = 'module',
 	PROJECT = 'project',
-	CYCLE = 'cycle'
+	CYCLE = 'cycle',
+	VIEW = 'view'
 }

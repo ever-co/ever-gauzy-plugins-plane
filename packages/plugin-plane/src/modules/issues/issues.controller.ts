@@ -388,7 +388,7 @@ export class IssuesController {
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue reaction' })
+	@ApiOperation({ summary: 'Delete issue link' })
 	@Delete(':id/issue-links/:linkId')
 	async deleteLink(@Param('linkId') linkId: ID) {
 		return await this._issueService.deleteLink(linkId);

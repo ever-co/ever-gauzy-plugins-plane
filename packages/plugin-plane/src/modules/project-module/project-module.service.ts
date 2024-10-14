@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-	FavoriteEntityEnum,
+	EntityEnum,
 	ICreateModuleInput,
 	ID,
 	IModule,
@@ -127,7 +127,7 @@ export class ProjectModuleService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					FavoriteEntityEnum.OrganizationProjectModule,
+					EntityEnum.OrganizationProjectModule,
 				);
 
 			// Perform the API call to fetch the modules
@@ -182,7 +182,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					FavoriteEntityEnum.OrganizationProjectModule,
+					EntityEnum.OrganizationProjectModule,
 				);
 
 			// Transform the module with the correct `managerId`
@@ -248,7 +248,7 @@ export class ProjectModuleService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					FavoriteEntityEnum.OrganizationProjectModule,
+					EntityEnum.OrganizationProjectModule,
 				);
 
 			const module = await this.getExternalModule(id);

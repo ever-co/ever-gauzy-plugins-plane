@@ -4,6 +4,7 @@ import { IViewProps } from './base.model';
 export interface IView extends IViewProps {
 	id?: ID;
 	created_at?: Date;
+	is_favorite?: boolean;
 	updated_at?: Date;
 	deleted_at?: Date;
 	name?: string;

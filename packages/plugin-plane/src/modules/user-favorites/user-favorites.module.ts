@@ -4,6 +4,7 @@ import { UserFavoritesService } from './user-favorites.service';
 import { UserFavoritesController } from './user-favorites.controller';
 import { ProjectModule } from '../project/project.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
+import { IssueViewModule } from '../views/view.module';
 
 @Global()
 @Module({
@@ -11,6 +12,7 @@ import { ProjectModuleModule } from '../project-module/project-module.module';
 		RouterModule.register([
 			{ path: '/user-favorites', module: UserFavoritesModule },
 		]),
+		forwardRef(() => IssueViewModule),
 		forwardRef(() => ProjectModule),
 		forwardRef(() => ProjectModuleModule),
 	],

@@ -89,6 +89,11 @@ export function updateIssueLinkInputTransformer(
 	return input;
 }
 
+/**
+ * @description Get issue links query params
+ * @param {ID} issueId - The Issue ID
+ * @returns {Record<string, string>} A object with filter options
+ */
 export function getIssueLinksQuery(issueId: ID): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {

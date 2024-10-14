@@ -3,7 +3,6 @@ import {
 	ICreateIssueLink,
 	ID,
 	IEmployee,
-	IIssue,
 	IIssueLink,
 	IOrganizationProject,
 	IResourceLink,
@@ -15,22 +14,20 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 /**
  * @description Transform external Resource Link(s) to internal use accepted data
  * @param {(IResourceLink[] | IResourceLink)} links - Link(s) from external API
- * @param {IIssue} issue - Issue for whom Link is related
  * @param {IEmployee} actor - The Employee Picked from User Link Creator
  * @param {IOrganizationProject} project - The project that associated to issue link
  * @returns {(IIssueLink[] | IIssueLink)} A tranformed object or array of objects
  */
 export function issueLinkTransformer(
 	links: IResourceLink[] | IResourceLink,
-	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
 ): IIssueLink[] | IIssueLink {
 	const transformIssueLink = (link: IResourceLink): IIssueLink => {
 		return {
 			id: link.id,
-			issue: issue.id,
-			issue_id: issue.id,
+			issue: link.entity,
+			issue_id: link.entityId,
 			created_by_detail: {
 				id: actor?.id,
 				first_name: actor?.user?.firstName,
@@ -94,13 +91,15 @@ export function updateIssueLinkInputTransformer(
  * @param {ID} issueId - The Issue ID
  * @returns {Record<string, string>} A object with filter options
  */
-export function getIssueLinksQuery(issueId: ID): Record<string, string> {
+export function getIssueLinksQuery(issueId?: ID): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
 		...baseGetItemsWhereQuery,
 	};
 
-	query['where[entityId]'] = issueId;
+	if (issueId) {
+		query['where[entityId]'] = issueId;
+	}
 
 	query['where[entity]'] = BaseEntityEnum.Task;
 

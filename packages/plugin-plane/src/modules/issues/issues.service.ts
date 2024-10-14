@@ -6,6 +6,7 @@ import {
 	ICommentFindInput,
 	ICreateCommentInput,
 	ICreatedIssueRelation,
+	ICreateIssueLink,
 	ICreateIssueRelationInput,
 	ICreateReactionInput,
 	ID,
@@ -14,6 +15,7 @@ import {
 	IIssueComment,
 	IIssueCreateInput,
 	IIssueFindInput,
+	IIssueLink,
 	IIssueUpdateInput,
 	IPagination,
 	IReaction,
@@ -33,6 +35,7 @@ import {
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
 	issueCommentTrasnsformer,
+	issueLinkTransformer,
 	issueTransformer,
 	nonGroupedIssues,
 	reactionTransformer,
@@ -43,6 +46,7 @@ import { CommentsService } from '../comments/comments.service';
 import { ProjectService } from '../project/project.service';
 import { ReactionsService } from '../reactions/reactions.service';
 import { IssueRelationsService } from '../issue-relations/issue-relations.service';
+import { IssueLinksService } from '../issue-links/issue-links.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -50,6 +54,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _stateSerive: StatesService,
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
+		private readonly _issueLinkService: IssueLinksService,
 		private readonly _projectService: ProjectService,
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _serverFetchService: ApiFetchService,
@@ -87,8 +92,10 @@ export class IssuesService extends ApiFetchService {
 			const issue = await this.getExternalIssue(id);
 
 			if (!issue) {
-				throw new BadRequestException('Issue cnot found');
+				throw new BadRequestException('Issue not found');
 			}
+
+			// Find Issue Reactions
 			const reactions = await this.findIssueReactions(
 				{
 					entityId: id,
@@ -97,7 +104,10 @@ export class IssuesService extends ApiFetchService {
 				issue.projectId,
 			);
 
-			return issueTransformer(issue, reactions);
+			// Find issue links
+			const links = await this.findIssueLinks(id, issue.projectId);
+
+			return issueTransformer(issue, reactions, links);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -723,5 +733,131 @@ export class IssuesService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/**
+	 * @description Create Issue Link
+	 * @param {ID} id - Issue ID for whom create link
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {ICreateIssueLink} input - Body request data
+	 * @returns A promise resolved to created and transformed link
+	 * @memberof IssuesService
+	 */
+	async createLink(
+		id: ID,
+		projectId: ID,
+		input: ICreateIssueLink,
+	): Promise<IIssueLink> {
+		try {
+			// Create link
+			const link = await this._issueLinkService.create(input, id);
+
+			// Link Details
+			const { actor, project } = await this.getIssueCommentDetails(
+				id,
+				projectId,
+				link.creatorId,
+			);
+
+			// Transform Link
+			const transformedLink = issueLinkTransformer(link, actor, project);
+
+			return Array.isArray(transformedLink)
+				? transformedLink[0]
+				: transformedLink;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Update Issue Link
+	 * @param {ID} id - Link ID to update update
+	 * @param {ID} issueId - Issue ID for whom update link
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {ICreateIssueLink} input - Body request data
+	 * @returns A promise resolved to created and transformed link
+	 * @memberof IssuesService
+	 */
+	async updateLink(
+		id: ID,
+		issueId: ID,
+		projectId: ID,
+		input: ICreateIssueLink,
+	): Promise<IIssueLink> {
+		try {
+			// Update link
+			const link = await this._issueLinkService.update(
+				id,
+				issueId,
+				input,
+			);
+
+			// Link Details
+			const { actor, project } = await this.getIssueCommentDetails(
+				id,
+				projectId,
+				link.creatorId,
+			);
+
+			// Transform Link
+			const transformedLink = issueLinkTransformer(link, actor, project);
+
+			return Array.isArray(transformedLink)
+				? transformedLink[0]
+				: transformedLink;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Find issue links with associated data
+	 * @param {ID} id - Issue ID
+	 * @param {ID} projectId - Project ID for returning data
+	 * @returns A promise resolved to found and transformed links
+	 * @memberof IssuesService
+	 */
+	async findIssueLinks(id: ID, projectId: ID): Promise<any> {
+		try {
+			const links = await this._issueLinkService.findAll(id);
+
+			const issueLinks: IIssueLink[] = await Promise.all(
+				links.map(async (link) => {
+					const { actor, project } =
+						await this.getIssueCommentDetails(
+							id,
+							projectId,
+							link.creatorId,
+						);
+
+					const transformedLink = issueLinkTransformer(
+						link,
+						actor,
+						project,
+					);
+					return Array.isArray(transformedLink)
+						? transformedLink[0]
+						: transformedLink;
+				}),
+			);
+
+			return issueLinks;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Delete Issue Link.
+	 * @param {ID} id - Issue Link ID to delete
+	 * @returns A promise resolved to deleted result
+	 * @memberof IssuesService
+	 */
+	async deleteLink(id: ID): Promise<any> {
+		return await this._issueLinkService.delete(id);
 	}
 }

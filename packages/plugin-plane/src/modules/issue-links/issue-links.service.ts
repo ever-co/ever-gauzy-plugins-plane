@@ -54,9 +54,13 @@ export class IssueLinksService extends ApiFetchService {
 	 * @returns A Promise resolved to updated issue link
 	 * @memberof IssueLinksService
 	 */
-	async update(id: ID, input: ICreateIssueLink): Promise<IResourceLink> {
+	async update(
+		id: ID,
+		issueId: ID,
+		input: ICreateIssueLink,
+	): Promise<IResourceLink> {
 		try {
-			const existingLink = await this.findOne(id);
+			const existingLink = await this.findOne(id, issueId);
 
 			if (!existingLink) {
 				throw new BadRequestException('Link Not Found');
@@ -105,9 +109,9 @@ export class IssueLinksService extends ApiFetchService {
 	 * @returns A promise resolved to found link
 	 * @memberof IssueLinksService
 	 */
-	async findOne(id: ID): Promise<IResourceLink> {
+	async findOne(id: ID, issueId: ID): Promise<IResourceLink> {
 		try {
-			const query = qs.stringify(getIssueLinksQuery(id));
+			const query = qs.stringify(getIssueLinksQuery(issueId));
 
 			const link: IResourceLink = (
 				await this.apiFetch({
@@ -122,5 +126,20 @@ export class IssueLinksService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException();
 		}
+	}
+
+	/**
+	 * @description Delete Issue Link
+	 * @param {ID} id - Issue Link ID
+	 * @returns A promise resolving to deleted Result
+	 * @memberof IssueLinksService
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
 	}
 }

@@ -1,5 +1,5 @@
 import {
-	CommentEntityEnum,
+	BaseEntityEnum,
 	IComment,
 	ICommentCreateInput,
 	ICommentUpdateInput,
@@ -67,7 +67,7 @@ export function issueCommentTrasnsformer(
 
 export function createCommentInputTransformer(
 	input: ICreateCommentInput,
-	entity: CommentEntityEnum,
+	entity: BaseEntityEnum,
 	entityId: ID,
 ): ICommentCreateInput {
 	return {
@@ -90,7 +90,7 @@ export function updateCommentInputTransformer(
 
 export function getCommentsQuery(
 	entityId?: ID,
-	entity?: CommentEntityEnum,
+	entity?: BaseEntityEnum,
 ): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {

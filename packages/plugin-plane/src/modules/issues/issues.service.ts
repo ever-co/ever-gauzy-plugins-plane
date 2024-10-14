@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
-	CommentEntityEnum,
+	BaseEntityEnum,
 	ICommentFindInput,
 	ICreateCommentInput,
 	ICreatedIssueRelation,
@@ -399,7 +399,7 @@ export class IssuesService extends ApiFetchService {
 			// Create comment
 			const comment = await this._commentService.create(
 				input,
-				CommentEntityEnum.Task,
+				BaseEntityEnum.Task,
 				entityId,
 			);
 
@@ -446,7 +446,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Update comment
 			const options: ICommentFindInput = {
-				entity: CommentEntityEnum.Task,
+				entity: BaseEntityEnum.Task,
 				entityId,
 			};
 			await this._commentService.update(id, options, input);
@@ -674,7 +674,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			if (activity_type === IssueActivityTypeEnum.COMMENT) {
 				return await this.getIssueComments(
-					{ entityId: id, entity: CommentEntityEnum.Task },
+					{ entityId: id, entity: BaseEntityEnum.Task },
 					projectId,
 				);
 			}

@@ -1,5 +1,5 @@
 import {
-	EntityEnum,
+	BaseEntityEnum,
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
 	IFavorite,
@@ -12,24 +12,26 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 export function mapFavoriteEntityType(
 	entityType: FavoriteEntityTypeEnum,
-): EntityEnum {
-	const entityMapping: { [key: string]: EntityEnum } = {
-		[FavoriteEntityTypeEnum.CYCLE]: EntityEnum.OrganizationSprint,
-		[FavoriteEntityTypeEnum.MODULE]: EntityEnum.OrganizationProjectModule,
-		[FavoriteEntityTypeEnum.PROJECT]: EntityEnum.OrganizationProject,
-		[FavoriteEntityTypeEnum.VIEW]: EntityEnum.TaskView,
+): BaseEntityEnum {
+	const entityMapping: { [key: string]: BaseEntityEnum } = {
+		[FavoriteEntityTypeEnum.CYCLE]: BaseEntityEnum.OrganizationSprint,
+		[FavoriteEntityTypeEnum.MODULE]:
+			BaseEntityEnum.OrganizationProjectModule,
+		[FavoriteEntityTypeEnum.PROJECT]: BaseEntityEnum.OrganizationProject,
+		[FavoriteEntityTypeEnum.VIEW]: BaseEntityEnum.TaskView,
 	};
 	return entityMapping[entityType];
 }
 
 export function apiFavoriteEntityToProxy(
-	entity: EntityEnum,
+	entity: BaseEntityEnum,
 ): FavoriteEntityTypeEnum {
 	const entityMapping: { [key: string]: FavoriteEntityTypeEnum } = {
-		[EntityEnum.OrganizationSprint]: FavoriteEntityTypeEnum.CYCLE,
-		[EntityEnum.OrganizationProjectModule]: FavoriteEntityTypeEnum.MODULE,
-		[EntityEnum.OrganizationProject]: FavoriteEntityTypeEnum.PROJECT,
-		[EntityEnum.TaskView]: FavoriteEntityTypeEnum.VIEW,
+		[BaseEntityEnum.OrganizationSprint]: FavoriteEntityTypeEnum.CYCLE,
+		[BaseEntityEnum.OrganizationProjectModule]:
+			FavoriteEntityTypeEnum.MODULE,
+		[BaseEntityEnum.OrganizationProject]: FavoriteEntityTypeEnum.PROJECT,
+		[BaseEntityEnum.TaskView]: FavoriteEntityTypeEnum.VIEW,
 	};
 	return entityMapping[entity];
 }

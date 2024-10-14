@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-	EntityEnum,
+	BaseEntityEnum,
 	ICreateViewInput,
 	ID,
 	IPagination,
@@ -123,7 +123,7 @@ export class IssueViewService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					EntityEnum.TaskView,
+					BaseEntityEnum.TaskView,
 				);
 
 			return issueViewTransformer(view, favoriteIds);
@@ -147,7 +147,7 @@ export class IssueViewService extends ApiFetchService {
 			// Search for user favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					EntityEnum.TaskView,
+					BaseEntityEnum.TaskView,
 				);
 
 			// Perform the API call to fetch the views
@@ -180,7 +180,7 @@ export class IssueViewService extends ApiFetchService {
 			// Search for user favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					EntityEnum.TaskView,
+					BaseEntityEnum.TaskView,
 				);
 
 			return issueViewTransformer(view, favoriteIds);

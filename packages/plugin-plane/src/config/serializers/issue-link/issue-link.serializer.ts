@@ -1,0 +1,103 @@
+import {
+	BaseEntityEnum,
+	ICreateIssueLink,
+	ID,
+	IEmployee,
+	IIssue,
+	IIssueLink,
+	IOrganizationProject,
+	IResourceLink,
+	IResourceLinkCreateInput,
+	IResourceLinkUpdateInput,
+} from '@plane-plugin/models';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
+
+/**
+ * @description Transform external Resource Link(s) to internal use accepted data
+ * @param {(IResourceLink[] | IResourceLink)} links - Link(s) from external API
+ * @param {IIssue} issue - Issue for whom Link is related
+ * @param {IEmployee} actor - The Employee Picked from User Link Creator
+ * @param {IOrganizationProject} project - The project that associated to issue link
+ * @returns {(IIssueLink[] | IIssueLink)} A tranformed object or array of objects
+ */
+export function issueLinkTransformer(
+	links: IResourceLink[] | IResourceLink,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+): IIssueLink[] | IIssueLink {
+	const transformIssueLink = (link: IResourceLink): IIssueLink => {
+		return {
+			id: link.id,
+			issue: issue.id,
+			issue_id: issue.id,
+			created_by_detail: {
+				id: actor?.id,
+				first_name: actor?.user?.firstName,
+				last_name: actor?.user?.lastName,
+				avatar: actor?.user?.imageUrl,
+				is_bot: false,
+				display_name: actor?.fullName,
+			},
+			created_at: link.createdAt,
+			updated_at: link.updatedAt,
+			deleted_at: link.deletedAt,
+			title: link.title,
+			url: link.url,
+			metadata: link.metaData,
+			created_by: link.creatorId,
+			created_by_id: link.creatorId,
+			updated_by: '', // TODO : Try to use this too,
+			project: project.id,
+			workspace: link.tenantId,
+		};
+	};
+
+	if (Array.isArray(links)) {
+		return links.map(transformIssueLink);
+	}
+
+	return transformIssueLink(links);
+}
+
+/**
+ * @description Tranform incoming request body to accepted data for external API
+ * @param {ICreateIssueLink} input - Body Request Data
+ * @param {ID} issueId - Isuue ID for whom to create link
+ * @returns {IResourceLinkCreateInput} Transformed data
+ */
+export function createIssueLinkInputTransformer(
+	input: ICreateIssueLink,
+	issueId: ID,
+): IResourceLinkCreateInput {
+	return {
+		entity: BaseEntityEnum.Task,
+		entityId: issueId,
+		title: input.title,
+		url: input.url,
+	};
+}
+
+/**
+ * @description Transform incoming update body request data to match accepted external API data
+ * @param {ICreateIssueLink} input - Bidy Request data
+ * @returns {IResourceLinkUpdateInput} A Tranformed object
+ */
+export function updateIssueLinkInputTransformer(
+	input: ICreateIssueLink,
+): IResourceLinkUpdateInput {
+	return input;
+}
+
+export function getIssueLinksQuery(issueId: ID): Record<string, string> {
+	// Tenant and Organization based query
+	const query: Record<string, string> = {
+		...baseGetItemsWhereQuery,
+	};
+
+	query['where[entityId]'] = issueId;
+
+	query['where[entity]'] = BaseEntityEnum.Task;
+
+	return query;
+}

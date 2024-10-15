@@ -102,6 +102,7 @@ export * from './report.model';
 export * from './request-approval-employee.model';
 export * from './request-approval-team.model';
 export * from './request-approval.model';
+export * from './resource-link.model';
 export * from './role-permission.model';
 export * from './role.model';
 export * from './screenshot.model';

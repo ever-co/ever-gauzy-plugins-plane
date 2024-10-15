@@ -5,6 +5,7 @@ import {
 	IIssue,
 	IIssueCreateInput,
 	IIssueFindInput,
+	IIssueLink,
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
 	IReactionData,
@@ -34,6 +35,7 @@ export function issueLabelsIds(issue: ITask): ID[] {
 export function issueTransformer(
 	issue: ITask,
 	reactions?: IReactionData[],
+	links?: IIssueLink[],
 ): IIssue {
 	return {
 		id: issue.id,
@@ -64,13 +66,14 @@ export function issueTransformer(
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
 		description_html: issue.description ?? '<p></p>',
 		cycle_id: issue.organizationSprintId,
-		link_count: 0, // TODO: Add to API
+		link_count: links?.length || 0,
 		attachment_count: 0, // TODO : Add to API,
 		sub_issues_count: issue.children?.length,
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
 		module_ids: issue.modules?.map(({ id }) => id),
 		issue_reactions: reactions || [],
+		issue_link: links || [],
 	};
 }
 

@@ -16,6 +16,7 @@ import {
 	IIssue,
 	IIssueComment,
 	IIssueFindInput,
+	IIssueLink,
 	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
@@ -24,6 +25,7 @@ import { IssuesService } from './issues.service';
 import {
 	CreateIssueCommentDTO,
 	CreateIssueDTO,
+	CreateIssueLinkDTO,
 	CreateIssueReactionDTO,
 	UpdateIssueDTO,
 } from './dto';
@@ -213,6 +215,25 @@ export class IssuesController {
 	}
 
 	/**
+	 * @description Create Issue Link
+	 * @param {ID} id - Issue ID for whom create link
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {CreateIssueLinkDTO} input - Body request data
+	 * @returns A promise resolved to created and transformed link
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Link' })
+	@Post(':id/issue-links')
+	async createLink(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: CreateIssueLinkDTO,
+	): Promise<IIssueLink> {
+		return await this._issueService.createLink(id, projectId, input);
+	}
+
+	/**
 	 * @description Create issue relations.
 	 * @param {ID} taskToId Issue ID for whom to create main relations.
 	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.
@@ -269,6 +290,32 @@ export class IssuesController {
 			projectId,
 			input,
 			entityId,
+		);
+	}
+
+	/**
+	 * @description Update Issue Link
+	 * @param {ID} linkId - Link ID to update update
+	 * @param {ID} issueId - Issue ID for whom update link
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {CreateIssueLinkDTO} input - Body request data
+	 * @returns A promise resolved to created and transformed link
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Issue Link' })
+	@Patch(':id/issue-links/:linkId')
+	async updateLink(
+		@Body() input: CreateIssueLinkDTO,
+		@Param('entityId') issueId: ID,
+		@Param('linkId') linkId: ID,
+		@Param('projectId') projectId: ID,
+	): Promise<IIssueLink> {
+		return await this._issueService.updateLink(
+			linkId,
+			issueId,
+			projectId,
+			input,
 		);
 	}
 
@@ -332,5 +379,18 @@ export class IssuesController {
 			emoji,
 			issueId,
 		);
+	}
+
+	/**
+	 * @description Delete Issue Link.
+	 * @param {ID} linkId - Issue Link ID to delete
+	 * @returns A promise resolved to deleted result
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete issue link' })
+	@Delete(':id/issue-links/:linkId')
+	async deleteLink(@Param('linkId') linkId: ID) {
+		return await this._issueService.deleteLink(linkId);
 	}
 }

@@ -222,7 +222,7 @@ export class WorkspaceService extends ApiFetchService {
 		const organization: IOrganization = (
 			await this.apiFetch({
 				method: 'GET',
-				path: `/organization/${defaultOrganizationId}`, // TODO : Get this organization ID from request
+				path: `/organization/${defaultOrganizationId()}`, // TODO : Get this organization ID from request
 				query,
 			})
 		).data;

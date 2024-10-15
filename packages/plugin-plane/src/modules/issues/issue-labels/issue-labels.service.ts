@@ -64,8 +64,8 @@ export class IssueLabelsService extends ApiFetchService {
 					path: `${this.path}`,
 					body: {
 						...input,
-						organizationId: defaultOrganizationId,
-						tenantId: defaultTestTenantId,
+						organizationId: defaultOrganizationId(),
+						tenantId: defaultTestTenantId(),
 					},
 				})
 			).data;

@@ -29,7 +29,7 @@ export class IssueLinksService extends ApiFetchService {
 		try {
 			const body = {
 				...createIssueLinkInputTransformer(input, issueId),
-				organizationId: defaultOrganizationId,
+				organizationId: defaultOrganizationId(),
 			};
 
 			const link: IResourceLink = (

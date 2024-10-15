@@ -54,7 +54,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const { entity_identifier, entity_type, project_id } = input;
 			const body = {
 				...createFavoriteInputTransformer(input),
-				organizationId: defaultOrganizationId,
+				organizationId: defaultOrganizationId(),
 			};
 
 			// Create the favorite entity

@@ -27,6 +27,6 @@ export function issueLabelsTransformer(
 	};
 }
 
-export const getLabelsQuery = {
-	...baseGetItemsWhereQuery,
-};
+export const getLabelsQuery = () => ({
+	...baseGetItemsWhereQuery(),
+});

@@ -156,6 +156,7 @@ export class UserFavoritesService extends ApiFetchService {
 							break;
 
 						default:
+							entityData = null;
 							break;
 					}
 					return favoriteTransformer(favorite, {
@@ -163,14 +164,14 @@ export class UserFavoritesService extends ApiFetchService {
 						projectId:
 							entityType === FavoriteEntityTypeEnum.PROJECT
 								? entityData.id
-								: entityData.project_id,
+								: entityData?.project_id || null,
 					});
 				}),
 			);
 
 			// Return transformed favorites
 			return enrichedFavorites;
-		} catch (error) {
+		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error);
 		}

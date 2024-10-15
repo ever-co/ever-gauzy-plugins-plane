@@ -236,7 +236,7 @@ export const viewRelations = [
 export function getViewsQuery(projectId?: ID): Record<string, string> {
 	// Tenant and Organization based Query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 
 	if (projectId) {

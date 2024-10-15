@@ -59,7 +59,7 @@ export const getFavoriteQuery = (
 	options?: IFavoriteFindInput,
 ): Record<string, any> => {
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 
 	if (options.entity) {

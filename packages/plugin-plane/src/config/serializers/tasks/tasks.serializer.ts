@@ -228,7 +228,7 @@ export const getTaskQuery = (
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 
 	if (projectId) {

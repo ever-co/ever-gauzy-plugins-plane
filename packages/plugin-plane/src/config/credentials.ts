@@ -15,6 +15,11 @@ export const defaultOrganizationId = () =>
 		? process.env.LOCAL_ORGANIZATION_ID
 		: process.env.EXTERNAL_ORGANIZATION_ID;
 
+export const defaultProjectId = () =>
+	EXTERNAL_API_MODE() === 'develop'
+		? process.env.LOCAL_PROJECT_ID
+		: process.env.EXTERNAL_PROJECT_ID;
+
 export const defaultEmployeeId = () =>
 	EXTERNAL_API_MODE() === 'develop'
 		? process.env.LOCAL_EMPLOYEE_ID

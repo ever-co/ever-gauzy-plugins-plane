@@ -171,7 +171,7 @@ export const moduleRelations = [
 export const getModulesQuery = (projectId?: ID): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 
 	if (projectId) {

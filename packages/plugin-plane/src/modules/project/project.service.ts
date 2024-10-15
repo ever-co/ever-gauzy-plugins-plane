@@ -78,14 +78,18 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async getExternalProject(id: ID): Promise<IOrganizationProject> {
-		const query = qs.stringify(getProjectsQuery());
-		return (
-			await this.apiFetch({
-				method: 'GET',
-				path: `/organization-projects/${id}`,
-				query,
-			})
-		).data;
+		try {
+			const query = qs.stringify(getProjectsQuery());
+			return (
+				await this.apiFetch({
+					method: 'GET',
+					path: `/organization-projects/${id}`,
+					query,
+				})
+			).data;
+		} catch (error: any) {
+			console.log(error.message);
+		}
 	}
 
 	/**
@@ -109,8 +113,8 @@ export class ProjectService extends ApiFetchService {
 				);
 
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new InternalServerErrorException(error);
 		}
 	}

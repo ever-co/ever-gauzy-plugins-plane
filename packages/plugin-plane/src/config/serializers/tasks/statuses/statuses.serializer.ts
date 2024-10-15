@@ -85,15 +85,15 @@ export function createStateInputTransformer(
 		color: input.color,
 		template,
 		projectId: input.project_id,
-		tenantId: defaultTestTenantId,
-		organizationId: defaultOrganizationId,
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId(),
 	};
 }
 
 export const getStatesQuery = (id: ID): Record<string, string> => {
 	return {
-		organizationId: defaultOrganizationId,
-		tenantId: defaultTestTenantId,
+		organizationId: defaultOrganizationId(),
+		tenantId: defaultTestTenantId(),
 		projectId: id,
 	};
 };

@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import qs from 'qs';
 import { IOrganization, IWorkspaceUserInfo } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { defaultOrganizationId } from '../../config';
+import {
+	defaultEmployeeId,
+	defaultOrganizationId,
+	defaultTestTenantId,
+	defaultUserId,
+} from '../../config';
 import {
 	getOrganizationQuery,
 	organizationMembersTransformer,
@@ -34,9 +39,9 @@ export class WorkspaceService extends ApiFetchService {
 				is_default: true,
 				type_identifier: 'home',
 				logo_props: {},
-				created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-				updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-				owned_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				created_by: defaultEmployeeId(),
+				updated_by: defaultEmployeeId(),
+				owned_by: defaultEmployeeId(),
 			},
 			widgets: [
 				{
@@ -113,7 +118,7 @@ export class WorkspaceService extends ApiFetchService {
 	async getMembersMe(workspace_name: string) {
 		console.log({ workspace_name });
 		return {
-			id: '275c7587-021f-4d09-960c-e3aa0b609de6',
+			id: defaultUserId(),
 			created_at: '2024-08-13T11:47:19.039549Z',
 			updated_at: '2024-08-13T11:47:19.039558Z',
 			deleted_at: null,
@@ -200,10 +205,10 @@ export class WorkspaceService extends ApiFetchService {
 				subscribed: true,
 			},
 			is_active: true,
-			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
-			member: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			created_by: defaultEmployeeId(),
+			updated_by: defaultEmployeeId(),
+			workspace: defaultTestTenantId(),
+			member: defaultEmployeeId(),
 		};
 	}
 

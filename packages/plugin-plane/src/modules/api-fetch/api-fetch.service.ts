@@ -15,10 +15,11 @@ export class ApiFetchService {
 		const { method, path, body, bearer_token, query, tenantId, init } =
 			configs;
 
-		let endPoint = EXTERNAL_BASE_API_URL + path;
+		const apiUrl = EXTERNAL_BASE_API_URL();
+		let endPoint = apiUrl + path;
 
 		if (query) {
-			endPoint = `${EXTERNAL_BASE_API_URL + path}?${query}`;
+			endPoint = `${apiUrl + path}?${query}`;
 		}
 
 		const headers: HeadersInit = {
@@ -29,13 +30,13 @@ export class ApiFetchService {
 		if (bearer_token) {
 			headers['Authorization'] = `Bearer ${bearer_token}`;
 		} else {
-			headers['Authorization'] = `Bearer ${defaultTestToken}`;
+			headers['Authorization'] = `Bearer ${defaultTestToken()}`;
 		}
 
 		if (tenantId) {
 			headers['Tenant-Id'] = tenantId;
 		} else {
-			headers['Tenant-Id'] = defaultTestTenantId;
+			headers['Tenant-Id'] = defaultTestTenantId();
 		}
 
 		const datas: { body?: string } = {};

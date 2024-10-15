@@ -152,8 +152,8 @@ export function createModuleInputTransformer(
 		endDate: module.target_date,
 		members: (module.member_ids ?? []).map((id) => ({ id })),
 		projectId: module.project_id,
-		tenantId: defaultTestTenantId,
-		organizationId: defaultOrganizationId,
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId(),
 	};
 }
 

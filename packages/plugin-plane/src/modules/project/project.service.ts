@@ -20,6 +20,8 @@ import {
 import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
+	defaultEmployeeId,
+	defaultTestTenantId,
 	getProjectsQuery,
 	getProjectsResponse,
 } from '../../config';
@@ -46,7 +48,7 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async getProjects(): Promise<Partial<IProject>[]> {
-		const query = qs.stringify(getProjectsQuery);
+		const query = qs.stringify(getProjectsQuery());
 		try {
 			const projects: IPagination<IOrganizationProject> = (
 				await this.apiFetch({
@@ -62,8 +64,8 @@ export class ProjectService extends ApiFetchService {
 				);
 
 			return getProjectsResponse(projects.items, favoriteIds);
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.reponse);
 			throw new InternalServerErrorException(error);
 		}
 	}
@@ -76,7 +78,7 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async getExternalProject(id: ID): Promise<IOrganizationProject> {
-		const query = qs.stringify(getProjectsQuery);
+		const query = qs.stringify(getProjectsQuery());
 		return (
 			await this.apiFetch({
 				method: 'GET',
@@ -369,11 +371,11 @@ export class ProjectService extends ApiFetchService {
 				sub_issue_count: true,
 				attachment_count: true,
 			},
-			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			created_by: defaultEmployeeId(),
+			updated_by: defaultEmployeeId(),
 			project: id,
-			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
-			user: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			workspace: defaultTestTenantId(),
+			user: defaultEmployeeId(),
 		};
 	}
 
@@ -396,11 +398,11 @@ export class ProjectService extends ApiFetchService {
 			display_properties: display_properties
 				? display_properties
 				: (await this.getProjectUserProperties(id)).display_properties,
-			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			created_by: defaultEmployeeId(),
+			updated_by: defaultEmployeeId(),
 			project: id,
-			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
-			user: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			workspace: defaultTestTenantId(),
+			user: defaultEmployeeId(),
 		};
 	}
 }

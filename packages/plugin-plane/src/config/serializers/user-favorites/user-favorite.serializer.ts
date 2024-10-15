@@ -51,7 +51,7 @@ export function favoriteTransformer(
 			logo_props: {},
 		},
 		project_id: data.projectId,
-		workspace_id: defaultTestTenantId,
+		workspace_id: defaultTestTenantId(),
 	};
 }
 

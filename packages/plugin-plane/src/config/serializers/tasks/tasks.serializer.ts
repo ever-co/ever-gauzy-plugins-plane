@@ -271,8 +271,8 @@ export function createIssueInputTransformer(
 		organizationSprintId: issue.cycle_id,
 		parentId: issue.parent_id,
 		taskStatusId: issue.state_id,
-		tenantId: defaultTestTenantId,
-		organizationId: defaultOrganizationId,
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId(),
 		modules:
 			issue.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule,
@@ -323,7 +323,7 @@ export function updateIssueInputTransformer(
 						? new Date()
 						: null;
 			}
-			acc['organizationId'] = defaultOrganizationId;
+			acc['organizationId'] = defaultOrganizationId();
 
 			if (issue.module_ids || issue.modules) {
 				acc['modules'] = modules.map((module) => ({ id: module }));

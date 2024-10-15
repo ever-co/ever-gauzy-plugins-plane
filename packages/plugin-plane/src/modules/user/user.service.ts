@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { defaultEmployeeId, defaultTestTenantId } from '../../config';
 
 @Injectable()
 export class UserService {
 	async getMe() {
 		return {
-			id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			id: defaultEmployeeId(),
 			avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
 			cover_image: null,
 			date_joined: '2024-06-25T12:23:12.642525Z',
@@ -38,23 +39,23 @@ export class UserService {
 			use_case: 'Engineering',
 			role: 'Individual contributor',
 			is_onboarded: true,
-			last_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
+			last_workspace_id: defaultTestTenantId(),
 			billing_address_country: 'INDIA',
 			billing_address: null,
 			has_billing_address: false,
 			company_name: '',
-			user: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			user: defaultEmployeeId(),
 		};
 	}
 
 	async getMySettings() {
 		return {
-			id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			id: defaultEmployeeId(),
 			email: 'salva.cardano1@gmail.com',
 			workspace: {
-				last_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
+				last_workspace_id: defaultTestTenantId(),
 				last_workspace_slug: 'cardano',
-				fallback_workspace_id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
+				fallback_workspace_id: defaultTestTenantId(),
 				fallback_workspace_slug: 'cardano',
 				invites: 0,
 			},
@@ -64,9 +65,9 @@ export class UserService {
 	async getMyWorkspaces() {
 		return [
 			{
-				id: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
+				id: defaultTestTenantId(),
 				owner: {
-					id: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+					id: defaultEmployeeId(),
 					first_name: 'Salva',
 					last_name: 'Cardano',
 					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
@@ -82,8 +83,8 @@ export class UserService {
 				logo: null,
 				slug: 'cardano',
 				organization_size: '11-50',
-				created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-				updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+				created_by: defaultEmployeeId(),
+				updated_by: defaultEmployeeId(),
 			},
 		];
 	}

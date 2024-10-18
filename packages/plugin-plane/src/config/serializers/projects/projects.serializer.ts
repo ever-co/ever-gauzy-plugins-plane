@@ -8,7 +8,11 @@ import {
 	IUpdateProjectInput,
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
-import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import {
+	defaultEmployeeId,
+	defaultOrganizationId,
+	defaultTestTenantId,
+} from '../../credentials';
 import { roleTransformer } from '../workspace-organization';
 
 export function getProjectsResponse(
@@ -81,8 +85,8 @@ export function getProjectsResponse(
 				in_use: 'emoji',
 			},
 			archived_at: project.archivedAt,
-			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b', // To add for external API
-			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b', // To add for external API
+			created_by: defaultEmployeeId(), // To add for external API
+			updated_by: defaultEmployeeId(), // To add for external API
 			workspace: project.tenantId,
 			default_assignee: project.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
@@ -119,8 +123,8 @@ export function createProjectInputTransformer(
 		defaultAssigneeId: input.default_assignee,
 		memberIds,
 		managerIds,
-		tenantId: defaultTestTenantId,
-		organizationId: defaultOrganizationId,
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId(),
 	};
 }
 
@@ -143,17 +147,28 @@ export const projectRelations = [
 	'tenant',
 ];
 
-export const getProjectsQuery: Record<string, string> = {
-	...baseGetItemsWhereQuery,
+/**
+ * Helper function to build query object
+ */
+export const getProjectsQuery = (): Record<string, string> => {
+	const baseQuery = {
+		...baseGetItemsWhereQuery(),
+	};
+
+	// Add relations to the baseQuery
+	projectRelations.forEach((relation, i) => {
+		baseQuery[`relations[${i}]`] = relation;
+	});
+
+	return baseQuery;
 };
 
-projectRelations.forEach((relation, i) => {
-	getProjectsQuery[`relations[${i}]`] = relation;
-});
-
+/**
+ * Get query with identifier for a project
+ */
 export const getProjectByIdentifiersQuery = (
 	identifier: string,
 ): Record<string, string> => ({
-	...getProjectsQuery,
+	...getProjectsQuery(),
 	'where[code]': identifier,
 });

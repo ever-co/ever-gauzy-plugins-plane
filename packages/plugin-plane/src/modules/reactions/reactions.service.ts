@@ -34,7 +34,7 @@ export class ReactionsService extends ApiFetchService {
 		try {
 			const body = {
 				...createReactionInputTransformer(input, entity, entityId),
-				organizationId: defaultOrganizationId,
+				organizationId: defaultOrganizationId(),
 			};
 
 			const reaction: IReaction = (

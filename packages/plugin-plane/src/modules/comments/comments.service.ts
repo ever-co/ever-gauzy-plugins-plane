@@ -55,7 +55,7 @@ export class CommentsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body: { ...body, organizationId: defaultOrganizationId },
+					body: { ...body, organizationId: defaultOrganizationId() },
 				})
 			).data;
 

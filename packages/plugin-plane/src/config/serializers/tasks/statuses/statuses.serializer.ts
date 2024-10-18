@@ -8,6 +8,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	defaultOrganizationId,
+	defaultProjectId,
 	defaultTestTenantId,
 } from '../../../credentials';
 
@@ -59,8 +60,7 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 		const group = stateGroup(status);
 		return {
 			id: status.id,
-			project_id:
-				status.projectId ?? '8e8e12b9-d8d9-4305-b673-466f632d6a93',
+			project_id: status.projectId ?? defaultProjectId(),
 			workspace_id: status.tenantId,
 			name: capitalizeWords(
 				status.name.replace('-', ' '),
@@ -85,15 +85,15 @@ export function createStateInputTransformer(
 		color: input.color,
 		template,
 		projectId: input.project_id,
-		tenantId: defaultTestTenantId,
-		organizationId: defaultOrganizationId,
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId(),
 	};
 }
 
 export const getStatesQuery = (id: ID): Record<string, string> => {
 	return {
-		organizationId: defaultOrganizationId,
-		tenantId: defaultTestTenantId,
+		organizationId: defaultOrganizationId(),
+		tenantId: defaultTestTenantId(),
 		projectId: id,
 	};
 };

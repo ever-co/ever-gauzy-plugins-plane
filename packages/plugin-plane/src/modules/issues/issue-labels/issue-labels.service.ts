@@ -29,7 +29,7 @@ export class IssueLabelsService extends ApiFetchService {
 	async getProjectIssueLabels(
 		projectId: ID,
 	): Promise<IIssueLabel[] | IIssueLabel> {
-		const query = qs.stringify(getLabelsQuery);
+		const query = qs.stringify(getLabelsQuery());
 		try {
 			const labels: IPagination<ITag> = (
 				await this.apiFetch({
@@ -64,8 +64,8 @@ export class IssueLabelsService extends ApiFetchService {
 					path: `${this.path}`,
 					body: {
 						...input,
-						organizationId: defaultOrganizationId,
-						tenantId: defaultTestTenantId,
+						organizationId: defaultOrganizationId(),
+						tenantId: defaultTestTenantId(),
 					},
 				})
 			).data;

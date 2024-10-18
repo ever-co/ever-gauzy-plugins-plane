@@ -82,7 +82,7 @@ export class IssueRelationsService extends ApiFetchService {
 								path: this.path,
 								body: {
 									...mainRelation,
-									organizationId: defaultOrganizationId,
+									organizationId: defaultOrganizationId(),
 								},
 							})
 						).data;
@@ -98,7 +98,7 @@ export class IssueRelationsService extends ApiFetchService {
 							path: this.path,
 							body: {
 								...inverseRelation,
-								organizationId: defaultOrganizationId,
+								organizationId: defaultOrganizationId(),
 							},
 						});
 
@@ -261,7 +261,7 @@ export class IssueRelationsService extends ApiFetchService {
 						taskToId: mainRelationToDelete.taskToId,
 						taskFromId: mainRelationToDelete.taskFromId,
 						action: mainRelationToDelete.action,
-						organizationId: defaultOrganizationId,
+						organizationId: defaultOrganizationId(),
 					},
 				});
 

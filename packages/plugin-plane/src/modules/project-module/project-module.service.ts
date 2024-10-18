@@ -15,6 +15,8 @@ import {
 } from '@plane-plugin/models';
 import {
 	createModuleInputTransformer,
+	defaultEmployeeId,
+	defaultTestTenantId,
 	getModulesQuery,
 	modulesTransformer,
 } from '../../config';
@@ -332,12 +334,12 @@ export class ProjectModuleService extends ApiFetchService {
 				sub_issue_count: true,
 				attachment_count: true,
 			},
-			created_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
-			updated_by: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			created_by: defaultEmployeeId(),
+			updated_by: defaultEmployeeId(),
 			project: projectId,
 			module: id,
-			workspace: 'f8468b87-c371-4a78-9d68-5d09abc221d2',
-			user: 'b7165202-4fcb-4351-b6c6-a2ce299ea10b',
+			workspace: defaultTestTenantId(),
+			user: defaultEmployeeId(),
 		};
 	}
 }

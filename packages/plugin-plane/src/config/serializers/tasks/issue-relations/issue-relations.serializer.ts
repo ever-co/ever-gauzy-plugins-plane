@@ -70,7 +70,7 @@ const taskLinkedIssueRelations = ['taskTo', 'taskFrom'];
 export const getTaskRelationQuery = (): Record<string, string> => {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 
 	// Add relations
@@ -84,7 +84,7 @@ export const getTaskRelationQuery = (): Record<string, string> => {
 export const findByOptionsQuery = (options: ITaskLinkedIssue) => {
 	// Base queries
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 	const { action, taskFromId, taskToId } = options;
 

@@ -72,7 +72,7 @@ export class IssueViewService extends ApiFetchService {
 				...createViewInputTransformer(
 					input,
 					projectId,
-					defaultOrganizationId,
+					defaultOrganizationId(),
 				),
 			};
 
@@ -109,7 +109,7 @@ export class IssueViewService extends ApiFetchService {
 				...updateViewInputTransformer(
 					input,
 					projectId,
-					defaultOrganizationId,
+					defaultOrganizationId(),
 				),
 			};
 

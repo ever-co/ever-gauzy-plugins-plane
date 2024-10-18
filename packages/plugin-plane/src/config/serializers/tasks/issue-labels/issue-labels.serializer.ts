@@ -13,7 +13,7 @@ export function issueLabelsTransformer(
 			name: issue.name,
 			color: issue.color,
 			project_id: projectId,
-			workspace_id: defaultTestTenantId,
+			workspace_id: defaultTestTenantId(),
 			sort_order: 65535.0 + i * 1000,
 		}));
 	return {
@@ -22,11 +22,11 @@ export function issueLabelsTransformer(
 		name: issues.name,
 		color: issues.color,
 		project_id: projectId,
-		workspace_id: defaultTestTenantId,
+		workspace_id: defaultTestTenantId(),
 		sort_order: 65535.0,
 	};
 }
 
-export const getLabelsQuery = {
-	...baseGetItemsWhereQuery,
-};
+export const getLabelsQuery = () => ({
+	...baseGetItemsWhereQuery(),
+});

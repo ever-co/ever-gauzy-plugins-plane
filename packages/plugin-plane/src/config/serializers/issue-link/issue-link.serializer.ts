@@ -94,7 +94,7 @@ export function updateIssueLinkInputTransformer(
 export function getIssueLinksQuery(issueId?: ID): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery,
+		...baseGetItemsWhereQuery(),
 	};
 
 	if (issueId) {

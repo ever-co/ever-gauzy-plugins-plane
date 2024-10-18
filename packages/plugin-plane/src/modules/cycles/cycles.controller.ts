@@ -10,7 +10,7 @@ import {
 	Patch,
 	Post,
 } from '@nestjs/common';
-import { ICycle, ID } from '@plane-plugin/models';
+import { ICycle, ICycleIssuesResponse, ID } from '@plane-plugin/models';
 import { CyclesService } from './cycles.service';
 import { CycleDTO } from './dto';
 
@@ -56,7 +56,7 @@ export class CyclesController {
 	 * @returns {Promise<{ message: string }>} A success message upon completion.
 	 */
 	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Check Data Overlaps' })
+	@ApiOperation({ summary: 'Add Issue to Cycle' })
 	@Post('/:id/cycle-issues')
 	async addIssuesToSprint(
 		@Param('id') id: ID,
@@ -112,6 +112,23 @@ export class CyclesController {
 		@Param('projectId') projectId: ID,
 	): Promise<ICycle | ICycle[]> {
 		return this._cycleService.findOne(id, projectId);
+	}
+
+	/**
+	 * Retrieves all tasks that were ever part of a sprint
+	 *
+	 * @param {ID} id - The ID of the sprint (cycle).
+	 * @param {ID} projectId - The ID of the project to which the sprint belongs.
+	 * @returns {Promise<ICycleIssuesResponse>} - A transformed response containing all unique sprint issues.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Cycle Issues' })
+	@Get(':id/cycle-issues')
+	async findCycleIssues(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	): Promise<ICycleIssuesResponse> {
+		return this._cycleService.findCycleIssues(id, projectId);
 	}
 
 	/** Deletes a specific cycle (sprint) by its ID.

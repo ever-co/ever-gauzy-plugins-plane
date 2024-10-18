@@ -3,19 +3,23 @@ import {
 	forwardRef,
 	Inject,
 	Injectable,
+	NotFoundException,
 } from '@nestjs/common';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
 	ICycle,
+	ICycleIssuesResponse,
 	ID,
 	IOrganizationSprint,
 	IPagination,
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
+	cycleIssueTransformer,
 	cycleTransformer,
 	getSprintsQuery,
+	issueTransformer,
 	updateCycleInputTransformer,
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -207,6 +211,60 @@ export class CyclesService extends ApiFetchService {
 
 			return { message: 'success' };
 		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Retrieves all tasks that were ever part of a sprint (current and previous).
+	 * This method combines current and previous sprint tasks, ensuring no duplicates.
+	 *
+	 * @param {ID} id - The ID of the sprint (cycle).
+	 * @param {ID} projectId - The ID of the project to which the sprint belongs.
+	 * @returns {Promise<ICycleIssuesResponse>} - A transformed response containing all unique sprint issues.
+	 * @throws {NotFoundException} - If the sprint is not found.
+	 * @throws {BadRequestException} - For other errors, with the error response passed in the exception.
+	 */
+	async findCycleIssues(
+		id: ID,
+		projectId: ID,
+	): Promise<ICycleIssuesResponse> {
+		try {
+			// Retrieve the sprint (cycle) using the provided IDs
+			const cycle = await this.getExternalSprint(id, projectId);
+
+			if (!cycle) {
+				throw new NotFoundException('Cycle not found.');
+			}
+
+			// Get the current sprint tasks from the cycle's toSprintTaskHistories
+			const currentTasks = cycle.toSprintTaskHistories
+				.filter((history) => history?.task) // Ensure task exists
+				.map((history) => issueTransformer(history.task)); // Transform tasks
+
+			// Get the previous sprint tasks from the cycle's fromSprintTaskHistories
+			const previousTasks = cycle.fromSprintTaskHistories
+				.filter((history) => history?.task) // Ensure task exists
+				.map((history) => issueTransformer(history.task)); // Transform tasks
+
+			// Combine both current and previous tasks, ensuring uniqueness based on task ID
+			const allIssues = Array.from(
+				new Set(
+					[...currentTasks, ...previousTasks].map((task) => task.id),
+				),
+			).map((taskId) => {
+				// Find the task from either the current or previous tasks list
+				return (
+					currentTasks.find((task) => task.id === taskId) ||
+					previousTasks.find((task) => task.id === taskId)
+				);
+			});
+
+			// Transform and return the combined tasks
+			return cycleIssueTransformer(allIssues);
+		} catch (error: any) {
+			// Log the error and throw a BadRequestException
 			console.log(error);
 			throw new BadRequestException(error.response);
 		}

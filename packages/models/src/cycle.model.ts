@@ -1,4 +1,5 @@
 import { ID } from './imports';
+import { IIssue } from './issue.model';
 
 export interface ICycle {
 	id?: ID;
@@ -30,4 +31,19 @@ export enum CycleStatusEnum {
 	COMPLETED = 'COMPLETED',
 	UPCOMING = 'UPCOMING',
 	DRAFT = 'DRAFT'
+}
+
+export interface ICycleIssuesResponse {
+	grouped_by?: string;
+	sub_grouped_by?: string;
+	total_count?: number;
+	next_cursor?: string;
+	prev_cursor?: string;
+	next_page_results?: boolean;
+	prev_page_results?: boolean;
+	count?: number;
+	total_pages?: number;
+	total_results?: number;
+	extra_stats?: any;
+	results: IIssue[];
 }

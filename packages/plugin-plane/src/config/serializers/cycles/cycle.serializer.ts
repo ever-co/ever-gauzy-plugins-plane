@@ -1,7 +1,9 @@
 import {
 	CycleStatusEnum,
 	ICycle,
+	ICycleIssuesResponse,
 	ID,
+	IIssue,
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
 	IOrganizationSprintUpdateInput,
@@ -249,7 +251,9 @@ export function cycleTransformer(
 const cycleRelations = [
 	'project',
 	'toSprintTaskHistories',
+	'toSprintTaskHistories.task',
 	'fromSprintTaskHistories',
+	'fromSprintTaskHistories.task',
 	'tasks',
 	'taskSprints',
 	'taskSprints.task',
@@ -279,4 +283,21 @@ export function getSprintsQuery(projectId?: ID): Record<string, string> {
 	});
 
 	return query;
+}
+
+export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
+	return {
+		grouped_by: null,
+		sub_grouped_by: null,
+		total_count: issues.length,
+		next_cursor: '30:1:0',
+		prev_cursor: '30:-1:1',
+		next_page_results: false,
+		prev_page_results: false,
+		count: issues.length,
+		total_pages: 1,
+		total_results: issues.length,
+		extra_stats: null,
+		results: issues,
+	};
 }

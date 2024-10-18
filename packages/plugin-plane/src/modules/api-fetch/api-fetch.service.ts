@@ -1,12 +1,12 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { IServerFetchInputs } from '@plane-plugin/models';
-import { EXTERNAL_BASE_API_URL } from '../../config/constants';
 import { firstValueFrom } from 'rxjs';
+import { IServerFetchInputs } from '@plane-plugin/models';
 import {
 	defaultTestTenantId,
 	defaultTestToken,
-} from '../../config/credentials';
+	EXTERNAL_BASE_API_URL,
+} from '../../config';
 
 @Injectable()
 export class ApiFetchService {

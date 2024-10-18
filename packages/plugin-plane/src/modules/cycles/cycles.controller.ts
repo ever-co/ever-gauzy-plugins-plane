@@ -1,4 +1,95 @@
-import { Controller } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	Patch,
+	Post,
+} from '@nestjs/common';
+import { ICycle, ID } from '@plane-plugin/models';
+import { CyclesService } from './cycles.service';
+import { CycleDTO } from './dto';
 
-@Controller('cycles')
-export class CyclesController {}
+@ApiTags('Cycles')
+@Controller()
+export class CyclesController {
+	constructor(private readonly _cycleService: CyclesService) {}
+
+	/**
+	 * Creates a new cycle (sprint) based on the provided input.
+	 *
+	 * @param {CycleDTO} input - The data transfer object containing the cycle details to create.
+	 * @returns {Promise<ICycle | ICycle[]>} - The newly created cycle or a list of cycles after the creation.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Cycle' })
+	@Post()
+	async create(@Body() input: CycleDTO): Promise<ICycle | ICycle[]> {
+		return await this._cycleService.create(input);
+	}
+
+	/**
+	 * Updates an existing cycle (sprint) based on the provided ID and input data.
+	 *
+	 * @param {ID} id - The unique identifier of the cycle to update.
+	 * @param {CycleDTO} input - The data transfer object containing the updated cycle details.
+	 * @returns {Promise<ICycle | ICycle[]>} - The updated cycle or a list of updated cycles after the update.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Cycle' })
+	@Patch(':id')
+	async update(
+		@Param('id') id: ID,
+		@Body() input: CycleDTO,
+	): Promise<ICycle | ICycle[]> {
+		return await this._cycleService.update(id, input);
+	}
+
+	/**
+	 * Retrieves all cycles (sprints) for a given project.
+	 *
+	 * @param {ID} projectId - The unique identifier of the project to filter cycles.
+	 * @returns {Promise<ICycle | ICycle[]>} - A promise that resolves to a list of cycles for the specified project.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Cycles' })
+	@Get()
+	async findAll(
+		@Param('projectId') projectId: ID,
+	): Promise<ICycle | ICycle[]> {
+		return this._cycleService.findAll(projectId);
+	}
+
+	/**
+	 * Retrieves a specific cycle (sprint) by its ID and optionally filters by project ID.
+	 *
+	 * @param {ID} id - The unique identifier of the cycle to retrieve.
+	 * @param {ID} projectId - (Optional) The unique identifier of the project to filter the cycle.
+	 * @returns {Promise<ICycle | ICycle[]>} - A promise that resolves to the requested cycle or a list of cycles.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Cycle' })
+	@Get(':id')
+	async findOne(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+	): Promise<ICycle | ICycle[]> {
+		return this._cycleService.findOne(id, projectId);
+	}
+
+	/** Deletes a specific cycle (sprint) by its ID.
+	 *
+	 * @param {ID} id - The unique identifier of the cycle to delete.
+	 * @returns - A promise that resolves when the cycle is successfully deleted.
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Cycle' })
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._cycleService.delete(id);
+	}
+}

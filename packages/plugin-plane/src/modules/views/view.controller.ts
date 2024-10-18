@@ -1,4 +1,4 @@
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
 	Body,
 	Controller,
@@ -14,6 +14,7 @@ import { ID, IView } from '@plane-plugin/models';
 import { IssueViewService } from './view.service';
 import { CreateViewDTO, UpdateViewDTO } from './dto';
 
+@ApiTags('Issue Views')
 @Controller()
 export class IssueViewController {
 	constructor(private readonly _issueViewService: IssueViewService) {}

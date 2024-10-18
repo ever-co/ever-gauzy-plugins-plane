@@ -28,8 +28,10 @@ import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 export class ProjectModuleService extends ApiFetchService {
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
+
 		@Inject(forwardRef(() => UserFavoritesService))
 		private readonly _userFavoriteService: UserFavoritesService,
+
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 	) {

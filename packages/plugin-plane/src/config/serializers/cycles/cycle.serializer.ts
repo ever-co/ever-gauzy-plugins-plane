@@ -4,6 +4,7 @@ import {
 	ID,
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
+	IOrganizationSprintUpdateInput,
 	OrganizationSprintStatusEnum,
 } from '@plane-plugin/models';
 import moment from 'moment';
@@ -149,6 +150,44 @@ export function createCycleInputTransformer(
 		organizationId: defaultOrganizationId(),
 		managerIds: [defaultEmployeeId()], // TODO : Change this and retrive it from authorization Request Header or Body Request
 		memberIds: [defaultEmployeeId()], // TODO : Change this and get it from Request
+	};
+}
+
+/**
+ * Transforms a cycle object into an input suitable for updating an organization sprint.
+ *
+ * @param {ICycle} cycle - The cycle object containing information about the sprint.
+ * @returns {IOrganizationSprintUpdateInput} - The transformed input for updating the sprint.
+ */
+export function updateCycleInputTransformer(
+	cycle: ICycle,
+): IOrganizationSprintUpdateInput {
+	const {
+		name,
+		description,
+		project_id,
+		start_date,
+		end_date,
+		status: cycleStatus,
+	} = cycle;
+
+	// Calculate the cycle length
+	const length = calculateDaysBetween(start_date, end_date);
+
+	// Determine the status of the cycle
+	const status = cycleStatusToSprintStatus(cycleStatus);
+
+	return {
+		memberIds: cycle.assignee_ids,
+		goal: description,
+		startDate: start_date,
+		endDate: end_date,
+		name,
+		length,
+		managerIds: [cycle.owned_by_id],
+		sprintProgress: cycle.progress_snapshot,
+		projectId: project_id,
+		status,
 	};
 }
 

@@ -48,6 +48,24 @@ export class CyclesController {
 	}
 
 	/**
+	 * Adds a list of issues to a sprint by updating each issue with the given cycle ID.
+	 * Utilizes `Promise.all` to perform asynchronous updates on multiple issues concurrently.
+	 *
+	 * @param {ID} id - The ID of the sprint (cycle) to which the issues will be added.
+	 * @param {ID[]} input - An array of issue IDs that need to be associated with the sprint.
+	 * @returns {Promise<{ message: string }>} A success message upon completion.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Check Data Overlaps' })
+	@Post('/:id/cycle-issues')
+	async addIssuesToSprint(
+		@Param('id') id: ID,
+		@Body() input: { issues: ID[] },
+	): Promise<{ message: string }> {
+		return await this._cycleService.addIssuesToSprint(id, input);
+	}
+
+	/**
 	 * Updates an existing cycle (sprint) based on the provided ID and input data.
 	 *
 	 * @param {ID} id - The unique identifier of the cycle to update.

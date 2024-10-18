@@ -205,8 +205,8 @@ export class IssuesService extends ApiFetchService {
 			const updatedTask = await this.getExternalIssue(task.id);
 
 			return issueTransformer(updatedTask);
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}

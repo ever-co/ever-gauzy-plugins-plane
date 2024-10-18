@@ -22,11 +22,14 @@ import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 import moment from 'moment';
+import { IssuesService } from '../issues/issues.service';
 
 @Injectable()
 export class CyclesService extends ApiFetchService {
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
+
+		private readonly _issueService: IssuesService,
 
 		@Inject(forwardRef(() => UserFavoritesService))
 		private readonly _userFavoriteService: UserFavoritesService,
@@ -173,6 +176,36 @@ export class CyclesService extends ApiFetchService {
 				);
 
 			return cycleTransformer(sprint, favoriteIds);
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Adds a list of issues to a sprint by updating each issue with the given cycle ID.
+	 * Utilizes `Promise.all` to perform asynchronous updates on multiple issues concurrently.
+	 *
+	 * @param {ID} id - The ID of the sprint (cycle) to which the issues will be added.
+	 * @param {ID[]} issues - An array of issue IDs that need to be associated with the sprint.
+	 * @returns {Promise<{ message: string }>} A success message upon completion.
+	 * @throws {BadRequestException} If there is an error during the update of any issue.
+	 */
+	async addIssuesToSprint(
+		id: ID,
+		input: { issues: ID[] },
+	): Promise<{ message: string }> {
+		try {
+			await Promise.all(
+				input.issues.map(
+					async (issue) =>
+						await this._issueService.update(issue, {
+							cycle_id: id,
+						}),
+				),
+			);
+
+			return { message: 'success' };
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error.response);

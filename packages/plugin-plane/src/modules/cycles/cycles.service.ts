@@ -10,6 +10,7 @@ import {
 	ICycle,
 	ID,
 	IOrganizationSprint,
+	IPagination,
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
@@ -115,5 +116,81 @@ export class CyclesService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error.response);
 		}
+	}
+
+	/**
+	 * Retrieves all cycles (sprints) optionally filtered by a project ID and returns the transformed result.
+	 *
+	 * @param {ID} [projectId] - Optional project ID to filter the cycles by project.
+	 * @returns {Promise<ICycle | ICycle[]>} - A list of cycles or a single cycle after transformation.
+	 * @throws {BadRequestException} - Throws an error if the fetching process fails.
+	 */
+	async findAll(projectId?: ID): Promise<ICycle | ICycle[]> {
+		try {
+			// Build the query string once
+			const query = qs.stringify(getSprintsQuery(projectId));
+
+			// Search for user favorites
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationSprint,
+				);
+
+			// Perform the API call to fetch the sprints
+			const sprints: IPagination<IOrganizationSprint> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query,
+				})
+			).data;
+
+			// Return the transformed sprints
+			return cycleTransformer(sprints.items, favoriteIds);
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Retrieves a specific cycle (sprint) by its ID, optionally filtered by project ID, and returns the transformed result.
+	 *
+	 * @param {ID} [id] - The unique identifier of the cycle to retrieve.
+	 * @param {ID} [projectId] - Optional project ID to further filter the cycle.
+	 * @returns {Promise<ICycle | ICycle[]>} - The retrieved cycle or a list of cycles after transformation.
+	 * @throws {BadRequestException} - Throws an error if the retrieval process fails.
+	 */
+	async findOne(id?: ID, projectId?: ID): Promise<ICycle | ICycle[]> {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			// Search for user favorites
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationSprint,
+				);
+
+			return cycleTransformer(sprint, favoriteIds);
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Deletes a specific cycle (sprint) by its ID.
+	 *
+	 * @param {ID} id - The unique identifier of the cycle to delete.
+	 * @returns {Promise<any>} - The response data from the delete operation.
+	 * @throws {BadRequestException} - Throws an error if the deletion process fails.
+	 */
+	async delete(id: ID): Promise<any> {
+		return (
+			await this.apiFetch({
+				method: 'DELETE',
+				path: `${this.path}/${id}`,
+			})
+		).data;
 	}
 }

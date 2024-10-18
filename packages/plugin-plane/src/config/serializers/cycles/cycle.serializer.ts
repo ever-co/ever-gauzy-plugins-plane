@@ -142,8 +142,8 @@ export function createCycleInputTransformer(
 	return {
 		name,
 		goal: description,
-		startDate: start_date,
-		endDate: end_date,
+		startDate: new Date(start_date),
+		endDate: new Date(end_date),
 		status,
 		length,
 		projectId: project_id,
@@ -205,7 +205,7 @@ export function cycleTransformer(
 		const isFavorite = favoriteIds?.includes(sprint.id);
 		const status = sprintStatusToCycleStatus(sprint.status);
 		const { completedIssues } = getTaskCounts(
-			sprint.toSprintTaskHistories.length > 0
+			sprint.toSprintTaskHistories?.length > 0
 				? sprint.toSprintTaskHistories
 				: sprint.tasks,
 		);
@@ -222,18 +222,18 @@ export function cycleTransformer(
 			progress_snapshot: sprint.sprintProgress as Record<string, any>,
 			is_favorite: isFavorite,
 			total_issues:
-				sprint.toSprintTaskHistories.length > 0
-					? sprint.toSprintTaskHistories.length
-					: sprint.tasks.length,
+				sprint.toSprintTaskHistories?.length > 0
+					? sprint.toSprintTaskHistories?.length
+					: sprint.tasks?.length,
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
-			owned_by_id: sprint.members.find((member) => member.roleId).id,
+			owned_by_id: sprint.members?.find((member) => member.roleId).id,
 			created_by: defaultEmployeeId(), // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
 			workspace_id: sprint.tenantId,
 			view_props: {},
 			logo_props: {},
-			assignee_ids: sprint.members.map((member) => member.employeeId),
+			assignee_ids: sprint.members?.map((member) => member.employeeId),
 			external_id: null,
 			external_source: null,
 		};

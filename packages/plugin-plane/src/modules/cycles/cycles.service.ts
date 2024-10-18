@@ -21,6 +21,7 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
+import moment from 'moment';
 
 @Injectable()
 export class CyclesService extends ApiFetchService {
@@ -80,7 +81,7 @@ export class CyclesService extends ApiFetchService {
 			// Return the transformed sprint
 			return cycleTransformer(sprint);
 		} catch (error: any) {
-			console.log(error);
+			console.log({ failed: error.response.data.message });
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -148,8 +149,8 @@ export class CyclesService extends ApiFetchService {
 			// Return the transformed sprints
 			return cycleTransformer(sprints.items, favoriteIds);
 		} catch (error: any) {
-			console.log(error);
-			throw new BadRequestException(error.response);
+			console.log(error.response);
+			throw new BadRequestException(error);
 		}
 	}
 
@@ -179,6 +180,40 @@ export class CyclesService extends ApiFetchService {
 	}
 
 	/**
+	 * Checks for overlaps with existing cycles before creating a new cycle.
+	 *
+	 * @param input The start and end dates for the new cycle to be created.
+	 * @returns The status and optional error according to overlaps existing
+	 */
+	async checkDatesOverlap(
+		input: Pick<ICycle, 'start_date' | 'end_date'>,
+		projectId?: ID,
+	) {
+		try {
+			// Retrieve existing cycles
+			const cycles = (await this.findAll(projectId)) as ICycle[];
+
+			// Check for date overlaps using moment.js
+			const hasOverlap = this.checkForDateOverlap(
+				cycles,
+				input.start_date,
+				input.end_date,
+			);
+
+			if (hasOverlap) {
+				return {
+					error: 'You have a cycle already on the given dates, if you want to create a draft cycle you can do that by removing dates',
+					status: false,
+				};
+			}
+			return { status: true };
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
 	 * Deletes a specific cycle (sprint) by its ID.
 	 *
 	 * @param {ID} id - The unique identifier of the cycle to delete.
@@ -192,5 +227,33 @@ export class CyclesService extends ApiFetchService {
 				path: `${this.path}/${id}`,
 			})
 		).data;
+	}
+
+	/**
+	 * Checks for date overlaps between existing cycles and the new dates.
+	 * Uses `moment` for more precise date comparisons.
+	 * @param cycles The existing cycles.
+	 * @param startDate The start date of the new cycle.
+	 * @param endDate The end date of the new cycle.
+	 * @returns true if there is an overlap, otherwise false.
+	 */
+	private checkForDateOverlap(
+		cycles: ICycle[],
+		startDate: Date,
+		endDate: Date,
+	): boolean {
+		const newStart = moment(startDate).startOf('day'); // Ignore time, use only the date
+		const newEnd = moment(endDate).startOf('day'); // Ignore time, use only the date
+
+		return cycles.some((cycle) => {
+			const existingStart = moment(cycle.start_date).startOf('day'); // Ignore time, use only the date
+			const existingEnd = moment(cycle.end_date).startOf('day'); // Ignore time, use only the date
+
+			// Check for overlaps using moment methods (date-only)
+			const isOverlap =
+				newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+
+			return isOverlap;
+		});
 	}
 }

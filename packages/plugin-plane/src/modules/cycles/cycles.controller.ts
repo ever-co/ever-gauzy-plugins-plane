@@ -33,6 +33,21 @@ export class CyclesController {
 	}
 
 	/**
+	 * Checks for overlaps with existing cycles before creating a new cycle.
+	 *
+	 * @param input The start and end dates for the new cycle to be created.
+	 * @returns The status and optional error according to overlaps existing
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Check Data Overlaps' })
+	@Post('/date-check')
+	async checkDatesOverlap(
+		@Body() input: Pick<CycleDTO, 'start_date' | 'end_date'>,
+	) {
+		return await this._cycleService.checkDatesOverlap(input);
+	}
+
+	/**
 	 * Updates an existing cycle (sprint) based on the provided ID and input data.
 	 *
 	 * @param {ID} id - The unique identifier of the cycle to update.

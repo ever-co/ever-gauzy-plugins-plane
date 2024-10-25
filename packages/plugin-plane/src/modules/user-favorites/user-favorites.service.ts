@@ -26,6 +26,7 @@ import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { ProjectModuleService } from '../project-module/project-module.service';
 import { IssueViewService } from '../views/view.service';
+import { CyclesService } from '../cycles/cycles.service';
 
 @Injectable()
 export class UserFavoritesService extends ApiFetchService {
@@ -37,7 +38,7 @@ export class UserFavoritesService extends ApiFetchService {
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 		private readonly _issueViewService: IssueViewService,
-		// TODO : Add here Cycle service also
+		private readonly _cycleService: CyclesService,
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -80,11 +81,12 @@ export class UserFavoritesService extends ApiFetchService {
 				[FavoriteEntityTypeEnum.VIEW]: () =>
 					this._issueViewService.findOne(entity_identifier),
 
-				// TODO : Find Cycle here after cycle integration
+				[FavoriteEntityTypeEnum.CYCLE]: () =>
+					this._cycleService.findOne(entity_identifier, project_id),
 			};
 
 			// Retrieve entity data if available
-			const entityData = entityServiceMap[entity_type]
+			const entityData: any = entityServiceMap[entity_type]
 				? await entityServiceMap[entity_type]()
 				: undefined;
 
@@ -94,7 +96,7 @@ export class UserFavoritesService extends ApiFetchService {
 				projectId:
 					entity_type === FavoriteEntityTypeEnum.PROJECT
 						? entityData.id
-						: entityData.project_id,
+						: entityData.project_id || entityData.project,
 			});
 		} catch (error) {
 			console.log(error);
@@ -151,8 +153,10 @@ export class UserFavoritesService extends ApiFetchService {
 							break;
 
 						case FavoriteEntityTypeEnum.CYCLE:
-							// TODO : Implement cycle retrive after cycle feature implemented
-							entityData = null;
+							entityData =
+								await this._cycleService.getExternalSprint(
+									favorite.entityId,
+								);
 							break;
 
 						default:

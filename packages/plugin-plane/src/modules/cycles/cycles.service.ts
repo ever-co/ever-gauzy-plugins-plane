@@ -33,6 +33,7 @@ export class CyclesService extends ApiFetchService {
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
 
+		@Inject(forwardRef(() => IssuesService))
 		private readonly _issueService: IssuesService,
 
 		@Inject(forwardRef(() => UserFavoritesService))
@@ -211,7 +212,7 @@ export class CyclesService extends ApiFetchService {
 
 			return { message: 'success' };
 		} catch (error: any) {
-			console.log(error);
+			console.log(error.response);
 			throw new BadRequestException(error.response);
 		}
 	}

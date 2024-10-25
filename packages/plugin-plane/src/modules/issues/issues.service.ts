@@ -852,6 +852,30 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
+	 * @description Find issues by view with view filters
+	 * @param {ID} viewId - The view ID for whom to search issues
+	 * @param {*} query - View filters
+	 * @returns A promise resolved to found and tranformed issues
+	 * @memberof IssuesService
+	 */
+	async findViewIssues(viewId: ID, query: any): Promise<IIssue[]> {
+		try {
+			const issues: IPagination<ITask> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/view/${viewId}`,
+					query,
+				})
+			).data;
+
+			return issues.items.map((issue) => issueTransformer(issue));
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
 	 * @description Delete Issue Link.
 	 * @param {ID} id - Issue Link ID to delete
 	 * @returns A promise resolved to deleted result

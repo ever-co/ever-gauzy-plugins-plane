@@ -5,6 +5,7 @@ import { UserFavoritesController } from './user-favorites.controller';
 import { ProjectModule } from '../project/project.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
 import { IssueViewModule } from '../views/view.module';
+import { CyclesModule } from '../cycles/cycles.module';
 
 @Global()
 @Module({
@@ -15,6 +16,7 @@ import { IssueViewModule } from '../views/view.module';
 		forwardRef(() => IssueViewModule),
 		forwardRef(() => ProjectModule),
 		forwardRef(() => ProjectModuleModule),
+		forwardRef(() => CyclesModule),
 	],
 	providers: [UserFavoritesService],
 	controllers: [UserFavoritesController],

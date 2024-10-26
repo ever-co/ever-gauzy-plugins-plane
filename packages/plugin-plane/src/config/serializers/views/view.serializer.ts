@@ -178,6 +178,7 @@ export function updateViewInputTransformer(
 /**
  * @description Transform Task View From external API to issue view for internal use
  * @param {(ITaskView | ITaskView[])} taskViews - External API Task view(s)
+ * @param {ID[]} [favoriteIds] - User favorites list
  * @returns  {(IView | IView[])} An array of or a single Issue View
  */
 export function issueViewTransformer(

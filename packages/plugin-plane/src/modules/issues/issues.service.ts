@@ -205,8 +205,8 @@ export class IssuesService extends ApiFetchService {
 			const updatedTask = await this.getExternalIssue(task.id);
 
 			return issueTransformer(updatedTask);
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}
@@ -845,6 +845,30 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			return issueLinks;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * @description Find issues by view with view filters
+	 * @param {ID} viewId - The view ID for whom to search issues
+	 * @param {*} query - View filters
+	 * @returns A promise resolved to found and tranformed issues
+	 * @memberof IssuesService
+	 */
+	async findViewIssues(viewId: ID, query: any): Promise<IIssue[]> {
+		try {
+			const issues: IPagination<ITask> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/view/${viewId}`,
+					query,
+				})
+			).data;
+
+			return issues.items.map((issue) => issueTransformer(issue));
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);

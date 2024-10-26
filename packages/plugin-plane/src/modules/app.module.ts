@@ -18,6 +18,7 @@ import { ReactionsModule } from './reactions/reactions.module';
 import { IssueViewModule } from './views/view.module';
 import { WorkspaceIssueViewModule } from './views/workspace-view.module';
 import { IssueLinksModule } from './issue-links/issue-links.module';
+import { CyclesModule } from './cycles/cycles.module';
 
 @Module({
 	imports: [
@@ -40,6 +41,7 @@ import { IssueLinksModule } from './issue-links/issue-links.module';
 		IssueViewModule,
 		WorkspaceIssueViewModule,
 		IssueLinksModule,
+		CyclesModule,
 	],
 })
 export class AppModule {}

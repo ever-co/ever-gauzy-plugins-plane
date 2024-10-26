@@ -1,4 +1,5 @@
 export * from './comments';
+export * from './cycles';
 export * from './issue-link';
 export * from './modules';
 export * from './projects';

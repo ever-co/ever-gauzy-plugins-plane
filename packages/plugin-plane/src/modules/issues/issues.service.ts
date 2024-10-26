@@ -257,44 +257,67 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves all issues related to a specific project, with optional filters and grouping.
+	 *
+	 * This function fetches issues based on the project ID, using optional parameters such as
+	 * filter options and the referer to detect if the request comes from a view page.
+	 * Depending on the `group_by` option, the issues are grouped accordingly before being returned.
+	 *
+	 * @param {ID} projectId - The ID of the project for which to retrieve issues.
+	 * @param {IIssueFindInput} [options] - Optional filters and grouping options for the query.
+	 * @param {string} [referer] - The referer URL, used to extract the view ID if the request is from a view page.
+	 * @returns {Promise<any>} A promise that resolves to the grouped or non-grouped issues.
+	 * @throws {BadRequestException} If there is an error during the API fetch or data processing.
+	 */
 	async getAllIssuesByProject(
 		projectId: ID,
 		options?: IIssueFindInput,
 		referer?: string,
-	) {
+	): Promise<any> {
 		try {
+			// Extract the view ID from the referer if it exists
 			const viewId = extractViewIdFromReferer(referer);
 
+			// Destructure options for group_by and module if provided
 			const { group_by, module } = options;
+
+			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(getTaskQuery(projectId, options));
 
 			let path = '';
+			// If a module is specified, modify the path accordingly
 			if (module) {
 				path = 'module';
 			}
 
+			// Fetch tasks from the API, using the viewId if available, otherwise default to module or the base path
 			const tasks: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: !viewId
-						? `${this.path}/${path}`
-						: `${this.path}/view/${viewId}`,
+						? `${this.path}/${path}` // Use module path if no viewId
+						: `${this.path}/view/${viewId}`, // Use view path if viewId is present
 					query,
 				})
 			).data;
 
+			// Extract the issues from the API response
 			const issues = tasks.items;
 
+			// Group the issues based on the group_by option, or return non-grouped issues by default
 			switch (group_by) {
 				case IssueGroupBy.STATE:
-					return groupIssuesByStateId(issues);
+					return groupIssuesByStateId(issues); // Group issues by their state
 				case IssueGroupBy.TARGET_DATE:
-					return groupIssuesByTargetDate(issues);
+					return groupIssuesByTargetDate(issues); // Group issues by their target date
 				default:
-					return nonGroupedIssues(issues);
+					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}
 		} catch (error: any) {
+			// Log the error for debugging purposes
 			console.log(error);
+			// Throw a BadRequestException to indicate something went wrong
 			throw new BadRequestException();
 		}
 	}

@@ -30,6 +30,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
+	extractViewIdFromReferer,
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByStateId,
@@ -256,8 +257,14 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
-	async getAllIssuesByProject(projectId: ID, options?: IIssueFindInput) {
+	async getAllIssuesByProject(
+		projectId: ID,
+		options?: IIssueFindInput,
+		referer?: string,
+	) {
 		try {
+			const viewId = extractViewIdFromReferer(referer);
+
 			const { group_by, module } = options;
 			const query = qs.stringify(getTaskQuery(projectId, options));
 
@@ -269,7 +276,9 @@ export class IssuesService extends ApiFetchService {
 			const tasks: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `${this.path}/${path}`,
+					path: !viewId
+						? `${this.path}/${path}`
+						: `${this.path}/view/${viewId}`,
 					query,
 				})
 			).data;

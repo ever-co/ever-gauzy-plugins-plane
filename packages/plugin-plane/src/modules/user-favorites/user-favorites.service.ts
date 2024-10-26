@@ -213,7 +213,7 @@ export class UserFavoritesService extends ApiFetchService {
 					path: `${this.path}/${id}`,
 				})
 			).data;
-			console.log({ deleted });
+
 			return deleted;
 		} catch (error) {
 			console.log(error);

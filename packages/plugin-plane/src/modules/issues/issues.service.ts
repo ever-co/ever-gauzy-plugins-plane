@@ -12,6 +12,7 @@ import {
 	ID,
 	IDeleteRelationInput,
 	IIssue,
+	IIssueActivity,
 	IIssueComment,
 	IIssueCreateInput,
 	IIssueFindInput,
@@ -35,6 +36,7 @@ import {
 	getTaskQuery,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
+	issueActivityLogTransformer,
 	issueCommentTrasnsformer,
 	issueLinkTransformer,
 	issueTransformer,
@@ -48,6 +50,7 @@ import { ProjectService } from '../project/project.service';
 import { ReactionsService } from '../reactions/reactions.service';
 import { IssueRelationsService } from '../issue-relations/issue-relations.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -58,6 +61,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _projectService: ProjectService,
 		private readonly _issueRelationService: IssueRelationsService,
+		private readonly _activityService: ActivityService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -593,6 +597,42 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
+	async findIssueActivity(id: ID, projectId: ID): Promise<any> {
+		try {
+			const activityLogs = await this._activityService.findAll({
+				entity: BaseEntityEnum.Task,
+				entityId: id,
+			});
+
+			const issueActivities: IIssueActivity[] = await Promise.all(
+				activityLogs.map(async (activityLog) => {
+					const { actor, issue, project, workspace } =
+						await this.getIssueCommentDetails(
+							id,
+							projectId,
+							activityLog.creatorId,
+						);
+
+					const transformedActivityLog = issueActivityLogTransformer(
+						activityLog,
+						issue,
+						actor,
+						project,
+						workspace,
+					);
+
+					return Array.isArray(transformedActivityLog)
+						? transformedActivityLog[0]
+						: transformedActivityLog;
+				}),
+			);
+
+			return issueActivities;
+		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
 	/**
 	 * @description Create Reaction to issue
 	 * @param {ID} entityId - Issue ID for whom create reaction
@@ -720,7 +760,7 @@ export class IssuesService extends ApiFetchService {
 					projectId,
 				);
 			}
-			return []; // TODO: Implement activity log APIs
+			return await this.findIssueActivity(id, projectId);
 		} catch (error: any) {
 			console.log(error.response.data);
 			throw new BadRequestException(error);

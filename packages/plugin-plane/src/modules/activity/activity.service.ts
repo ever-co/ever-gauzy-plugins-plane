@@ -20,7 +20,7 @@ export class ActivityService extends ApiFetchService {
 				await this.apiFetch({ method: 'GET', path: this.path, query })
 			).data;
 
-			console.log({ activityLogs });
+			console.log({ activityLogs: activityLogs.items });
 
 			return activityLogs.items;
 		} catch (error: any) {

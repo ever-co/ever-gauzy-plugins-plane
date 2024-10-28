@@ -3,6 +3,7 @@ import {
 	Controller,
 	Delete,
 	Get,
+	Headers,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -51,10 +52,12 @@ export class IssuesController {
 	async getAllByProjectId(
 		@Param('projectId') projectId: ID,
 		@Query() options: IIssueFindInput,
+		@Headers('referer') referer: string,
 	) {
 		return await this._issueService.getAllIssuesByProject(
 			projectId,
 			options,
+			referer,
 		);
 	}
 

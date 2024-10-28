@@ -1,7 +1,7 @@
-import { ID } from './imports';
-import { IIssueComment } from 'comment.model';
+import { ActionTypeEnum, BaseEntityEnum, ID } from './imports';
+import { IIssueComment } from './comment.model';
 
-export interface IActivity extends IIssueComment {
+export interface IIssueActivity extends IIssueComment {
 	verb?: string;
 	field?: string;
 	old_value?: string;
@@ -11,4 +11,10 @@ export interface IActivity extends IIssueComment {
 	new_identifier?: ID;
 	epoch?: number;
 	issue_comment?: ID;
+}
+
+export interface IIssueActivityFindInput {
+	entity?: BaseEntityEnum;
+	entityId?: ID;
+	action?: ActionTypeEnum;
 }

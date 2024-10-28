@@ -7,11 +7,11 @@ import { IReactionData } from './reaction.model';
 
 export interface IIssueComment {
 	id?: ID;
-	actor_detail: IMemberInfo;
-	issue_detail: IIssue;
-	project_detail: IProject;
-	workspace_detail: IWorkspaceInfo;
-	comment_reactions: IReactionData[];
+	actor_detail?: IMemberInfo;
+	issue_detail?: IIssue;
+	project_detail?: IProject;
+	workspace_detail?: IWorkspaceInfo;
+	comment_reactions?: IReactionData[];
 	created_at?: Date;
 	updated_at?: Date;
 	deleted_at?: Date | null;

@@ -140,7 +140,8 @@ export {
 	IBaseSoftDeleteEntityModel,
 	IBaseRelationsEntityModel,
 	ActorTypeEnum,
-	BaseEntityEnum
+	BaseEntityEnum,
+	JsonData
 } from './base-entity.model';
 
 export * from './proxy.model';

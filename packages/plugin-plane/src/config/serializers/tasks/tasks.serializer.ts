@@ -40,6 +40,7 @@ export function issueTransformer(
 	return {
 		id: issue.id,
 		name: issue.title,
+		state: issue.status,
 		state_id: issue.taskStatusId,
 		sort_order: 65535.0, // TODO : Research usecase and add to API
 		completed_at: issue.resolvedAt,

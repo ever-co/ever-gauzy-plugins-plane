@@ -7,6 +7,7 @@ export interface IIssue {
 	name?: string;
 	description_html?: string;
 	description?: any;
+	state?: string;
 	state_id?: ID;
 	sort_order?: number;
 	completed_at?: Date;

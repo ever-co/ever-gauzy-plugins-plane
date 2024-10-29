@@ -11,6 +11,7 @@ import {
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { getProjectsResponse } from '../projects';
+import { labelActivityTransformer } from './label-activities.serializer';
 
 const transformIssueActivityLog = (
 	activityLog: IActivityLog,
@@ -18,6 +19,7 @@ const transformIssueActivityLog = (
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
+	oldStatusValue?: string,
 ): IIssueActivity[] => {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
@@ -29,32 +31,75 @@ const transformIssueActivityLog = (
 		issue_reactions: 'reaction',
 	};
 
-	const activities = updatedFields.map((field, index) => {
-		const transformedField = activityLogFieldTransformer(
-			field as keyof ITask,
-		);
-		const activityField =
-			activityFieldMap[transformedField] || transformedField;
+	const activities = updatedFields
+		.filter((f) => f !== 'taskStatusId')
+		.map((field, index) => {
+			const transformedField = activityLogFieldTransformer(
+				field as keyof ITask,
+			);
+			const activityField =
+				activityFieldMap[transformedField] || transformedField;
 
-		const comment =
-			activityLog.action === ActionTypeEnum.Created
-				? 'created the issue'
-				: activityLog.action === ActionTypeEnum.Updated &&
-					  activityField === 'assignee'
-					? 'added assignee '
-					: `updated the ${activityField} to`;
+			const comment =
+				activityLog.action === ActionTypeEnum.Created
+					? 'created the issue'
+					: activityLog.action === ActionTypeEnum.Updated &&
+						  activityField === 'assignee'
+						? 'added assignee '
+						: `updated the ${activityField} to`;
 
-		const oldValue: any = previousValues[index][field];
-		const newValue: any = updatedValues[index][field];
+			const oldValue: any = previousValues[index][field];
+			const newValue: any = updatedValues[index][field];
 
-		return {
-			/**
-			 *@summary Why using this kind for ID ?
-			 * @property
-			 * The reason is that, firstly, the front-end render a unique activity log if two have the same ID.
-			 * We can't use uuid generator here because the front-end will generate as many activities as possible for each ID and put them in the global state then. So if API is called multiple times, new ID will be generated and sent to front-end and it will find that the new generated one is not yet in the state and then will be added.
-			 */
-			id: activityLog.id + index + `${field}`,
+			return {
+				/**
+				 *@summary Why using this kind for ID ?
+				 * @property
+				 * The reason is that, firstly, the front-end render a unique activity log if two have the same ID.
+				 * We can't use uuid generator here because the front-end will generate as many activities as possible for each ID and put them in the global state then. So if API is called multiple times, new ID will be generated and sent to front-end and it will find that the new generated one is not yet in the state and then will be added.
+				 */
+				id: activityLog.id + index + `${field}`,
+				issue_detail: issue,
+				actor_detail: {
+					id: actor?.id,
+					first_name: actor?.user?.firstName,
+					last_name: actor?.user?.lastName,
+					avatar: actor?.user?.imageUrl,
+					is_bot: false,
+					display_name: actor?.fullName,
+				},
+				project_detail: getProjectsResponse([project])[0],
+				workspace_detail: workspaceDetail,
+				field:
+					activityField === 'state__group' ||
+					activityField === 'state_id'
+						? 'state'
+						: activityField,
+				comment,
+				old_value: oldValue,
+				new_value: newValue,
+				old_identifier: null,
+				new_identifier: null,
+				verb: activityLog.action.toLowerCase(),
+				created_at: activityLog.createdAt,
+				updated_at: activityLog.updatedAt,
+				deleted_at: activityLog.deletedAt,
+				attachments: [],
+				created_by: activityLog.creatorId,
+				updated_by: null,
+				project: project.id,
+				workspace: workspaceDetail.id,
+				issue: issue.id,
+				actor: actor?.id,
+			};
+		});
+
+	if (updatedFields.includes('taskStatusId')) {
+		const { previousEntity, updatedEntity } =
+			labelActivityTransformer(activityLog);
+
+		activities.push({
+			id: activityLog.id + previousEntity,
 			issue_detail: issue,
 			actor_detail: {
 				id: actor?.id,
@@ -66,13 +111,12 @@ const transformIssueActivityLog = (
 			},
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail: workspaceDetail,
-			field:
-				activityField === 'state__group' || activityField === 'state_id'
-					? 'state'
-					: activityField,
-			comment,
-			old_value: oldValue,
-			new_value: newValue,
+			field: 'state',
+			comment: 'updated the state to',
+			old_value: oldStatusValue,
+			new_value: activityLog.data['status'],
+			old_identifier: previousEntity,
+			new_identifier: updatedEntity,
 			verb: activityLog.action.toLowerCase(),
 			created_at: activityLog.createdAt,
 			updated_at: activityLog.updatedAt,
@@ -84,10 +128,10 @@ const transformIssueActivityLog = (
 			workspace: workspaceDetail.id,
 			issue: issue.id,
 			actor: actor?.id,
-		};
-	});
+		});
+	}
 
-	return activities;
+	return activities.filter((log) => log.field !== undefined);
 };
 
 export function issueActivityLogTransformer(

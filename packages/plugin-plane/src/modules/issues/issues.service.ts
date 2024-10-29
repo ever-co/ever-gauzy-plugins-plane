@@ -182,6 +182,11 @@ export class IssuesService extends ApiFetchService {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// Find project
+			const project = await this._projectService.getExternalProject(
+				issue.project_id,
+			);
+
 			// Calculate the final set of modules after additions and removals
 			const existingModules =
 				externalIssue?.modules.map((module) => module.id) || [];
@@ -192,6 +197,7 @@ export class IssuesService extends ApiFetchService {
 			const body = updateIssueInputTransformer(
 				input,
 				state?.name as TaskStatusEnum,
+				project.members,
 				Array.from(modules),
 			);
 
@@ -604,7 +610,30 @@ export class IssuesService extends ApiFetchService {
 				entityId: id,
 			});
 
-			const issueActivities: IIssueActivity[] = await Promise.all(
+			// console.log({
+			// 	updatedFields: activityLogs.map((log) => log.updatedFields),
+			// });
+
+			// console.log(
+			// 	'=============================================================================',
+			// );
+
+			// console.log({
+			// 	previousValues: activityLogs
+			// 		.map((log) => log.previousValues)
+			// 		.map((c) => c)[0],
+			// });
+			// console.log(
+			// 	'=============================================================================',
+			// );
+
+			// console.log({
+			// 	updatedValues: activityLogs
+			// 		.map((log) => log.updatedValues)
+			// 		.map((c) => c)[0],
+			// });
+
+			const issueActivities = await Promise.all(
 				activityLogs.map(async (activityLog) => {
 					const { actor, issue, project, workspace } =
 						await this.getIssueCommentDetails(
@@ -613,7 +642,7 @@ export class IssuesService extends ApiFetchService {
 							activityLog.creatorId,
 						);
 
-					const transformedActivityLog = issueActivityLogTransformer(
+					const transformedActivityLogs = issueActivityLogTransformer(
 						activityLog,
 						issue,
 						actor,
@@ -621,13 +650,16 @@ export class IssuesService extends ApiFetchService {
 						workspace,
 					);
 
-					return Array.isArray(transformedActivityLog)
-						? transformedActivityLog[0]
-						: transformedActivityLog;
+					return Array.isArray(transformedActivityLogs)
+						? transformedActivityLogs
+						: [transformedActivityLogs];
 				}),
 			);
 
-			return issueActivities;
+			const flattenedActivities: IIssueActivity[] =
+				issueActivities.flat();
+
+			return flattenedActivities;
 		} catch (error: any) {
 			throw new BadRequestException(error);
 		}

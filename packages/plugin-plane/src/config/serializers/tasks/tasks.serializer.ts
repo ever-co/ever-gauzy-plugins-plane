@@ -283,6 +283,7 @@ export function createIssueInputTransformer(
 export function updateIssueInputTransformer(
 	issue: IIssueUpdateInput,
 	status: TaskStatusEnum,
+	members?: IEmployee[],
 	modules?: ID[],
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
@@ -341,8 +342,8 @@ export function updateIssueInputTransformer(
 
 	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
-		transformedInput.members = issue.assignee_ids.map(
-			(id) => ({ id }) as IEmployee,
+		transformedInput.members = members.filter((member) =>
+			issue.assignee_ids.includes(member.id),
 		);
 	}
 

@@ -15,6 +15,39 @@ import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
 import { labelsActivityTransformer } from './labels-activities.serializer';
 
+function activityLogDetails(
+	activityLog: IActivityLog,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+) {
+	return {
+		issue_detail: issue,
+		actor_detail: {
+			id: actor?.id,
+			first_name: actor?.user?.firstName,
+			last_name: actor?.user?.lastName,
+			avatar: actor?.user?.imageUrl,
+			is_bot: false,
+			display_name: actor?.fullName,
+		},
+		project_detail: getProjectsResponse([project])[0],
+		workspace_detail: workspaceDetail,
+		verb: activityLog.action.toLowerCase(),
+		created_at: activityLog.createdAt,
+		updated_at: activityLog.updatedAt,
+		deleted_at: activityLog.deletedAt,
+		attachments: [],
+		created_by: activityLog.creatorId,
+		updated_by: null,
+		project: project.id,
+		workspace: workspaceDetail.id,
+		issue: issue.id,
+		actor: actor?.id,
+	};
+}
+
 const transformIssueActivityLog = (
 	activityLog: IActivityLog,
 	issue: IIssue,
@@ -33,10 +66,16 @@ const transformIssueActivityLog = (
 		issue_reactions: 'reaction',
 	};
 
+	const activityDetails = activityLogDetails(
+		activityLog,
+		issue,
+		actor,
+		project,
+		workspaceDetail,
+	);
+
 	const activities = updatedFields
-		.filter((f) => f !== 'taskStatusId')
-		.filter((f) => f !== 'members')
-		.filter((f) => f !== 'tags')
+		.filter((f) => !['taskStatusId', 'members', 'tags'].includes(f))
 		.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
 				field as keyof ITask,
@@ -63,17 +102,7 @@ const transformIssueActivityLog = (
 				 * We can't use uuid generator here because the front-end will generate as many activities as possible for each ID and put them in the global state then. So if API is called multiple times, new ID will be generated and sent to front-end and it will find that the new generated one is not yet in the state and then will be added.
 				 */
 				id: activityLog.id + index + `${field}`,
-				issue_detail: issue,
-				actor_detail: {
-					id: actor?.id,
-					first_name: actor?.user?.firstName,
-					last_name: actor?.user?.lastName,
-					avatar: actor?.user?.imageUrl,
-					is_bot: false,
-					display_name: actor?.fullName,
-				},
-				project_detail: getProjectsResponse([project])[0],
-				workspace_detail: workspaceDetail,
+				...activityDetails,
 				field:
 					activityField === 'state__group' ||
 					activityField === 'state_id'
@@ -84,17 +113,6 @@ const transformIssueActivityLog = (
 				new_value: newValue,
 				old_identifier: null,
 				new_identifier: null,
-				verb: activityLog.action.toLowerCase(),
-				created_at: activityLog.createdAt,
-				updated_at: activityLog.updatedAt,
-				deleted_at: activityLog.deletedAt,
-				attachments: [],
-				created_by: activityLog.creatorId,
-				updated_by: null,
-				project: project.id,
-				workspace: workspaceDetail.id,
-				issue: issue.id,
-				actor: actor?.id,
 			};
 		});
 
@@ -104,34 +122,13 @@ const transformIssueActivityLog = (
 
 		activities.push({
 			id: activityLog.id + previousEntity,
-			issue_detail: issue,
-			actor_detail: {
-				id: actor?.id,
-				first_name: actor?.user?.firstName,
-				last_name: actor?.user?.lastName,
-				avatar: actor?.user?.imageUrl,
-				is_bot: false,
-				display_name: actor?.fullName,
-			},
-			project_detail: getProjectsResponse([project])[0],
-			workspace_detail: workspaceDetail,
+			...activityDetails,
 			field: 'state',
 			comment: 'updated the state to',
 			old_value: oldStatusValue,
 			new_value: activityLog.data['status'],
 			old_identifier: previousEntity,
 			new_identifier: updatedEntity,
-			verb: activityLog.action.toLowerCase(),
-			created_at: activityLog.createdAt,
-			updated_at: activityLog.updatedAt,
-			deleted_at: activityLog.deletedAt,
-			attachments: [],
-			created_by: activityLog.creatorId,
-			updated_by: null,
-			project: project.id,
-			workspace: workspaceDetail.id,
-			issue: issue.id,
-			actor: actor?.id,
 		});
 	}
 
@@ -144,34 +141,13 @@ const transformIssueActivityLog = (
 			addedMembers.map((member, i) =>
 				activities.push({
 					id: activityLog.id + member.userId + i,
-					issue_detail: issue,
-					actor_detail: {
-						id: actor?.id,
-						first_name: actor?.user?.firstName,
-						last_name: actor?.user?.lastName,
-						avatar: actor?.user?.imageUrl,
-						is_bot: false,
-						display_name: actor?.fullName,
-					},
-					project_detail: getProjectsResponse([project])[0],
-					workspace_detail: workspaceDetail,
+					...activityDetails,
 					field: 'assignees',
 					comment: `${addedVerb} assignee `,
 					old_value: '',
 					new_value: member.fullName,
 					old_identifier: null,
 					new_identifier: member.id,
-					verb: activityLog.action.toLowerCase(),
-					created_at: activityLog.createdAt,
-					updated_at: activityLog.updatedAt,
-					deleted_at: activityLog.deletedAt,
-					attachments: [],
-					created_by: activityLog.creatorId,
-					updated_by: null,
-					project: project.id,
-					workspace: workspaceDetail.id,
-					issue: issue.id,
-					actor: actor?.id,
 				}),
 			);
 		}
@@ -186,34 +162,13 @@ const transformIssueActivityLog = (
 						member.userId +
 						removedMembers.length +
 						i,
-					issue_detail: issue,
-					actor_detail: {
-						id: actor?.id,
-						first_name: actor?.user?.firstName,
-						last_name: actor?.user?.lastName,
-						avatar: actor?.user?.imageUrl,
-						is_bot: false,
-						display_name: actor?.fullName,
-					},
-					project_detail: getProjectsResponse([project])[0],
-					workspace_detail: workspaceDetail,
+					...activityDetails,
 					field: 'assignees',
 					comment: `${removedVerb} assignee `,
 					old_value: member.profile_link,
 					new_value: null,
 					old_identifier: member.id,
 					new_identifier: null,
-					verb: activityLog.action.toLowerCase(),
-					created_at: activityLog.createdAt,
-					updated_at: activityLog.updatedAt,
-					deleted_at: activityLog.deletedAt,
-					attachments: [],
-					created_by: activityLog.creatorId,
-					updated_by: null,
-					project: project.id,
-					workspace: workspaceDetail.id,
-					issue: issue.id,
-					actor: actor?.id,
 				}),
 			);
 		}
@@ -228,34 +183,13 @@ const transformIssueActivityLog = (
 			addedTags.map((tag, i) =>
 				activities.push({
 					id: activityLog.id + tag.id + i,
-					issue_detail: issue,
-					actor_detail: {
-						id: actor?.id,
-						first_name: actor?.user?.firstName,
-						last_name: actor?.user?.lastName,
-						avatar: actor?.user?.imageUrl,
-						is_bot: false,
-						display_name: actor?.fullName,
-					},
-					project_detail: getProjectsResponse([project])[0],
-					workspace_detail: workspaceDetail,
+					...activityDetails,
 					field: 'labels',
 					comment: `${addedVerb} label `,
 					old_value: '',
 					new_value: tag.name,
 					old_identifier: null,
 					new_identifier: tag.id,
-					verb: activityLog.action.toLowerCase(),
-					created_at: activityLog.createdAt,
-					updated_at: activityLog.updatedAt,
-					deleted_at: activityLog.deletedAt,
-					attachments: [],
-					created_by: activityLog.creatorId,
-					updated_by: null,
-					project: project.id,
-					workspace: workspaceDetail.id,
-					issue: issue.id,
-					actor: actor?.id,
 				}),
 			);
 		}
@@ -266,34 +200,13 @@ const transformIssueActivityLog = (
 			removedTags.map((tag, i) =>
 				activities.push({
 					id: activityLog.id + tag.id + removedTags.length + i,
-					issue_detail: issue,
-					actor_detail: {
-						id: actor?.id,
-						first_name: actor?.user?.firstName,
-						last_name: actor?.user?.lastName,
-						avatar: actor?.user?.imageUrl,
-						is_bot: false,
-						display_name: actor?.fullName,
-					},
-					project_detail: getProjectsResponse([project])[0],
-					workspace_detail: workspaceDetail,
+					...activityDetails,
 					field: 'labels',
 					comment: `${removedVerb} label `,
 					old_value: tag.name,
 					new_value: null,
 					old_identifier: tag.id,
 					new_identifier: null,
-					verb: activityLog.action.toLowerCase(),
-					created_at: activityLog.createdAt,
-					updated_at: activityLog.updatedAt,
-					deleted_at: activityLog.deletedAt,
-					attachments: [],
-					created_by: activityLog.creatorId,
-					updated_by: null,
-					project: project.id,
-					workspace: workspaceDetail.id,
-					issue: issue.id,
-					actor: actor?.id,
 				}),
 			);
 		}

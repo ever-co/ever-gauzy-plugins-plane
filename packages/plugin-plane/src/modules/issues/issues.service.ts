@@ -228,8 +228,6 @@ export class IssuesService extends ApiFetchService {
 
 			const updatedTask = await this.getExternalIssue(task.id);
 
-			console.log({ tags: project.tags });
-
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
 			console.log(error.response);

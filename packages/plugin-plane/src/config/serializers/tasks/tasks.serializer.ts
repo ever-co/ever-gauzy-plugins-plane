@@ -5,6 +5,7 @@ import {
 	IIssue,
 	IIssueCreateInput,
 	IIssueFindInput,
+	IIssueLabel,
 	IIssueLink,
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
@@ -285,6 +286,7 @@ export function updateIssueInputTransformer(
 	issue: IIssueUpdateInput,
 	status: TaskStatusEnum,
 	members?: IEmployee[],
+	tags?: IIssueLabel[],
 	modules?: ID[],
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
@@ -338,7 +340,9 @@ export function updateIssueInputTransformer(
 
 	// Add tags only if label_ids is defined
 	if (issue.label_ids) {
-		transformedInput.tags = issue.label_ids.map((id) => ({ id }) as ITag);
+		transformedInput.tags = tags
+			.filter((tag) => issue.label_ids.includes(tag.id))
+			.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
 	}
 
 	// Add members only if assignee_ids is defined

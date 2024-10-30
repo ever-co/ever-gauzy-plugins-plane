@@ -16,6 +16,7 @@ import {
 	IIssueComment,
 	IIssueCreateInput,
 	IIssueFindInput,
+	IIssueLabel,
 	IIssueLink,
 	IIssueUpdateInput,
 	IPagination,
@@ -51,11 +52,13 @@ import { ReactionsService } from '../reactions/reactions.service';
 import { IssueRelationsService } from '../issue-relations/issue-relations.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
 import { ActivityService } from '../activity/activity.service';
+import { IssueLabelsService } from './issue-labels/issue-labels.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
 	constructor(
 		private readonly _stateSerive: StatesService,
+		private readonly _issueLabelService: IssueLabelsService,
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _issueLinkService: IssueLinksService,
@@ -182,6 +185,15 @@ export class IssuesService extends ApiFetchService {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// Find labels
+			const labelResult =
+				await this._issueLabelService.getProjectIssueLabels(
+					issue.project_id,
+				);
+			const labels: IIssueLabel[] = Array.isArray(labelResult)
+				? labelResult
+				: [labelResult];
+
 			// Find project
 			const project = await this._projectService.getExternalProject(
 				issue.project_id,
@@ -198,6 +210,7 @@ export class IssuesService extends ApiFetchService {
 				input,
 				state?.name as TaskStatusEnum,
 				project.members.map((member) => member.employee),
+				labels,
 				Array.from(modules),
 			);
 
@@ -214,6 +227,8 @@ export class IssuesService extends ApiFetchService {
 			).data;
 
 			const updatedTask = await this.getExternalIssue(task.id);
+
+			console.log({ tags: project.tags });
 
 			return issueTransformer(updatedTask);
 		} catch (error: any) {

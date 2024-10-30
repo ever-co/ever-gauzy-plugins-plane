@@ -8,10 +8,12 @@ import { ProjectModule } from '../project/project.module';
 import { ReactionsModule } from '../reactions/reactions.module';
 import { IssueRelationsModule } from '../issue-relations/issue-relations.module';
 import { IssueLinksModule } from '../issue-links/issue-links.module';
+import { IssueLabelsModule } from './issue-labels/issue-labels.module';
 
 @Module({
 	imports: [
 		StatesModule,
+		IssueLabelsModule,
 		SearchIssuesModule,
 		CommentsModule,
 		ReactionsModule,

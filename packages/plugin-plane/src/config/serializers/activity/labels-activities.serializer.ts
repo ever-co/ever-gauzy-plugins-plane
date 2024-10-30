@@ -60,5 +60,5 @@ function getAddedTags(previousTags: ITag[], updatedTags: ITag[]): ITag[] {
  */
 function getRemovedTags(previousTags: ITag[], updatedTags: ITag[]): ITag[] {
 	const updatedSet = new Set(updatedTags.map((tag) => tag.id));
-	return updatedTags.filter((tag) => !updatedSet.has(tag.id));
+	return previousTags.filter((tag) => !updatedSet.has(tag.id));
 }

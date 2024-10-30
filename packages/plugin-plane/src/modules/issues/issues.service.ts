@@ -610,39 +610,6 @@ export class IssuesService extends ApiFetchService {
 				entityId: id,
 			});
 
-			// console.log({
-			// 	dates: activityLogs.map((o) => o.createdAt),
-			// });
-
-			// console.log({
-			// 	updated: activityLogs.map((o) =>
-			// 		JSON.stringify(o.updatedValues),
-			// 	),
-			// });
-
-			// console.log({
-			// 	updatedFields: activityLogs.map((log) => log.updatedFields),
-			// });
-
-			// console.log(
-			// 	'=============================================================================',
-			// );
-
-			// console.log({
-			// 	previousValues: activityLogs
-			// 		.map((log) => log.previousValues)
-			// 		.map((c) => JSON.stringify(c)),
-			// });
-			// console.log(
-			// 	'=============================================================================',
-			// );
-
-			// console.log({
-			// 	updatedValues: activityLogs
-			// 		.map((log) => log.updatedValues)
-			// 		.map((c) => JSON.stringify(c)),
-			// });
-
 			const issueActivities = await Promise.all(
 				activityLogs.map(async (activityLog) => {
 					const { actor, issue, project, workspace } =

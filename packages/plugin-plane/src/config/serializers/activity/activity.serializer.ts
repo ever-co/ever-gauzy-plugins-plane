@@ -13,6 +13,7 @@ import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { getProjectsResponse } from '../projects';
 import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
+import { labelsActivityTransformer } from './labels-activities.serializer';
 
 const transformIssueActivityLog = (
 	activityLog: IActivityLog,
@@ -35,6 +36,7 @@ const transformIssueActivityLog = (
 	const activities = updatedFields
 		.filter((f) => f !== 'taskStatusId')
 		.filter((f) => f !== 'members')
+		.filter((f) => f !== 'tags')
 		.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
 				field as keyof ITask,
@@ -200,6 +202,86 @@ const transformIssueActivityLog = (
 					old_value: member.profile_link,
 					new_value: null,
 					old_identifier: member.id,
+					new_identifier: null,
+					verb: activityLog.action.toLowerCase(),
+					created_at: activityLog.createdAt,
+					updated_at: activityLog.updatedAt,
+					deleted_at: activityLog.deletedAt,
+					attachments: [],
+					created_by: activityLog.creatorId,
+					updated_by: null,
+					project: project.id,
+					workspace: workspaceDetail.id,
+					issue: issue.id,
+					actor: actor?.id,
+				}),
+			);
+		}
+	}
+
+	if (updatedFields.includes('tags')) {
+		const { added, removed } = labelsActivityTransformer(activityLog);
+
+		if (added) {
+			const { tags: addedTags, verb: addedVerb } = added;
+
+			addedTags.map((tag, i) =>
+				activities.push({
+					id: activityLog.id + tag.id + i,
+					issue_detail: issue,
+					actor_detail: {
+						id: actor?.id,
+						first_name: actor?.user?.firstName,
+						last_name: actor?.user?.lastName,
+						avatar: actor?.user?.imageUrl,
+						is_bot: false,
+						display_name: actor?.fullName,
+					},
+					project_detail: getProjectsResponse([project])[0],
+					workspace_detail: workspaceDetail,
+					field: 'labels',
+					comment: `${addedVerb} label `,
+					old_value: '',
+					new_value: tag.name,
+					old_identifier: null,
+					new_identifier: tag.id,
+					verb: activityLog.action.toLowerCase(),
+					created_at: activityLog.createdAt,
+					updated_at: activityLog.updatedAt,
+					deleted_at: activityLog.deletedAt,
+					attachments: [],
+					created_by: activityLog.creatorId,
+					updated_by: null,
+					project: project.id,
+					workspace: workspaceDetail.id,
+					issue: issue.id,
+					actor: actor?.id,
+				}),
+			);
+		}
+
+		if (removed) {
+			const { tags: removedTags, verb: removedVerb } = removed;
+
+			removedTags.map((tag, i) =>
+				activities.push({
+					id: activityLog.id + tag.id + removedTags.length + i,
+					issue_detail: issue,
+					actor_detail: {
+						id: actor?.id,
+						first_name: actor?.user?.firstName,
+						last_name: actor?.user?.lastName,
+						avatar: actor?.user?.imageUrl,
+						is_bot: false,
+						display_name: actor?.fullName,
+					},
+					project_detail: getProjectsResponse([project])[0],
+					workspace_detail: workspaceDetail,
+					field: 'labels',
+					comment: `${removedVerb} label `,
+					old_value: tag.name,
+					new_value: null,
+					old_identifier: tag.id,
 					new_identifier: null,
 					verb: activityLog.action.toLowerCase(),
 					created_at: activityLog.createdAt,

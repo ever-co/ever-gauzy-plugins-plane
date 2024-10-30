@@ -31,8 +31,6 @@ export function assigneesActivityTransformer(activityLog: IActivityLog) {
 	const addedMembers = getAddedMembers(previousMembers, updatedMembers);
 	const removedMembers = getRemovedMembers(previousMembers, updatedMembers);
 
-	console.log({ addedMembers, removedMembers });
-
 	// Return the result, applying the verb to added and removed members
 	return {
 		added:

@@ -12,6 +12,7 @@ import {
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { getProjectsResponse } from '../projects';
 import { labelActivityTransformer } from './label-activities.serializer';
+import { assigneesActivityTransformer } from './assignees-activities.serializer';
 
 const transformIssueActivityLog = (
 	activityLog: IActivityLog,
@@ -33,6 +34,7 @@ const transformIssueActivityLog = (
 
 	const activities = updatedFields
 		.filter((f) => f !== 'taskStatusId')
+		.filter((f) => f !== 'members')
 		.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
 				field as keyof ITask,
@@ -129,6 +131,90 @@ const transformIssueActivityLog = (
 			issue: issue.id,
 			actor: actor?.id,
 		});
+	}
+
+	if (updatedFields.includes('members')) {
+		const { added, removed } = assigneesActivityTransformer(activityLog);
+
+		if (added) {
+			const { members: addedMembers, verb: addedVerb } = added;
+
+			addedMembers.map((member, i) =>
+				activities.push({
+					id: activityLog.id + member.userId + i,
+					issue_detail: issue,
+					actor_detail: {
+						id: actor?.id,
+						first_name: actor?.user?.firstName,
+						last_name: actor?.user?.lastName,
+						avatar: actor?.user?.imageUrl,
+						is_bot: false,
+						display_name: actor?.fullName,
+					},
+					project_detail: getProjectsResponse([project])[0],
+					workspace_detail: workspaceDetail,
+					field: 'assignees',
+					comment: `${addedVerb} assignee `,
+					old_value: '',
+					new_value: member.fullName,
+					old_identifier: null,
+					new_identifier: member.id,
+					verb: activityLog.action.toLowerCase(),
+					created_at: activityLog.createdAt,
+					updated_at: activityLog.updatedAt,
+					deleted_at: activityLog.deletedAt,
+					attachments: [],
+					created_by: activityLog.creatorId,
+					updated_by: null,
+					project: project.id,
+					workspace: workspaceDetail.id,
+					issue: issue.id,
+					actor: actor?.id,
+				}),
+			);
+		}
+
+		if (removed) {
+			const { members: removedMembers, verb: removedVerb } = removed;
+
+			removedMembers.map((member, i) =>
+				activities.push({
+					id:
+						activityLog.id +
+						member.userId +
+						removedMembers.length +
+						i,
+					issue_detail: issue,
+					actor_detail: {
+						id: actor?.id,
+						first_name: actor?.user?.firstName,
+						last_name: actor?.user?.lastName,
+						avatar: actor?.user?.imageUrl,
+						is_bot: false,
+						display_name: actor?.fullName,
+					},
+					project_detail: getProjectsResponse([project])[0],
+					workspace_detail: workspaceDetail,
+					field: 'assignees',
+					comment: `${removedVerb} assignee `,
+					old_value: member.profile_link,
+					new_value: null,
+					old_identifier: member.id,
+					new_identifier: null,
+					verb: activityLog.action.toLowerCase(),
+					created_at: activityLog.createdAt,
+					updated_at: activityLog.updatedAt,
+					deleted_at: activityLog.deletedAt,
+					attachments: [],
+					created_by: activityLog.creatorId,
+					updated_by: null,
+					project: project.id,
+					workspace: workspaceDetail.id,
+					issue: issue.id,
+					actor: actor?.id,
+				}),
+			);
+		}
 	}
 
 	return activities.filter((log) => log.field !== undefined);

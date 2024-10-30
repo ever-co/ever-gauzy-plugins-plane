@@ -197,7 +197,7 @@ export class IssuesService extends ApiFetchService {
 			const body = updateIssueInputTransformer(
 				input,
 				state?.name as TaskStatusEnum,
-				project.members,
+				project.members.map((member) => member.employee),
 				Array.from(modules),
 			);
 
@@ -610,28 +610,38 @@ export class IssuesService extends ApiFetchService {
 				entityId: id,
 			});
 
-			console.log({
-				updatedFields: activityLogs.map((log) => log.updatedFields),
-			});
+			// console.log({
+			// 	dates: activityLogs.map((o) => o.createdAt),
+			// });
 
-			console.log(
-				'=============================================================================',
-			);
+			// console.log({
+			// 	updated: activityLogs.map((o) =>
+			// 		JSON.stringify(o.updatedValues),
+			// 	),
+			// });
 
-			console.log({
-				previousValues: activityLogs
-					.map((log) => log.previousValues)
-					.map((c) => JSON.stringify(c)),
-			});
-			console.log(
-				'=============================================================================',
-			);
+			// console.log({
+			// 	updatedFields: activityLogs.map((log) => log.updatedFields),
+			// });
 
-			console.log({
-				updatedValues: activityLogs
-					.map((log) => log.updatedValues)
-					.map((c) => JSON.stringify(c)),
-			});
+			// console.log(
+			// 	'=============================================================================',
+			// );
+
+			// console.log({
+			// 	previousValues: activityLogs
+			// 		.map((log) => log.previousValues)
+			// 		.map((c) => JSON.stringify(c)),
+			// });
+			// console.log(
+			// 	'=============================================================================',
+			// );
+
+			// console.log({
+			// 	updatedValues: activityLogs
+			// 		.map((log) => log.updatedValues)
+			// 		.map((c) => JSON.stringify(c)),
+			// });
 
 			const issueActivities = await Promise.all(
 				activityLogs.map(async (activityLog) => {

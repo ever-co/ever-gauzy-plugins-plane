@@ -343,9 +343,13 @@ export function updateIssueInputTransformer(
 
 	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
-		transformedInput.members = members.filter((member) =>
-			issue.assignee_ids.includes(member.id),
-		);
+		transformedInput.members = members
+			.filter((member) => issue.assignee_ids.includes(member.id))
+			.map((employee) => ({
+				id: employee.id,
+				fullName: employee.fullName,
+				userId: employee.userId,
+			}));
 	}
 
 	return transformedInput;

@@ -15,6 +15,16 @@ import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
 import { labelsActivityTransformer } from './labels-activities.serializer';
 
+/**
+ * Generates detailed information for a given activity log.
+ *
+ * @param {IActivityLog} activityLog - The activity log object containing details about the activity.
+ * @param {IIssue} issue - The issue related to the activity.
+ * @param {IEmployee} actor - The employee who performed the activity.
+ * @param {IOrganizationProject} project - The project associated with the activity.
+ * @param {IWorkspaceInfo} workspaceDetail - The workspace information where the activity occurred.
+ * @returns {Object} An object containing detailed information about the activity log.
+ */
 function activityLogDetails(
 	activityLog: IActivityLog,
 	issue: IIssue,
@@ -29,12 +39,12 @@ function activityLogDetails(
 			first_name: actor?.user?.firstName,
 			last_name: actor?.user?.lastName,
 			avatar: actor?.user?.imageUrl,
-			is_bot: false,
+			is_bot: false, // Indicates if the actor is a bot
 			display_name: actor?.fullName,
 		},
-		project_detail: getProjectsResponse([project])[0],
+		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
 		workspace_detail: workspaceDetail,
-		verb: activityLog.action.toLowerCase(),
+		verb: activityLog.action.toLowerCase(), // Convert action to lowercase for uniformity
 		created_at: activityLog.createdAt,
 		updated_at: activityLog.updatedAt,
 		deleted_at: activityLog.deletedAt,
@@ -48,6 +58,17 @@ function activityLogDetails(
 	};
 }
 
+/**
+ * Transforms the activity log of an issue into a structured format for easier handling.
+ *
+ * @param {IActivityLog} activityLog - The activity log object.
+ * @param {IIssue} issue - The issue associated with the activity log.
+ * @param {IEmployee} actor - The employee who performed the activity.
+ * @param {IOrganizationProject} project - The project related to the activity.
+ * @param {IWorkspaceInfo} workspaceDetail - Details of the workspace.
+ * @param {string} [oldStatusValue] - The previous status value of the issue (optional).
+ * @returns {IIssueActivity[]} An array of structured issue activities derived from the activity log.
+ */
 const transformIssueActivityLog = (
 	activityLog: IActivityLog,
 	issue: IIssue,
@@ -58,6 +79,7 @@ const transformIssueActivityLog = (
 ): IIssueActivity[] => {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
+	// Map of activity fields to their corresponding names
 	const activityFieldMap: { [key: string]: string } = {
 		assignee_ids: 'assignee',
 		label_ids: 'labels',
@@ -66,6 +88,7 @@ const transformIssueActivityLog = (
 		issue_reactions: 'reaction',
 	};
 
+	// Generate details for the activity log
 	const activityDetails = activityLogDetails(
 		activityLog,
 		issue,
@@ -74,6 +97,7 @@ const transformIssueActivityLog = (
 		workspaceDetail,
 	);
 
+	// Process updated fields to create activity entries
 	const activities = updatedFields
 		.filter((f) => !['taskStatusId', 'members', 'tags'].includes(f))
 		.map((field, index) => {
@@ -83,6 +107,7 @@ const transformIssueActivityLog = (
 			const activityField =
 				activityFieldMap[transformedField] || transformedField;
 
+			// Generate a comment based on the action and field
 			const comment =
 				activityLog.action === ActionTypeEnum.Created
 					? 'created the issue'
@@ -96,10 +121,11 @@ const transformIssueActivityLog = (
 
 			return {
 				/**
-				 *@summary Why using this kind for ID ?
-				 * @property
-				 * The reason is that, firstly, the front-end render a unique activity log if two have the same ID.
-				 * We can't use uuid generator here because the front-end will generate as many activities as possible for each ID and put them in the global state then. So if API is called multiple times, new ID will be generated and sent to front-end and it will find that the new generated one is not yet in the state and then will be added.
+				 * Unique ID for each activity entry.
+				 * The reason for this format is that the front-end generates a unique activity log if two have the same ID.
+				 * A UUID generator cannot be used here because the front-end will generate multiple activities for each ID
+				 * and store them in the global state. If the API is called multiple times, a new ID will be generated,
+				 * which is not yet in the state and thus will be added.
 				 */
 				id: activityLog.id + index + `${field}`,
 				...activityDetails,
@@ -116,6 +142,7 @@ const transformIssueActivityLog = (
 			};
 		});
 
+	// Handle task status updates
 	if (updatedFields.includes('taskStatusId')) {
 		const { previousEntity, updatedEntity } =
 			statusActivityTransformer(activityLog);
@@ -132,6 +159,7 @@ const transformIssueActivityLog = (
 		});
 	}
 
+	// Handle changes in assignees
 	if (updatedFields.includes('members')) {
 		const { added, removed } = assigneesActivityTransformer(activityLog);
 
@@ -174,6 +202,7 @@ const transformIssueActivityLog = (
 		}
 	}
 
+	// Handle changes in tags
 	if (updatedFields.includes('tags')) {
 		const { added, removed } = labelsActivityTransformer(activityLog);
 
@@ -212,9 +241,20 @@ const transformIssueActivityLog = (
 		}
 	}
 
+	// Filter out activities without a defined field
 	return activities.filter((log) => log.field !== undefined);
 };
 
+/**
+ * Transforms a list of activity logs or a single activity log for an issue into structured issue activities.
+ *
+ * @param {IActivityLog[] | IActivityLog} activityLogs - An array of activity logs or a single activity log.
+ * @param {IIssue} issue - The issue associated with the activity logs.
+ * @param {IEmployee} actor - The employee who performed the activities.
+ * @param {IOrganizationProject} project - The project related to the activities.
+ * @param {IWorkspaceInfo} workspaceDetail - Details of the workspace.
+ * @returns {IIssueActivity[] | IIssueActivity} An array of structured issue activities or a single structured activity.
+ */
 export function issueActivityLogTransformer(
 	activityLogs: IActivityLog[] | IActivityLog,
 	issue: IIssue,
@@ -223,6 +263,7 @@ export function issueActivityLogTransformer(
 	workspaceDetail: IWorkspaceInfo,
 ): IIssueActivity[] | IIssueActivity {
 	if (Array.isArray(activityLogs)) {
+		// Combine multiple activity logs into a single array of structured activities
 		const combinedLogs = activityLogs
 			.map((log) =>
 				transformIssueActivityLog(
@@ -238,6 +279,7 @@ export function issueActivityLogTransformer(
 		return combinedLogs;
 	}
 
+	// Transform a single activity log into structured activity
 	return transformIssueActivityLog(
 		activityLogs,
 		issue,

@@ -19,6 +19,7 @@ import { IssueViewModule } from './views/view.module';
 import { WorkspaceIssueViewModule } from './views/workspace-view.module';
 import { IssueLinksModule } from './issue-links/issue-links.module';
 import { CyclesModule } from './cycles/cycles.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
 	imports: [
@@ -42,6 +43,7 @@ import { CyclesModule } from './cycles/cycles.module';
 		WorkspaceIssueViewModule,
 		IssueLinksModule,
 		CyclesModule,
+		ActivityModule,
 	],
 })
 export class AppModule {}

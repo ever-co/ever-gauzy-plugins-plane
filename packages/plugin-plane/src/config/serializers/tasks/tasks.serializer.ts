@@ -5,6 +5,7 @@ import {
 	IIssue,
 	IIssueCreateInput,
 	IIssueFindInput,
+	IIssueLabel,
 	IIssueLink,
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
@@ -40,6 +41,7 @@ export function issueTransformer(
 	return {
 		id: issue.id,
 		name: issue.title,
+		state: issue.status,
 		state_id: issue.taskStatusId,
 		sort_order: 65535.0, // TODO : Research usecase and add to API
 		completed_at: issue.resolvedAt,
@@ -283,6 +285,8 @@ export function createIssueInputTransformer(
 export function updateIssueInputTransformer(
 	issue: IIssueUpdateInput,
 	status: TaskStatusEnum,
+	members?: IEmployee[],
+	tags?: IIssueLabel[],
 	modules?: ID[],
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
@@ -336,14 +340,20 @@ export function updateIssueInputTransformer(
 
 	// Add tags only if label_ids is defined
 	if (issue.label_ids) {
-		transformedInput.tags = issue.label_ids.map((id) => ({ id }) as ITag);
+		transformedInput.tags = tags
+			.filter((tag) => issue.label_ids.includes(tag.id))
+			.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
 	}
 
 	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
-		transformedInput.members = issue.assignee_ids.map(
-			(id) => ({ id }) as IEmployee,
-		);
+		transformedInput.members = members
+			.filter((member) => issue.assignee_ids.includes(member.id))
+			.map((employee) => ({
+				id: employee.id,
+				fullName: employee.fullName,
+				userId: employee.userId,
+			}));
 	}
 
 	return transformedInput;

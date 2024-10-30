@@ -1,0 +1,343 @@
+import {
+	ActionTypeEnum,
+	IActivityLog,
+	IEmployee,
+	IIssue,
+	IIssueActivity,
+	IIssueActivityFindInput,
+	IOrganizationProject,
+	ITask,
+	IWorkspaceInfo,
+} from '@plane-plugin/models';
+import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { getProjectsResponse } from '../projects';
+import { statusActivityTransformer } from './status-activities.serializer';
+import { assigneesActivityTransformer } from './assignees-activities.serializer';
+import { labelsActivityTransformer } from './labels-activities.serializer';
+
+/**
+ * Generates detailed information for a given activity log.
+ *
+ * @param {IActivityLog} activityLog - The activity log object containing details about the activity.
+ * @param {IIssue} issue - The issue related to the activity.
+ * @param {IEmployee} actor - The employee who performed the activity.
+ * @param {IOrganizationProject} project - The project associated with the activity.
+ * @param {IWorkspaceInfo} workspaceDetail - The workspace information where the activity occurred.
+ * @returns {Object} An object containing detailed information about the activity log.
+ */
+function activityLogDetails(
+	activityLog: IActivityLog,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+) {
+	return {
+		issue_detail: issue,
+		actor_detail: {
+			id: actor?.id,
+			first_name: actor?.user?.firstName,
+			last_name: actor?.user?.lastName,
+			avatar: actor?.user?.imageUrl,
+			is_bot: false, // Indicates if the actor is a bot
+			display_name: actor?.fullName,
+		},
+		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
+		workspace_detail: workspaceDetail,
+		verb: activityLog.action.toLowerCase(), // Convert action to lowercase for uniformity
+		created_at: activityLog.createdAt,
+		updated_at: activityLog.updatedAt,
+		deleted_at: activityLog.deletedAt,
+		attachments: [],
+		created_by: activityLog.creatorId,
+		updated_by: null,
+		project: project.id,
+		workspace: workspaceDetail.id,
+		issue: issue.id,
+		actor: actor?.id,
+	};
+}
+
+/**
+ * Transforms the activity log of an issue into a structured format for easier handling.
+ *
+ * @param {IActivityLog} activityLog - The activity log object.
+ * @param {IIssue} issue - The issue associated with the activity log.
+ * @param {IEmployee} actor - The employee who performed the activity.
+ * @param {IOrganizationProject} project - The project related to the activity.
+ * @param {IWorkspaceInfo} workspaceDetail - Details of the workspace.
+ * @param {string} [oldStatusValue] - The previous status value of the issue (optional).
+ * @returns {IIssueActivity[]} An array of structured issue activities derived from the activity log.
+ */
+const transformIssueActivityLog = (
+	activityLog: IActivityLog,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+	oldStatusValue?: string,
+): IIssueActivity[] => {
+	const { updatedFields, updatedValues, previousValues } = activityLog;
+
+	// Map of activity fields to their corresponding names
+	const activityFieldMap: { [key: string]: string } = {
+		assignee_ids: 'assignee',
+		label_ids: 'labels',
+		module_ids: 'module',
+		issue_link: 'link',
+		issue_reactions: 'reaction',
+	};
+
+	// Generate details for the activity log
+	const activityDetails = activityLogDetails(
+		activityLog,
+		issue,
+		actor,
+		project,
+		workspaceDetail,
+	);
+
+	// Process updated fields to create activity entries
+	const activities = updatedFields
+		.filter((f) => !['taskStatusId', 'members', 'tags'].includes(f))
+		.map((field, index) => {
+			const transformedField = activityLogFieldTransformer(
+				field as keyof ITask,
+			);
+			const activityField =
+				activityFieldMap[transformedField] || transformedField;
+
+			// Generate a comment based on the action and field
+			const comment =
+				activityLog.action === ActionTypeEnum.Created
+					? 'created the issue'
+					: activityLog.action === ActionTypeEnum.Updated &&
+						  activityField === 'assignee'
+						? 'added assignee '
+						: `updated the ${activityField} to`;
+
+			const oldValue: any = previousValues[index][field];
+			const newValue: any = updatedValues[index][field];
+
+			return {
+				/**
+				 * Unique ID for each activity entry.
+				 * The reason for this format is that the front-end generates a unique activity log if two have the same ID.
+				 * A UUID generator cannot be used here because the front-end will generate multiple activities for each ID
+				 * and store them in the global state. If the API is called multiple times, a new ID will be generated,
+				 * which is not yet in the state and thus will be added.
+				 */
+				id: activityLog.id + index + `${field}`,
+				...activityDetails,
+				field:
+					activityField === 'state__group' ||
+					activityField === 'state_id'
+						? 'state'
+						: activityField,
+				comment,
+				old_value: oldValue,
+				new_value: newValue,
+				old_identifier: null,
+				new_identifier: null,
+			};
+		});
+
+	// Handle task status updates
+	if (updatedFields.includes('taskStatusId')) {
+		const { previousEntity, updatedEntity } =
+			statusActivityTransformer(activityLog);
+
+		activities.push({
+			id: activityLog.id + previousEntity,
+			...activityDetails,
+			field: 'state',
+			comment: 'updated the state to',
+			old_value: oldStatusValue,
+			new_value: activityLog.data['status'],
+			old_identifier: previousEntity,
+			new_identifier: updatedEntity,
+		});
+	}
+
+	// Handle changes in assignees
+	if (updatedFields.includes('members')) {
+		const { added, removed } = assigneesActivityTransformer(activityLog);
+
+		if (added) {
+			const { members: addedMembers, verb: addedVerb } = added;
+
+			addedMembers.map((member, i) =>
+				activities.push({
+					id: activityLog.id + member.userId + i,
+					...activityDetails,
+					field: 'assignees',
+					comment: `${addedVerb} assignee `,
+					old_value: '',
+					new_value: member.fullName,
+					old_identifier: null,
+					new_identifier: member.id,
+				}),
+			);
+		}
+
+		if (removed) {
+			const { members: removedMembers, verb: removedVerb } = removed;
+
+			removedMembers.map((member, i) =>
+				activities.push({
+					id:
+						activityLog.id +
+						member.userId +
+						removedMembers.length +
+						i,
+					...activityDetails,
+					field: 'assignees',
+					comment: `${removedVerb} assignee `,
+					old_value: member.profile_link,
+					new_value: null,
+					old_identifier: member.id,
+					new_identifier: null,
+				}),
+			);
+		}
+	}
+
+	// Handle changes in tags
+	if (updatedFields.includes('tags')) {
+		const { added, removed } = labelsActivityTransformer(activityLog);
+
+		if (added) {
+			const { tags: addedTags, verb: addedVerb } = added;
+
+			addedTags.map((tag, i) =>
+				activities.push({
+					id: activityLog.id + tag.id + i,
+					...activityDetails,
+					field: 'labels',
+					comment: `${addedVerb} label `,
+					old_value: '',
+					new_value: tag.name,
+					old_identifier: null,
+					new_identifier: tag.id,
+				}),
+			);
+		}
+
+		if (removed) {
+			const { tags: removedTags, verb: removedVerb } = removed;
+
+			removedTags.map((tag, i) =>
+				activities.push({
+					id: activityLog.id + tag.id + removedTags.length + i,
+					...activityDetails,
+					field: 'labels',
+					comment: `${removedVerb} label `,
+					old_value: tag.name,
+					new_value: null,
+					old_identifier: tag.id,
+					new_identifier: null,
+				}),
+			);
+		}
+	}
+
+	// Filter out activities without a defined field
+	return activities.filter((log) => log.field !== undefined);
+};
+
+/**
+ * Transforms a list of activity logs or a single activity log for an issue into structured issue activities.
+ *
+ * @param {IActivityLog[] | IActivityLog} activityLogs - An array of activity logs or a single activity log.
+ * @param {IIssue} issue - The issue associated with the activity logs.
+ * @param {IEmployee} actor - The employee who performed the activities.
+ * @param {IOrganizationProject} project - The project related to the activities.
+ * @param {IWorkspaceInfo} workspaceDetail - Details of the workspace.
+ * @returns {IIssueActivity[] | IIssueActivity} An array of structured issue activities or a single structured activity.
+ */
+export function issueActivityLogTransformer(
+	activityLogs: IActivityLog[] | IActivityLog,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+): IIssueActivity[] | IIssueActivity {
+	if (Array.isArray(activityLogs)) {
+		// Combine multiple activity logs into a single array of structured activities
+		const combinedLogs = activityLogs
+			.map((log) =>
+				transformIssueActivityLog(
+					log,
+					issue,
+					actor,
+					project,
+					workspaceDetail,
+				),
+			)
+			.reduce((acc, cur) => acc.concat(cur), []);
+
+		return combinedLogs;
+	}
+
+	// Transform a single activity log into structured activity
+	return transformIssueActivityLog(
+		activityLogs,
+		issue,
+		actor,
+		project,
+		workspaceDetail,
+	);
+}
+
+export function activityLogFieldTransformer(field: keyof ITask): keyof IIssue {
+	const issueFieldsMap: { [key in keyof ITask]: keyof IIssue } = {
+		title: 'name',
+		taskStatusId: 'state_id',
+		resolvedAt: 'completed_at',
+		priority: 'priority',
+		startDate: 'start_date',
+		dueDate: 'target_date',
+		number: 'sequence_id',
+		projectId: 'project_id',
+		parentId: 'parent_id',
+		createdAt: 'created_at',
+		updatedAt: 'updated_at',
+		creatorId: 'created_by',
+		isDraft: 'is_draft',
+		organizationSprintId: 'cycle_id',
+		archivedAt: 'archived_at',
+		taskStatus: 'state__group',
+		description: 'description',
+		members: 'assignee_ids',
+		tags: 'label_ids',
+		modules: 'module_ids',
+	};
+
+	return issueFieldsMap[field];
+}
+
+export function getActivityLogsQuery(
+	options: IIssueActivityFindInput,
+): Record<string, string> {
+	const { action, entity, entityId } = options;
+
+	// Tenant and Organization based query
+	const query: Record<string, string> = {
+		organizationId: defaultOrganizationId(),
+		tenantId: defaultTestTenantId(),
+	};
+
+	if (action) {
+		query['action'] = action;
+	}
+
+	if (entityId) {
+		query['entityId'] = entityId;
+	}
+
+	if (entity) {
+		query['entity'] = entity;
+	}
+
+	return query;
+}

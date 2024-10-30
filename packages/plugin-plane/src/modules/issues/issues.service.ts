@@ -12,9 +12,11 @@ import {
 	ID,
 	IDeleteRelationInput,
 	IIssue,
+	IIssueActivity,
 	IIssueComment,
 	IIssueCreateInput,
 	IIssueFindInput,
+	IIssueLabel,
 	IIssueLink,
 	IIssueUpdateInput,
 	IPagination,
@@ -35,6 +37,7 @@ import {
 	getTaskQuery,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
+	issueActivityLogTransformer,
 	issueCommentTrasnsformer,
 	issueLinkTransformer,
 	issueTransformer,
@@ -48,16 +51,20 @@ import { ProjectService } from '../project/project.service';
 import { ReactionsService } from '../reactions/reactions.service';
 import { IssueRelationsService } from '../issue-relations/issue-relations.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
+import { ActivityService } from '../activity/activity.service';
+import { IssueLabelsService } from './issue-labels/issue-labels.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
 	constructor(
 		private readonly _stateSerive: StatesService,
+		private readonly _issueLabelService: IssueLabelsService,
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _projectService: ProjectService,
 		private readonly _issueRelationService: IssueRelationsService,
+		private readonly _activityService: ActivityService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -178,6 +185,20 @@ export class IssuesService extends ApiFetchService {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// Find labels
+			const labelResult =
+				await this._issueLabelService.getProjectIssueLabels(
+					issue.project_id,
+				);
+			const labels: IIssueLabel[] = Array.isArray(labelResult)
+				? labelResult
+				: [labelResult];
+
+			// Find project
+			const project = await this._projectService.getExternalProject(
+				issue.project_id,
+			);
+
 			// Calculate the final set of modules after additions and removals
 			const existingModules =
 				externalIssue?.modules.map((module) => module.id) || [];
@@ -188,6 +209,8 @@ export class IssuesService extends ApiFetchService {
 			const body = updateIssueInputTransformer(
 				input,
 				state?.name as TaskStatusEnum,
+				project.members.map((member) => member.employee),
+				labels,
 				Array.from(modules),
 			);
 
@@ -593,6 +616,45 @@ export class IssuesService extends ApiFetchService {
 		}
 	}
 
+	async findIssueActivity(id: ID, projectId: ID): Promise<any> {
+		try {
+			const activityLogs = await this._activityService.findAll({
+				entity: BaseEntityEnum.Task,
+				entityId: id,
+			});
+
+			const issueActivities = await Promise.all(
+				activityLogs.map(async (activityLog) => {
+					const { actor, issue, project, workspace } =
+						await this.getIssueCommentDetails(
+							id,
+							projectId,
+							activityLog.creatorId,
+						);
+
+					const transformedActivityLogs = issueActivityLogTransformer(
+						activityLog,
+						issue,
+						actor,
+						project,
+						workspace,
+					);
+
+					return Array.isArray(transformedActivityLogs)
+						? transformedActivityLogs
+						: [transformedActivityLogs];
+				}),
+			);
+
+			const flattenedActivities: IIssueActivity[] =
+				issueActivities.flat();
+
+			return flattenedActivities;
+		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
 	/**
 	 * @description Create Reaction to issue
 	 * @param {ID} entityId - Issue ID for whom create reaction
@@ -720,7 +782,7 @@ export class IssuesService extends ApiFetchService {
 					projectId,
 				);
 			}
-			return []; // TODO: Implement activity log APIs
+			return await this.findIssueActivity(id, projectId);
 		} catch (error: any) {
 			console.log(error.response.data);
 			throw new BadRequestException(error);

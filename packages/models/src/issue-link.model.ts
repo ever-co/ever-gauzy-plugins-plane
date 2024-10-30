@@ -1,5 +1,5 @@
-import { IMemberInfo } from './user.model';
 import { ID, JsonData } from './imports';
+import { IMemberInfo } from './user.model';
 
 export interface IIssueLink {
 	id?: ID;

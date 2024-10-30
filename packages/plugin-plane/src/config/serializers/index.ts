@@ -1,3 +1,4 @@
+export * from './activity';
 export * from './comments';
 export * from './cycles';
 export * from './issue-link';

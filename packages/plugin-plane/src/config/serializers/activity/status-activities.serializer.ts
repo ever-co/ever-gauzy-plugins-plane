@@ -7,7 +7,7 @@ import { IActivityLog } from '@plane-plugin/models';
  * @returns An object containing the updated and previous task status IDs,
  * or undefined if the task status ID was not updated.
  */
-export function labelActivityTransformer(activityLog: IActivityLog) {
+export function statusActivityTransformer(activityLog: IActivityLog) {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
 	// Check if 'taskStatusId' is included in the updated fields.

@@ -1,3 +1,4 @@
 export * from './activity.serializer';
-export * from './label-activities.serializer';
+export * from './status-activities.serializer';
 export * from './assignees-activities.serializer';
+export * from './labels-activities.serializer';

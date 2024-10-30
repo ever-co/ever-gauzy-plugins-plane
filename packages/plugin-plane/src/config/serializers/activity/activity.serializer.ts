@@ -11,7 +11,7 @@ import {
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { getProjectsResponse } from '../projects';
-import { labelActivityTransformer } from './label-activities.serializer';
+import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
 
 const transformIssueActivityLog = (
@@ -98,7 +98,7 @@ const transformIssueActivityLog = (
 
 	if (updatedFields.includes('taskStatusId')) {
 		const { previousEntity, updatedEntity } =
-			labelActivityTransformer(activityLog);
+			statusActivityTransformer(activityLog);
 
 		activities.push({
 			id: activityLog.id + previousEntity,

@@ -926,7 +926,7 @@ export class IssuesService extends ApiFetchService {
 
 			// Link Details
 			const { actor, project } = await this.getIssueCommentDetails(
-				id,
+				issueId,
 				projectId,
 				link.creatorId,
 			);

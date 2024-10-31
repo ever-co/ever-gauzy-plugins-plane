@@ -368,7 +368,7 @@ export function issueRelationActivities(
 	workspaceDetail: IWorkspaceInfo,
 ): IIssueActivity[] {
 	// Map over activity logs and transform each log into an issue activity entry
-	const activities = activityLogs.map((activityLog, i) => {
+	const activities = activityLogs.map((activityLog) => {
 		// Retrieve the detailed activity log info (e.g., timestamp, project, actor, etc.)
 		const activityDetails = activityLogDetails(
 			activityLog,
@@ -390,7 +390,7 @@ export function issueRelationActivities(
 
 		// Build the activity object containing information about the change to the link
 		return {
-			id: activityLog.id + taskLinkedIssue.id + i,
+			id: activityLog.id,
 			...activityDetails,
 			verb: verb === 'deleted' ? verb : 'updated',
 			field,

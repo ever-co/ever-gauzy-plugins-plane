@@ -284,7 +284,7 @@ export class IssuesController {
 	@Patch(':id/comments/:commentId')
 	async updateComment(
 		@Body() input: CreateIssueCommentDTO,
-		@Param('entityId') entityId: ID,
+		@Param('id') entityId: ID,
 		@Param('commentId') id: ID,
 		@Param('projectId') projectId: ID,
 	): Promise<IIssue> {
@@ -310,7 +310,7 @@ export class IssuesController {
 	@Patch(':id/issue-links/:linkId')
 	async updateLink(
 		@Body() input: CreateIssueLinkDTO,
-		@Param('entityId') issueId: ID,
+		@Param('id') issueId: ID,
 		@Param('linkId') linkId: ID,
 		@Param('projectId') projectId: ID,
 	): Promise<IIssueLink> {

@@ -7,6 +7,7 @@ import {
 	IIssueActivityFindInput,
 	IOrganizationProject,
 	IOrganizationProjectModule,
+	IResourceLink,
 	ITag,
 	ITask,
 	IWorkspaceInfo,
@@ -300,6 +301,60 @@ const transformIssueActivityLog = (
 	// Filter out activities without a defined field
 	return activities.filter((log) => log.field !== undefined);
 };
+
+/**
+ * Generates an array of activities representing the changes made to issue links.
+ * It creates an activity log for each log entry, indicating if a link was created, updated, or deleted.
+ *
+ * @param {IActivityLog[]} activityLogs - The list of activity logs that track changes to the issue link.
+ * @param {IResourceLink} link - The resource link associated with the issue.
+ * @param {IIssue} issue - The issue related to the activity log.
+ * @param {IEmployee} actor - The employee who performed the action (e.g., created, updated, or deleted the link).
+ * @param {IOrganizationProject} project - The project to which the issue belongs.
+ * @param {IWorkspaceInfo} workspaceDetail - The workspace details where the issue resides.
+ * @returns {IIssueActivity[]} An array of issue activities reflecting changes made to the links.
+ */
+export function issueLinksActivities(
+	activityLogs: IActivityLog[],
+	link: IResourceLink,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+): IIssueActivity[] {
+	// Map over activity logs and transform each log into an issue activity entry
+	const activities = activityLogs.map((activityLog, i) => {
+		// Retrieve the detailed activity log info (e.g., timestamp, project, actor, etc.)
+		const activityDetails = activityLogDetails(
+			activityLog,
+			issue,
+			actor,
+			project,
+			workspaceDetail,
+		);
+
+		// Extract and normalize the action performed (verb) to lowercase
+		const verb = activityLog.action.toLocaleLowerCase();
+
+		// Build the activity object containing information about the change to the link
+		return {
+			id: activityLog.id + link.id + i,
+			...activityDetails,
+			verb,
+			field: 'link',
+			comment: `${verb} a link`,
+			old_value:
+				verb === 'created'
+					? null
+					: (activityLog.previousValues[i]['link'] as any),
+			new_value: link.url,
+			old_identifier: null,
+			new_identifier: link.id,
+		};
+	});
+
+	return activities;
+}
 
 /**
  * Transforms a list of activity logs or a single activity log for an issue into structured issue activities.

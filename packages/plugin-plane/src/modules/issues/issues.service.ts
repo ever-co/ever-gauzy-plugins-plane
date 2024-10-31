@@ -39,6 +39,7 @@ import {
 	groupIssuesByTargetDate,
 	issueActivityLogTransformer,
 	issueCommentTrasnsformer,
+	issueLinksActivities,
 	issueLinkTransformer,
 	issueTransformer,
 	nonGroupedIssues,
@@ -647,8 +648,42 @@ export class IssuesService extends ApiFetchService {
 				}),
 			);
 
-			const flattenedActivities: IIssueActivity[] =
-				issueActivities.flat();
+			// Find links for logs
+			const links = await this._issueLinkService.findAll(id);
+
+			const linkActivities = await Promise.all(
+				links.map(async (link) => {
+					const logs = await this._activityService.findAll({
+						entity: BaseEntityEnum.ResourceLink,
+						entityId: link.id,
+					});
+
+					const activities = await Promise.all(
+						logs.map(async (log) => {
+							const { actor, issue, project, workspace } =
+								await this.getIssueCommentDetails(
+									id,
+									projectId,
+									log.creatorId,
+								);
+
+							return issueLinksActivities(
+								logs,
+								link,
+								issue,
+								actor,
+								project,
+								workspace,
+							);
+						}),
+					);
+					return activities;
+				}),
+			);
+
+			const flattenedActivities: IIssueActivity[] = issueActivities
+				.flat()
+				.concat(linkActivities.flat(2));
 
 			return flattenedActivities;
 		} catch (error: any) {

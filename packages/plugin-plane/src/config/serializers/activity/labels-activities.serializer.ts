@@ -1,42 +1,15 @@
 import { IActivityLog, ITag } from '@plane-plugin/models';
+import { manyToManyFieldActivityTransformer } from './many-to-many-field-activity.helper';
 
-/**
- * Transforms the activity log to capture the tags that were added or removed
- * during the update of task's tags
- *
- * @param activityLog - The current activity log  with updated values
- * @returns An object containing added tags, removed tags and their respective verb (added/removed)
- */
 export function labelsActivityTransformer(activityLog: IActivityLog) {
-	const { updatedFields, updatedValues, previousValues } = activityLog;
-
-	// Check if 'tags' field was updated
-	if (!updatedFields.includes('tags')) {
-		return null;
-	}
-
-	// Retrieve updated tags from 'updatedValues'
-	const updatedEntities = updatedValues.find((value) => 'tags' in value);
-	const updatedTags = updatedEntities ? (updatedEntities['tags'] as any) : [];
-
-	// Retrieve previous tags from 'previousValues'
-	const previousEntities = previousValues.find((value) => 'tags' in value);
-	const previousTags = previousValues
-		? (previousEntities['tags'] as any)
-		: [];
-
-	// Determine tags that were added and removed
-	const addedTags = getAddedTags(previousTags, updatedTags);
-	const removedTags = getRemovedTags(previousTags, updatedTags);
-
-	// Return the result, applying the verb to added and removed tags
-	return {
-		added: addedTags.length > 0 ? { tags: addedTags, verb: 'added' } : null,
-		removed:
-			removedTags.length > 0
-				? { tags: removedTags, verb: 'removed' }
-				: null,
-	};
+	return manyToManyFieldActivityTransformer<ITag>(
+		activityLog,
+		'tags',
+		getAddedTags,
+		getRemovedTags,
+		'added',
+		'removed',
+	);
 }
 
 /**

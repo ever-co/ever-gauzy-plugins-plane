@@ -6,6 +6,7 @@ import {
 	IIssueActivity,
 	IIssueActivityFindInput,
 	IOrganizationProject,
+	ITag,
 	ITask,
 	IWorkspaceInfo,
 } from '@plane-plugin/models';
@@ -23,7 +24,7 @@ import { labelsActivityTransformer } from './labels-activities.serializer';
  * @param {IEmployee} actor - The employee who performed the activity.
  * @param {IOrganizationProject} project - The project associated with the activity.
  * @param {IWorkspaceInfo} workspaceDetail - The workspace information where the activity occurred.
- * @returns {Object} An object containing detailed information about the activity log.
+ * @returns An object containing detailed information about the activity log.
  */
 function activityLogDetails(
 	activityLog: IActivityLog,
@@ -31,6 +32,7 @@ function activityLogDetails(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
+	verb: string = activityLog.action.toLowerCase(),
 ) {
 	return {
 		issue_detail: issue,
@@ -44,7 +46,7 @@ function activityLogDetails(
 		},
 		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
 		workspace_detail: workspaceDetail,
-		verb: activityLog.action.toLowerCase(), // Convert action to lowercase for uniformity
+		verb,
 		created_at: activityLog.createdAt,
 		updated_at: activityLog.updatedAt,
 		deleted_at: activityLog.deletedAt,
@@ -99,7 +101,9 @@ const transformIssueActivityLog = (
 
 	// Process updated fields to create activity entries
 	const activities = updatedFields
-		.filter((f) => !['taskStatusId', 'members', 'tags'].includes(f))
+		.filter(
+			(f) => !['taskStatusId', 'members', 'tags', 'modules'].includes(f),
+		)
 		.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
 				field as keyof ITask,
@@ -209,7 +213,7 @@ const transformIssueActivityLog = (
 		if (added) {
 			const { tags: addedTags, verb: addedVerb } = added;
 
-			addedTags.map((tag, i) =>
+			addedTags.map((tag: ITag, i: number) =>
 				activities.push({
 					id: activityLog.id + tag.id + i,
 					...activityDetails,
@@ -226,7 +230,7 @@ const transformIssueActivityLog = (
 		if (removed) {
 			const { tags: removedTags, verb: removedVerb } = removed;
 
-			removedTags.map((tag, i) =>
+			removedTags.map((tag: ITag, i: number) =>
 				activities.push({
 					id: activityLog.id + tag.id + removedTags.length + i,
 					...activityDetails,

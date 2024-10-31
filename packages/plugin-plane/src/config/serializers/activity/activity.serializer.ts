@@ -6,6 +6,8 @@ import {
 	IIssueActivity,
 	IIssueActivityFindInput,
 	IOrganizationProject,
+	IOrganizationProjectModule,
+	ITag,
 	ITask,
 	IWorkspaceInfo,
 } from '@plane-plugin/models';
@@ -14,6 +16,7 @@ import { getProjectsResponse } from '../projects';
 import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
 import { labelsActivityTransformer } from './labels-activities.serializer';
+import { modulesActivityTransformer } from './modules-activities.serializer';
 
 /**
  * Generates detailed information for a given activity log.
@@ -23,7 +26,7 @@ import { labelsActivityTransformer } from './labels-activities.serializer';
  * @param {IEmployee} actor - The employee who performed the activity.
  * @param {IOrganizationProject} project - The project associated with the activity.
  * @param {IWorkspaceInfo} workspaceDetail - The workspace information where the activity occurred.
- * @returns {Object} An object containing detailed information about the activity log.
+ * @returns An object containing detailed information about the activity log.
  */
 function activityLogDetails(
 	activityLog: IActivityLog,
@@ -44,7 +47,6 @@ function activityLogDetails(
 		},
 		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
 		workspace_detail: workspaceDetail,
-		verb: activityLog.action.toLowerCase(), // Convert action to lowercase for uniformity
 		created_at: activityLog.createdAt,
 		updated_at: activityLog.updatedAt,
 		deleted_at: activityLog.deletedAt,
@@ -99,7 +101,9 @@ const transformIssueActivityLog = (
 
 	// Process updated fields to create activity entries
 	const activities = updatedFields
-		.filter((f) => !['taskStatusId', 'members', 'tags'].includes(f))
+		.filter(
+			(f) => !['taskStatusId', 'members', 'tags', 'modules'].includes(f),
+		)
 		.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
 				field as keyof ITask,
@@ -129,6 +133,7 @@ const transformIssueActivityLog = (
 				 */
 				id: activityLog.id + index + `${field}`,
 				...activityDetails,
+				verb: 'updated',
 				field:
 					activityField === 'state__group' ||
 					activityField === 'state_id'
@@ -150,6 +155,7 @@ const transformIssueActivityLog = (
 		activities.push({
 			id: activityLog.id + previousEntity,
 			...activityDetails,
+			verb: 'updated',
 			field: 'state',
 			comment: 'updated the state to',
 			old_value: oldStatusValue,
@@ -170,6 +176,7 @@ const transformIssueActivityLog = (
 				activities.push({
 					id: activityLog.id + member.userId + i,
 					...activityDetails,
+					verb: 'updated',
 					field: 'assignees',
 					comment: `${addedVerb} assignee `,
 					old_value: '',
@@ -191,6 +198,7 @@ const transformIssueActivityLog = (
 						removedMembers.length +
 						i,
 					...activityDetails,
+					verb: 'updated',
 					field: 'assignees',
 					comment: `${removedVerb} assignee `,
 					old_value: member.profile_link,
@@ -209,10 +217,11 @@ const transformIssueActivityLog = (
 		if (added) {
 			const { tags: addedTags, verb: addedVerb } = added;
 
-			addedTags.map((tag, i) =>
+			addedTags.map((tag: ITag, i: number) =>
 				activities.push({
 					id: activityLog.id + tag.id + i,
 					...activityDetails,
+					verb: 'updated',
 					field: 'labels',
 					comment: `${addedVerb} label `,
 					old_value: '',
@@ -226,10 +235,11 @@ const transformIssueActivityLog = (
 		if (removed) {
 			const { tags: removedTags, verb: removedVerb } = removed;
 
-			removedTags.map((tag, i) =>
+			removedTags.map((tag: ITag, i: number) =>
 				activities.push({
 					id: activityLog.id + tag.id + removedTags.length + i,
 					...activityDetails,
+					verb: 'updated',
 					field: 'labels',
 					comment: `${removedVerb} label `,
 					old_value: tag.name,
@@ -237,6 +247,52 @@ const transformIssueActivityLog = (
 					old_identifier: tag.id,
 					new_identifier: null,
 				}),
+			);
+		}
+	}
+
+	// Handle changes in modules
+	if (updatedFields.includes('modules')) {
+		const { added, removed } = modulesActivityTransformer(activityLog);
+
+		if (added) {
+			const { modules: addedModules, verb: addedVerb } = added;
+
+			addedModules.map((module: IOrganizationProjectModule, i: number) =>
+				activities.push({
+					id: activityLog.id + module.id + i,
+					...activityDetails,
+					verb: addedVerb,
+					field: 'modules',
+					comment: `added this issue to the module ${module.name} `,
+					old_value: '',
+					new_value: module.name,
+					old_identifier: null,
+					new_identifier: module.id,
+				}),
+			);
+		}
+
+		if (removed) {
+			const { modules: removedModules, verb: removedVerb } = removed;
+
+			removedModules.map(
+				(module: IOrganizationProjectModule, i: number) =>
+					activities.push({
+						id:
+							activityLog.id +
+							module.id +
+							removedModules.length +
+							i,
+						...activityDetails,
+						verb: removedVerb,
+						field: 'modules',
+						comment: `removed this issue from module ${module.name}`,
+						old_value: module.name,
+						new_value: null,
+						old_identifier: module.id,
+						new_identifier: null,
+					}),
 			);
 		}
 	}

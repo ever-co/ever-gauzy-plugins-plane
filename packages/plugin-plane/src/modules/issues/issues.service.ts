@@ -212,6 +212,7 @@ export class IssuesService extends ApiFetchService {
 				project.members.map((member) => member.employee),
 				labels,
 				Array.from(modules),
+				project.modules,
 			);
 
 			const task = (

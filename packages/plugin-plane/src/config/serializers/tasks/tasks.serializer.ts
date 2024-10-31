@@ -287,7 +287,8 @@ export function updateIssueInputTransformer(
 	status: TaskStatusEnum,
 	members?: IEmployee[],
 	tags?: IIssueLabel[],
-	modules?: ID[],
+	modulesIds?: ID[],
+	modules?: IOrganizationProjectModule[],
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
 	const keyMapping: Partial<
@@ -330,7 +331,9 @@ export function updateIssueInputTransformer(
 			acc['organizationId'] = defaultOrganizationId();
 
 			if (issue.module_ids || issue.modules) {
-				acc['modules'] = modules.map((module) => ({ id: module }));
+				acc['modules'] = modules
+					.filter((module) => modulesIds.includes(module.id))
+					.map((module) => ({ id: module.id, name: module.name }));
 			}
 
 			return acc;

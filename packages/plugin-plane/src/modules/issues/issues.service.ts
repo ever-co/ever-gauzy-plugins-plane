@@ -1,8 +1,4 @@
-import {
-	Injectable,
-	BadRequestException,
-	NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -625,12 +621,6 @@ export class IssuesService extends ApiFetchService {
 
 	async findIssueActivity(id: ID, projectId: ID): Promise<any> {
 		try {
-			const issue = await this.getExternalIssue(id);
-
-			if (!issue) {
-				throw new NotFoundException('Issue not found');
-			}
-
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
 				entityId: id,
@@ -693,7 +683,8 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			// Find issue relations activities logs
-			const issueRelations = issue.linkedIssues;
+			const issueRelations =
+				await this._issueRelationService.findAllByIssueId(id, true);
 
 			const issueRelationsActivities = await Promise.all(
 				issueRelations.map(async (issueRelation) => {

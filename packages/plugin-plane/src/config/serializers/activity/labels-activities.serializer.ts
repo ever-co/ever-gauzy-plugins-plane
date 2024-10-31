@@ -4,7 +4,7 @@ import { IActivityLog, ITag } from '@plane-plugin/models';
  * Transforms the activity log to capture the tags that were added or removed
  * during the update of task's tags
  *
- * @param activityLog - The current activitt log  with updated values
+ * @param activityLog - The current activity log  with updated values
  * @returns An object containing added tags, removed tags and their respective verb (added/removed)
  */
 export function labelsActivityTransformer(activityLog: IActivityLog) {

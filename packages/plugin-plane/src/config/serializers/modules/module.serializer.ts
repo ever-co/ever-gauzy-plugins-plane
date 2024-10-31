@@ -112,13 +112,13 @@ export function modulesTransformer(
 export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 	// Module members
 	const assignees = module.members.map((member) => {
-		const user = member.user;
+		const user = member?.user;
 		return {
-			first_name: user.firstName,
-			last_name: user.lastName,
+			first_name: user?.firstName,
+			last_name: user?.lastName,
 			assignee_id: member.id,
 			display_name: member.fullName,
-			avatar: user.imageUrl,
+			avatar: user?.imageUrl,
 			total_estimates: 0,
 			completed_estimates: 0,
 			pending_estimates: 0,

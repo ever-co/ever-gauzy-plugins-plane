@@ -7,6 +7,7 @@ import {
 	IIssueActivityFindInput,
 	IOrganizationProject,
 	IOrganizationProjectModule,
+	IResourceLink,
 	ITag,
 	ITask,
 	IWorkspaceInfo,
@@ -300,6 +301,44 @@ const transformIssueActivityLog = (
 	// Filter out activities without a defined field
 	return activities.filter((log) => log.field !== undefined);
 };
+
+export function issueLinksActivities(
+	activityLogs: IActivityLog[],
+	link: IResourceLink,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+): IIssueActivity[] {
+	const activities = activityLogs.map((activityLog, i) => {
+		const activityDetails = activityLogDetails(
+			activityLog,
+			issue,
+			actor,
+			project,
+			workspaceDetail,
+		);
+
+		const verb = activityLog.action.toLocaleLowerCase();
+
+		return {
+			id: activityLog.id + link.id + i,
+			...activityDetails,
+			verb,
+			field: 'link',
+			comment: `${verb} a link`,
+			old_value:
+				verb === 'created'
+					? null
+					: (activityLog.previousValues[i]['link'] as any),
+			new_value: link.url,
+			old_identifier: null,
+			new_identifier: link.id,
+		};
+	});
+
+	return activities;
+}
 
 /**
  * Transforms a list of activity logs or a single activity log for an issue into structured issue activities.

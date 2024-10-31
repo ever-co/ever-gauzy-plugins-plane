@@ -136,6 +136,38 @@ export class IssueRelationsService extends ApiFetchService {
 	}
 
 	/**
+	 * Fetches all task linked issues related to a specific issue ID, with an option to include soft-deleted entries.
+	 *
+	 * @param {ID} issueId - The ID of the issue for which to retrieve linked tasks.
+	 * @param {boolean} [withDeleted] - Optional parameter to include soft-deleted task linked issues in the result. Default is false.
+	 * @returns {Promise<ITaskLinkedIssue[]>} - A promise that resolves to an array of task linked issues associated with the given issue ID.
+	 * @throws {BadRequestException} - Throws an error if the request fails or an issue occurs during the fetch.
+	 */
+	async findAllByIssueId(
+		issueId: ID,
+		withDeleted?: boolean,
+	): Promise<ITaskLinkedIssue[]> {
+		try {
+			const query = qs.stringify(
+				findByOptionsQuery({ taskToId: issueId }, withDeleted),
+			);
+
+			const issueRelations: IPagination<ITaskLinkedIssue> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}`,
+					query: query,
+				})
+			).data;
+
+			return issueRelations.items;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
 	 * @description Find issue relation (Issues associates)
 	 * @param {ID} issueId - Issue ID
 	 * @returns A promise resolved to fetched and transformed issue relations
@@ -239,14 +271,14 @@ export class IssueRelationsService extends ApiFetchService {
 			// Delete the main relation
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${mainRelationToDelete.id}`,
+				path: `${this.path}/${mainRelationToDelete.id}/soft`,
 			});
 
 			try {
 				// Attempt to delete the inverse relation
 				await this.apiFetch({
 					method: 'DELETE',
-					path: `${this.path}/${inverseRelationToDelete.id}`,
+					path: `${this.path}/${inverseRelationToDelete.id}/soft`,
 				});
 			} catch (inverseError) {
 				console.error(

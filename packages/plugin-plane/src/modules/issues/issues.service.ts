@@ -41,6 +41,7 @@ import {
 	issueCommentTrasnsformer,
 	issueLinksActivities,
 	issueLinkTransformer,
+	issueRelationActivities,
 	issueTransformer,
 	nonGroupedIssues,
 	reactionTransformer,
@@ -681,9 +682,46 @@ export class IssuesService extends ApiFetchService {
 				}),
 			);
 
+			// Find issue relations activities logs
+			const issueRelations =
+				await this._issueRelationService.findAllByIssueId(id, true);
+
+			const issueRelationsActivities = await Promise.all(
+				issueRelations.map(async (issueRelation) => {
+					const logs = await this._activityService.findAll({
+						entity: BaseEntityEnum.TaskLinkedIssue,
+						entityId: issueRelation.id,
+					});
+
+					const activities = await Promise.all(
+						logs.map(async (log) => {
+							const { actor, issue, project, workspace } =
+								await this.getIssueCommentDetails(
+									id,
+									projectId,
+									log.creatorId,
+								);
+
+							return issueRelationActivities(
+								logs,
+								issueRelation,
+								issue,
+								actor,
+								project,
+								workspace,
+							);
+						}),
+					);
+
+					return activities;
+				}),
+			);
+
+			// Combined activities
 			const flattenedActivities: IIssueActivity[] = issueActivities
 				.flat()
-				.concat(linkActivities.flat(2));
+				.concat(linkActivities.flat(2))
+				.concat(issueRelationsActivities.flat(2));
 
 			return flattenedActivities;
 		} catch (error: any) {

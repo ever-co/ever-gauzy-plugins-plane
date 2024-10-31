@@ -10,6 +10,7 @@ import {
 	IResourceLink,
 	ITag,
 	ITask,
+	ITaskLinkedIssue,
 	IWorkspaceInfo,
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
@@ -18,6 +19,7 @@ import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
 import { labelsActivityTransformer } from './labels-activities.serializer';
 import { modulesActivityTransformer } from './modules-activities.serializer';
+import { getIssueRelationType } from '../tasks';
 
 /**
  * Generates detailed information for a given activity log.
@@ -89,6 +91,7 @@ const transformIssueActivityLog = (
 		module_ids: 'module',
 		issue_link: 'link',
 		issue_reactions: 'reaction',
+		cycle_id: 'cycles',
 	};
 
 	// Generate details for the activity log
@@ -350,6 +353,58 @@ export function issueLinksActivities(
 			new_value: link.url,
 			old_identifier: null,
 			new_identifier: link.id,
+		};
+	});
+
+	return activities;
+}
+
+export function issueRelationActivities(
+	activityLogs: IActivityLog[],
+	taskLinkedIssue: ITaskLinkedIssue,
+	issue: IIssue,
+	actor: IEmployee,
+	project: IOrganizationProject,
+	workspaceDetail: IWorkspaceInfo,
+): IIssueActivity[] {
+	// Map over activity logs and transform each log into an issue activity entry
+	const activities = activityLogs.map((activityLog) => {
+		// Retrieve the detailed activity log info (e.g., timestamp, project, actor, etc.)
+		const activityDetails = activityLogDetails(
+			activityLog,
+			issue,
+			actor,
+			project,
+			workspaceDetail,
+		);
+
+		// Extract and normalize the action performed (verb) to lowercase
+		const verb = activityLog.action.toLocaleLowerCase();
+
+		//Extract field
+		const field = getIssueRelationType(taskLinkedIssue.action);
+
+		// Project code
+		const projectCode =
+			project.code || project.name.slice(0, 4).toUpperCase();
+
+		// Build the activity object containing information about the change to the link
+		return {
+			id: activityLog.id,
+			...activityDetails,
+			verb: verb === 'deleted' ? verb : 'updated',
+			field,
+			comment: `${verb === 'deleted' ? verb : 'added'} ${field} relation`,
+			old_value:
+				verb === 'created'
+					? ''
+					: projectCode + '-' + taskLinkedIssue.taskFrom.number,
+			new_value:
+				verb === 'created'
+					? projectCode + '-' + taskLinkedIssue.taskFrom.number
+					: '',
+			old_identifier: taskLinkedIssue.id,
+			new_identifier: taskLinkedIssue.id,
 		};
 	});
 

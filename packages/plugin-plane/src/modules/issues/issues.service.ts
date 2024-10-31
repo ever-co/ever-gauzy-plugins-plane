@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+	Injectable,
+	BadRequestException,
+	NotFoundException,
+} from '@nestjs/common';
 import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -41,6 +45,7 @@ import {
 	issueCommentTrasnsformer,
 	issueLinksActivities,
 	issueLinkTransformer,
+	issueRelationActivities,
 	issueTransformer,
 	nonGroupedIssues,
 	reactionTransformer,
@@ -620,6 +625,12 @@ export class IssuesService extends ApiFetchService {
 
 	async findIssueActivity(id: ID, projectId: ID): Promise<any> {
 		try {
+			const issue = await this.getExternalIssue(id);
+
+			if (!issue) {
+				throw new NotFoundException('Issue not found');
+			}
+
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
 				entityId: id,
@@ -681,9 +692,45 @@ export class IssuesService extends ApiFetchService {
 				}),
 			);
 
+			// Find issue relations activities logs
+			const issueRelations = issue.linkedIssues;
+
+			const issueRelationsActivities = await Promise.all(
+				issueRelations.map(async (issueRelation) => {
+					const logs = await this._activityService.findAll({
+						entity: BaseEntityEnum.TaskLinkedIssue,
+						entityId: issueRelation.id,
+					});
+
+					const activities = await Promise.all(
+						logs.map(async (log) => {
+							const { actor, issue, project, workspace } =
+								await this.getIssueCommentDetails(
+									id,
+									projectId,
+									log.creatorId,
+								);
+
+							return issueRelationActivities(
+								logs,
+								issueRelation,
+								issue,
+								actor,
+								project,
+								workspace,
+							);
+						}),
+					);
+
+					return activities;
+				}),
+			);
+
+			// Combined activities
 			const flattenedActivities: IIssueActivity[] = issueActivities
 				.flat()
-				.concat(linkActivities.flat(2));
+				.concat(linkActivities.flat(2))
+				.concat(issueRelationsActivities.flat(2));
 
 			return flattenedActivities;
 		} catch (error: any) {

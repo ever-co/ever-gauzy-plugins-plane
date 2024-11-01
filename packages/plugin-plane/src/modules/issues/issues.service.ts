@@ -641,6 +641,7 @@ export class IssuesService extends ApiFetchService {
 						actor,
 						project,
 						workspace,
+						issue.cycle,
 					);
 
 					return Array.isArray(transformedActivityLogs)

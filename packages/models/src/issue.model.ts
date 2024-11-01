@@ -1,6 +1,7 @@
-import { ID, TaskPriorityEnum } from './imports';
+import { ID, IOrganizationSprint, TaskPriorityEnum } from './imports';
 import { IReactionData } from './reaction.model';
 import { IIssueLink } from './issue-link.model';
+import { ICycle } from './cycle.model';
 
 export interface IIssue {
 	id?: ID;
@@ -33,6 +34,7 @@ export interface IIssue {
 	state__group?: string;
 	type_id?: string;
 	cycle_id?: ID;
+	cycle?: ICycle | IOrganizationSprint;
 	link_count?: number;
 	attachment_count?: number;
 	sub_issues_count?: number;

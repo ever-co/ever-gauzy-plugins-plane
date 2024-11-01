@@ -76,6 +76,7 @@ export function issueTransformer(
 		module_ids: issue.modules?.map(({ id }) => id),
 		issue_reactions: reactions || [],
 		issue_link: links || [],
+		cycle: issue.organizationSprint,
 	};
 }
 
@@ -214,6 +215,7 @@ export const taskRelations = [
 	'members.user',
 	'creator',
 	'project',
+	'organizationSprint',
 	'linkedIssues',
 	'linkedIssues.taskTo',
 	'linkedIssues.taskFrom',

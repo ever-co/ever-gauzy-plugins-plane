@@ -1,12 +1,14 @@
 import {
 	ActionTypeEnum,
 	IActivityLog,
+	ICycle,
 	IEmployee,
 	IIssue,
 	IIssueActivity,
 	IIssueActivityFindInput,
 	IOrganizationProject,
 	IOrganizationProjectModule,
+	IOrganizationSprint,
 	IResourceLink,
 	ITag,
 	ITask,
@@ -80,6 +82,7 @@ const transformIssueActivityLog = (
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
+	sprint: IOrganizationSprint | ICycle,
 	oldStatusValue?: string,
 ): IIssueActivity[] => {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
@@ -125,7 +128,10 @@ const transformIssueActivityLog = (
 						: `updated the ${activityField} to`;
 
 			const oldValue: any = previousValues[index][field];
-			const newValue: any = updatedValues[index][field];
+			const newValue: any =
+				activityField === 'cycles'
+					? sprint.name
+					: updatedValues[index][field];
 
 			return {
 				/**
@@ -427,6 +433,7 @@ export function issueActivityLogTransformer(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
+	sprint: IOrganizationSprint | ICycle,
 ): IIssueActivity[] | IIssueActivity {
 	if (Array.isArray(activityLogs)) {
 		// Combine multiple activity logs into a single array of structured activities
@@ -438,6 +445,7 @@ export function issueActivityLogTransformer(
 					actor,
 					project,
 					workspaceDetail,
+					sprint,
 				),
 			)
 			.reduce((acc, cur) => acc.concat(cur), []);
@@ -452,6 +460,7 @@ export function issueActivityLogTransformer(
 		actor,
 		project,
 		workspaceDetail,
+		sprint,
 	);
 }
 

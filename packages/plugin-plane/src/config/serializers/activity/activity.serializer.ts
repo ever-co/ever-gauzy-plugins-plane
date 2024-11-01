@@ -133,6 +133,13 @@ const transformIssueActivityLog = (
 					? sprint.name
 					: updatedValues[index][field];
 
+			const updatedCycleId = updatedValues.find(
+				(value) => 'organizationSprintId' in value,
+			);
+			const cycleNewId = updatedCycleId
+				? updatedCycleId['organizationSprintId']
+				: null;
+
 			return {
 				/**
 				 * Unique ID for each activity entry.
@@ -153,7 +160,7 @@ const transformIssueActivityLog = (
 				old_value: oldValue,
 				new_value: newValue,
 				old_identifier: null,
-				new_identifier: null,
+				new_identifier: activityField === 'cycles' ? cycleNewId : null,
 			};
 		});
 
@@ -237,7 +244,7 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: tag.name,
 					old_identifier: null,
-					new_identifier: tag.id,
+					new_identifier: tag.id as any,
 				}),
 			);
 		}
@@ -278,7 +285,7 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: module.name,
 					old_identifier: null,
-					new_identifier: module.id,
+					new_identifier: module.id as any,
 				}),
 			);
 		}

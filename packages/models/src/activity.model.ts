@@ -7,8 +7,8 @@ export interface IIssueActivity extends IIssueComment {
 	old_value?: string;
 	new_value?: string;
 	comment?: string;
-	old_identifier?: ID;
-	new_identifier?: ID;
+	old_identifier?: any;
+	new_identifier?: any;
 	epoch?: number;
 	issue_comment?: ID;
 }

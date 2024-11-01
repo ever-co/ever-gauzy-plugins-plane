@@ -1,12 +1,14 @@
 import {
 	ActionTypeEnum,
 	IActivityLog,
+	ICycle,
 	IEmployee,
 	IIssue,
 	IIssueActivity,
 	IIssueActivityFindInput,
 	IOrganizationProject,
 	IOrganizationProjectModule,
+	IOrganizationSprint,
 	IResourceLink,
 	ITag,
 	ITask,
@@ -80,6 +82,7 @@ const transformIssueActivityLog = (
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
+	sprint: IOrganizationSprint | ICycle,
 	oldStatusValue?: string,
 ): IIssueActivity[] => {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
@@ -125,7 +128,17 @@ const transformIssueActivityLog = (
 						: `updated the ${activityField} to`;
 
 			const oldValue: any = previousValues[index][field];
-			const newValue: any = updatedValues[index][field];
+			const newValue: any =
+				activityField === 'cycles'
+					? sprint.name
+					: updatedValues[index][field];
+
+			const updatedCycleId = updatedValues.find(
+				(value) => 'organizationSprintId' in value,
+			);
+			const cycleNewId = updatedCycleId
+				? updatedCycleId['organizationSprintId']
+				: null;
 
 			return {
 				/**
@@ -147,7 +160,7 @@ const transformIssueActivityLog = (
 				old_value: oldValue,
 				new_value: newValue,
 				old_identifier: null,
-				new_identifier: null,
+				new_identifier: activityField === 'cycles' ? cycleNewId : null,
 			};
 		});
 
@@ -231,7 +244,7 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: tag.name,
 					old_identifier: null,
-					new_identifier: tag.id,
+					new_identifier: tag.id as any,
 				}),
 			);
 		}
@@ -272,7 +285,7 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: module.name,
 					old_identifier: null,
-					new_identifier: module.id,
+					new_identifier: module.id as any,
 				}),
 			);
 		}
@@ -427,6 +440,7 @@ export function issueActivityLogTransformer(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
+	sprint: IOrganizationSprint | ICycle,
 ): IIssueActivity[] | IIssueActivity {
 	if (Array.isArray(activityLogs)) {
 		// Combine multiple activity logs into a single array of structured activities
@@ -438,6 +452,7 @@ export function issueActivityLogTransformer(
 					actor,
 					project,
 					workspaceDetail,
+					sprint,
 				),
 			)
 			.reduce((acc, cur) => acc.concat(cur), []);
@@ -452,6 +467,7 @@ export function issueActivityLogTransformer(
 		actor,
 		project,
 		workspaceDetail,
+		sprint,
 	);
 }
 

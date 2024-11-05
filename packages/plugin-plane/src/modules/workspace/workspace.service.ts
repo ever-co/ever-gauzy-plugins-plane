@@ -4,6 +4,7 @@ import {
 	DashBoardWigetQueryEnum,
 	IOrganization,
 	IRecentCollaborator,
+	ITask,
 	IWorkspaceUserInfo,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -12,6 +13,8 @@ import {
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
+	getTaskCounts,
+	getTaskQuery,
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -145,10 +148,13 @@ export class WorkspaceService extends ApiFetchService {
 		if (
 			widget === DashBoardWigetQueryEnum.RECENT_PROJECTS ||
 			widget === DashBoardWigetQueryEnum.RECENT_ACTIVITY ||
-			widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY ||
-			widget === DashBoardWigetQueryEnum.ISSUES_BY_STATE
+			widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY
 		) {
 			return [];
+		}
+
+		if (widget === DashBoardWigetQueryEnum.ISSUES_BY_STATE) {
+			return this.finAssignedByState();
 		}
 
 		return {
@@ -324,5 +330,51 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findMyCreatedIssues() {
 		return await this._issueService.findAll({ creatorId: defaultUserId() }); // TODO: Adjust this to use correct authenticated user
+	}
+
+	/**
+	 * Retrieves the count of tasks assigned to the current employee, grouped by their state.
+	 *
+	 * Sends a GET request to fetch tasks assigned to the authenticated employee.
+	 * Tasks are then categorized into states (backlog, unstarted, started, completed, and cancelled).
+	 *
+	 * @returns {Promise<{ state: string, count: number }[]>} A promise that resolves to an array of objects representing task states and their respective counts.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async finAssignedByState(): Promise<{ state: string; count: number }[]> {
+		try {
+			// Build query for task retrieval
+			const query = qs.stringify(getTaskQuery());
+
+			// Fetch tasks for the authenticated employee
+			const tasks: ITask[] = (
+				await this._issueService.apiFetch({
+					method: 'GET',
+					path: `/tasks/employee/${defaultEmployeeId()}`, // Use authenticated employee ID
+					query,
+				})
+			).data;
+
+			// Get task counts based on their states
+			const {
+				backlogIssues,
+				completedIssues,
+				startedIssues,
+				unstartedIssues,
+			} = getTaskCounts(tasks);
+
+			// Return the task counts grouped by state
+			return [
+				{ state: 'backlog', count: backlogIssues },
+				{ state: 'unstarted', count: unstartedIssues },
+				{ state: 'started', count: startedIssues },
+				{ state: 'completed', count: completedIssues },
+				{ state: 'cancelled', count: 0 }, // Assuming 0 cancelled issues as not specified
+			];
+		} catch (error: any) {
+			// Log error and throw BadRequestException
+			console.log(error.response?.data ?? error);
+			throw new BadRequestException(error);
+		}
 	}
 }

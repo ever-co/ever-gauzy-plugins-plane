@@ -100,10 +100,6 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 	}));
 }
 
-export function getProjectTasksTransformer() {
-	return;
-}
-
 /**
  * @description - Group issues by state ID for Kanban and list Layouts
  * @param {ITask[]} issues - Tasks to be trasnformed and grouped

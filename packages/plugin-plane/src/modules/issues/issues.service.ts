@@ -97,6 +97,18 @@ export class IssuesService extends ApiFetchService {
 		).data;
 	}
 
+	async findAllExternal(options: ITask): Promise<ITask[]> {
+		const query = qs.stringify(getTaskQuery(null, options));
+
+		return (
+			await this.apiFetch({
+				method: 'GET',
+				path: this.path,
+				query,
+			})
+		).data;
+	}
+
 	/**
 	 * @description - Find issue by Id
 	 * @param {ID} id - The issue ID to search

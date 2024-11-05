@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+	Injectable,
+	BadRequestException,
+	Inject,
+	forwardRef,
+} from '@nestjs/common';
 import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -59,12 +64,13 @@ import { IssueLabelsService } from './issue-labels/issue-labels.service';
 @Injectable()
 export class IssuesService extends ApiFetchService {
 	constructor(
+		@Inject(forwardRef(() => ProjectService))
+		private readonly _projectService: ProjectService,
 		private readonly _stateSerive: StatesService,
 		private readonly _issueLabelService: IssueLabelsService,
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _issueLinkService: IssueLinksService,
-		private readonly _projectService: ProjectService,
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _activityService: ActivityService,
 		private readonly _serverFetchService: ApiFetchService,

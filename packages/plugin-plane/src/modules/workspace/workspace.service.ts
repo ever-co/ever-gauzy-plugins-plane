@@ -1,6 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { IOrganization, IWorkspaceUserInfo } from '@plane-plugin/models';
+import {
+	DashBoardWigetQueryEnum,
+	IOrganization,
+	IRecentCollaborator,
+	IWorkspaceUserInfo,
+} from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	defaultEmployeeId,
@@ -12,9 +17,17 @@ import {
 	getOrganizationQuery,
 	organizationMembersTransformer,
 } from '../../config';
+import { ProjectService } from '../project/project.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
+	constructor(
+		private readonly _projectService: ProjectService,
+		private readonly _serverFetchService: ApiFetchService,
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	/**--------------------------------------------------------------
      * This function handlers should be updated after implementing authentication
      *--------------------------------------------------------------/
@@ -103,6 +116,34 @@ export class WorkspaceService extends ApiFetchService {
 					widget_filters: {},
 				},
 			],
+		};
+	}
+
+	async findDashboardWidgetsData(widget: DashBoardWigetQueryEnum) {
+		if (widget === DashBoardWigetQueryEnum.COLLABORATORS) {
+			return await this.findRecentCollaborators();
+		}
+		if (
+			widget === DashBoardWigetQueryEnum.CREATED_ISSUES ||
+			widget === DashBoardWigetQueryEnum.ASSIGNED_ISSUES
+		) {
+			return { issues: [], count: 4 };
+		}
+
+		if (
+			widget === DashBoardWigetQueryEnum.RECENT_PROJECTS ||
+			widget === DashBoardWigetQueryEnum.RECENT_ACTIVITY ||
+			widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY ||
+			widget === DashBoardWigetQueryEnum.ISSUES_BY_STATE
+		) {
+			return [];
+		}
+
+		return {
+			assigned_issues_count: 9,
+			pending_issues_count: 1,
+			completed_issues_count: 5,
+			created_issues_count: 12,
 		};
 	}
 
@@ -230,5 +271,28 @@ export class WorkspaceService extends ApiFetchService {
 			organization.employees,
 			organization.tenant,
 		);
+	}
+
+	/**
+	 * Retrieves the most recent collaborators from the workspace members.
+	 *
+	 * The function fetches all workspace members and and returns the first members found. The result includes each collaborator's
+	 * user ID and active issue count (which needs to be calculated accordingly).
+	 *
+	 * @returns {Promise<IRecentCollaborator[]>} A promise that resolves to an array of recent collaborators.
+	 * @throws {BadRequestException} If there is an error while fetching the workspace members.
+	 */
+	async findRecentCollaborators(): Promise<IRecentCollaborator[]> {
+		try {
+			const employees = (await this.getWorkspaceMembers()).slice(0, 10);
+
+			return employees.map((employee) => ({
+				user_id: employee.member.id,
+				active_issue_count: 0, // Find a way  to make this working
+			}));
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 }

@@ -7,8 +7,8 @@ import {
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID } from '@plane-plugin/models';
 import { WorkspaceService } from './workspace.service';
+import { DashBoardWigetQueryEnum } from '@plane-plugin/models';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -35,6 +35,13 @@ export class WorkspaceController {
 		);
 	}
 
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get dashboard widgets' })
+	@Get('dashboard/:id')
+	async getWigetsData(@Query('widget_key') widget: DashBoardWigetQueryEnum) {
+		return await this._workspaceService.findDashboardWidgetsData(widget);
+	}
+
 	/**
 	 * @description - Get member (from connected user) info for a workspace
 	 * @param {string} workspace_name - slug for workspace name
@@ -58,19 +65,5 @@ export class WorkspaceController {
 	@Get('members')
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
-	}
-
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project cycles' })
-	@Get(':worspace_name/projects/:id/cycles')
-	async getWorkspaceProjectCycles(@Param('id') id: ID) {
-		return [];
-	}
-
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get project estimates' })
-	@Get(':worspace_name/projects/:id/estimates')
-	async getWorkspaceProjectEstimates(@Param('id') id: ID) {
-		return [];
 	}
 }

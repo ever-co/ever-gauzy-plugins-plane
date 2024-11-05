@@ -12,6 +12,7 @@ import {
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { deslugify } from '../../utils';
 
 export function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
@@ -24,14 +25,15 @@ export function getTaskCounts(tasks: ITask[]) {
 
 	const startedIssues = tasks?.filter(
 		(task) =>
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.IN_REVIEW.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.BLOCKED.toLocaleLowerCase(),
+			task.status ===
+				deslugify(TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase()) ||
+			task.status ===
+				deslugify(
+					TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase(),
+				) ||
+			task.status ===
+				deslugify(TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()) ||
+			task.status === TaskStatusEnum.BLOCKED.toLocaleLowerCase(),
 	).length;
 
 	const unstartedIssues = tasks?.filter(
@@ -110,18 +112,73 @@ export function modulesTransformer(
 }
 
 export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
+	const tasks = module.tasks;
+
+	const labelMap = new Map<string, any>();
+
+	tasks.forEach((task) => {
+		task.tags.forEach((label) => {
+			if (!labelMap.has(label.id)) {
+				labelMap.set(label.id, {
+					label_name: label.name,
+					color: label.color,
+					label_id: label.id,
+					total_issues: 0,
+					completed_issues: 0,
+					pending_issues: 0,
+				});
+			}
+
+			const labelData = labelMap.get(label.id);
+			labelData.total_issues += 1;
+
+			if (
+				task.status.toLocaleLowerCase() === 'completed' ||
+				task.status.toLocaleLowerCase() === 'done'
+			) {
+				labelData.completed_issues += 1;
+			} else {
+				labelData.pending_issues += 1;
+			}
+		});
+	});
+
+	const labels = Array.from(labelMap.values());
+
 	// Module members
 	const assignees = module.members.map((member) => {
 		const user = member?.user;
+
+		let totalIssues = 0;
+		let completedIssues = 0;
+		let pendingIssues = 0;
+
+		tasks.forEach((task) => {
+			if (task.members.some((assignee) => assignee.id === member.id)) {
+				// Increment the total issues number
+				totalIssues++;
+
+				// Check if the task is completed or still pending
+				if (
+					task.status.toLocaleLowerCase() === 'completed' ||
+					task.status.toLocaleLowerCase() === 'done'
+				) {
+					completedIssues++;
+				} else {
+					pendingIssues++;
+				}
+			}
+		});
+
 		return {
 			first_name: user?.firstName,
 			last_name: user?.lastName,
 			assignee_id: member.id,
 			display_name: member.fullName,
 			avatar: user?.imageUrl,
-			total_estimates: 0,
-			completed_estimates: 0,
-			pending_estimates: 0,
+			total_issues: totalIssues,
+			completed_issues: completedIssues,
+			pending_issues: pendingIssues,
 		};
 	});
 
@@ -133,7 +190,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		},
 		distribution: {
 			assignees,
-			labels: [],
+			labels,
 			completion_chart: completionChartMapping(module),
 		},
 	};
@@ -166,6 +223,8 @@ export const moduleRelations = [
 	'members.user',
 	'children',
 	'tasks',
+	'tasks.tags',
+	'tasks.members.user',
 ];
 
 export const getModulesQuery = (projectId?: ID): Record<string, any> => {

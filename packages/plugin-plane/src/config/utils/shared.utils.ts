@@ -6,10 +6,10 @@
  * @returns {string}
  */
 export function deslugify(slug: string, replacement: any = '-'): string {
-	// Remplace le caractère de remplacement (par défaut '-') par des espaces
+	// Replace the replacement character (default '-') with spaces
 	let result = slug.split(replacement).join(' ');
 
-	// Convertit la première lettre de chaque mot en majuscule (si souhaité)
+	// Convert la the first letter of each word in Upper case
 	result = result.replace(/\b\w/g, (char) => char.toUpperCase());
 
 	return result;

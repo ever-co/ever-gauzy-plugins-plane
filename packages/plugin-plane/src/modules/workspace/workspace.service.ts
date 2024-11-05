@@ -18,10 +18,12 @@ import {
 	organizationMembersTransformer,
 } from '../../config';
 import { ProjectService } from '../project/project.service';
+import { IssuesService } from '../issues/issues.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
 	constructor(
+		private readonly _issueService: IssuesService,
 		private readonly _projectService: ProjectService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
@@ -123,11 +125,13 @@ export class WorkspaceService extends ApiFetchService {
 		if (widget === DashBoardWigetQueryEnum.COLLABORATORS) {
 			return await this.findRecentCollaborators();
 		}
-		if (
-			widget === DashBoardWigetQueryEnum.CREATED_ISSUES ||
-			widget === DashBoardWigetQueryEnum.ASSIGNED_ISSUES
-		) {
+		if (widget === DashBoardWigetQueryEnum.CREATED_ISSUES) {
 			return { issues: [], count: 4 };
+		}
+
+		if (widget === DashBoardWigetQueryEnum.ASSIGNED_ISSUES) {
+			const issues = await this.findMyAssignedIssues();
+			return { issues, count: issues.length };
 		}
 
 		if (
@@ -294,5 +298,14 @@ export class WorkspaceService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/**
+	 * Retrieves the issues assigned to the current employee.
+	 *
+	 * The function calls the issue service to fetch all issues assigned to the employee
+	 */
+	async findMyAssignedIssues() {
+		return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
 	}
 }

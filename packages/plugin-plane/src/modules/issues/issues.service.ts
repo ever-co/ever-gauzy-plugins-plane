@@ -384,6 +384,35 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
+	 * Retrieves tasks assigned to a specific employee.
+	 *
+	 * Sends a GET request to fetch tasks based on the provided employee ID,
+	 * applies a transformation to each task, and returns the transformed list.
+	 *
+	 * @param {ID} employeeId - The ID of the employee whose tasks are to be fetched.
+	 * @returns {Promise<ITask[]>} A promise that resolves to a list of transformed tasks.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async findByEmployee(employeeId: ID): Promise<IIssue[]> {
+		try {
+			const query = qs.stringify(getTaskQuery());
+
+			const tasks: ITask[] = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/employee/${employeeId}`,
+					query,
+				})
+			).data;
+
+			return tasks.map((task) => issueTransformer(task));
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
 	 * @description Create issue relations.
 	 * @param {ID} taskToId Issue ID for whom to create main relations.
 	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.

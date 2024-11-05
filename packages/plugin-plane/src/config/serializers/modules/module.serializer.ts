@@ -112,18 +112,42 @@ export function modulesTransformer(
 }
 
 export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
+	const tasks = module.tasks;
+
 	// Module members
 	const assignees = module.members.map((member) => {
 		const user = member?.user;
+
+		let totalIssues = 0;
+		let completedIssues = 0;
+		let pendingIssues = 0;
+
+		tasks.forEach((task) => {
+			if (task.members.some((assignee) => assignee.id === member.id)) {
+				// Increment the total issues number
+				totalIssues++;
+
+				// Check if the task is completed or still pending
+				if (
+					task.status.toLocaleLowerCase() === 'completed' ||
+					task.status.toLocaleLowerCase() === 'done'
+				) {
+					completedIssues++;
+				} else {
+					pendingIssues++;
+				}
+			}
+		});
+
 		return {
 			first_name: user?.firstName,
 			last_name: user?.lastName,
 			assignee_id: member.id,
 			display_name: member.fullName,
 			avatar: user?.imageUrl,
-			total_estimates: 0,
-			completed_estimates: 0,
-			pending_estimates: 0,
+			total_issues: totalIssues,
+			completed_issues: completedIssues,
+			pending_issues: pendingIssues,
 		};
 	});
 
@@ -168,6 +192,7 @@ export const moduleRelations = [
 	'members.user',
 	'children',
 	'tasks',
+	'tasks.members.user',
 ];
 
 export const getModulesQuery = (projectId?: ID): Record<string, any> => {

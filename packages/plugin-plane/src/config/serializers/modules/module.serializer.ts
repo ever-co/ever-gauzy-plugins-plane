@@ -114,6 +114,37 @@ export function modulesTransformer(
 export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 	const tasks = module.tasks;
 
+	const labelMap = new Map<string, any>();
+
+	tasks.forEach((task) => {
+		task.tags.forEach((label) => {
+			if (!labelMap.has(label.id)) {
+				labelMap.set(label.id, {
+					label_name: label.name,
+					color: label.color,
+					label_id: label.id,
+					total_issues: 0,
+					completed_issues: 0,
+					pending_issues: 0,
+				});
+			}
+
+			const labelData = labelMap.get(label.id);
+			labelData.total_issues += 1;
+
+			if (
+				task.status.toLocaleLowerCase() === 'completed' ||
+				task.status.toLocaleLowerCase() === 'done'
+			) {
+				labelData.completed_issues += 1;
+			} else {
+				labelData.pending_issues += 1;
+			}
+		});
+	});
+
+	const labels = Array.from(labelMap.values());
+
 	// Module members
 	const assignees = module.members.map((member) => {
 		const user = member?.user;
@@ -159,7 +190,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		},
 		distribution: {
 			assignees,
-			labels: [],
+			labels,
 			completion_chart: completionChartMapping(module),
 		},
 	};
@@ -192,6 +223,7 @@ export const moduleRelations = [
 	'members.user',
 	'children',
 	'tasks',
+	'tasks.tags',
 	'tasks.members.user',
 ];
 

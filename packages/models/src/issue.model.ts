@@ -56,6 +56,7 @@ export type IIssueUpdateInput = IIssue;
 export interface IIssueFindInput {
 	module?: ID;
 	group_by?: IssueGroupBy;
+	creatorId?: ID;
 }
 
 export enum IssueGroupBy {

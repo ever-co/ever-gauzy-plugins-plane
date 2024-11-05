@@ -122,16 +122,24 @@ export class WorkspaceService extends ApiFetchService {
 	}
 
 	async findDashboardWidgetsData(widget: DashBoardWigetQueryEnum) {
+		let assigned = 0;
+		let created = 0;
+		const completed = 0;
+		const pending = 0;
+
 		if (widget === DashBoardWigetQueryEnum.COLLABORATORS) {
 			return await this.findRecentCollaborators();
 		}
 		if (widget === DashBoardWigetQueryEnum.CREATED_ISSUES) {
-			return { issues: [], count: 4 };
+			const issues = await this.findMyCreatedIssues();
+			created = issues.length;
+			return { issues, count: created };
 		}
 
 		if (widget === DashBoardWigetQueryEnum.ASSIGNED_ISSUES) {
 			const issues = await this.findMyAssignedIssues();
-			return { issues, count: issues.length };
+			assigned = issues.length;
+			return { issues, count: assigned };
 		}
 
 		if (
@@ -144,10 +152,10 @@ export class WorkspaceService extends ApiFetchService {
 		}
 
 		return {
-			assigned_issues_count: 9,
-			pending_issues_count: 1,
-			completed_issues_count: 5,
-			created_issues_count: 12,
+			assigned_issues_count: assigned,
+			pending_issues_count: pending,
+			completed_issues_count: completed,
+			created_issues_count: created,
 		};
 	}
 
@@ -307,5 +315,14 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findMyAssignedIssues() {
 		return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
+	}
+
+	/**
+	 * Retrieves the issues created by the current user.
+	 *
+	 * The function calls the issue service to fetch all issues created by the user
+	 */
+	async findMyCreatedIssues() {
+		return await this._issueService.findAll({ creatorId: defaultUserId() }); // TODO: Adjust this to use correct authenticated user
 	}
 }

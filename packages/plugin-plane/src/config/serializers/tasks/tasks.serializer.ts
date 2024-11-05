@@ -244,6 +244,10 @@ export const getTaskQuery = (
 		// query['where[modules][0]'] = options.module;
 	}
 
+	if (options?.creatorId) {
+		query['where[creatorId]'] = options.creatorId;
+	}
+
 	// Add relations
 	taskRelations.forEach((relation, i) => {
 		query[`relations[${i}]`] = relation;

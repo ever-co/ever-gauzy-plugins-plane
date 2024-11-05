@@ -384,6 +384,35 @@ export class IssuesService extends ApiFetchService {
 	}
 
 	/**
+	 * Retrieves all tasks with optional filters and options.
+	 *
+	 * Sends a GET request to fetch tasks with the provided query options, and
+	 * transforms each task into the issue format. Returns a list of transformed tasks.
+	 *
+	 * @param {ITask} [options] - Optional filters or configurations for fetching tasks.
+	 * @returns {Promise<IIssue[]>} A promise that resolves to a list of transformed issues.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async findAll(options?: ITask): Promise<IIssue[]> {
+		try {
+			const query = qs.stringify(getTaskQuery(null, options));
+
+			const tasks: IPagination<ITask> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query,
+				})
+			).data;
+
+			return tasks.items.map((task) => issueTransformer(task));
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
 	 * Retrieves tasks assigned to a specific employee.
 	 *
 	 * Sends a GET request to fetch tasks based on the provided employee ID,

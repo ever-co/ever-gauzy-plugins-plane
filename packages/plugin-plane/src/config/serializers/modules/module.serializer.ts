@@ -12,6 +12,7 @@ import {
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { deslugify } from '../../utils';
 
 export function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
@@ -24,14 +25,15 @@ export function getTaskCounts(tasks: ITask[]) {
 
 	const startedIssues = tasks?.filter(
 		(task) =>
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.IN_REVIEW.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.BLOCKED.toLocaleLowerCase(),
+			task.status ===
+				deslugify(TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase()) ||
+			task.status ===
+				deslugify(
+					TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase(),
+				) ||
+			task.status ===
+				deslugify(TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()) ||
+			task.status === TaskStatusEnum.BLOCKED.toLocaleLowerCase(),
 	).length;
 
 	const unstartedIssues = tasks?.filter(

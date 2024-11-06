@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
+	BaseEntityEnum,
 	DashboardWigetQueryEnum,
 	ID,
 	IOrganization,
@@ -14,6 +15,7 @@ import {
 	defaultTestTenantId,
 	defaultUserId,
 	getTaskCounts,
+	issueActivityLogTransformer,
 	issuesByPriority,
 } from '../../config';
 import {
@@ -22,12 +24,14 @@ import {
 } from '../../config';
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
 	constructor(
 		private readonly _issueService: IssuesService,
 		private readonly _projectService: ProjectService,
+		private readonly _activityService: ActivityService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -157,7 +161,8 @@ export class WorkspaceService extends ApiFetchService {
 				return { issues, count: issues.length };
 			},
 
-			[DashboardWigetQueryEnum.RECENT_ACTIVITY]: async () => [],
+			[DashboardWigetQueryEnum.RECENT_ACTIVITY]:
+				this.findRecentIssueActivity.bind(this),
 
 			[DashboardWigetQueryEnum.RECENT_PROJECTS]:
 				this.findRecentProjects.bind(this),
@@ -435,9 +440,56 @@ export class WorkspaceService extends ApiFetchService {
 			const projects = await this._projectService.getProjects();
 
 			// Return the first 5 project IDs
-			return projects.map((project) => project.id).slice(0, 5);
+			return projects.map((project) => project.id).slice(0, 4);
 		} catch (error) {
 			// Log the error and throw a BadRequestException
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findRecentIssueActivity() {
+		try {
+			const activityLogs = await this._activityService.findAll({
+				entity: BaseEntityEnum.Task,
+				creatorId: defaultUserId(), // Use authenticated user ID
+			});
+
+			const issueActivities = await Promise.all(
+				activityLogs.map(async (activityLog) => {
+					const task = await this._issueService.getExternalIssue(
+						activityLog.entityId,
+					);
+
+					if (task.projectId) {
+						const { actor, issue, project, workspace } =
+							await this._issueService.getIssueCommentDetails(
+								task.id,
+								task.projectId,
+								activityLog.creatorId,
+							);
+
+						const transformedActivityLogs =
+							issueActivityLogTransformer(
+								activityLog,
+								issue,
+								actor,
+								project,
+								workspace,
+								issue.cycle,
+							);
+
+						return Array.isArray(transformedActivityLogs)
+							? transformedActivityLogs
+							: [transformedActivityLogs];
+					}
+				}),
+			);
+
+			// TODO: Include also links activities and filter both by createdAt to return most recent activities.
+
+			return issueActivities.flat().filter(Boolean).slice(0, 8);
+		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
 		}

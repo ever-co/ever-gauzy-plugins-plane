@@ -20,6 +20,7 @@ import {
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { issueRelationTransformer } from './issue-relations';
 
 export function issueAssigneesIds(issue: ITask): ID[] {
 	const assignees = issue?.members;
@@ -75,6 +76,7 @@ export function issueTransformer(
 		label_ids: issueLabelsIds(issue),
 		module_ids: issue.modules?.map(({ id }) => id),
 		issue_reactions: reactions || [],
+		issue_relation: issueRelationTransformer(issue.linkedIssues) || [],
 		issue_link: links || [],
 		cycle: issue.organizationSprint,
 	};

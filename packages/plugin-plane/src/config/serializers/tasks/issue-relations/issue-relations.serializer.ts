@@ -1,6 +1,7 @@
 import {
 	ICreatedIssueRelation,
 	ID,
+	IIssueRelation,
 	IssueRelationTypeEnum,
 	ITask,
 	ITaskLinkedIssue,
@@ -112,19 +113,23 @@ export const findByOptionsQuery = (
 	return query;
 };
 
-// export function issueRelationTransformer(
-// 	linkedIssue: ITaskLinkedIssue,
-// ): IIssueRelation {
-// 	return {
-// 		id: linkedIssue.id,
-// 		relation_type: getIssueRelationType(linkedIssue.action),
-// 		issue_id: linkedIssue.taskFrom.id,
-// 		related_issue_id: linkedIssue.taskTo.id,
-// 		project_id: linkedIssue.taskFrom.projectId, // Should be consistent
-// 		workspace_id: linkedIssue.tenantId,
-// 		created_at: linkedIssue.createdAt,
-// 		updated_at: linkedIssue.updatedAt,
-// 		created_by_id: null, // To update
-// 		updated_by_id: null, // To update
-// 	};
-// }
+export function issueRelationTransformer(
+	linkedIssues: ITaskLinkedIssue[],
+): IIssueRelation[] {
+	return linkedIssues?.map((linkedIssue) => {
+		return {
+			id: linkedIssue.taskFrom.id,
+			relation_type: getIssueRelationType(linkedIssue.action),
+			issue_id: linkedIssue.taskFrom.id,
+			related_issue_id: linkedIssue.taskTo.id,
+			name: linkedIssue.taskFrom.title,
+			sequence_id: linkedIssue.taskFrom.number,
+			project_id: linkedIssue.taskFrom.projectId, // Should be consistent
+			workspace_id: linkedIssue.tenantId,
+			created_at: linkedIssue.createdAt,
+			updated_at: linkedIssue.updatedAt,
+			created_by_id: null, // To update
+			updated_by_id: null, // To update
+		};
+	});
+}

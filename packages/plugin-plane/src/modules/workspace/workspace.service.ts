@@ -153,12 +153,12 @@ export class WorkspaceService extends ApiFetchService {
 
 			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
 				const issues = await this.findMyCreatedIssues();
-				return { issues, count: issues.length };
+				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
 			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
 				const issues = await this.findMyAssignedIssues();
-				return { issues, count: issues.length };
+				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
 			[DashboardWigetQueryEnum.RECENT_ACTIVITY]:

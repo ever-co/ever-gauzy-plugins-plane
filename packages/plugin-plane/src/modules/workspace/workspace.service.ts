@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
-	DashBoardWigetQueryEnum,
+	DashboardWigetQueryEnum,
+	ID,
 	IOrganization,
 	IRecentCollaborator,
 	IWorkspaceUserInfo,
@@ -123,48 +124,67 @@ export class WorkspaceService extends ApiFetchService {
 		};
 	}
 
-	async findDashboardWidgetsData(widget: DashBoardWigetQueryEnum) {
-		let assigned = 0;
-		let created = 0;
+	/**
+	 * Fetches data for various dashboard widgets based on the widget type.
+	 *
+	 * This function retrieves data for different types of dashboard widgets such as recent collaborators,
+	 * created issues, assigned issues, recent projects, issues by state, and issues by priority.
+	 *
+	 * @param {DashboardWigetQueryEnum} widget - The widget type to query data for.
+	 * @returns {Promise<any>} A promise that resolves to the data for the requested widget.
+	 * @throws {BadRequestException} If an error occurs during data retrieval.
+	 */
+	async findDashboardWidgetsData(
+		widget: DashboardWigetQueryEnum,
+	): Promise<any> {
 		const completed = 0;
 		const pending = 0;
 
-		if (widget === DashBoardWigetQueryEnum.COLLABORATORS) {
-			return await this.findRecentCollaborators();
-		}
-		if (widget === DashBoardWigetQueryEnum.CREATED_ISSUES) {
-			const issues = await this.findMyCreatedIssues();
-			created = issues.length;
-			return { issues, count: created };
-		}
+		// Mapping object for each widget type and its corresponding handler function
+		const widgetHandlers: {
+			[key in DashboardWigetQueryEnum]?: () => Promise<any>;
+		} = {
+			[DashboardWigetQueryEnum.COLLABORATORS]:
+				this.findRecentCollaborators.bind(this),
 
-		if (widget === DashBoardWigetQueryEnum.ASSIGNED_ISSUES) {
-			const issues = await this.findMyAssignedIssues();
-			assigned = issues.length;
-			return { issues, count: assigned };
-		}
+			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
+				const issues = await this.findMyCreatedIssues();
+				return { issues, count: issues.length };
+			},
 
-		if (
-			widget === DashBoardWigetQueryEnum.RECENT_PROJECTS ||
-			widget === DashBoardWigetQueryEnum.RECENT_ACTIVITY
-		) {
-			return [];
-		}
+			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
+				const issues = await this.findMyAssignedIssues();
+				return { issues, count: issues.length };
+			},
 
-		if (widget === DashBoardWigetQueryEnum.ISSUES_BY_STATE) {
-			return await this.finAssignedByState();
-		}
+			[DashboardWigetQueryEnum.RECENT_ACTIVITY]: async () => [],
 
-		if (widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY) {
-			return await this.findAssignedByPriority();
-		}
+			[DashboardWigetQueryEnum.RECENT_PROJECTS]:
+				this.findRecentProjects.bind(this),
 
-		return {
-			assigned_issues_count: assigned,
-			pending_issues_count: pending,
-			completed_issues_count: completed,
-			created_issues_count: created,
+			[DashboardWigetQueryEnum.ISSUES_BY_STATE]:
+				this.finAssignedByState.bind(this),
+
+			[DashboardWigetQueryEnum.ISSUES_BY_PRIORITY]:
+				this.findAssignedByPriority.bind(this),
+
+			[DashboardWigetQueryEnum.OVERVIEW]: async () => {
+				const assigned = await this.findMyAssignedIssues();
+
+				const created = await this.findMyCreatedIssues();
+				return {
+					assigned_issues_count: assigned.length,
+					pending_issues_count: pending,
+					completed_issues_count: completed,
+					created_issues_count: created.length,
+				};
+			},
 		};
+
+		// Execute the corresponding handler if the widget type exists in the mapping
+		if (widget in widgetHandlers) {
+			return widgetHandlers[widget]();
+		}
 	}
 
 	/**--------------------------------------------------------------
@@ -397,6 +417,28 @@ export class WorkspaceService extends ApiFetchService {
 		} catch (error: any) {
 			// Log the error and throw a BadRequestException
 			console.log(error.response?.data ?? error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves the most recent project IDs.
+	 *
+	 * This function fetches all projects and returns the IDs of the first 5 recent projects.
+	 *
+	 * @returns {Promise<ID[]>} A promise that resolves to an array of the most recent project IDs.
+	 * @throws {BadRequestException} If an error occurs during project retrieval.
+	 */
+	async findRecentProjects(): Promise<ID[]> {
+		try {
+			// Fetch all projects
+			const projects = await this._projectService.getProjects();
+
+			// Return the first 5 project IDs
+			return projects.map((project) => project.id).slice(0, 5);
+		} catch (error) {
+			// Log the error and throw a BadRequestException
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}

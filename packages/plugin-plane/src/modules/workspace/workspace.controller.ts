@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
-import { DashBoardWigetQueryEnum } from '@plane-plugin/models';
+import { DashboardWigetQueryEnum } from '@plane-plugin/models';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -38,7 +38,7 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get dashboard widgets' })
 	@Get('dashboard/:id')
-	async getWigetsData(@Query('widget_key') widget: DashBoardWigetQueryEnum) {
+	async getWigetsData(@Query('widget_key') widget: DashboardWigetQueryEnum) {
 		return await this._workspaceService.findDashboardWidgetsData(widget);
 	}
 

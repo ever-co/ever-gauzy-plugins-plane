@@ -5,7 +5,7 @@ export interface IRecentCollaborator {
 	user_id: ID;
 }
 
-export enum DashBoardWigetQueryEnum {
+export enum DashboardWigetQueryEnum {
 	COLLABORATORS = 'recent_collaborators',
 	OVERVIEW = 'overview_stats',
 	ASSIGNED_ISSUES = 'assigned_issues',

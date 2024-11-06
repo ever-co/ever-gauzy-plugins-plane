@@ -4,7 +4,6 @@ import {
 	DashBoardWigetQueryEnum,
 	IOrganization,
 	IRecentCollaborator,
-	ITask,
 	IWorkspaceUserInfo,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -14,7 +13,7 @@ import {
 	defaultTestTenantId,
 	defaultUserId,
 	getTaskCounts,
-	getTaskQuery,
+	issuesByPriority,
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -147,14 +146,17 @@ export class WorkspaceService extends ApiFetchService {
 
 		if (
 			widget === DashBoardWigetQueryEnum.RECENT_PROJECTS ||
-			widget === DashBoardWigetQueryEnum.RECENT_ACTIVITY ||
-			widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY
+			widget === DashBoardWigetQueryEnum.RECENT_ACTIVITY
 		) {
 			return [];
 		}
 
 		if (widget === DashBoardWigetQueryEnum.ISSUES_BY_STATE) {
-			return this.finAssignedByState();
+			return await this.finAssignedByState();
+		}
+
+		if (widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY) {
+			return await this.findAddignedByPriority();
 		}
 
 		return {
@@ -343,17 +345,10 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async finAssignedByState(): Promise<{ state: string; count: number }[]> {
 		try {
-			// Build query for task retrieval
-			const query = qs.stringify(getTaskQuery());
-
-			// Fetch tasks for the authenticated employee
-			const tasks: ITask[] = (
-				await this._issueService.apiFetch({
-					method: 'GET',
-					path: `/tasks/employee/${defaultEmployeeId()}`, // Use authenticated employee ID
-					query,
-				})
-			).data;
+			const tasks =
+				await this._issueService.findExternalByEmployee(
+					defaultEmployeeId(),
+				); // Use authenticated employee ID
 
 			// Get task counts based on their states
 			const {
@@ -371,6 +366,22 @@ export class WorkspaceService extends ApiFetchService {
 				{ state: 'completed', count: completedIssues },
 				{ state: 'cancelled', count: 0 }, // Assuming 0 cancelled issues as not specified
 			];
+		} catch (error: any) {
+			// Log error and throw BadRequestException
+			console.log(error.response?.data ?? error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findAddignedByPriority() {
+		try {
+			const tasks =
+				await this._issueService.findExternalByEmployee(
+					defaultEmployeeId(),
+				); // Use authenticated employee ID
+
+			// Get the tasks counts grouped by priority
+			return issuesByPriority(tasks);
 		} catch (error: any) {
 			// Log error and throw BadRequestException
 			console.log(error.response?.data ?? error);

@@ -406,3 +406,33 @@ export function getTaskDistribution(tasks: ITask[]) {
 
 	return stateDistribution;
 }
+
+export function issuesByPriority(
+	tasks: ITask[],
+): { priority: string; count: number }[] {
+	const urgentPriorityIssues = tasks.filter(
+		(task) => task.priority === TaskPriorityEnum.URGENT,
+	).length;
+
+	const highPriorityIssues = tasks.filter(
+		(task) => task.priority === TaskPriorityEnum.HIGH,
+	).length;
+
+	const mediumPriorityIssues = tasks.filter(
+		(task) => task.priority === TaskPriorityEnum.MEDIUM,
+	).length;
+
+	const lowPriorityIssues = tasks.filter(
+		(task) => task.priority === TaskPriorityEnum.LOW,
+	).length;
+
+	const nonePriorityIssues = tasks.filter((task) => !task.priority).length;
+
+	return [
+		{ priority: 'urgent', count: urgentPriorityIssues },
+		{ priority: 'high', count: highPriorityIssues },
+		{ priority: 'medium', count: mediumPriorityIssues },
+		{ priority: 'low', count: lowPriorityIssues },
+		{ priority: 'none', count: nonePriorityIssues },
+	];
+}

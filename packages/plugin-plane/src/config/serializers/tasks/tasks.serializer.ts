@@ -407,32 +407,33 @@ export function getTaskDistribution(tasks: ITask[]) {
 	return stateDistribution;
 }
 
+/**
+ * Categorizes tasks by their priority and returns the count for each priority level.
+ *
+ * This function filters the list of tasks based on their priority and returns the count
+ * of tasks for each priority level (urgent, high, medium, low, and none).
+ *
+ * @param {ITask[]} tasks - The array of tasks to be categorized by priority.
+ * @returns {Array<{ priority: string; count: number }>} An array of objects containing the priority and the count of tasks with that priority.
+ */
 export function issuesByPriority(
 	tasks: ITask[],
 ): { priority: string; count: number }[] {
-	const urgentPriorityIssues = tasks.filter(
-		(task) => task.priority === TaskPriorityEnum.URGENT,
-	).length;
+	// Mapping of priorities to their corresponding filters
+	const priorityMapping = {
+		urgent: TaskPriorityEnum.URGENT,
+		high: TaskPriorityEnum.HIGH,
+		medium: TaskPriorityEnum.MEDIUM,
+		low: TaskPriorityEnum.LOW,
+		none: null, // Tasks without a priority
+	};
 
-	const highPriorityIssues = tasks.filter(
-		(task) => task.priority === TaskPriorityEnum.HIGH,
-	).length;
-
-	const mediumPriorityIssues = tasks.filter(
-		(task) => task.priority === TaskPriorityEnum.MEDIUM,
-	).length;
-
-	const lowPriorityIssues = tasks.filter(
-		(task) => task.priority === TaskPriorityEnum.LOW,
-	).length;
-
-	const nonePriorityIssues = tasks.filter((task) => !task.priority).length;
-
-	return [
-		{ priority: 'urgent', count: urgentPriorityIssues },
-		{ priority: 'high', count: highPriorityIssues },
-		{ priority: 'medium', count: mediumPriorityIssues },
-		{ priority: 'low', count: lowPriorityIssues },
-		{ priority: 'none', count: nonePriorityIssues },
-	];
+	// Count tasks for each priority
+	return Object.entries(priorityMapping).map(([priority, value]) => ({
+		priority,
+		count: tasks.filter(
+			(task) =>
+				task.priority === value || (value === null && !task.priority),
+		).length,
+	}));
 }

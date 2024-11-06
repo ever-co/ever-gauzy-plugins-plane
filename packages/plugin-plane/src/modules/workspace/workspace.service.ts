@@ -156,7 +156,7 @@ export class WorkspaceService extends ApiFetchService {
 		}
 
 		if (widget === DashBoardWigetQueryEnum.ISSUES_BY_PRIORITY) {
-			return await this.findAddignedByPriority();
+			return await this.findAssignedByPriority();
 		}
 
 		return {
@@ -373,8 +373,20 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
-	async findAddignedByPriority() {
+	/**
+	 * Retrieves tasks assigned to the authenticated employee and categorizes them by priority.
+	 *
+	 * This function fetches tasks for the authenticated employee and returns the count
+	 * of tasks grouped by their priority (urgent, high, medium, low, none).
+	 *
+	 * @returns {Promise<Array<{ priority: string; count: number }>>} A promise that resolves to an array of objects containing the priority and the count of tasks for each priority level.
+	 * @throws {BadRequestException} If an error occurs during task retrieval.
+	 */
+	async findAssignedByPriority(): Promise<
+		{ priority: string; count: number }[]
+	> {
 		try {
+			// Fetch tasks assigned to the authenticated employee
 			const tasks =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
@@ -383,7 +395,7 @@ export class WorkspaceService extends ApiFetchService {
 			// Get the tasks counts grouped by priority
 			return issuesByPriority(tasks);
 		} catch (error: any) {
-			// Log error and throw BadRequestException
+			// Log the error and throw a BadRequestException
 			console.log(error.response?.data ?? error);
 			throw new BadRequestException(error);
 		}

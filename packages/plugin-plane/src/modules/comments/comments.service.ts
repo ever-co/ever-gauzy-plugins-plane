@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
@@ -26,6 +31,7 @@ import { ReactionsService } from '../reactions/reactions.service';
 @Injectable()
 export class CommentsService extends ApiFetchService {
 	constructor(
+		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _serverFetchService: ApiFetchService,

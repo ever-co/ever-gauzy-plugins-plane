@@ -1,6 +1,8 @@
 import {
 	BadGatewayException,
 	BadRequestException,
+	forwardRef,
+	Inject,
 	Injectable,
 	InternalServerErrorException,
 } from '@nestjs/common';
@@ -32,6 +34,7 @@ import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 @Injectable()
 export class ProjectService extends ApiFetchService {
 	constructor(
+		@Inject(forwardRef(() => WorkspaceService))
 		private readonly _workspaceService: WorkspaceService,
 		private readonly _userFavoriteService: UserFavoritesService,
 		private readonly _serverFetchService: ApiFetchService,

@@ -501,7 +501,7 @@ export function activityLogFieldTransformer(field: keyof ITask): keyof IIssue {
 export function getActivityLogsQuery(
 	options: IIssueActivityFindInput,
 ): Record<string, string> {
-	const { action, entity, entityId } = options;
+	const { action, creatorId, entity, entityId } = options;
 
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
@@ -519,6 +519,10 @@ export function getActivityLogsQuery(
 
 	if (entity) {
 		query['entity'] = entity;
+	}
+
+	if (creatorId) {
+		query['creatorId'] = creatorId;
 	}
 
 	return query;

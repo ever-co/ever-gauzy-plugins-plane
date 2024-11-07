@@ -20,6 +20,7 @@ import {
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { issueRelationTransformer } from './issue-relations';
 
 export function issueAssigneesIds(issue: ITask): ID[] {
 	const assignees = issue?.members;
@@ -75,6 +76,7 @@ export function issueTransformer(
 		label_ids: issueLabelsIds(issue),
 		module_ids: issue.modules?.map(({ id }) => id),
 		issue_reactions: reactions || [],
+		issue_relation: issueRelationTransformer(issue.linkedIssues) || [],
 		issue_link: links || [],
 		cycle: issue.organizationSprint,
 	};
@@ -98,10 +100,6 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		state__color: issue.taskStatus?.color,
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
 	}));
-}
-
-export function getProjectTasksTransformer() {
-	return;
 }
 
 /**
@@ -242,6 +240,10 @@ export const getTaskQuery = (
 	if (options?.module) {
 		query['join[alias]'] = 'task';
 		// query['where[modules][0]'] = options.module;
+	}
+
+	if (options?.creatorId) {
+		query['where[creatorId]'] = options.creatorId;
 	}
 
 	// Add relations
@@ -405,4 +407,35 @@ export function getTaskDistribution(tasks: ITask[]) {
 	});
 
 	return stateDistribution;
+}
+
+/**
+ * Categorizes tasks by their priority and returns the count for each priority level.
+ *
+ * This function filters the list of tasks based on their priority and returns the count
+ * of tasks for each priority level (urgent, high, medium, low, and none).
+ *
+ * @param {ITask[]} tasks - The array of tasks to be categorized by priority.
+ * @returns {Array<{ priority: string; count: number }>} An array of objects containing the priority and the count of tasks with that priority.
+ */
+export function issuesByPriority(
+	tasks: ITask[],
+): { priority: string; count: number }[] {
+	// Mapping of priorities to their corresponding filters
+	const priorityMapping = {
+		urgent: TaskPriorityEnum.URGENT,
+		high: TaskPriorityEnum.HIGH,
+		medium: TaskPriorityEnum.MEDIUM,
+		low: TaskPriorityEnum.LOW,
+		none: null, // Tasks without a priority
+	};
+
+	// Count tasks for each priority
+	return Object.entries(priorityMapping).map(([priority, value]) => ({
+		priority,
+		count: tasks.filter(
+			(task) =>
+				task.priority === value || (value === null && !task.priority),
+		).length,
+	}));
 }

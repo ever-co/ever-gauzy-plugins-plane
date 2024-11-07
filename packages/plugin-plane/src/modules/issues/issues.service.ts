@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+	Injectable,
+	BadRequestException,
+	Inject,
+	forwardRef,
+} from '@nestjs/common';
 import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -59,12 +64,13 @@ import { IssueLabelsService } from './issue-labels/issue-labels.service';
 @Injectable()
 export class IssuesService extends ApiFetchService {
 	constructor(
+		@Inject(forwardRef(() => ProjectService))
+		private readonly _projectService: ProjectService,
 		private readonly _stateSerive: StatesService,
 		private readonly _issueLabelService: IssueLabelsService,
 		private readonly _commentService: CommentsService,
 		private readonly _reactionService: ReactionsService,
 		private readonly _issueLinkService: IssueLinksService,
-		private readonly _projectService: ProjectService,
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _activityService: ActivityService,
 		private readonly _serverFetchService: ApiFetchService,
@@ -89,6 +95,60 @@ export class IssuesService extends ApiFetchService {
 				query,
 			})
 		).data;
+	}
+
+	/**
+	 * Retrieves all tasks from an external source with optional filters.
+	 *
+	 * Sends a GET request to an external API to fetch tasks based on the provided options.
+	 *
+	 * @param {ITask} options - Optional task filters or configurations to customize the query.
+	 * @returns {Promise<ITask[]>} A promise that resolves to an array of tasks.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async findAllExternal(options: ITask): Promise<ITask[]> {
+		try {
+			const query = qs.stringify(getTaskQuery(null, options));
+
+			return (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query,
+				})
+			).data;
+		} catch (error) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves tasks assigned to a specific employee from an external source.
+	 *
+	 * Sends a GET request to fetch tasks for the specified employee ID.
+	 *
+	 * @param {ID} employeeId - The ID of the employee for whom the tasks are being retrieved.
+	 * @returns {Promise<ITask[]>} A promise that resolves to an array of tasks assigned to the specified employee.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async findExternalByEmployee(employeeId: ID): Promise<ITask[]> {
+		try {
+			// Build query for task retrieval
+			const query = qs.stringify(getTaskQuery());
+
+			// Fetch tasks for the authenticated employee
+			const tasks: ITask[] = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/employee/${employeeId}`,
+					query,
+				})
+			).data;
+
+			return tasks;
+		} catch (error) {
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**
@@ -374,6 +434,56 @@ export class IssuesService extends ApiFetchService {
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();
+		}
+	}
+
+	/**
+	 * Retrieves all tasks with optional filters and options.
+	 *
+	 * Sends a GET request to fetch tasks with the provided query options, and
+	 * transforms each task into the issue format. Returns a list of transformed tasks.
+	 *
+	 * @param {ITask} [options] - Optional filters or configurations for fetching tasks.
+	 * @returns {Promise<IIssue[]>} A promise that resolves to a list of transformed issues.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async findAll(options?: ITask): Promise<IIssue[]> {
+		try {
+			const query = qs.stringify(getTaskQuery(null, options));
+
+			const tasks: IPagination<ITask> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query,
+				})
+			).data;
+
+			return tasks.items.map((task) => issueTransformer(task));
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves tasks assigned to a specific employee.
+	 *
+	 * Sends a GET request to fetch tasks based on the provided employee ID,
+	 * applies a transformation to each task, and returns the transformed list.
+	 *
+	 * @param {ID} employeeId - The ID of the employee whose tasks are to be fetched.
+	 * @returns {Promise<ITask[]>} A promise that resolves to a list of transformed tasks.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async findByEmployee(employeeId: ID): Promise<IIssue[]> {
+		try {
+			const tasks = await this.findExternalByEmployee(employeeId);
+
+			return tasks.map((task) => issueTransformer(task));
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 

@@ -1,20 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { IOrganization, IWorkspaceUserInfo } from '@plane-plugin/models';
+import {
+	BaseEntityEnum,
+	DashboardWigetQueryEnum,
+	ID,
+	IOrganization,
+	IRecentCollaborator,
+	IWorkspaceUserInfo,
+} from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	defaultEmployeeId,
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
+	getTaskCounts,
+	issueActivityLogTransformer,
+	issuesByPriority,
 } from '../../config';
 import {
 	getOrganizationQuery,
 	organizationMembersTransformer,
 } from '../../config';
+import { ProjectService } from '../project/project.service';
+import { IssuesService } from '../issues/issues.service';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
+	constructor(
+		private readonly _issueService: IssuesService,
+		private readonly _projectService: ProjectService,
+		private readonly _activityService: ActivityService,
+		private readonly _serverFetchService: ApiFetchService,
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	/**--------------------------------------------------------------
      * This function handlers should be updated after implementing authentication
      *--------------------------------------------------------------/
@@ -104,6 +126,70 @@ export class WorkspaceService extends ApiFetchService {
 				},
 			],
 		};
+	}
+
+	/**
+	 * Fetches data for various dashboard widgets based on the widget type.
+	 *
+	 * This function retrieves data for different types of dashboard widgets such as recent collaborators,
+	 * created issues, assigned issues, recent projects, issues by state, and issues by priority.
+	 *
+	 * @param {DashboardWigetQueryEnum} widget - The widget type to query data for.
+	 * @returns {Promise<any>} A promise that resolves to the data for the requested widget.
+	 * @throws {BadRequestException} If an error occurs during data retrieval.
+	 */
+	async findDashboardWidgetsData(
+		widget: DashboardWigetQueryEnum,
+	): Promise<any> {
+		const completed = 0;
+		const pending = 0;
+
+		// Mapping object for each widget type and its corresponding handler function
+		const widgetHandlers: {
+			[key in DashboardWigetQueryEnum]?: () => Promise<any>;
+		} = {
+			[DashboardWigetQueryEnum.COLLABORATORS]:
+				this.findRecentCollaborators.bind(this),
+
+			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
+				const issues = await this.findMyCreatedIssues();
+				return { issues: issues.slice(0, 5), count: issues.length };
+			},
+
+			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
+				const issues = await this.findMyAssignedIssues();
+				return { issues: issues.slice(0, 5), count: issues.length };
+			},
+
+			[DashboardWigetQueryEnum.RECENT_ACTIVITY]:
+				this.findRecentIssueActivity.bind(this),
+
+			[DashboardWigetQueryEnum.RECENT_PROJECTS]:
+				this.findRecentProjects.bind(this),
+
+			[DashboardWigetQueryEnum.ISSUES_BY_STATE]:
+				this.finAssignedByState.bind(this),
+
+			[DashboardWigetQueryEnum.ISSUES_BY_PRIORITY]:
+				this.findAssignedByPriority.bind(this),
+
+			[DashboardWigetQueryEnum.OVERVIEW]: async () => {
+				const assigned = await this.findMyAssignedIssues();
+
+				const created = await this.findMyCreatedIssues();
+				return {
+					assigned_issues_count: assigned.length,
+					pending_issues_count: pending,
+					completed_issues_count: completed,
+					created_issues_count: created.length,
+				};
+			},
+		};
+
+		// Execute the corresponding handler if the widget type exists in the mapping
+		if (widget in widgetHandlers) {
+			return widgetHandlers[widget]();
+		}
 	}
 
 	/**--------------------------------------------------------------
@@ -230,5 +316,182 @@ export class WorkspaceService extends ApiFetchService {
 			organization.employees,
 			organization.tenant,
 		);
+	}
+
+	/**
+	 * Retrieves the most recent collaborators from the workspace members.
+	 *
+	 * The function fetches all workspace members and and returns the first members found. The result includes each collaborator's
+	 * user ID and active issue count (which needs to be calculated accordingly).
+	 *
+	 * @returns {Promise<IRecentCollaborator[]>} A promise that resolves to an array of recent collaborators.
+	 * @throws {BadRequestException} If there is an error while fetching the workspace members.
+	 */
+	async findRecentCollaborators(): Promise<IRecentCollaborator[]> {
+		try {
+			const employees = (await this.getWorkspaceMembers()).slice(0, 10);
+
+			return employees.map((employee) => ({
+				user_id: employee.member.id,
+				active_issue_count: 0, // Find a way  to make this working
+			}));
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves the issues assigned to the current employee.
+	 *
+	 * The function calls the issue service to fetch all issues assigned to the employee
+	 */
+	async findMyAssignedIssues() {
+		return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
+	}
+
+	/**
+	 * Retrieves the issues created by the current user.
+	 *
+	 * The function calls the issue service to fetch all issues created by the user
+	 */
+	async findMyCreatedIssues() {
+		return await this._issueService.findAll({ creatorId: defaultUserId() }); // TODO: Adjust this to use correct authenticated user
+	}
+
+	/**
+	 * Retrieves the count of tasks assigned to the current employee, grouped by their state.
+	 *
+	 * Sends a GET request to fetch tasks assigned to the authenticated employee.
+	 * Tasks are then categorized into states (backlog, unstarted, started, completed, and cancelled).
+	 *
+	 * @returns {Promise<{ state: string, count: number }[]>} A promise that resolves to an array of objects representing task states and their respective counts.
+	 * @throws {BadRequestException} If an error occurs during the fetch.
+	 */
+	async finAssignedByState(): Promise<{ state: string; count: number }[]> {
+		try {
+			const tasks =
+				await this._issueService.findExternalByEmployee(
+					defaultEmployeeId(),
+				); // Use authenticated employee ID
+
+			// Get task counts based on their states
+			const {
+				backlogIssues,
+				completedIssues,
+				startedIssues,
+				unstartedIssues,
+			} = getTaskCounts(tasks);
+
+			// Return the task counts grouped by state
+			return [
+				{ state: 'backlog', count: backlogIssues },
+				{ state: 'unstarted', count: unstartedIssues },
+				{ state: 'started', count: startedIssues },
+				{ state: 'completed', count: completedIssues },
+				{ state: 'cancelled', count: 0 }, // Assuming 0 cancelled issues as not specified
+			];
+		} catch (error: any) {
+			// Log error and throw BadRequestException
+			console.log(error.response?.data ?? error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves tasks assigned to the authenticated employee and categorizes them by priority.
+	 *
+	 * This function fetches tasks for the authenticated employee and returns the count
+	 * of tasks grouped by their priority (urgent, high, medium, low, none).
+	 *
+	 * @returns {Promise<Array<{ priority: string; count: number }>>} A promise that resolves to an array of objects containing the priority and the count of tasks for each priority level.
+	 * @throws {BadRequestException} If an error occurs during task retrieval.
+	 */
+	async findAssignedByPriority(): Promise<
+		{ priority: string; count: number }[]
+	> {
+		try {
+			// Fetch tasks assigned to the authenticated employee
+			const tasks =
+				await this._issueService.findExternalByEmployee(
+					defaultEmployeeId(),
+				); // Use authenticated employee ID
+
+			// Get the tasks counts grouped by priority
+			return issuesByPriority(tasks);
+		} catch (error: any) {
+			// Log the error and throw a BadRequestException
+			console.log(error.response?.data ?? error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves the most recent project IDs.
+	 *
+	 * This function fetches all projects and returns the IDs of the first 5 recent projects.
+	 *
+	 * @returns {Promise<ID[]>} A promise that resolves to an array of the most recent project IDs.
+	 * @throws {BadRequestException} If an error occurs during project retrieval.
+	 */
+	async findRecentProjects(): Promise<ID[]> {
+		try {
+			// Fetch all projects
+			const projects = await this._projectService.getProjects();
+
+			// Return the first 5 project IDs
+			return projects.map((project) => project.id).slice(0, 4);
+		} catch (error) {
+			// Log the error and throw a BadRequestException
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findRecentIssueActivity() {
+		try {
+			const activityLogs = await this._activityService.findAll({
+				entity: BaseEntityEnum.Task,
+				creatorId: defaultUserId(), // Use authenticated user ID
+			});
+
+			const issueActivities = await Promise.all(
+				activityLogs.map(async (activityLog) => {
+					const task = await this._issueService.getExternalIssue(
+						activityLog.entityId,
+					);
+
+					if (task.projectId) {
+						const { actor, issue, project, workspace } =
+							await this._issueService.getIssueCommentDetails(
+								task.id,
+								task.projectId,
+								activityLog.creatorId,
+							);
+
+						const transformedActivityLogs =
+							issueActivityLogTransformer(
+								activityLog,
+								issue,
+								actor,
+								project,
+								workspace,
+								issue.cycle,
+							);
+
+						return Array.isArray(transformedActivityLogs)
+							? transformedActivityLogs
+							: [transformedActivityLogs];
+					}
+				}),
+			);
+
+			// TODO: Include also links activities and filter both by createdAt to return most recent activities.
+
+			return issueActivities.flat().filter(Boolean).slice(0, 8);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 }

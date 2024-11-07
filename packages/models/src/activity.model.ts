@@ -17,4 +17,5 @@ export interface IIssueActivityFindInput {
 	entity?: BaseEntityEnum;
 	entityId?: ID;
 	action?: ActionTypeEnum;
+	creatorId?: ID;
 }

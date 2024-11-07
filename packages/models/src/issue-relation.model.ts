@@ -15,6 +15,8 @@ export interface IIssueRelation {
 	relation_type?: IssueRelationTypeEnum;
 	created_by_id?: ID;
 	issue_id?: ID;
+	name?: string;
+	sequence_id?: number;
 	project_id?: ID;
 	related_issue_id?: ID;
 	updated_by_id?: ID;

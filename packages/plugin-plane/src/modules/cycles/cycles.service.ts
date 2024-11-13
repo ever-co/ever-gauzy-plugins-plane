@@ -192,7 +192,7 @@ export class CyclesService extends ApiFetchService {
 	 * Utilizes `Promise.all` to perform asynchronous updates on multiple issues concurrently.
 	 *
 	 * @param {ID} id - The ID of the sprint (cycle) to which the issues will be added.
-	 * @param {ID[]} issues - An array of issue IDs that need to be associated with the sprint.
+	 * @param {ID[]} input - An array of issue IDs that need to be associated with the sprint.
 	 * @returns {Promise<{ message: string }>} A success message upon completion.
 	 * @throws {BadRequestException} If there is an error during the update of any issue.
 	 */

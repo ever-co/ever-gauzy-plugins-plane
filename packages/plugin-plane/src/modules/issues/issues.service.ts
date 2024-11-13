@@ -1003,7 +1003,7 @@ export class IssuesService extends ApiFetchService {
 			};
 
 			// Find actor by userId
-			const actor = project.members.find(
+			const actor = project.members?.find(
 				(member) => member.employee.userId === creatorId,
 			)?.employee;
 

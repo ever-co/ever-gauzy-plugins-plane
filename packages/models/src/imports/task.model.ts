@@ -1,9 +1,9 @@
 import { IBasePerTenantAndOrganizationEntityModel, IBaseRelationsEntityModel, ID } from './base-entity.model';
-import { IEmployee } from './employee.model';
+import { IEmployee, IEmployeeEntityInput } from './employee.model';
 import { IInvoiceItem } from './invoice-item.model';
 import { IRelationalOrganizationProject } from './organization-projects.model';
-import { IOrganizationSprint } from './organization-sprint.model';
-import { IOrganizationTeam } from './organization-team.model';
+import { IOrganizationSprint, IRelationalOrganizationSprint } from './organization-sprint.model';
+import { IOrganizationTeam, IRelationalOrganizationTeam } from './organization-team.model';
 import { ITag } from './tag.model';
 import { IUser } from './user.model';
 import { ITaskStatus, TaskStatusEnum } from './task-status.model';
@@ -96,4 +96,17 @@ export interface IGetTasksByViewFilters extends IBasePerTenantAndOrganizationEnt
 
 	// Relations
 	relations?: string[];
+}
+
+export interface ITaskDateFilterInput
+	extends IBasePerTenantAndOrganizationEntityModel,
+		IEmployeeEntityInput,
+		IRelationalOrganizationProject,
+		IRelationalOrganizationTeam,
+		IRelationalOrganizationSprint,
+		Pick<IGetTasksByViewFilters, 'relations'> {
+	startDateFrom?: Date;
+	startDateTo?: Date;
+	dueDateFrom?: Date;
+	dueDateTo?: Date;
 }

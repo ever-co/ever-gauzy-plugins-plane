@@ -6,6 +6,7 @@ import {
 	ID,
 	IOrganization,
 	IRecentCollaborator,
+	ITask,
 	IWorkspaceUserInfo,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -17,6 +18,8 @@ import {
 	getTaskCounts,
 	issueActivityLogTransformer,
 	issuesByPriority,
+	issueTransformer,
+	widgetTargetDateTransformer,
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -140,6 +143,7 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findDashboardWidgetsData(
 		widget: DashboardWigetQueryEnum,
+		target_date?: string,
 	): Promise<any> {
 		const completed = 0;
 		const pending = 0;
@@ -152,12 +156,12 @@ export class WorkspaceService extends ApiFetchService {
 				this.findRecentCollaborators.bind(this),
 
 			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
-				const issues = await this.findMyCreatedIssues();
+				const issues = await this.findMyCreatedIssues(target_date);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
 			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
-				const issues = await this.findMyAssignedIssues();
+				const issues = await this.findMyAssignedIssues(target_date);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
@@ -167,11 +171,13 @@ export class WorkspaceService extends ApiFetchService {
 			[DashboardWigetQueryEnum.RECENT_PROJECTS]:
 				this.findRecentProjects.bind(this),
 
-			[DashboardWigetQueryEnum.ISSUES_BY_STATE]:
-				this.finAssignedByState.bind(this),
+			[DashboardWigetQueryEnum.ISSUES_BY_STATE]: async () => {
+				return this.finAssignedByState(target_date);
+			},
 
-			[DashboardWigetQueryEnum.ISSUES_BY_PRIORITY]:
-				this.findAssignedByPriority.bind(this),
+			[DashboardWigetQueryEnum.ISSUES_BY_PRIORITY]: async () => {
+				return this.findAssignedByPriority(target_date);
+			},
 
 			[DashboardWigetQueryEnum.OVERVIEW]: async () => {
 				const assigned = await this.findMyAssignedIssues();
@@ -346,8 +352,24 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * The function calls the issue service to fetch all issues assigned to the employee
 	 */
-	async findMyAssignedIssues() {
-		return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
+	async findMyAssignedIssues(target_date?: string) {
+		try {
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				const tasks = await this._issueService.findByStartAndDueDate({
+					dueDateFrom,
+					dueDateTo,
+					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+				});
+				return tasks.map((task) => issueTransformer(task));
+			}
+			return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**
@@ -355,8 +377,27 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * The function calls the issue service to fetch all issues created by the user
 	 */
-	async findMyCreatedIssues() {
-		return await this._issueService.findAll({ creatorId: defaultUserId() }); // TODO: Adjust this to use correct authenticated user
+	async findMyCreatedIssues(target_date?: string) {
+		try {
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				const tasks = await this._issueService.findByStartAndDueDate({
+					dueDateFrom,
+					dueDateTo,
+					creatorId: defaultUserId(), // TODO: Adjust this to use correct authenticated user
+				});
+
+				return tasks.map((task) => issueTransformer(task));
+			}
+			return await this._issueService.findAll({
+				creatorId: defaultUserId(),
+			}); // TODO: Adjust this to use correct authenticated user
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**
@@ -368,12 +409,25 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<{ state: string, count: number }[]>} A promise that resolves to an array of objects representing task states and their respective counts.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async finAssignedByState(): Promise<{ state: string; count: number }[]> {
+	async finAssignedByState(
+		target_date?: string,
+	): Promise<{ state: string; count: number }[]> {
 		try {
-			const tasks =
+			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-				); // Use authenticated employee ID
+				); // TODO: Adjust this to use correct authenticated employee;
+
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				tasks = await this._issueService.findByStartAndDueDate({
+					dueDateFrom,
+					dueDateTo,
+					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+				});
+			}
 
 			// Get task counts based on their states
 			const {
@@ -407,15 +461,27 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<Array<{ priority: string; count: number }>>} A promise that resolves to an array of objects containing the priority and the count of tasks for each priority level.
 	 * @throws {BadRequestException} If an error occurs during task retrieval.
 	 */
-	async findAssignedByPriority(): Promise<
-		{ priority: string; count: number }[]
-	> {
+	async findAssignedByPriority(
+		target_date?: string,
+	): Promise<{ priority: string; count: number }[]> {
 		try {
-			// Fetch tasks assigned to the authenticated employee
-			const tasks =
+			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-				); // Use authenticated employee ID
+				); // TODO: Adjust this to use correct authenticated employee;
+
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				tasks = await this._issueService.findByStartAndDueDate({
+					dueDateFrom,
+					dueDateTo,
+					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+				});
+			}
+
+			console.log(tasks.length);
 
 			// Get the tasks counts grouped by priority
 			return issuesByPriority(tasks);

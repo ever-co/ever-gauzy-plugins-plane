@@ -32,12 +32,14 @@ import {
 	IState,
 	ISubIssueResponse,
 	ITask,
+	ITaskDateFilterInput,
 	ReactionEntityEnum,
 	TaskStatusEnum,
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
 	extractViewIdFromReferer,
+	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByStateId,
@@ -146,6 +148,38 @@ export class IssuesService extends ApiFetchService {
 			).data;
 
 			return tasks;
+		} catch (error) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves tasks based on the provided start and due date filters.
+	 *
+	 * This method builds a query dynamically based on the provided `ITaskDateFilterInput` options.
+	 * It sends a GET request to fetch tasks filtered by the specified
+	 * start and due date ranges or other applicable criteria.
+	 *
+	 * @param {ITaskDateFilterInput} options - The filtering options including start date, due date, and other possible filters.
+	 * @returns {Promise<ITask[]>} A promise that resolves with an array of tasks that match the filtering criteria.
+	 * @throws {BadRequestException} Throws an error if the API request fails or if the options are invalid.
+	 */
+	async findByStartAndDueDate(
+		options: ITaskDateFilterInput,
+	): Promise<ITask[]> {
+		try {
+			// Build query for task retrieval
+			const query = qs.stringify(getFilteredByDatesTaskQuery(options));
+
+			const tasks: IPagination<ITask> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/filter-by-date`,
+					query,
+				})
+			).data;
+
+			return tasks.items;
 		} catch (error) {
 			throw new BadRequestException(error);
 		}

@@ -1,15 +1,13 @@
-import moment from 'moment';
-
 export function widgetTargetDateTransformer(dateString: string): {
-	dueDateFrom: moment.Moment;
-	dueDateTo: moment.Moment;
+	dueDateFrom: Date;
+	dueDateTo: Date;
 } {
 	const parts = dateString.split(',');
 
 	const [dueDateFrom, dueDateTo] = parts;
 
 	return {
-		dueDateFrom: moment(dueDateFrom, 'YYYY-MM-DD'),
-		dueDateTo: moment(dueDateTo, 'YYYY-MM-DD'),
+		dueDateFrom: new Date(dueDateFrom.split(';')[0]),
+		dueDateTo: new Date(dueDateTo.split(';')[0]),
 	};
 }

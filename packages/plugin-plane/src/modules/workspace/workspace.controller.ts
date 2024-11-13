@@ -38,8 +38,15 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get dashboard widgets' })
 	@Get('dashboard/:id')
-	async getWigetsData(@Query('widget_key') widget: DashboardWigetQueryEnum) {
-		return await this._workspaceService.findDashboardWidgetsData(widget);
+	async getWigetsData(
+		@Query('widget_key')
+		widget: DashboardWigetQueryEnum,
+		@Query('target_date') target_date: string,
+	) {
+		return await this._workspaceService.findDashboardWidgetsData(
+			widget,
+			target_date,
+		);
 	}
 
 	/**

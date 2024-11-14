@@ -575,6 +575,40 @@ export class WorkspaceService extends ApiFetchService {
 						creatorId: id, // Explicitly specify creatorId
 					});
 				}
+
+				// Apply additional filtering based on issue_type
+				if (issue_type) {
+					const today = new Date();
+
+					tasks = tasks.filter((task) => {
+						if ('dueDate' in task) {
+							// Logic for ITask
+							const taskDueDate = new Date(task.dueDate);
+							if (
+								issue_type === DashboardIssueTypeEnum.UPCOMING
+							) {
+								return taskDueDate > today; // Only keep tasks due after today
+							} else if (
+								issue_type === DashboardIssueTypeEnum.OVERDUE
+							) {
+								return taskDueDate < today; // Only keep tasks due before today
+							}
+						} else if ('target_date' in task) {
+							// Logic for IIssue
+							const issueTargetDate = new Date(task.target_date);
+							if (
+								issue_type === DashboardIssueTypeEnum.UPCOMING
+							) {
+								return issueTargetDate > today; // Only keep issues with target_date after today
+							} else if (
+								issue_type === DashboardIssueTypeEnum.OVERDUE
+							) {
+								return issueTargetDate < today; // Only keep issues with target_date before today
+							}
+						}
+						return true; // Default: no filtering for other issue types
+					});
+				}
 			} else {
 				// Fetch all tasks based on idField
 				if (idField === 'employeeId') {

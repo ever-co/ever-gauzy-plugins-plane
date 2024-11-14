@@ -149,9 +149,6 @@ export class WorkspaceService extends ApiFetchService {
 		target_date?: string,
 		issue_type?: DashboardIssueTypeEnum,
 	): Promise<any> {
-		const completed = 0;
-		const pending = 0;
-
 		// Mapping object for each widget type and its corresponding handler function
 		const widgetHandlers: {
 			[key in DashboardWigetQueryEnum]?: () => Promise<any>;
@@ -190,15 +187,7 @@ export class WorkspaceService extends ApiFetchService {
 			},
 
 			[DashboardWigetQueryEnum.OVERVIEW]: async () => {
-				const assigned = await this.findMyAssignedIssues();
-
-				const created = await this.findMyCreatedIssues();
-				return {
-					assigned_issues_count: assigned.length,
-					pending_issues_count: pending,
-					completed_issues_count: completed,
-					created_issues_count: created.length,
-				};
+				return await this.findOverViewWidgetStats();
 			},
 		};
 
@@ -355,6 +344,49 @@ export class WorkspaceService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/**
+	 * Retrieves statistics for the overview widget related to assigned, completed,
+	 * created, and overdue issues.
+	 *
+	 * The method fetches the user's assigned issues, completed issues, and created issues.
+	 * It also filters assigned issues to determine how many are overdue (i.e., with a due date
+	 * or target date that is earlier than today).
+	 *
+	 * @returns {Promise<Object>} An object containing the following issue counts:
+	 * - `assigned_issues_count`: The number of issues assigned to the user.
+	 * - `pending_issues_count`: The number of overdue issues assigned to the user.
+	 * - `completed_issues_count`: The number of issues the user has completed.
+	 * - `created_issues_count`: The number of issues created by the user.
+	 *
+	 * @throws {Error} If any of the asynchronous operations fail.
+	 */
+	async findOverViewWidgetStats(): Promise<object> {
+		const today = new Date();
+		const assigned = await this.findMyAssignedIssues();
+		const completed = await this.findMyAssignedIssues(
+			null,
+			DashboardIssueTypeEnum.COMPLETED,
+		);
+		const created = await this.findMyCreatedIssues();
+		const overdue = assigned.filter((task) => {
+			if ('dueDate' in task) {
+				const taskDueDate = new Date(task.dueDate);
+				return taskDueDate < today;
+			} else if ('target_date' in task) {
+				const issueTargetDate = new Date(task.target_date);
+				return issueTargetDate < today;
+			}
+			return true;
+		});
+
+		return {
+			assigned_issues_count: assigned.length,
+			pending_issues_count: overdue.length,
+			completed_issues_count: completed.length,
+			created_issues_count: created.length,
+		};
 	}
 
 	/**

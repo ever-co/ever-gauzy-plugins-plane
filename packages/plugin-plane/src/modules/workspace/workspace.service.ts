@@ -160,7 +160,10 @@ export class WorkspaceService extends ApiFetchService {
 				this.findRecentCollaborators.bind(this),
 
 			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
-				const issues = await this.findMyCreatedIssues(target_date);
+				const issues = await this.findMyCreatedIssues(
+					target_date,
+					issue_type,
+				);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
@@ -419,23 +422,54 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * The function calls the issue service to fetch all issues created by the user
 	 */
-	async findMyCreatedIssues(target_date?: string) {
+	async findMyCreatedIssues(
+		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
+	) {
 		try {
+			const userId = defaultUserId(); // TODO: Adjust this to use correct authenticated user
+			let tasks: (ITask | IIssue)[];
+
+			// If a target date is provided, fetch tasks by date
 			if (target_date) {
 				const { dueDateFrom, dueDateTo } =
 					widgetTargetDateTransformer(target_date);
-
-				const tasks = await this._issueService.findByStartAndDueDate({
+				tasks = await this._issueService.findByStartAndDueDate({
 					dueDateFrom,
 					dueDateTo,
-					creatorId: defaultUserId(), // TODO: Adjust this to use correct authenticated user
+					creatorId: userId,
 				});
-
-				return tasks.map((task) => issueTransformer(task));
+			} else {
+				// Otherwise, fetch all tasks for the employee
+				tasks = await this._issueService.findAll({ creatorId: userId }); // TODO: Adjust this to use correct authenticated user
 			}
-			return await this._issueService.findAll({
-				creatorId: defaultUserId(),
-			}); // TODO: Adjust this to use correct authenticated user
+			// Filter tasks based on the issue type
+			const isCompleted = issue_type === DashboardIssueTypeEnum.COMPLETED;
+
+			return tasks
+				.filter((task) => {
+					if ('status' in task) {
+						// Logic for Task
+						const status = task.status;
+						return isCompleted
+							? status === TaskStatusEnum.COMPLETED ||
+									status === TaskStatusEnum.DONE
+							: status !== TaskStatusEnum.COMPLETED &&
+									status !== TaskStatusEnum.DONE;
+					} else if ('state__group' in task) {
+						// Logic for Issue
+						const status = task.state__group;
+						return isCompleted
+							? status === TaskStatusEnum.COMPLETED ||
+									status === TaskStatusEnum.DONE
+							: status !== TaskStatusEnum.COMPLETED &&
+									status !== TaskStatusEnum.DONE;
+					}
+					return false;
+				})
+				.map((task) => {
+					return 'status' in task ? issueTransformer(task) : task;
+				});
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);

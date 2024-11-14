@@ -2,12 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
 	ID,
+	IIssue,
 	IOrganization,
 	IRecentCollaborator,
 	ITask,
 	IWorkspaceUserInfo,
+	TaskStatusEnum,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -144,6 +147,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findDashboardWidgetsData(
 		widget: DashboardWigetQueryEnum,
 		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
 	): Promise<any> {
 		const completed = 0;
 		const pending = 0;
@@ -161,7 +165,10 @@ export class WorkspaceService extends ApiFetchService {
 			},
 
 			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
-				const issues = await this.findMyAssignedIssues(target_date);
+				const issues = await this.findMyAssignedIssues(
+					target_date,
+					issue_type,
+				);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
@@ -352,22 +359,57 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * The function calls the issue service to fetch all issues assigned to the employee
 	 */
-	async findMyAssignedIssues(target_date?: string) {
+	async findMyAssignedIssues(
+		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
+	) {
 		try {
+			const employeeId = defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
+			let tasks: (ITask | IIssue)[];
+
+			// If a target date is provided, fetch tasks by date
 			if (target_date) {
 				const { dueDateFrom, dueDateTo } =
 					widgetTargetDateTransformer(target_date);
-
-				const tasks = await this._issueService.findByStartAndDueDate({
+				tasks = await this._issueService.findByStartAndDueDate({
 					dueDateFrom,
 					dueDateTo,
-					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+					employeeId,
 				});
-				return tasks.map((task) => issueTransformer(task));
+			} else {
+				// Otherwise, fetch all tasks for the employee
+				tasks = await this._issueService.findByEmployee(employeeId);
 			}
-			return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
+
+			// Filter tasks based on the issue type
+			const isCompleted = issue_type === DashboardIssueTypeEnum.COMPLETED;
+
+			return tasks
+				.filter((task) => {
+					if ('status' in task) {
+						// Logic for Task
+						const status = task.status;
+						return isCompleted
+							? status === TaskStatusEnum.COMPLETED ||
+									status === TaskStatusEnum.DONE
+							: status !== TaskStatusEnum.COMPLETED &&
+									status !== TaskStatusEnum.DONE;
+					} else if ('state__group' in task) {
+						// Logic for Issue
+						const status = task.state__group;
+						return isCompleted
+							? status === TaskStatusEnum.COMPLETED ||
+									status === TaskStatusEnum.DONE
+							: status !== TaskStatusEnum.COMPLETED &&
+									status !== TaskStatusEnum.DONE;
+					}
+					return false;
+				})
+				.map((task) => {
+					return 'status' in task ? issueTransformer(task) : task;
+				});
 		} catch (error: any) {
-			console.log(error.response);
+			console.error(error.response);
 			throw new BadRequestException(error);
 		}
 	}

@@ -13,6 +13,7 @@ import {
 	ITag,
 	ITask,
 	ITaskCreateInput,
+	ITaskDateFilterInput,
 	ITaskUpdateInput,
 	TaskPriorityEnum,
 	TaskStatusEnum,
@@ -247,6 +248,29 @@ export const getTaskQuery = (
 	}
 
 	// Add relations
+	taskRelations.forEach((relation, i) => {
+		query[`relations[${i}]`] = relation;
+	});
+
+	return query;
+};
+
+export const getFilteredByDatesTaskQuery = (
+	options: ITaskDateFilterInput,
+): Record<string, any> => {
+	// Base queries
+	const query: Record<string, any> = {
+		organizationId: defaultOrganizationId(),
+		tenantId: defaultTestTenantId(),
+	};
+
+	Object.keys(options).forEach((key) => {
+		const value = options[key as keyof ITaskDateFilterInput];
+		if (value !== undefined && value !== null) {
+			query[`${key}`] = value;
+		}
+	});
+
 	taskRelations.forEach((relation, i) => {
 		query[`relations[${i}]`] = relation;
 	});

@@ -2,11 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
 	ID,
+	IIssue,
 	IOrganization,
 	IRecentCollaborator,
+	ITask,
 	IWorkspaceUserInfo,
+	TaskStatusEnum,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -17,6 +21,8 @@ import {
 	getTaskCounts,
 	issueActivityLogTransformer,
 	issuesByPriority,
+	issueTransformer,
+	widgetTargetDateTransformer,
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -140,10 +146,9 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findDashboardWidgetsData(
 		widget: DashboardWigetQueryEnum,
+		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
 	): Promise<any> {
-		const completed = 0;
-		const pending = 0;
-
 		// Mapping object for each widget type and its corresponding handler function
 		const widgetHandlers: {
 			[key in DashboardWigetQueryEnum]?: () => Promise<any>;
@@ -152,12 +157,18 @@ export class WorkspaceService extends ApiFetchService {
 				this.findRecentCollaborators.bind(this),
 
 			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
-				const issues = await this.findMyCreatedIssues();
+				const issues = await this.findMyCreatedIssues(
+					target_date,
+					issue_type,
+				);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
 			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
-				const issues = await this.findMyAssignedIssues();
+				const issues = await this.findMyAssignedIssues(
+					target_date,
+					issue_type,
+				);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
@@ -167,22 +178,16 @@ export class WorkspaceService extends ApiFetchService {
 			[DashboardWigetQueryEnum.RECENT_PROJECTS]:
 				this.findRecentProjects.bind(this),
 
-			[DashboardWigetQueryEnum.ISSUES_BY_STATE]:
-				this.finAssignedByState.bind(this),
+			[DashboardWigetQueryEnum.ISSUES_BY_STATE]: async () => {
+				return this.finAssignedByState(target_date);
+			},
 
-			[DashboardWigetQueryEnum.ISSUES_BY_PRIORITY]:
-				this.findAssignedByPriority.bind(this),
+			[DashboardWigetQueryEnum.ISSUES_BY_PRIORITY]: async () => {
+				return this.findAssignedByPriority(target_date);
+			},
 
 			[DashboardWigetQueryEnum.OVERVIEW]: async () => {
-				const assigned = await this.findMyAssignedIssues();
-
-				const created = await this.findMyCreatedIssues();
-				return {
-					assigned_issues_count: assigned.length,
-					pending_issues_count: pending,
-					completed_issues_count: completed,
-					created_issues_count: created.length,
-				};
+				return await this.findOverViewWidgetStats();
 			},
 		};
 
@@ -342,21 +347,72 @@ export class WorkspaceService extends ApiFetchService {
 	}
 
 	/**
+	 * Retrieves statistics for the overview widget related to assigned, completed,
+	 * created, and overdue issues.
+	 *
+	 * The method fetches the user's assigned issues, completed issues, and created issues.
+	 * It also filters assigned issues to determine how many are overdue (i.e., with a due date
+	 * or target date that is earlier than today).
+	 *
+	 * @returns {Promise<Object>} An object containing the following issue counts:
+	 * - `assigned_issues_count`: The number of issues assigned to the user.
+	 * - `pending_issues_count`: The number of overdue issues assigned to the user.
+	 * - `completed_issues_count`: The number of issues the user has completed.
+	 * - `created_issues_count`: The number of issues created by the user.
+	 *
+	 * @throws {Error} If any of the asynchronous operations fail.
+	 */
+	async findOverViewWidgetStats(): Promise<object> {
+		const today = new Date();
+		const assigned = await this.findMyAssignedIssues();
+		const completed = await this.findMyAssignedIssues(
+			null,
+			DashboardIssueTypeEnum.COMPLETED,
+		);
+		const created = await this.findMyCreatedIssues();
+		const overdue = assigned.filter((task) => {
+			if ('dueDate' in task) {
+				const taskDueDate = new Date(task.dueDate);
+				return taskDueDate < today;
+			} else if ('target_date' in task) {
+				const issueTargetDate = new Date(task.target_date);
+				return issueTargetDate < today;
+			}
+			return true;
+		});
+
+		return {
+			assigned_issues_count: assigned.length,
+			pending_issues_count: overdue.length,
+			completed_issues_count: completed.length,
+			created_issues_count: created.length,
+		};
+	}
+
+	/**
 	 * Retrieves the issues assigned to the current employee.
 	 *
 	 * The function calls the issue service to fetch all issues assigned to the employee
 	 */
-	async findMyAssignedIssues() {
-		return this._issueService.findByEmployee(defaultEmployeeId()); // TODO: Adjust this to use correct authenticated employee
+	async findMyAssignedIssues(
+		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
+	) {
+		const employeeId = defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
+		return this.getIssues(
+			employeeId,
+			'employeeId',
+			target_date,
+			issue_type,
+		);
 	}
 
-	/**
-	 * Retrieves the issues created by the current user.
-	 *
-	 * The function calls the issue service to fetch all issues created by the user
-	 */
-	async findMyCreatedIssues() {
-		return await this._issueService.findAll({ creatorId: defaultUserId() }); // TODO: Adjust this to use correct authenticated user
+	async findMyCreatedIssues(
+		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
+	) {
+		const userId = defaultUserId(); // TODO: Replace with the correct authenticated user
+		return this.getIssues(userId, 'creatorId', target_date, issue_type);
 	}
 
 	/**
@@ -368,12 +424,25 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<{ state: string, count: number }[]>} A promise that resolves to an array of objects representing task states and their respective counts.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async finAssignedByState(): Promise<{ state: string; count: number }[]> {
+	async finAssignedByState(
+		target_date?: string,
+	): Promise<{ state: string; count: number }[]> {
 		try {
-			const tasks =
+			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-				); // Use authenticated employee ID
+				); // TODO: Adjust this to use correct authenticated employee;
+
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				tasks = await this._issueService.findByStartAndDueDate({
+					dueDateFrom,
+					dueDateTo,
+					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+				});
+			}
 
 			// Get task counts based on their states
 			const {
@@ -407,15 +476,25 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<Array<{ priority: string; count: number }>>} A promise that resolves to an array of objects containing the priority and the count of tasks for each priority level.
 	 * @throws {BadRequestException} If an error occurs during task retrieval.
 	 */
-	async findAssignedByPriority(): Promise<
-		{ priority: string; count: number }[]
-	> {
+	async findAssignedByPriority(
+		target_date?: string,
+	): Promise<{ priority: string; count: number }[]> {
 		try {
-			// Fetch tasks assigned to the authenticated employee
-			const tasks =
+			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-				); // Use authenticated employee ID
+				); // TODO: Adjust this to use correct authenticated employee;
+
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				tasks = await this._issueService.findByStartAndDueDate({
+					dueDateFrom,
+					dueDateTo,
+					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+				});
+			}
 
 			// Get the tasks counts grouped by priority
 			return issuesByPriority(tasks);
@@ -493,5 +572,114 @@ export class WorkspaceService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/**
+	 * Fetches and filters issues based on a target date and issue type.
+	 */
+	private async getIssues(
+		id: string,
+		idField: 'employeeId' | 'creatorId',
+		target_date?: string,
+		issue_type?: DashboardIssueTypeEnum,
+	) {
+		try {
+			let tasks: (ITask | IIssue)[];
+
+			// If a target date is provided, fetch tasks by date
+			if (target_date) {
+				const { dueDateFrom, dueDateTo } =
+					widgetTargetDateTransformer(target_date);
+
+				// Pass the appropriate field to the method based on idField
+				if (idField === 'employeeId') {
+					tasks = await this._issueService.findByStartAndDueDate({
+						dueDateFrom,
+						dueDateTo,
+						employeeId: id, // Explicitly specify employeeId
+					});
+				} else {
+					tasks = await this._issueService.findByStartAndDueDate({
+						dueDateFrom,
+						dueDateTo,
+						creatorId: id, // Explicitly specify creatorId
+					});
+				}
+
+				// Apply additional filtering based on issue_type
+				if (issue_type) {
+					const today = new Date();
+
+					tasks = tasks.filter((task) => {
+						if ('dueDate' in task) {
+							// Logic for ITask
+							const taskDueDate = new Date(task.dueDate);
+							if (
+								issue_type === DashboardIssueTypeEnum.UPCOMING
+							) {
+								return taskDueDate > today; // Only keep tasks due after today
+							} else if (
+								issue_type === DashboardIssueTypeEnum.OVERDUE
+							) {
+								return taskDueDate < today; // Only keep tasks due before today
+							}
+						} else if ('target_date' in task) {
+							// Logic for IIssue
+							const issueTargetDate = new Date(task.target_date);
+							if (
+								issue_type === DashboardIssueTypeEnum.UPCOMING
+							) {
+								return issueTargetDate > today; // Only keep issues with target_date after today
+							} else if (
+								issue_type === DashboardIssueTypeEnum.OVERDUE
+							) {
+								return issueTargetDate < today; // Only keep issues with target_date before today
+							}
+						}
+						return true; // Default: no filtering for other issue types
+					});
+				}
+			} else {
+				// Fetch all tasks based on idField
+				if (idField === 'employeeId') {
+					tasks = await this._issueService.findByEmployee(id); // Directly pass the employeeId
+				} else {
+					tasks = await this._issueService.findAll({ creatorId: id }); // Directly pass the creatorId
+				}
+			}
+
+			// Filter and transform tasks based on issue type
+			return this.filterAndTransformTasks(tasks, issue_type);
+		} catch (error: any) {
+			console.error(error.response);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Filters and transforms the tasks based on issue type.
+	 */
+	private filterAndTransformTasks(
+		tasks: (ITask | IIssue)[],
+		issue_type?: DashboardIssueTypeEnum,
+	) {
+		const isCompleted = issue_type === DashboardIssueTypeEnum.COMPLETED;
+
+		return tasks
+			.filter((task) => {
+				const status =
+					'status' in task
+						? task.status
+						: 'state__group' in task
+							? task.state__group
+							: null;
+
+				return isCompleted
+					? status === TaskStatusEnum.COMPLETED ||
+							status === TaskStatusEnum.DONE
+					: status !== TaskStatusEnum.COMPLETED &&
+							status !== TaskStatusEnum.DONE;
+			})
+			.map((task) => ('status' in task ? issueTransformer(task) : task));
 	}
 }

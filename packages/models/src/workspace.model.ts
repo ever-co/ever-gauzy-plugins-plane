@@ -18,5 +18,7 @@ export enum DashboardWigetQueryEnum {
 
 export enum DashboardIssueTypeEnum {
 	PENDING = 'pending',
-	COMPLETED = 'completed'
+	COMPLETED = 'completed',
+	OVERDUE = 'overdue',
+	UPCOMING = 'upcoming'
 }

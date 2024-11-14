@@ -10,7 +10,9 @@ export async function bootstrap() {
 			'api/users/me',
 			'api/users/me/:slug',
 			'api/instances',
-		], // Exclude all the routes starting with /auth, /users and /instances from the global prefix
+			'api/dashboard/:id/:dashboardEndpoint',
+			'api/dashboard/:id/:dashboardEndpoint/:endPointParam',
+		], // Exclude all the routes starting with /auth, /users, /dashboard and /instances from the global prefix
 	});
 
 	app.enableCors({

@@ -496,8 +496,6 @@ export class WorkspaceService extends ApiFetchService {
 				});
 			}
 
-			console.log(tasks.length);
-
 			// Get the tasks counts grouped by priority
 			return issuesByPriority(tasks);
 		} catch (error: any) {

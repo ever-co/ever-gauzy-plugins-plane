@@ -11,6 +11,7 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
+	IIssueFindInput,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
 
@@ -117,5 +118,16 @@ export class WorkspaceController {
 	@Get('user-profile/:id')
 	async findUserProjectsData(): Promise<any> {
 		return await this._workspaceService.findUserProjectsData();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user profile and assigned issues' })
+	@Get('user-issues/:id')
+	async findUserGroupedIssueAssigned(
+		@Query() options: IIssueFindInput,
+	): Promise<any> {
+		return await this._workspaceService.findUserGroupedIssueAssigned(
+			options,
+		);
 	}
 }

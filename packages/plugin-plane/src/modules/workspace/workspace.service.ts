@@ -13,6 +13,8 @@ import {
 	TaskStatusEnum,
 	IUserStatsResponse,
 	IUserProjectsDataResponse,
+	IssueGroupBy,
+	IIssueFindInput,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -21,6 +23,7 @@ import {
 	defaultTestTenantId,
 	defaultUserId,
 	getTaskCounts,
+	groupIssuesByStateGroup,
 	issueActivityLogTransformer,
 	issuesByPriority,
 	issueTransformer,
@@ -795,6 +798,25 @@ export class WorkspaceService extends ApiFetchService {
 				userId,
 			);
 		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findUserGroupedIssueAssigned(options: IIssueFindInput) {
+		try {
+			const { group_by } = options;
+			const assignedIssues =
+				await this._issueService.findExternalByEmployee(
+					defaultEmployeeId(),
+				); // TODO : Replace this to use dynamic employee ID
+
+			if (group_by === IssueGroupBy.STATE_GROUP) {
+				return groupIssuesByStateGroup(assignedIssues);
+			}
+
+			return [];
+		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
 		}

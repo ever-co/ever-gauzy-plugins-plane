@@ -144,6 +144,42 @@ export function groupIssuesByStateId(issues: ITask[]) {
 	);
 }
 
+export function groupIssuesByStateGroup(tasks: ITask[]) {
+	return tasks.reduce(
+		(acc, item) => {
+			const statusGroup = stateGroup(item.taskStatus);
+
+			if (!acc.results[statusGroup]) {
+				acc.results[statusGroup] = {
+					results: [],
+					total_results: 0,
+				};
+			}
+
+			const issue = issueTransformer(item);
+			acc.results[statusGroup].results.push(issue);
+			acc.results[statusGroup].total_results++;
+
+			acc.total_results++;
+			return acc;
+		},
+		{
+			grouped_by: 'state__group',
+			sub_grouped_by: null,
+			total_count: 5,
+			next_cursor: '30:1:0',
+			prev_cursor: '30:-1:1',
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {},
+		},
+	);
+}
+
 /**
  * @description - Group Issue by Target Date for Calendar Layout display
  * @param {ITask[]} issues - Tasks to be trasnformed and grouped

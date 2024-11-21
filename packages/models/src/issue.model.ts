@@ -63,7 +63,9 @@ export interface IIssueFindInput {
 
 export enum IssueGroupBy {
 	STATE = 'state_id',
-	TARGET_DATE = 'target_date'
+	TARGET_DATE = 'target_date',
+	STATE_GROUP = 'state__group',
+	PRIORITY = 'priority'
 }
 
 export enum IssueActivityTypeEnum {

@@ -1029,7 +1029,7 @@ export class IssuesService extends ApiFetchService {
 				await this._projectService.getExternalProject(projectId);
 
 			// Workspace details
-			const tenant = project.tenant;
+			const tenant = project?.tenant;
 			const workspace = {
 				name: tenant?.name,
 				id: tenant?.id,
@@ -1037,7 +1037,7 @@ export class IssuesService extends ApiFetchService {
 			};
 
 			// Find actor by userId
-			const actor = project.members?.find(
+			const actor = project?.members?.find(
 				(member) => member.employee.userId === creatorId,
 			)?.employee;
 

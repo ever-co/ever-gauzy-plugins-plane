@@ -11,7 +11,7 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
-	UserStatsResponse,
+	IUserStatsResponse,
 } from '@plane-plugin/models';
 
 @ApiTags('Workspaces routes')
@@ -84,20 +84,38 @@ export class WorkspaceController {
 	 * Retrieves a summary of the user's work statistics, including task distribution
 	 * by state and priority, as well as counts for created, assigned, and completed issues.
 	 *
-	 * @returns {Promise<UserStatsResponse>} A promise that resolves with the user's work summary.
+	 * @returns {Promise<IUserStatsResponse>} A promise that resolves with the user's work summary.
 	 *
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user stats' })
 	@Get('user-stats/:id')
-	async findUserWorkSummary(): Promise<UserStatsResponse> {
+	async findUserWorkSummary(): Promise<IUserStatsResponse> {
 		return await this._workspaceService.findUserWorkSummary();
 	}
 
+	/**
+	 * Retrieves the user's recent activity
+	 *
+	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user recent activities' })
 	@Get('user-activity/:id')
-	async findUserRecentActivity() {
+	async findUserRecentActivity(): Promise<any> {
 		return await this._workspaceService.findUserRecentActivity();
+	}
+
+	/**
+	 * Retrieves the project data associated with the currently connected user.
+	 *
+	 * @returns {Promise<IUserProjectsDataResponse>} A promise that resolves with the user's projects data.
+	 *
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user profile and project data' })
+	@Get('user-profile/:id')
+	async findUserProjectsData(): Promise<any> {
+		return await this._workspaceService.findUserProjectsData();
 	}
 }

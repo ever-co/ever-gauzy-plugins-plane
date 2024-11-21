@@ -11,7 +11,8 @@ import {
 	ITask,
 	IWorkspaceUserInfo,
 	TaskStatusEnum,
-	UserStatsResponse,
+	IUserStatsResponse,
+	IUserProjectsDataResponse,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -24,6 +25,7 @@ import {
 	issuesByPriority,
 	issueTransformer,
 	userIssuesByPriority,
+	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
 } from '../../config';
 import {
@@ -704,11 +706,11 @@ export class WorkspaceService extends ApiFetchService {
 	 * Retrieves a summary of the user's work statistics, including task distribution
 	 * by state and priority, as well as counts for created, assigned, and completed issues.
 	 *
-	 * @returns {Promise<UserStatsResponse>} A promise that resolves with the user's work summary.
+	 * @returns {Promise<IUserStatsResponse>} A promise that resolves with the user's work summary.
 	 *
 	 * @throws {BadRequestException} If an error occurs during the retrieval of work statistics.
 	 */
-	async findUserWorkSummary(): Promise<UserStatsResponse> {
+	async findUserWorkSummary(): Promise<IUserStatsResponse> {
 		try {
 			const assignedIssues =
 				await this._issueService.findExternalByEmployee(
@@ -746,7 +748,12 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
-	async findUserRecentActivity() {
+	/**
+	 * Retrieves the user's recent activity
+	 *
+	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
+	 */
+	async findUserRecentActivity(): Promise<any> {
 		const activities = await this.findRecentIssueActivity(10);
 		return {
 			grouped_by: null,
@@ -762,5 +769,34 @@ export class WorkspaceService extends ApiFetchService {
 			extra_stats: null,
 			results: activities,
 		};
+	}
+
+	/**
+	 * Retrieves the project data associated with the currently connected user.
+	 * This method fetches projects linked to the employee and user ID, then transforms
+	 * the data using the `userWorkProjectsTransformer`.
+	 *
+	 * @returns {Promise<IUserProjectsDataResponse>} A promise that resolves with the user's projects data.
+	 * @throws {BadRequestException} If an error occurs during the data retrieval or transformation process.
+	 *
+	 */
+	async findUserProjectsData(): Promise<IUserProjectsDataResponse> {
+		try {
+			const employeeId = defaultEmployeeId(); // TODO : Change this with real connected employee ID
+			const userId = defaultUserId(); // TODO : Change this with real connected user ID
+			const userProjects =
+				await this._projectService.getExternalProjectsByEmployee(
+					employeeId,
+				);
+
+			return userWorkProjectsTransformer(
+				userProjects,
+				employeeId,
+				userId,
+			);
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 }

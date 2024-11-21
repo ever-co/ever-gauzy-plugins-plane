@@ -11,6 +11,7 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
+	UserStatsResponse,
 } from '@plane-plugin/models';
 
 @ApiTags('Workspaces routes')
@@ -77,5 +78,12 @@ export class WorkspaceController {
 	@Get('members')
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user stats' })
+	@Get('user-stats/:id')
+	async findUserWorkSummary(): Promise<UserStatsResponse> {
+		return await this._workspaceService.findUserWorkSummary();
 	}
 }

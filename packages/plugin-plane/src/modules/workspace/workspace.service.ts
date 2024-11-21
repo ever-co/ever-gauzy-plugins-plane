@@ -11,6 +11,7 @@ import {
 	ITask,
 	IWorkspaceUserInfo,
 	TaskStatusEnum,
+	UserStatsResponse,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -22,6 +23,7 @@ import {
 	issueActivityLogTransformer,
 	issuesByPriority,
 	issueTransformer,
+	userIssuesByPriority,
 	widgetTargetDateTransformer,
 } from '../../config';
 import {
@@ -681,5 +683,40 @@ export class WorkspaceService extends ApiFetchService {
 							status !== TaskStatusEnum.DONE;
 			})
 			.map((task) => ('status' in task ? issueTransformer(task) : task));
+	}
+
+	async findUserWorkSummary(): Promise<UserStatsResponse> {
+		try {
+			const assignedIssues =
+				await this._issueService.findExternalByEmployee(
+					defaultEmployeeId(),
+				);
+
+			const {
+				completedIssues,
+				backlogIssues,
+				startedIssues,
+				unstartedIssues,
+			} = getTaskCounts(assignedIssues);
+
+			const createdIssues = await this.findMyCreatedIssues();
+
+			return {
+				state_distribution: [
+					{ state_group: 'backlog', state_count: backlogIssues },
+					{ state_group: 'unstarted', state_count: unstartedIssues },
+					{ state_group: 'started', state_count: startedIssues },
+					{ state_group: 'completed', state_count: completedIssues },
+				],
+				priority_distribution: userIssuesByPriority(assignedIssues),
+				created_issues: createdIssues.length,
+				assigned_issues: assignedIssues.length,
+				completed_issues: completedIssues,
+				pending_issues: backlogIssues + startedIssues + unstartedIssues,
+				subscribed_issues: 0,
+				present_cycles: [],
+				upcoming_cycles: [],
+			};
+		} catch (error) {}
 	}
 }

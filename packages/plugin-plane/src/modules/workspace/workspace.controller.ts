@@ -120,6 +120,12 @@ export class WorkspaceController {
 		return await this._workspaceService.findUserProjectsData();
 	}
 
+	/**
+	 * Retrieves and groups issues assigned to a user based on the specified grouping option.
+	 *
+	 * @param {IIssueFindInput} options - The input options specifying the query criteria.
+	 * @returns A promise that resolves to an array of grouped issues.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user profile and assigned issues' })
 	@Get('user-issues/:id')
@@ -129,5 +135,17 @@ export class WorkspaceController {
 		return await this._workspaceService.findUserGroupedIssueAssigned(
 			options,
 		);
+	}
+
+	/**
+	 * Fetches all workspace states associated with projects in the workspace.
+	 *
+	 * @returns A promise resolving to an array of workspace states.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace states' })
+	@Get('states')
+	async findWorkspaceStates(): Promise<any> {
+		return await this._workspaceService.findWorkspaceStates();
 	}
 }

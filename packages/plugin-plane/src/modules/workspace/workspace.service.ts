@@ -38,6 +38,7 @@ import {
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
 import { ActivityService } from '../activity/activity.service';
+import { StatesService } from '../states/states.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -45,6 +46,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _issueService: IssuesService,
 		private readonly _projectService: ProjectService,
 		private readonly _activityService: ActivityService,
+		private readonly _stateService: StatesService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -803,6 +805,18 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves and groups issues assigned to a user based on the specified grouping option.
+	 * This method fetches issues assigned to the current employee and organizes them into groups,
+	 * such as by state or other criteria provided in the options.
+	 *
+	 * @param {IIssueFindInput} options - The input options specifying the grouping criteria.
+	 *
+	 * @returns A promise that resolves to an array of grouped issues.
+	 * Each group is structured based on the specified grouping option.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during issue retrieval or processing.
+	 */
 	async findUserGroupedIssueAssigned(options: IIssueFindInput) {
 		try {
 			const { group_by } = options;
@@ -816,6 +830,39 @@ export class WorkspaceService extends ApiFetchService {
 			}
 
 			return [];
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetches all workspace states associated with projects in the workspace.
+	 * This method retrieves all projects in the workspace, then queries each project's states,
+	 * consolidating them into a single array.
+	 *
+	 * @returns A promise resolving to an array of workspace states.
+	 * Each state corresponds to a specific project within the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or state retrieval.
+	 */
+
+	async findWorkspaceStates() {
+		try {
+			const projects = await this._projectService.getProjects();
+
+			const states = await Promise.all(
+				projects
+					.map((project) => project.id)
+					.map(
+						async (id) =>
+							await this._stateService.getWorkspaceProjectStates(
+								id,
+							),
+					),
+			);
+
+			return states.flat();
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

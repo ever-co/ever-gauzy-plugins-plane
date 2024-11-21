@@ -138,9 +138,8 @@ export function assignMembersToProjectTransformer(
 export const projectRelations = [
 	'organization',
 	'members',
-	// 'members.employee',
-	// 'members.employee.user',
 	'members.employee.user.role',
+	'tasks.members',
 	'modules',
 	'tags',
 	'teams',
@@ -161,6 +160,20 @@ export const getProjectsQuery = (): Record<string, string> => {
 	});
 
 	return baseQuery;
+};
+
+export const findEmployeeProjectsQuery = (): Record<string, string> => {
+	const query = {
+		organizationId: defaultOrganizationId(),
+		tenantId: defaultTestTenantId(),
+	};
+
+	// Add relations to the baseQuery
+	projectRelations.forEach((relation, i) => {
+		query[`relations[${i}]`] = relation;
+	});
+
+	return query;
 };
 
 /**

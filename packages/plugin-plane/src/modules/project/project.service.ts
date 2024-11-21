@@ -23,6 +23,7 @@ import {
 	createProjectInputTransformer,
 	defaultEmployeeId,
 	defaultTestTenantId,
+	findEmployeeProjectsQuery,
 	getProjectsQuery,
 	getProjectsResponse,
 } from '../../config';
@@ -41,7 +42,7 @@ export class ProjectService extends ApiFetchService {
 		super(_serverFetchService['_httpService']);
 	}
 
-	private readonly path = '/organization-project';
+	private readonly path = '/organization-projects';
 
 	/**--------------------------------------------------------------
 	 * This function handlers should be updated after implementing authentication
@@ -88,7 +89,7 @@ export class ProjectService extends ApiFetchService {
 		employeeId: ID,
 	): Promise<IOrganizationProject[]> {
 		try {
-			const query = qs.stringify(getProjectsQuery());
+			const query = qs.stringify(findEmployeeProjectsQuery());
 
 			const projects: IOrganizationProject[] = (
 				await this.apiFetch({

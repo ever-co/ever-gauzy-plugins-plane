@@ -12,6 +12,7 @@ import {
 	IWorkspaceUserInfo,
 	TaskStatusEnum,
 	IUserStatsResponse,
+	IUserProjectsDataResponse,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -24,6 +25,7 @@ import {
 	issuesByPriority,
 	issueTransformer,
 	userIssuesByPriority,
+	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
 } from '../../config';
 import {
@@ -769,5 +771,23 @@ export class WorkspaceService extends ApiFetchService {
 		};
 	}
 
-	async findUserProjectsData() {}
+	async findUserProjectsData(): Promise<IUserProjectsDataResponse> {
+		try {
+			const employeeId = defaultEmployeeId(); // TODO : Change this with real connected employee ID
+			const userId = defaultUserId(); // TODO : Change this with real connected user ID
+			const userProjects =
+				await this._projectService.getExternalProjectsByEmployee(
+					employeeId,
+				);
+
+			return userWorkProjectsTransformer(
+				userProjects,
+				employeeId,
+				userId,
+			);
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
 }

@@ -1,3 +1,5 @@
+import { getTaskCounts } from '../modules';
+import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
 	IEmployee,
 	IRole,
@@ -7,6 +9,10 @@ import {
 	RolesEnum,
 	TaskPriorityEnum,
 	IUserPriorityDistribution,
+	IUserProjectData,
+	ID,
+	IUserProjectsDataResponse,
+	IUserProfileData,
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -147,6 +153,16 @@ export function organizationMembersTransformer(
 	});
 }
 
+/**
+ * Categorizes a list of tasks by priority and calculates the count of tasks 
+ * for each priority level.
+ *
+ * @param {ITask[]} tasks - An array of tasks to be categorized by priority.
+ * @returns {IUserPriorityDistribution[]} An array of priority distributions, 
+ * where each object contains the priority, the count of tasks with that priority, 
+ * and the priority's order.
+ 
+ */
 export function userIssuesByPriority(
 	tasks: ITask[],
 ): IUserPriorityDistribution[] {
@@ -168,4 +184,60 @@ export function userIssuesByPriority(
 		).length,
 		priority_order: index,
 	}));
+}
+
+export function userWorkProjectsTransformer(
+	projects: IOrganizationProject[],
+	employeeId: ID,
+	userId: ID,
+): IUserProjectsDataResponse {
+	const employee = projects
+		.map((project) => project.members)
+		.flat()
+		.find((member) => (member.employeeId = employeeId)).employee;
+
+	const transformedProjects: IUserProjectData[] = projects.map((project) => {
+		const createdIssues = project.tasks?.filter(
+			(task) => task.creatorId === userId,
+		);
+
+		const assignedIssues = project.tasks?.filter((task) =>
+			task.members.map((member) => member.id).includes(employeeId),
+		);
+		const {
+			completedIssues,
+			backlogIssues,
+			startedIssues,
+			unstartedIssues,
+		} = getTaskCounts(assignedIssues);
+
+		return {
+			id: project.id,
+			logo_props: {
+				emoji: {
+					url: project.imageUrl,
+					value: project.icon,
+				},
+				in_use: 'emoji',
+			},
+			created_issues: createdIssues?.length || 0,
+			assigned_issues: assignedIssues?.length || 0,
+			completed_issues: completedIssues || 0,
+			pending_issues:
+				backlogIssues + startedIssues + unstartedIssues || 0,
+		};
+	});
+
+	const user_data: IUserProfileData = {
+		email: employee.user.email,
+		first_name: employee.user.firstName,
+		last_name: employee.user.lastName,
+		avatar_url: employee.user.imageUrl,
+		cover_image_url: null,
+		date_joined: employee.createdAt,
+		user_timezone: 'UTC',
+		display_name: employee.fullName,
+	};
+
+	return { project_data: transformedProjects, user_data };
 }

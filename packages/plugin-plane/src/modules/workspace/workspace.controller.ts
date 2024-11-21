@@ -94,10 +94,22 @@ export class WorkspaceController {
 		return await this._workspaceService.findUserWorkSummary();
 	}
 
+	/**
+	 * Retrieves the user's recent activity
+	 *
+	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user recent activities' })
 	@Get('user-activity/:id')
-	async findUserRecentActivity() {
+	async findUserRecentActivity(): Promise<any> {
 		return await this._workspaceService.findUserRecentActivity();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user profile and project data' })
+	@Get('user-profile/:id')
+	async findUserProjectsData(): Promise<any> {
+		return await this._workspaceService.findUserProjectsData();
 	}
 }

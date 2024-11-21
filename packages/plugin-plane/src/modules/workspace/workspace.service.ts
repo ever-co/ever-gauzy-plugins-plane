@@ -174,8 +174,9 @@ export class WorkspaceService extends ApiFetchService {
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
 
-			[DashboardWigetQueryEnum.RECENT_ACTIVITY]:
-				this.findRecentIssueActivity.bind(this),
+			[DashboardWigetQueryEnum.RECENT_ACTIVITY]: async () => {
+				return this.findRecentIssueActivity(8);
+			},
 
 			[DashboardWigetQueryEnum.RECENT_PROJECTS]:
 				this.findRecentProjects.bind(this),
@@ -529,7 +530,17 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
-	async findRecentIssueActivity() {
+	/**
+	 * Retrieves the recent activity logs for issues, transformed and filtered based on the user's activity.
+	 * The method fetches activity logs, resolves associated tasks, and includes details about the issue,
+	 * actor, project, workspace, and cycle if applicable.
+	 *
+	 * @param {number} [length] - Optional limit for the number of recent activities to return.
+	 * @returns {Promise<any[]>} A promise that resolves with a list of transformed issue activities.
+	 *
+	 * @throws {BadRequestException} If an error occurs during the retrieval or processing of activity logs.
+	 */
+	async findRecentIssueActivity(length?: number): Promise<any> {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
@@ -568,8 +579,12 @@ export class WorkspaceService extends ApiFetchService {
 			);
 
 			// TODO: Include also links activities and filter both by createdAt to return most recent activities.
+			const activities = issueActivities.flat().filter(Boolean);
+			if (length) {
+				return activities.slice(0, length);
+			}
 
-			return issueActivities.flat().filter(Boolean).slice(0, 8);
+			return activities;
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -729,5 +744,23 @@ export class WorkspaceService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	async findUserRecentActivity() {
+		const activities = await this.findRecentIssueActivity(10);
+		return {
+			grouped_by: null,
+			sub_grouped_by: null,
+			total_count: 165,
+			next_cursor: '10:1:0',
+			prev_cursor: '10:-1:1',
+			next_page_results: true,
+			prev_page_results: false,
+			count: 10,
+			total_pages: 17,
+			total_results: 165,
+			extra_stats: null,
+			results: activities,
+		};
 	}
 }

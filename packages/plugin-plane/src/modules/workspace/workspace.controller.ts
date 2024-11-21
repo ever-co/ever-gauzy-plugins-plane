@@ -93,4 +93,11 @@ export class WorkspaceController {
 	async findUserWorkSummary(): Promise<UserStatsResponse> {
 		return await this._workspaceService.findUserWorkSummary();
 	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user recent activities' })
+	@Get('user-activity/:id')
+	async findUserRecentActivity() {
+		return await this._workspaceService.findUserRecentActivity();
+	}
 }

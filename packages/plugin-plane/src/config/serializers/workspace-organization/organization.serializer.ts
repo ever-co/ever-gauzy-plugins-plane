@@ -186,6 +186,18 @@ export function userIssuesByPriority(
 	}));
 }
 
+/**
+ * Transforms organization project data into a user-specific structure.
+ * This function maps project details, tasks, and user profile information into a format
+ * tailored for displaying user-related project data and statistics.
+ *
+ * @param {IOrganizationProject[]} projects - An array of organization projects to transform.
+ * @param {ID} employeeId - The ID of the employee whose data is being processed.
+ * @param {ID} userId - The ID of the user whose task information is needed.
+ *
+ * @returns {IUserProjectsDataResponse} The transformed user projects data, including project statistics and user profile information.
+ *
+ */
 export function userWorkProjectsTransformer(
 	projects: IOrganizationProject[],
 	employeeId: ID,

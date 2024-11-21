@@ -106,6 +106,12 @@ export class WorkspaceController {
 		return await this._workspaceService.findUserRecentActivity();
 	}
 
+	/**
+	 * Retrieves the project data associated with the currently connected user.
+	 *
+	 * @returns {Promise<IUserProjectsDataResponse>} A promise that resolves with the user's projects data.
+	 *
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user profile and project data' })
 	@Get('user-profile/:id')

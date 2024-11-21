@@ -771,6 +771,15 @@ export class WorkspaceService extends ApiFetchService {
 		};
 	}
 
+	/**
+	 * Retrieves the project data associated with the currently connected user.
+	 * This method fetches projects linked to the employee and user ID, then transforms
+	 * the data using the `userWorkProjectsTransformer`.
+	 *
+	 * @returns {Promise<IUserProjectsDataResponse>} A promise that resolves with the user's projects data.
+	 * @throws {BadRequestException} If an error occurs during the data retrieval or transformation process.
+	 *
+	 */
 	async findUserProjectsData(): Promise<IUserProjectsDataResponse> {
 		try {
 			const employeeId = defaultEmployeeId(); // TODO : Change this with real connected employee ID

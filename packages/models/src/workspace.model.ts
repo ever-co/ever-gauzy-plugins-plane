@@ -22,3 +22,26 @@ export enum DashboardIssueTypeEnum {
 	OVERDUE = 'overdue',
 	UPCOMING = 'upcoming'
 }
+
+export interface UserStatsResponse {
+	state_distribution: UserStateDistribution[];
+	priority_distribution: UserPriorityDistribution[];
+	created_issues: number;
+	assigned_issues: number;
+	completed_issues: number;
+	pending_issues: number;
+	subscribed_issues: number;
+	present_cycles: any[];
+	upcoming_cycles: any[];
+}
+
+export interface UserStateDistribution {
+	state_group: string;
+	state_count: number;
+}
+
+export interface UserPriorityDistribution {
+	priority: string;
+	priority_count: number;
+	priority_order: number;
+}

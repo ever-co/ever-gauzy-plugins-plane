@@ -1,9 +1,12 @@
 import {
 	IEmployee,
 	IRole,
+	ITask,
 	ITenant,
 	IWorkspaceUserInfo,
 	RolesEnum,
+	TaskPriorityEnum,
+	UserPriorityDistribution,
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -142,4 +145,27 @@ export function organizationMembersTransformer(
 			is_active: member.isActive,
 		};
 	});
+}
+
+export function userIssuesByPriority(
+	tasks: ITask[],
+): UserPriorityDistribution[] {
+	// Mapping of priorities to their corresponding filters
+	const priorityMapping = {
+		urgent: TaskPriorityEnum.URGENT,
+		high: TaskPriorityEnum.HIGH,
+		medium: TaskPriorityEnum.MEDIUM,
+		low: TaskPriorityEnum.LOW,
+		none: null, // Tasks without a priority
+	};
+
+	// Count tasks for each priority
+	return Object.entries(priorityMapping).map(([priority, value], index) => ({
+		priority,
+		priority_count: tasks.filter(
+			(task) =>
+				task.priority === value || (value === null && !task.priority),
+		).length,
+		priority_order: index,
+	}));
 }

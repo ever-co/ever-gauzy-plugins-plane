@@ -11,6 +11,7 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
+	UserStatsResponse,
 } from '@plane-plugin/models';
 
 @ApiTags('Workspaces routes')
@@ -77,5 +78,26 @@ export class WorkspaceController {
 	@Get('members')
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
+	}
+
+	/**
+	 * Retrieves a summary of the user's work statistics, including task distribution
+	 * by state and priority, as well as counts for created, assigned, and completed issues.
+	 *
+	 * @returns {Promise<UserStatsResponse>} A promise that resolves with the user's work summary.
+	 *
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user stats' })
+	@Get('user-stats/:id')
+	async findUserWorkSummary(): Promise<UserStatsResponse> {
+		return await this._workspaceService.findUserWorkSummary();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user recent activities' })
+	@Get('user-activity/:id')
+	async findUserRecentActivity() {
+		return await this._workspaceService.findUserRecentActivity();
 	}
 }

@@ -91,10 +91,15 @@ export function createStateInputTransformer(
 	};
 }
 
-export const getStatesQuery = (id: ID): Record<string, string> => {
-	return {
+export const getStatesQuery = (id?: ID): Record<string, string> => {
+	const query = {
 		organizationId: defaultOrganizationId(),
 		tenantId: defaultTestTenantId(),
-		projectId: id,
 	};
+
+	if (id) {
+		query['projectId'] = id;
+	}
+
+	return query;
 };

@@ -11,7 +11,7 @@ import {
 	ITask,
 	IWorkspaceUserInfo,
 	TaskStatusEnum,
-	UserStatsResponse,
+	IUserStatsResponse,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -704,11 +704,11 @@ export class WorkspaceService extends ApiFetchService {
 	 * Retrieves a summary of the user's work statistics, including task distribution
 	 * by state and priority, as well as counts for created, assigned, and completed issues.
 	 *
-	 * @returns {Promise<UserStatsResponse>} A promise that resolves with the user's work summary.
+	 * @returns {Promise<IUserStatsResponse>} A promise that resolves with the user's work summary.
 	 *
 	 * @throws {BadRequestException} If an error occurs during the retrieval of work statistics.
 	 */
-	async findUserWorkSummary(): Promise<UserStatsResponse> {
+	async findUserWorkSummary(): Promise<IUserStatsResponse> {
 		try {
 			const assignedIssues =
 				await this._issueService.findExternalByEmployee(
@@ -746,7 +746,12 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
-	async findUserRecentActivity() {
+	/**
+	 * Retrieves the user's recent activity
+	 *
+	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
+	 */
+	async findUserRecentActivity(): Promise<any> {
 		const activities = await this.findRecentIssueActivity(10);
 		return {
 			grouped_by: null,
@@ -763,4 +768,6 @@ export class WorkspaceService extends ApiFetchService {
 			results: activities,
 		};
 	}
+
+	async findUserProjectsData() {}
 }

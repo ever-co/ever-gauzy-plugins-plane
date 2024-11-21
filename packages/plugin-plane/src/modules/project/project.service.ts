@@ -4,7 +4,6 @@ import {
 	forwardRef,
 	Inject,
 	Injectable,
-	InternalServerErrorException,
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -42,6 +41,8 @@ export class ProjectService extends ApiFetchService {
 		super(_serverFetchService['_httpService']);
 	}
 
+	private readonly path = '/organization-project';
+
 	/**--------------------------------------------------------------
 	 * This function handlers should be updated after implementing authentication
 	 *--------------------------------------------------------------*/
@@ -56,7 +57,7 @@ export class ProjectService extends ApiFetchService {
 			const projects: IPagination<IOrganizationProject> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/organization-projects`,
+					path: this.path,
 					query,
 				})
 			).data;
@@ -69,7 +70,38 @@ export class ProjectService extends ApiFetchService {
 			return getProjectsResponse(projects.items, favoriteIds);
 		} catch (error: any) {
 			console.log(error.reponse);
-			throw new InternalServerErrorException(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves the external projects associated with a specific employee by their ID.
+	 * The method sends a GET request to the external API and processes the response to
+	 * return a list of organization projects.
+	 *
+	 * @param {ID} employeeId - The unique identifier of the employee whose projects are to be retrieved.
+	 * @returns {Promise<IOrganizationProject[]>} A promise that resolves with a list of organization projects.
+	 *
+	 * @throws {BadRequestException} If an error occurs during the API request or response handling.
+	 */
+	async getExternalProjectsByEmployee(
+		employeeId: ID,
+	): Promise<IOrganizationProject[]> {
+		try {
+			const query = qs.stringify(getProjectsQuery());
+
+			const projects: IOrganizationProject[] = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/employee/${employeeId}`,
+					query,
+				})
+			).data;
+
+			return projects;
+		} catch (error: any) {
+			console.log(error.reponse);
+			throw new BadRequestException(error);
 		}
 	}
 
@@ -86,7 +118,7 @@ export class ProjectService extends ApiFetchService {
 			return (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/organization-projects/${id}`,
+					path: `${this.path}/${id}`,
 					query,
 				})
 			).data;
@@ -118,7 +150,7 @@ export class ProjectService extends ApiFetchService {
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;
 		} catch (error: any) {
 			console.log(error.response);
-			throw new InternalServerErrorException(error);
+			throw new BadRequestException(error);
 		}
 	}
 
@@ -156,7 +188,7 @@ export class ProjectService extends ApiFetchService {
 			const project: IOrganizationProject = (
 				await this.apiFetch({
 					method: 'POST',
-					path: '/organization-projects',
+					path: this.path,
 					body,
 				})
 			).data;
@@ -164,7 +196,7 @@ export class ProjectService extends ApiFetchService {
 			return getProjectsResponse([project])[0] as IProject;
 		} catch (error) {
 			console.log(error);
-			throw new InternalServerErrorException(error);
+			throw new BadRequestException(error);
 		}
 	}
 
@@ -209,7 +241,7 @@ export class ProjectService extends ApiFetchService {
 			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
-					path: `/organization-projects/${id}`,
+					path: `${this.path}/${id}`,
 					body: { ...project, ...body },
 				})
 			).data;
@@ -256,7 +288,7 @@ export class ProjectService extends ApiFetchService {
 			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
-					path: `/organization-projects/${id}`,
+					path: `${this.path}/${id}`,
 					body: { ...projectWithoutMembers, memberIds },
 				})
 			).data;
@@ -320,7 +352,7 @@ export class ProjectService extends ApiFetchService {
 				updated_by: memberInfos.updated_by,
 			};
 		} catch (error) {
-			throw new InternalServerErrorException(error);
+			throw new BadRequestException(error);
 		}
 	}
 

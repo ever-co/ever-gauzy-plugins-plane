@@ -6,7 +6,7 @@ import {
 	IWorkspaceUserInfo,
 	RolesEnum,
 	TaskPriorityEnum,
-	UserPriorityDistribution,
+	IUserPriorityDistribution,
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -149,7 +149,7 @@ export function organizationMembersTransformer(
 
 export function userIssuesByPriority(
 	tasks: ITask[],
-): UserPriorityDistribution[] {
+): IUserPriorityDistribution[] {
 	// Mapping of priorities to their corresponding filters
 	const priorityMapping = {
 		urgent: TaskPriorityEnum.URGENT,

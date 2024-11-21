@@ -23,9 +23,9 @@ export enum DashboardIssueTypeEnum {
 	UPCOMING = 'upcoming'
 }
 
-export interface UserStatsResponse {
-	state_distribution: UserStateDistribution[];
-	priority_distribution: UserPriorityDistribution[];
+export interface IUserStatsResponse {
+	state_distribution: IUserStateDistribution[];
+	priority_distribution: IUserPriorityDistribution[];
 	created_issues: number;
 	assigned_issues: number;
 	completed_issues: number;
@@ -35,13 +35,44 @@ export interface UserStatsResponse {
 	upcoming_cycles: any[];
 }
 
-export interface UserStateDistribution {
+export interface IUserStateDistribution {
 	state_group: string;
 	state_count: number;
 }
 
-export interface UserPriorityDistribution {
+export interface IUserPriorityDistribution {
 	priority: string;
 	priority_count: number;
 	priority_order: number;
+}
+
+export interface IUserProjectsDataResponse {
+	project_data: IUserProjectData[];
+	user_data: IUserProfileData;
+}
+
+export interface IUserProjectData {
+	id: ID;
+	logo_props: {
+		emoji: {
+			url: string;
+			value: string;
+		};
+		in_use: string;
+	};
+	created_issues: number;
+	assigned_issues: number;
+	completed_issues: number;
+	pending_issues: number;
+}
+
+export interface IUserProfileData {
+	email: string;
+	first_name?: string;
+	last_name?: string;
+	avatar_url?: string;
+	cover_image_url?: string;
+	date_joined?: Date;
+	user_timezone?: string;
+	display_name?: string;
 }

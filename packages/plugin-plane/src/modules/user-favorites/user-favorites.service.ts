@@ -115,7 +115,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const favorites: IPagination<IFavorite> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: this.path, // WARNING : Change this endpoint after PR for employee deployed. Should be `${this.path}/employee`
+					path: `${this.path}/employee`,
 				})
 			).data;
 			const favoritesItems = favorites.items;
@@ -187,7 +187,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const favorites: IPagination<IFavorite> = (
 				await this.apiFetch({
 					method: 'GET',
-					path: this.path, // WARNING : Change this endpoint after PR for employee deployed. Should be `${this.path}/employee`
+					path: `${this.path}/employee`,
 					query,
 				})
 			).data;

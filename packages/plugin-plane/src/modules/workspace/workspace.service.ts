@@ -685,6 +685,14 @@ export class WorkspaceService extends ApiFetchService {
 			.map((task) => ('status' in task ? issueTransformer(task) : task));
 	}
 
+	/**
+	 * Retrieves a summary of the user's work statistics, including task distribution
+	 * by state and priority, as well as counts for created, assigned, and completed issues.
+	 *
+	 * @returns {Promise<UserStatsResponse>} A promise that resolves with the user's work summary.
+	 *
+	 * @throws {BadRequestException} If an error occurs during the retrieval of work statistics.
+	 */
 	async findUserWorkSummary(): Promise<UserStatsResponse> {
 		try {
 			const assignedIssues =
@@ -717,6 +725,9 @@ export class WorkspaceService extends ApiFetchService {
 				present_cycles: [],
 				upcoming_cycles: [],
 			};
-		} catch (error) {}
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 }

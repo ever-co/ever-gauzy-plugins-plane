@@ -15,6 +15,7 @@ import {
 	IUserProjectsDataResponse,
 	IssueGroupBy,
 	IIssueFindInput,
+	IModule,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -39,6 +40,7 @@ import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
 import { ActivityService } from '../activity/activity.service';
 import { StatesService } from '../states/states.service';
+import { ProjectModuleService } from '../project-module/project-module.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -47,6 +49,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _projectService: ProjectService,
 		private readonly _activityService: ActivityService,
 		private readonly _stateService: StatesService,
+		private readonly _projectModuleService: ProjectModuleService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -863,6 +866,28 @@ export class WorkspaceService extends ApiFetchService {
 			);
 
 			return states.flat();
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findWorkspaceModules(): Promise<IModule[]> {
+		try {
+			const projects = await this._projectService.getProjects();
+
+			const modules = await Promise.all(
+				projects
+					.map((project) => project.id)
+					.map(
+						async (id) =>
+							await this._projectModuleService.getAllModulesByProject(
+								id,
+							),
+					),
+			);
+
+			return modules.flat();
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

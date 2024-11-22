@@ -148,4 +148,11 @@ export class WorkspaceController {
 	async findWorkspaceStates(): Promise<any> {
 		return await this._workspaceService.findWorkspaceStates();
 	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace modules' })
+	@Get('modules')
+	async findWorkspaceModules(): Promise<any> {
+		return await this._workspaceService.findWorkspaceModules();
+	}
 }

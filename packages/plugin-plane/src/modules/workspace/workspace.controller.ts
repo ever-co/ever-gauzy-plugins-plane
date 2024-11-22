@@ -11,7 +11,9 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
+	ICycle,
 	IIssueFindInput,
+	IModule,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
 
@@ -157,7 +159,14 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace modules' })
 	@Get('modules')
-	async findWorkspaceModules(): Promise<any> {
+	async findWorkspaceModules(): Promise<IModule[]> {
 		return await this._workspaceService.findWorkspaceModules();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace cycles' })
+	@Get('cycles')
+	async findWorkspaceCycles(): Promise<ICycle[]> {
+		return await this._workspaceService.findWorkspaceCycles();
 	}
 }

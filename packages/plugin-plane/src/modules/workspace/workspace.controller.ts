@@ -13,6 +13,7 @@ import {
 	DashboardWigetQueryEnum,
 	ICycle,
 	IIssueFindInput,
+	IIssueLabel,
 	IModule,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
@@ -174,5 +175,17 @@ export class WorkspaceController {
 	@Get('cycles')
 	async findWorkspaceCycles(): Promise<ICycle[]> {
 		return await this._workspaceService.findWorkspaceCycles();
+	}
+
+	/**
+	 * Retrieves all labels associated with the projects in the workspace.
+	 *
+	 * @returns {Promise<IIssueLabel[]>} A promise resolving to an array of issue labels.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace labels' })
+	@Get('labels')
+	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
+		return await this._workspaceService.findWorkspaceLabels();
 	}
 }

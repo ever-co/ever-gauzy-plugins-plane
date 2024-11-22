@@ -17,6 +17,7 @@ import {
 	IIssueFindInput,
 	IModule,
 	ICycle,
+	IIssueLabel,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -29,6 +30,7 @@ import {
 	getTaskCounts,
 	groupIssuesByStateGroup,
 	issueActivityLogTransformer,
+	issueLabelsTransformer,
 	issueLinkTransformer,
 	issuesByPriority,
 	issueTransformer,
@@ -959,6 +961,41 @@ export class WorkspaceService extends ApiFetchService {
 				: [transformedSprints];
 		} catch (error) {
 			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves all labels associated with the projects in the workspace.
+	 * This method fetches all projects along with their tags and transforms the tags
+	 * into issue labels, consolidating them into a single array.
+	 *
+	 * @returns {Promise<IIssueLabel[]>} A promise resolving to an array of issue labels (`IIssueLabel[]`),
+	 * each associated with a specific project in the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or label retrieval.
+	 */
+	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
+		try {
+			const projects = await this._projectService.getExternalProjects([
+				'tags',
+			]);
+
+			const labels: IIssueLabel[] = projects
+				.map((project) => {
+					const transformed = issueLabelsTransformer(
+						project.tags,
+						project.id,
+					);
+					return Array.isArray(transformed)
+						? transformed
+						: [transformed];
+				})
+				.flat();
+
+			return labels;
+		} catch (error) {
+			console.error(error);
 			throw new BadRequestException(error);
 		}
 	}

@@ -20,8 +20,8 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  */
 export function issueLinkTransformer(
 	links: IResourceLink[] | IResourceLink,
-	actor: IEmployee,
-	project: IOrganizationProject,
+	actor?: IEmployee,
+	project?: IOrganizationProject,
 ): IIssueLink[] | IIssueLink {
 	const transformIssueLink = (link: IResourceLink): IIssueLink => {
 		return {
@@ -45,7 +45,7 @@ export function issueLinkTransformer(
 			created_by: link.creatorId,
 			created_by_id: link.creatorId,
 			updated_by: '', // TODO : Try to use this too,
-			project: project.id,
+			project: project?.id,
 			workspace: link.tenantId,
 		};
 	};

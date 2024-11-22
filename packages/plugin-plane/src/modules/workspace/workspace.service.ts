@@ -20,15 +20,19 @@ import {
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
+	cycleTransformer,
 	defaultEmployeeId,
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
+	getStatesTransformer,
 	getTaskCounts,
 	groupIssuesByStateGroup,
 	issueActivityLogTransformer,
+	issueLinkTransformer,
 	issuesByPriority,
 	issueTransformer,
+	modulesTransformer,
 	userIssuesByPriority,
 	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
@@ -43,6 +47,7 @@ import { ActivityService } from '../activity/activity.service';
 import { StatesService } from '../states/states.service';
 import { ProjectModuleService } from '../project-module/project-module.service';
 import { CyclesService } from '../cycles/cycles.service';
+import { IssueLinksService } from '../issue-links/issue-links.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -53,6 +58,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _stateService: StatesService,
 		private readonly _projectModuleService: ProjectModuleService,
 		private readonly _cycleService: CyclesService,
+		private readonly _issueLinkService: IssueLinksService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -532,7 +538,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findRecentProjects(): Promise<ID[]> {
 		try {
 			// Fetch all projects
-			const projects = await this._projectService.getProjects();
+			const projects = await this._projectService.getExternalProjects([]);
 
 			// Return the first 5 project IDs
 			return projects.map((project) => project.id).slice(0, 4);
@@ -728,6 +734,7 @@ export class WorkspaceService extends ApiFetchService {
 			const assignedIssues =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
+					['status'],
 				);
 
 			const {
@@ -805,6 +812,7 @@ export class WorkspaceService extends ApiFetchService {
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
+					['members.employee.user', 'tasks.members'],
 				);
 
 			return userWorkProjectsTransformer(
@@ -840,15 +848,16 @@ export class WorkspaceService extends ApiFetchService {
 
 			const issuesWithLinks = await Promise.all(
 				assignedIssues.map(async (issue) => {
-					const issueLinks = await this._issueService.findIssueLinks(
+					const issueLinks = await this._issueLinkService.findAll(
 						issue.id,
-						issue.projectId,
-						issue,
 					);
+
+					const transformedIssueLinks =
+						issueLinkTransformer(issueLinks);
 
 					return {
 						issue,
-						issueLinks,
+						issueLinks: transformedIssueLinks,
 					};
 				}),
 			);
@@ -877,20 +886,13 @@ export class WorkspaceService extends ApiFetchService {
 
 	async findWorkspaceStates() {
 		try {
-			const projects = await this._projectService.getProjects();
+			const projects = await this._projectService.getExternalProjects([
+				'statuses',
+			]);
 
-			const states = await Promise.all(
-				projects
-					.map((project) => project.id)
-					.map(
-						async (id) =>
-							await this._stateService.getWorkspaceProjectStates(
-								id,
-							),
-					),
-			);
+			const states = projects.map((project) => project.statuses);
 
-			return states.flat();
+			return getStatesTransformer(states.flat());
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -909,20 +911,19 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findWorkspaceModules(): Promise<IModule[]> {
 		try {
-			const projects = await this._projectService.getProjects();
+			const projects = await this._projectService.getExternalProjects([
+				'modules',
+			]);
 
-			const modules = await Promise.all(
-				projects
-					.map((project) => project.id)
-					.map(
-						async (id) =>
-							await this._projectModuleService.getAllModulesByProject(
-								id,
-							),
-					),
+			const modules = projects.map((project) => project.modules).flat();
+
+			const transformedModules = modulesTransformer(
+				Array.isArray(modules) ? modules : modules,
 			);
 
-			return modules.flat();
+			return Array.isArray(transformedModules)
+				? transformedModules
+				: [transformedModules];
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -941,15 +942,21 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findWorkspaceCycles(): Promise<ICycle[]> {
 		try {
-			const projects = await this._projectService.getProjects();
+			const projects = await this._projectService.getExternalProjects([
+				'organizationSprints',
+			]);
 
-			const cycles = await Promise.all(
-				projects
-					.map((project) => project.id)
-					.map(async (id) => await this._cycleService.findAll(id)),
+			const cycles = projects
+				.map((project) => project.organizationSprints)
+				.flat();
+
+			const transformedSprints = cycleTransformer(
+				Array.isArray(cycles) ? cycles : cycles,
 			);
 
-			return cycles.flat();
+			return Array.isArray(transformedSprints)
+				? transformedSprints
+				: [transformedSprints];
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

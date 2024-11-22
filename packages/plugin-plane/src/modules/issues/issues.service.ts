@@ -134,10 +134,13 @@ export class IssuesService extends ApiFetchService {
 	 * @returns {Promise<ITask[]>} A promise that resolves to an array of tasks assigned to the specified employee.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async findExternalByEmployee(employeeId: ID): Promise<ITask[]> {
+	async findExternalByEmployee(
+		employeeId: ID,
+		relations?: string[],
+	): Promise<ITask[]> {
 		try {
 			// Build query for task retrieval
-			const query = qs.stringify(getTaskQuery());
+			const query = qs.stringify(getTaskQuery(null, null, relations));
 
 			// Fetch tasks for the authenticated employee
 			const tasks: ITask[] = (

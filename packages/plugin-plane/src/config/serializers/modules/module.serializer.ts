@@ -98,7 +98,7 @@ export function modulesTransformer(
 			total_issues: projectModule.tasks?.length,
 			completed_estimate_points: 0,
 			total_estimate_points: 0,
-			member_ids: projectModule.members.map((member) => member.id),
+			member_ids: projectModule?.members?.map((member) => member.id),
 			workspace_id: projectModule.tenantId,
 			...moduleDetailsAdapter(projectModule),
 		};
@@ -116,7 +116,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 
 	const labelMap = new Map<string, any>();
 
-	tasks.forEach((task) => {
+	tasks?.forEach((task) => {
 		task.tags.forEach((label) => {
 			if (!labelMap.has(label.id)) {
 				labelMap.set(label.id, {
@@ -146,7 +146,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 	const labels = Array.from(labelMap.values());
 
 	// Module members
-	const assignees = module.members.map((member) => {
+	const assignees = module?.members?.map((member) => {
 		const user = member?.user;
 
 		let totalIssues = 0;

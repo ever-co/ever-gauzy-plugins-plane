@@ -279,6 +279,7 @@ export const taskRelations = [
 export const getTaskQuery = (
 	projectId?: ID,
 	options?: IIssueFindInput,
+	relations?: string[],
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
@@ -299,9 +300,15 @@ export const getTaskQuery = (
 	}
 
 	// Add relations
-	taskRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (relations) {
+		relations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	} else {
+		taskRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
 
 	return query;
 };

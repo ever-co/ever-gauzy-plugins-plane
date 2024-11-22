@@ -10,7 +10,7 @@ import { IOrganizationTeam } from './organization-team.model';
 import { IOrganizationProjectModule } from './organization-project-module.model';
 import { CrudActionEnum, ProjectBillingEnum, ProjectOwnerEnum } from './organization.model';
 import { CurrenciesEnum } from './currency.model';
-import { TaskStatusEnum } from './task-status.model';
+import { ITaskStatus, TaskStatusEnum } from './task-status.model';
 import { IRelationalRole } from './role.model';
 import { IBasePerTenantAndOrganizationEntityModel, ID } from './base-entity.model'; // Base Entities
 import { CustomFieldsObject } from './shared-types'; // Shared Types
@@ -43,6 +43,7 @@ export interface IOrganizationProjectBase
 	modules?: IOrganizationProjectModule[];
 	taskListType?: TaskListTypeEnum;
 	payments?: IPayment[];
+	statuses?: ITaskStatus[];
 	code?: string;
 	description?: string;
 	color?: string;

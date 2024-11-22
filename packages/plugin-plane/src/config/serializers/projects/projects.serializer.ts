@@ -144,32 +144,45 @@ export const projectRelations = [
 	'tags',
 	'teams',
 	'tenant',
+	'statuses',
+	'modules',
+	'organizationSprints',
 ];
 
 /**
  * Helper function to build query object
  */
-export const getProjectsQuery = (): Record<string, string> => {
+export const getProjectsQuery = (
+	relations?: string[],
+): Record<string, string> => {
 	const baseQuery = {
 		...baseGetItemsWhereQuery(),
 	};
 
 	// Add relations to the baseQuery
-	projectRelations.forEach((relation, i) => {
-		baseQuery[`relations[${i}]`] = relation;
-	});
+	if (relations) {
+		relations.forEach((relation, i) => {
+			baseQuery[`relations[${i}]`] = relation;
+		});
+	} else {
+		projectRelations.forEach((relation, i) => {
+			baseQuery[`relations[${i}]`] = relation;
+		});
+	}
 
 	return baseQuery;
 };
 
-export const findEmployeeProjectsQuery = (): Record<string, string> => {
+export const findEmployeeProjectsQuery = (
+	relations?: string[],
+): Record<string, string> => {
 	const query = {
 		organizationId: defaultOrganizationId(),
 		tenantId: defaultTestTenantId(),
 	};
 
 	// Add relations to the baseQuery
-	projectRelations.forEach((relation, i) => {
+	relations.forEach((relation, i) => {
 		query[`relations[${i}]`] = relation;
 	});
 

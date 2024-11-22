@@ -872,6 +872,16 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Fetches all workspace modules associated with projects in the workspace.
+	 * This method retrieves all projects within the workspace and then queries
+	 * each project's modules, consolidating them into a single array.
+	 *
+	 * @returns {Promise<IModule[]>} A promise resolving to an array of project modules.
+	 * Each module corresponds to a specific project within the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or module retrieval.
+	 */
 	async findWorkspaceModules(): Promise<IModule[]> {
 		try {
 			const projects = await this._projectService.getProjects();

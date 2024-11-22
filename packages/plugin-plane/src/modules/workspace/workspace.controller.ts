@@ -149,6 +149,11 @@ export class WorkspaceController {
 		return await this._workspaceService.findWorkspaceStates();
 	}
 
+	/**
+	 * Fetches all workspace modules associated with projects in the workspace.
+	 *
+	 * @returns {Promise<IModule[]>} A promise resolving to an array of project modules.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace modules' })
 	@Get('modules')

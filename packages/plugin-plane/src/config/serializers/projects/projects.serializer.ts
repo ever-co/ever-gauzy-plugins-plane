@@ -21,7 +21,7 @@ export function getProjectsResponse(
 ): Partial<IProject>[] {
 	return projects?.map((project) => {
 		// Safely handle the presence of `project.members` by using a fallback to an empty array.
-		const members = Array.isArray(project.members)
+		const members = Array.isArray(project?.members)
 			? project.members.map((member) => ({
 					id: member.employee.user.id,
 					member_id: member.employeeId,
@@ -65,7 +65,7 @@ export function getProjectsResponse(
 			description_text: null, // To add for external API
 			description_html: null, // To add for external API
 			network: project.public ? 2 : 0,
-			identifier: project.code || project.name.slice(0, 4).toUpperCase(),
+			identifier: project.code || project.name?.slice(0, 4).toUpperCase(),
 			emoji: null, // To add for external API
 			icon_prop: null, // To add for external API
 			module_view: true, // To add for external API

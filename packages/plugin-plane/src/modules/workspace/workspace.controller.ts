@@ -163,6 +163,12 @@ export class WorkspaceController {
 		return await this._workspaceService.findWorkspaceModules();
 	}
 
+	/**
+	 * Fetches all cycles associated with projects in the workspace.
+	 *
+	 * @returns {Promise<ICycle[]>} A promise resolving to an array of cycles.
+	 *
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace cycles' })
 	@Get('cycles')

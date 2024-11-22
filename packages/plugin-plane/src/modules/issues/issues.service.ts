@@ -24,6 +24,7 @@ import {
 	IIssueLabel,
 	IIssueLink,
 	IIssueUpdateInput,
+	IOrganizationProject,
 	IPagination,
 	IReaction,
 	IReactionData,
@@ -209,7 +210,7 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			// Find issue links
-			const links = await this.findIssueLinks(id, issue.projectId);
+			const links = await this.findIssueLinks(id, issue.projectId, issue);
 
 			return issueTransformer(issue, reactions, links);
 		} catch (error) {
@@ -1013,20 +1014,35 @@ export class IssuesService extends ApiFetchService {
 	 * @param {ID} id - Issue ID
 	 * @param {ID} projectId - Project ID
 	 * @param {ID} creatorId Creator ID for returning actor details
+	 * @param {ITask} originalTask Optional task to avoid multiple API calls
+	 * @param {IOrganizationProject} originalProject Optional project to avoid multiple API calls
 	 * @returns - A promise resolced afet got details
 	 * @memberof IssuesService
 	 */
-	async getIssueCommentDetails(id: ID, projectId: ID, creatorId: ID) {
+	async getIssueCommentDetails(
+		id: ID,
+		projectId: ID,
+		creatorId: ID,
+		originalTask?: ITask,
+		originalProject?: IOrganizationProject,
+	) {
 		try {
-			// remote issue to find creator member
-			const task = await this.getExternalIssue(id);
+			let task = originalTask;
+			let project = originalProject;
+
+			// remote issue to find creator member if no task provided
+			if (!task) {
+				task = await this.getExternalIssue(id);
+			}
 
 			// Commented issue
 			const issue = issueTransformer(task);
 
-			// Find project
-			const project =
-				await this._projectService.getExternalProject(projectId);
+			// Find project if none is provided
+			if (!originalProject && projectId) {
+				project =
+					await this._projectService.getExternalProject(projectId);
+			}
 
 			// Workspace details
 			const tenant = project?.tenant;
@@ -1133,7 +1149,7 @@ export class IssuesService extends ApiFetchService {
 	 * @returns A promise resolved to found and transformed links
 	 * @memberof IssuesService
 	 */
-	async findIssueLinks(id: ID, projectId: ID): Promise<any> {
+	async findIssueLinks(id: ID, projectId: ID, issue: ITask): Promise<any> {
 		try {
 			const links = await this._issueLinkService.findAll(id);
 
@@ -1144,6 +1160,8 @@ export class IssuesService extends ApiFetchService {
 							id,
 							projectId,
 							link.creatorId,
+							issue,
+							issue.project,
 						);
 
 					const transformedLink = issueLinkTransformer(

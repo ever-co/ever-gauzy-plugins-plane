@@ -144,11 +144,21 @@ export function groupIssuesByStateId(issues: ITask[]) {
 	);
 }
 
-export function groupIssuesByStateGroup(tasks: ITask[]) {
-	return tasks.reduce(
-		(acc, item) => {
-			const statusGroup = stateGroup(item.taskStatus);
+/**
+ * Groups issues by their state group and associates their links.
+ *
+ * @param {Array<{ issue: ITask; issueLinks: any }>} issuesWithLinks - Array of issues and their associated links.
+ * @returns A structured object grouping issues by state group, with counts and metadata.
+ */
+export function groupIssuesByStateGroup(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Determine the group for the current issue based on its task status
+			const statusGroup = stateGroup(issue.taskStatus);
 
+			// Initialize the group if it doesn't exist yet
 			if (!acc.results[statusGroup]) {
 				acc.results[statusGroup] = {
 					results: [],
@@ -156,13 +166,18 @@ export function groupIssuesByStateGroup(tasks: ITask[]) {
 				};
 			}
 
-			const issue = issueTransformer(item);
-			acc.results[statusGroup].results.push(issue);
+			// Transform the issue using the provided transformer, passing the issue and its links
+			const transformedIssue = issueTransformer(issue, [], issueLinks);
+
+			// Add the transformed issue to the corresponding group
+			acc.results[statusGroup].results.push(transformedIssue);
 			acc.results[statusGroup].total_results++;
 
+			// Increment the total results counter
 			acc.total_results++;
 			return acc;
 		},
+		// Initial accumulator object
 		{
 			grouped_by: 'state__group',
 			sub_grouped_by: null,
@@ -249,7 +264,7 @@ export const taskRelations = [
 	'members',
 	'members.user',
 	'creator',
-	'project',
+	'project.members.employee.user.role',
 	'organizationSprint',
 	'linkedIssues',
 	'linkedIssues.taskTo',

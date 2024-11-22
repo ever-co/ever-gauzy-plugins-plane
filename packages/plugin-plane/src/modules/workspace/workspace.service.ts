@@ -572,6 +572,8 @@ export class WorkspaceService extends ApiFetchService {
 								task.id,
 								task.projectId,
 								activityLog.creatorId,
+								task,
+								task.project,
 							);
 
 						const transformedActivityLogs =
@@ -765,21 +767,26 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
 	 */
 	async findUserRecentActivity(): Promise<any> {
-		const activities = await this.findRecentIssueActivity(10);
-		return {
-			grouped_by: null,
-			sub_grouped_by: null,
-			total_count: 165,
-			next_cursor: '10:1:0',
-			prev_cursor: '10:-1:1',
-			next_page_results: true,
-			prev_page_results: false,
-			count: 10,
-			total_pages: 17,
-			total_results: 165,
-			extra_stats: null,
-			results: activities,
-		};
+		try {
+			const activities = await this.findRecentIssueActivity(10);
+			return {
+				grouped_by: null,
+				sub_grouped_by: null,
+				total_count: 165,
+				next_cursor: '10:1:0',
+				prev_cursor: '10:-1:1',
+				next_page_results: true,
+				prev_page_results: false,
+				count: 10,
+				total_pages: 17,
+				total_results: 165,
+				extra_stats: null,
+				results: activities,
+			};
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**
@@ -831,8 +838,23 @@ export class WorkspaceService extends ApiFetchService {
 					defaultEmployeeId(),
 				); // TODO : Replace this to use dynamic employee ID
 
+			const issuesWithLinks = await Promise.all(
+				assignedIssues.map(async (issue) => {
+					const issueLinks = await this._issueService.findIssueLinks(
+						issue.id,
+						issue.projectId,
+						issue,
+					);
+
+					return {
+						issue,
+						issueLinks,
+					};
+				}),
+			);
+
 			if (group_by === IssueGroupBy.STATE_GROUP) {
-				return groupIssuesByStateGroup(assignedIssues);
+				return groupIssuesByStateGroup(issuesWithLinks);
 			}
 
 			return [];
@@ -907,6 +929,16 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Fetches all cycles associated with projects in the workspace.
+	 * This method retrieves all projects within the workspace and then queries
+	 * each project's cycles, consolidating them into a single array.
+	 *
+	 * @returns {Promise<ICycle[]>} A promise resolving to an array of cycles.
+	 * Each cycle corresponds to a specific project within the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or cycle retrieval.
+	 */
 	async findWorkspaceCycles(): Promise<ICycle[]> {
 		try {
 			const projects = await this._projectService.getProjects();

@@ -1,4 +1,5 @@
 import { ID, IOrganizationSprint, TaskPriorityEnum } from './imports';
+import { IssueOrderByField } from './base.model';
 import { IReactionData } from './reaction.model';
 import { IIssueLink } from './issue-link.model';
 import { ICycle } from './cycle.model';
@@ -58,12 +59,21 @@ export type IIssueUpdateInput = IIssue;
 export interface IIssueFindInput {
 	module?: ID;
 	group_by?: IssueGroupBy;
+	order_by?: IssueOrderByField;
+	sub_issue?: boolean;
 	creatorId?: ID;
+	created_by?: ID;
+	assignees?: ID;
+	priotity?: string;
 }
 
 export enum IssueGroupBy {
 	STATE = 'state_id',
-	TARGET_DATE = 'target_date'
+	TARGET_DATE = 'target_date',
+	STATE_GROUP = 'state__group',
+	PRIORITY = 'priority',
+	PROJECT_ID = 'project_id',
+	LABEL_ID = 'labels__id'
 }
 
 export enum IssueActivityTypeEnum {

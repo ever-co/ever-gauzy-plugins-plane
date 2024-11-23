@@ -4,7 +4,7 @@ import { HttpModule } from '@nestjs/axios';
 
 @Global()
 @Module({
-	imports: [HttpModule],
+	imports: [HttpModule.register({ timeout: 240000, maxRedirects: 2 })],
 	providers: [ApiFetchService],
 	exports: [ApiFetchService],
 })

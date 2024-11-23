@@ -44,16 +44,10 @@ export class ProjectService extends ApiFetchService {
 
 	private readonly path = '/organization-projects';
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------*/
-	/**
-	 * @description - Get all projects for a workspace
-	 * @returns - A promise that resolves after getting all projects for a workspace
-	 * @memberof ProjectService
-	 */
-	async getProjects(): Promise<Partial<IProject>[]> {
-		const query = qs.stringify(getProjectsQuery());
+	async getExternalProjects(
+		relations?: string[],
+	): Promise<IOrganizationProject[]> {
+		const query = qs.stringify(getProjectsQuery(relations));
 		try {
 			const projects: IPagination<IOrganizationProject> = (
 				await this.apiFetch({
@@ -63,12 +57,31 @@ export class ProjectService extends ApiFetchService {
 				})
 			).data;
 
+			return projects.items;
+		} catch (error: any) {
+			console.log(error.reponse);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**--------------------------------------------------------------
+	 * This function handlers should be updated after implementing authentication
+	 *--------------------------------------------------------------*/
+	/**
+	 * @description - Get all projects for a workspace
+	 * @returns - A promise that resolves after getting all projects for a workspace
+	 * @memberof ProjectService
+	 */
+	async getProjects(): Promise<Partial<IProject>[]> {
+		try {
+			const projects = await this.getExternalProjects();
+
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
 					BaseEntityEnum.OrganizationProject,
 				);
 
-			return getProjectsResponse(projects.items, favoriteIds);
+			return getProjectsResponse(projects, favoriteIds);
 		} catch (error: any) {
 			console.log(error.reponse);
 			throw new BadRequestException(error);
@@ -87,9 +100,10 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async getExternalProjectsByEmployee(
 		employeeId: ID,
+		relations?: string[],
 	): Promise<IOrganizationProject[]> {
 		try {
-			const query = qs.stringify(findEmployeeProjectsQuery());
+			const query = qs.stringify(findEmployeeProjectsQuery(relations));
 
 			const projects: IOrganizationProject[] = (
 				await this.apiFetch({

@@ -19,9 +19,10 @@ function capitalizeWords(word: string) {
 		.join(' ');
 }
 
-// From external API, transform template to group
-
-export const stateGroup = (state: ITaskStatus) => {
+/**
+ * From external API, transform template to group
+ */
+export function stateGroup(state: ITaskStatus) {
 	const templateOrValue = state?.template || state?.value;
 
 	if (!templateOrValue) return undefined;
@@ -39,7 +40,7 @@ export const stateGroup = (state: ITaskStatus) => {
 	};
 
 	return groupMapping[templateOrValue] || TaskStatusEnum.CUSTOM;
-};
+}
 
 // Transform group to template
 
@@ -90,10 +91,15 @@ export function createStateInputTransformer(
 	};
 }
 
-export const getStatesQuery = (id: ID): Record<string, string> => {
-	return {
+export const getStatesQuery = (id?: ID): Record<string, string> => {
+	const query = {
 		organizationId: defaultOrganizationId(),
 		tenantId: defaultTestTenantId(),
-		projectId: id,
 	};
+
+	if (id) {
+		query['projectId'] = id;
+	}
+
+	return query;
 };

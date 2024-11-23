@@ -13,18 +13,33 @@ import {
 	TaskStatusEnum,
 	IUserStatsResponse,
 	IUserProjectsDataResponse,
+	IssueGroupBy,
+	IIssueFindInput,
+	IModule,
+	ICycle,
+	IIssueLabel,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
+	cycleTransformer,
 	defaultEmployeeId,
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
+	getStatesTransformer,
 	getTaskCounts,
+	groupIssuesByLabel,
+	groupIssuesByPriority,
+	groupIssuesByProjectId,
+	groupIssuesByStateGroup,
 	issueActivityLogTransformer,
+	issueLabelsTransformer,
+	issueLinkTransformer,
 	issuesByPriority,
 	issueTransformer,
+	modulesTransformer,
 	userIssuesByPriority,
+	userWorkNonGroupedIssues,
 	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
 } from '../../config';
@@ -35,6 +50,10 @@ import {
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
 import { ActivityService } from '../activity/activity.service';
+import { StatesService } from '../states/states.service';
+import { ProjectModuleService } from '../project-module/project-module.service';
+import { CyclesService } from '../cycles/cycles.service';
+import { IssueLinksService } from '../issue-links/issue-links.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -42,6 +61,10 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _issueService: IssuesService,
 		private readonly _projectService: ProjectService,
 		private readonly _activityService: ActivityService,
+		private readonly _stateService: StatesService,
+		private readonly _projectModuleService: ProjectModuleService,
+		private readonly _cycleService: CyclesService,
+		private readonly _issueLinkService: IssueLinksService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -521,7 +544,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findRecentProjects(): Promise<ID[]> {
 		try {
 			// Fetch all projects
-			const projects = await this._projectService.getProjects();
+			const projects = await this._projectService.getExternalProjects([]);
 
 			// Return the first 5 project IDs
 			return projects.map((project) => project.id).slice(0, 4);
@@ -561,6 +584,8 @@ export class WorkspaceService extends ApiFetchService {
 								task.id,
 								task.projectId,
 								activityLog.creatorId,
+								task,
+								task.project,
 							);
 
 						const transformedActivityLogs =
@@ -715,6 +740,7 @@ export class WorkspaceService extends ApiFetchService {
 			const assignedIssues =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
+					['taskStatus'],
 				);
 
 			const {
@@ -742,8 +768,8 @@ export class WorkspaceService extends ApiFetchService {
 				present_cycles: [],
 				upcoming_cycles: [],
 			};
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}
@@ -754,21 +780,26 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
 	 */
 	async findUserRecentActivity(): Promise<any> {
-		const activities = await this.findRecentIssueActivity(10);
-		return {
-			grouped_by: null,
-			sub_grouped_by: null,
-			total_count: 165,
-			next_cursor: '10:1:0',
-			prev_cursor: '10:-1:1',
-			next_page_results: true,
-			prev_page_results: false,
-			count: 10,
-			total_pages: 17,
-			total_results: 165,
-			extra_stats: null,
-			results: activities,
-		};
+		try {
+			const activities = await this.findRecentIssueActivity(10);
+			return {
+				grouped_by: null,
+				sub_grouped_by: null,
+				total_count: 165,
+				next_cursor: '10:1:0',
+				prev_cursor: '10:-1:1',
+				next_page_results: true,
+				prev_page_results: false,
+				count: 10,
+				total_pages: 17,
+				total_results: 165,
+				extra_stats: null,
+				results: activities,
+			};
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**
@@ -787,6 +818,7 @@ export class WorkspaceService extends ApiFetchService {
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
+					['members.employee.user', 'tasks.members'],
 				);
 
 			return userWorkProjectsTransformer(
@@ -796,6 +828,206 @@ export class WorkspaceService extends ApiFetchService {
 			);
 		} catch (error: any) {
 			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves and groups issues assigned to a user based on the specified grouping option.
+	 * This method fetches issues assigned to the current employee and organizes them into groups,
+	 * such as by state or other criteria provided in the options.
+	 *
+	 * @param {IIssueFindInput} options - The input options specifying the grouping criteria.
+	 *
+	 * @returns A promise that resolves to an array of grouped issues.
+	 * Each group is structured based on the specified grouping option.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during issue retrieval or processing.
+	 */
+	async findUserGroupedIssueAssigned(options: IIssueFindInput) {
+		try {
+			const { assignees, created_by, group_by, order_by } = options;
+			let assignedIssues: ITask[] = [];
+			const relations = ['taskStatus'];
+
+			if (assignees) {
+				assignedIssues =
+					await this._issueService.findExternalByEmployee(
+						assignees,
+						relations,
+						order_by,
+					);
+			} else if (created_by) {
+				const createdTasks = await this._issueService.findAllExternal(
+					{
+						creatorId: defaultUserId(), // TODO : Change here with current autheticated user.
+					},
+					relations,
+					order_by,
+				);
+				assignedIssues = createdTasks.items;
+			}
+
+			const issuesWithLinks = await Promise.all(
+				assignedIssues.map(async (issue) => {
+					const issueLinks = await this._issueLinkService.findAll(
+						issue.id,
+					);
+
+					const transformedIssueLinks =
+						issueLinkTransformer(issueLinks);
+
+					return {
+						issue,
+						issueLinks: transformedIssueLinks,
+					};
+				}),
+			);
+
+			if (group_by === IssueGroupBy.STATE_GROUP) {
+				return groupIssuesByStateGroup(issuesWithLinks);
+			}
+
+			if (group_by === IssueGroupBy.PRIORITY) {
+				return groupIssuesByPriority(issuesWithLinks);
+			}
+
+			if (group_by === IssueGroupBy.PROJECT_ID) {
+				return groupIssuesByProjectId(issuesWithLinks);
+			}
+
+			if (group_by === IssueGroupBy.LABEL_ID) {
+				return groupIssuesByLabel(issuesWithLinks);
+			}
+
+			return userWorkNonGroupedIssues(issuesWithLinks);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetches all workspace states associated with projects in the workspace.
+	 * This method retrieves all projects in the workspace, then queries each project's states,
+	 * consolidating them into a single array.
+	 *
+	 * @returns A promise resolving to an array of workspace states.
+	 * Each state corresponds to a specific project within the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or state retrieval.
+	 */
+
+	async findWorkspaceStates() {
+		try {
+			const projects = await this._projectService.getExternalProjects([
+				'statuses',
+			]);
+
+			const states = projects.map((project) => project.statuses);
+
+			return getStatesTransformer(states.flat());
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetches all workspace modules associated with projects in the workspace.
+	 * This method retrieves all projects within the workspace and then queries
+	 * each project's modules, consolidating them into a single array.
+	 *
+	 * @returns {Promise<IModule[]>} A promise resolving to an array of project modules.
+	 * Each module corresponds to a specific project within the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or module retrieval.
+	 */
+	async findWorkspaceModules(): Promise<IModule[]> {
+		try {
+			const projects = await this._projectService.getExternalProjects([
+				'modules',
+			]);
+
+			const modules = projects.map((project) => project.modules).flat();
+
+			const transformedModules = modulesTransformer(
+				Array.isArray(modules) ? modules : modules,
+			);
+
+			return Array.isArray(transformedModules)
+				? transformedModules
+				: [transformedModules];
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetches all cycles associated with projects in the workspace.
+	 * This method retrieves all projects within the workspace and then queries
+	 * each project's cycles, consolidating them into a single array.
+	 *
+	 * @returns {Promise<ICycle[]>} A promise resolving to an array of cycles.
+	 * Each cycle corresponds to a specific project within the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or cycle retrieval.
+	 */
+	async findWorkspaceCycles(): Promise<ICycle[]> {
+		try {
+			const projects = await this._projectService.getExternalProjects([
+				'organizationSprints',
+			]);
+
+			const cycles = projects
+				.map((project) => project.organizationSprints)
+				.flat();
+
+			const transformedSprints = cycleTransformer(
+				Array.isArray(cycles) ? cycles : cycles,
+			);
+
+			return Array.isArray(transformedSprints)
+				? transformedSprints
+				: [transformedSprints];
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves all labels associated with the projects in the workspace.
+	 * This method fetches all projects along with their tags and transforms the tags
+	 * into issue labels, consolidating them into a single array.
+	 *
+	 * @returns {Promise<IIssueLabel[]>} A promise resolving to an array of issue labels (`IIssueLabel[]`),
+	 * each associated with a specific project in the workspace.
+	 *
+	 * @throws {BadRequestException} Throws if an error occurs during project or label retrieval.
+	 */
+	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
+		try {
+			const projects = await this._projectService.getExternalProjects([
+				'tags',
+			]);
+
+			const labels: IIssueLabel[] = projects
+				.map((project) => {
+					const transformed = issueLabelsTransformer(
+						project.tags,
+						project.id,
+					);
+					return Array.isArray(transformed)
+						? transformed
+						: [transformed];
+				})
+				.flat();
+
+			return labels;
+		} catch (error) {
+			console.error(error);
 			throw new BadRequestException(error);
 		}
 	}

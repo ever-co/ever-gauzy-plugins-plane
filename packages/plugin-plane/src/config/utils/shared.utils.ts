@@ -1,3 +1,5 @@
+import { IssueOrderByField } from '@plane-plugin/models';
+
 /**
  * Convert slug back to a readable string
  *
@@ -13,4 +15,37 @@ export function deslugify(slug: string, replacement: any = '-'): string {
 	result = result.replace(/\b\w/g, (char) => char.toUpperCase());
 
 	return result;
+}
+
+export const orderByFieldMap: { [key in IssueOrderByField]: string } = {
+	[IssueOrderByField.DESC_CREATED_AT]: 'createdAt',
+	[IssueOrderByField.ASC_CREATED_AT]: 'createdAt',
+	[IssueOrderByField.MANUAL]: '',
+	[IssueOrderByField.DESC_PRIORITY]: 'priority',
+	[IssueOrderByField.START_DATE]: 'startDate',
+	[IssueOrderByField.DESC_UPDATED_AT]: 'updatedAt',
+	[IssueOrderByField.ASC_UPDATED_AT]: 'updatedAt',
+};
+
+/**
+ * Transforms a given issue ordering field into its corresponding property name.
+ *
+ * @param {IssueOrderByField} field - The field used for ordering issues.
+ *   It should be one of the values defined in the `IssueOrderByField` enum (e.g., `CREATED_AT`, `MANUAL`, `PRIORITY`, etc.).
+ * @returns {string} The corresponding property name as a string, such as `createdAt`, `priority`, or `startDate`.
+ *   If the provided `field` is `MANUAL`, the function will return an empty string as there is no corresponding property.
+ */
+export function orderByFieldTransformer(field: IssueOrderByField): string {
+	return orderByFieldMap[field];
+}
+
+/**
+ * Gets the sorting direction based on the order field.
+ *
+ * @param {keyof typeof orderByFieldMap} field - A key from `orderByFieldMap` to determine the sorting direction.
+ * @returns {string} The sorting direction, either "ASC" or "DESC", or an empty string if no direction exists.
+ */
+
+export function orderByDirection(field: IssueOrderByField): string {
+	return field.startsWith('-') ? 'DESC' : 'ASC';
 }

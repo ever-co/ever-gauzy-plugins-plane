@@ -11,6 +11,10 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
+	ICycle,
+	IIssueFindInput,
+	IIssueLabel,
+	IModule,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
 
@@ -117,5 +121,71 @@ export class WorkspaceController {
 	@Get('user-profile/:id')
 	async findUserProjectsData(): Promise<any> {
 		return await this._workspaceService.findUserProjectsData();
+	}
+
+	/**
+	 * Retrieves and groups issues assigned to a user based on the specified grouping option.
+	 *
+	 * @param {IIssueFindInput} options - The input options specifying the query criteria.
+	 * @returns A promise that resolves to an array of grouped issues.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get user profile and assigned issues' })
+	@Get('user-issues/:id')
+	async findUserGroupedIssueAssigned(
+		@Query() options: IIssueFindInput,
+	): Promise<any> {
+		return await this._workspaceService.findUserGroupedIssueAssigned(
+			options,
+		);
+	}
+
+	/**
+	 * Fetches all workspace states associated with projects in the workspace.
+	 *
+	 * @returns A promise resolving to an array of workspace states.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace states' })
+	@Get('states')
+	async findWorkspaceStates(): Promise<any> {
+		return await this._workspaceService.findWorkspaceStates();
+	}
+
+	/**
+	 * Fetches all workspace modules associated with projects in the workspace.
+	 *
+	 * @returns {Promise<IModule[]>} A promise resolving to an array of project modules.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace modules' })
+	@Get('modules')
+	async findWorkspaceModules(): Promise<IModule[]> {
+		return await this._workspaceService.findWorkspaceModules();
+	}
+
+	/**
+	 * Fetches all cycles associated with projects in the workspace.
+	 *
+	 * @returns {Promise<ICycle[]>} A promise resolving to an array of cycles.
+	 *
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace cycles' })
+	@Get('cycles')
+	async findWorkspaceCycles(): Promise<ICycle[]> {
+		return await this._workspaceService.findWorkspaceCycles();
+	}
+
+	/**
+	 * Retrieves all labels associated with the projects in the workspace.
+	 *
+	 * @returns {Promise<IIssueLabel[]>} A promise resolving to an array of issue labels.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace labels' })
+	@Get('labels')
+	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
+		return await this._workspaceService.findWorkspaceLabels();
 	}
 }

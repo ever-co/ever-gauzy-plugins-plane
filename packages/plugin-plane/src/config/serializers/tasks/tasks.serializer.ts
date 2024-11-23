@@ -10,6 +10,7 @@ import {
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
 	IReactionData,
+	IssueOrderByField,
 	ITag,
 	ITask,
 	ITaskCreateInput,
@@ -22,19 +23,48 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
+import { orderByDirection, orderByFieldTransformer } from '../../utils';
 
+/**
+ * Extracts the IDs of the assignees from a given issue.
+ *
+ * @param {ITask} issue - The issue object from which to extract assignee IDs.
+ *   The `issue` should have a `members` property containing an array of assignee objects.
+ * @returns {ID[]} An array of assignee IDs.
+ *   If no assignees are found, the function returns `undefined` or an empty array.
+ */
 export function issueAssigneesIds(issue: ITask): ID[] {
 	const assignees = issue?.members;
 
 	return assignees?.map((member) => member.id);
 }
 
+/**
+ * Extracts the IDs of the labels (tags) from a given issue.
+ *
+ * @param {ITask} issue - The issue object from which to extract label IDs.
+ *   The `issue` should have a `tags` property containing an array of label objects.
+ * @returns {ID[]} An array of label IDs.
+ *   If no labels are found, the function returns `undefined` or an empty array.
+ */
 export function issueLabelsIds(issue: ITask): ID[] {
 	const labels = issue?.tags;
 
-	return labels?.map((member) => member.id);
+	return labels?.map((tag) => tag.id);
 }
 
+/**
+ * Transforms an issue object to a standardized format.
+ *
+ * @param {ITask} issue - The issue object to be transformed.
+ *   The `issue` should contain properties such as `id`, `title`, `status`, `priority`, `tags`, etc.
+ * @param {IReactionData[]} [reactions] - Optional array of reactions associated with the issue.
+ * @param {IIssueLink[]} [links] - Optional array of links associated with the issue.
+ * @returns {IIssue} The transformed issue object in a standardized format.
+ *   The returned object includes properties like `id`, `name`, `state`, `priority`, `description_html`,
+ *   `assignee_ids`, `label_ids`, `cycle_id`, and more.
+ *   It also processes optional properties like reactions, links, and sub-issues, providing default values where necessary.
+ */
 export function issueTransformer(
 	issue: ITask,
 	reactions?: IReactionData[],
@@ -83,6 +113,17 @@ export function issueTransformer(
 	};
 }
 
+/**
+ * Transforms an array of issues into a format suitable for displaying parentable issues.
+ *
+ * @param {ITask[]} issues - An array of issue objects to be transformed.
+ *   Each `issue` should contain properties such as `id`, `title`, `startDate`, `dueDate`, `taskStatus`, etc.
+ * @returns An array of transformed issue objects, each containing a subset of the original issue's properties.
+ *   The returned objects include properties like `id`, `name`, `start_date`, `target_date`, `sequence_id`, and `project` details.
+ *   Additionally, the `workspace__slug` is statically set to "cardano", and the `state__group` is derived from the issue's task status.
+ *   Some properties, such as `project__identifier` and `state__color`, are extracted from related objects.
+ *   The `type_id` is set to a static value.
+ */
 export function parentableIssuesTransformer(issues: ITask[]) {
 	return issues.map((issue) => ({
 		id: issue.id,
@@ -138,6 +179,177 @@ export function groupIssuesByStateId(issues: ITask[]) {
 			count: issues.length,
 			total_pages: 1,
 			total_results: issues.length,
+			extra_stats: null,
+			results: {},
+		},
+	);
+}
+
+/**
+ * Groups issues by given group and associates their links.
+ *
+ * @param {Array<{ issue: ITask; issueLinks: any }>} issuesWithLinks - Array of issues and their associated links.
+ * @returns A structured object grouping issues certain group, with counts and metadata.
+ */
+function groupIssues(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	groupByKey: (issue: ITask) => string,
+	groupedByLabel: string,
+	initialAccumulator: Partial<Record<string, any>> = {},
+) {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Détermine le groupe en utilisant groupByKey
+			const group = groupByKey(issue) || 'none';
+
+			// Initialise le groupe si nécessaire
+			if (!acc.results[group]) {
+				acc.results[group] = {
+					results: [],
+					total_results: 0,
+				};
+			}
+
+			// Transforme la tâche et ses liens
+			const transformedIssue = issueTransformer(issue, [], issueLinks);
+
+			// Ajoute l'élément transformé au groupe
+			acc.results[group].results.push(transformedIssue);
+			acc.results[group].total_results++;
+
+			// Met à jour les compteurs globaux
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		{
+			grouped_by: groupedByLabel,
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {},
+			...initialAccumulator,
+		},
+	);
+}
+
+export function groupIssuesByStateGroup(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => stateGroup(issue.taskStatus), // Détermine le groupe par état
+		'state__group',
+		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' }, // Valeurs spécifiques pour l'accumulateur initial
+	);
+}
+
+export function groupIssuesByPriority(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.priority || 'none', // Détermine le groupe par priorité
+		'priority',
+	);
+}
+
+export function groupIssuesByProjectId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.projectId || 'none', // Détermine le groupe par ID de projet
+		'project_id',
+	);
+}
+
+export function userWorkNonGroupedIssues(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return {
+		grouped_by: null,
+		sub_grouped_by: null,
+		total_count: issuesWithLinks.length,
+		next_cursor: null,
+		prev_cursor: null,
+		next_page_results: false,
+		prev_page_results: false,
+		count: issuesWithLinks.length,
+		total_pages: 1,
+		total_results: issuesWithLinks.length,
+		extra_stats: null,
+		results: issuesWithLinks.map((issueLink) =>
+			issueTransformer(issueLink.issue, [], issueLink.issueLinks),
+		),
+	};
+}
+
+/**
+ * Groups issues by their labels and transforms the issues accordingly.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with associated links.
+ *   Each item contains an issue and the related issue links.
+ * @returns The grouped issues by label.
+ */
+export function groupIssuesByLabel(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Extract the labels (tags) from the issue, defaulting to "None" if none exist
+			const tags = issue.tags?.length
+				? issue.tags
+				: [{ id: 'None', name: 'None', color: null }];
+
+			// Iterate over each tag to group the issue accordingly
+			tags.forEach((tag) => {
+				// Initialize the tag group if it doesn't exist
+				if (!acc.results[tag.id]) {
+					acc.results[tag.id] = {
+						results: [],
+						total_results: 0,
+					};
+				}
+
+				// Transform the issue and its links
+				const transformedIssue = issueTransformer(
+					issue,
+					[],
+					issueLinks,
+				);
+
+				// Add the transformed issue to the current tag group
+				acc.results[tag.id].results.push(transformedIssue);
+				acc.results[tag.id].total_results++;
+			});
+
+			// Increment the global total results counter
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		// Initial accumulator object
+		{
+			grouped_by: 'labels__id',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
 			extra_stats: null,
 			results: {},
 		},
@@ -213,7 +425,7 @@ export const taskRelations = [
 	'members',
 	'members.user',
 	'creator',
-	'project',
+	'project.members.employee.user.role',
 	'organizationSprint',
 	'linkedIssues',
 	'linkedIssues.taskTo',
@@ -228,6 +440,8 @@ export const taskRelations = [
 export const getTaskQuery = (
 	projectId?: ID,
 	options?: IIssueFindInput,
+	relations?: string[],
+	orderByField?: IssueOrderByField,
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
@@ -248,9 +462,21 @@ export const getTaskQuery = (
 	}
 
 	// Add relations
-	taskRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (relations) {
+		relations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	} else {
+		taskRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
+
+	if (orderByField) {
+		const orderField = orderByFieldTransformer(orderByField);
+		const orderDirection = orderByDirection(orderByField);
+		query['order'] = { [orderField]: orderDirection };
+	}
 
 	return query;
 };

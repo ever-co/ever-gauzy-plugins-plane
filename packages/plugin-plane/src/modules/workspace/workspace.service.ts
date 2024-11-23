@@ -736,7 +736,7 @@ export class WorkspaceService extends ApiFetchService {
 			const assignedIssues =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-					['status'],
+					['taskStatus'],
 				);
 
 			const {
@@ -764,8 +764,8 @@ export class WorkspaceService extends ApiFetchService {
 				present_cycles: [],
 				upcoming_cycles: [],
 			};
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}
@@ -842,11 +842,25 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findUserGroupedIssueAssigned(options: IIssueFindInput) {
 		try {
-			const { group_by } = options;
-			const assignedIssues =
-				await this._issueService.findExternalByEmployee(
-					defaultEmployeeId(),
-				); // TODO : Replace this to use dynamic employee ID
+			const { group_by, assignees, created_by } = options;
+			let assignedIssues: ITask[] = [];
+			const relations = ['taskStatus'];
+
+			if (assignees) {
+				assignedIssues =
+					await this._issueService.findExternalByEmployee(
+						assignees,
+						relations,
+					);
+			} else if (created_by) {
+				const createdTasks = await this._issueService.findAllExternal(
+					{
+						creatorId: defaultUserId(), // TODO : Change here with current autheticated user.
+					},
+					relations,
+				);
+				assignedIssues = createdTasks.items;
+			}
 
 			const issuesWithLinks = await Promise.all(
 				assignedIssues.map(async (issue) => {

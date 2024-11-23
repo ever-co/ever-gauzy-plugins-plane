@@ -109,9 +109,12 @@ export class IssuesService extends ApiFetchService {
 	 * @returns {Promise<ITask[]>} A promise that resolves to an array of tasks.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async findAllExternal(options: ITask): Promise<ITask[]> {
+	async findAllExternal(
+		options: ITask,
+		relations?: string[],
+	): Promise<IPagination<ITask>> {
 		try {
-			const query = qs.stringify(getTaskQuery(null, options));
+			const query = qs.stringify(getTaskQuery(null, options, relations));
 
 			return (
 				await this.apiFetch({

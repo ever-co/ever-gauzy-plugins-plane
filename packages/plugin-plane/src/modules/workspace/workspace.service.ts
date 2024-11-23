@@ -28,7 +28,8 @@ import {
 	defaultUserId,
 	getStatesTransformer,
 	getTaskCounts,
-	groupIssuesByPriorityGroup,
+	groupIssuesByPriority,
+	groupIssuesByProjectId,
 	groupIssuesByStateGroup,
 	issueActivityLogTransformer,
 	issueLabelsTransformer,
@@ -884,7 +885,11 @@ export class WorkspaceService extends ApiFetchService {
 			}
 
 			if (group_by === IssueGroupBy.PRIORITY) {
-				return groupIssuesByPriorityGroup(issuesWithLinks);
+				return groupIssuesByPriority(issuesWithLinks);
+			}
+
+			if (group_by === IssueGroupBy.PROJECT_ID) {
+				return groupIssuesByProjectId(issuesWithLinks);
 			}
 
 			return [];

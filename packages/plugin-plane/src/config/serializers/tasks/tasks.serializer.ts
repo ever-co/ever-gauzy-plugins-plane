@@ -197,7 +197,7 @@ export function groupIssuesByStateGroup(
 	);
 }
 
-export function groupIssuesByPriorityGroup(
+export function groupIssuesByPriority(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 ) {
 	return issuesWithLinks.reduce(
@@ -229,6 +229,53 @@ export function groupIssuesByPriorityGroup(
 		// Initial accumulator object
 		{
 			grouped_by: 'priority',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {},
+		},
+	);
+}
+
+export function groupIssuesByProjectId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Determine the project ID group; use "none" if 'projectId' is null or undefined
+			const projectGroup = issue.projectId || 'none';
+
+			// Initialize the project group if it doesn't exist
+			if (!acc.results[projectGroup]) {
+				acc.results[projectGroup] = {
+					results: [],
+					total_results: 0,
+				};
+			}
+
+			// Transform the issue and its links
+			const transformedIssue = issueTransformer(issue, [], issueLinks);
+
+			// Add the transformed issue to the corresponding project group
+			acc.results[projectGroup].results.push(transformedIssue);
+			acc.results[projectGroup].total_results++;
+
+			// Increment the total results counter
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		// Initial accumulator object
+		{
+			grouped_by: 'project_id',
 			sub_grouped_by: null,
 			total_count: 0,
 			next_cursor: null,

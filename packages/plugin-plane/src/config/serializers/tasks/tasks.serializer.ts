@@ -145,47 +145,49 @@ export function groupIssuesByStateId(issues: ITask[]) {
 }
 
 /**
- * Groups issues by their state group and associates their links.
+ * Groups issues by given group and associates their links.
  *
  * @param {Array<{ issue: ITask; issueLinks: any }>} issuesWithLinks - Array of issues and their associated links.
- * @returns A structured object grouping issues by state group, with counts and metadata.
+ * @returns A structured object grouping issues certain group, with counts and metadata.
  */
-export function groupIssuesByStateGroup(
+function groupIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	groupByKey: (issue: ITask) => string,
+	groupedByLabel: string,
+	initialAccumulator: Partial<Record<string, any>> = {},
 ) {
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
-			// Determine the group for the current issue based on its task status
-			const statusGroup = stateGroup(issue.taskStatus);
+			// Détermine le groupe en utilisant groupByKey
+			const group = groupByKey(issue) || 'none';
 
-			// Initialize the group if it doesn't exist yet
-			if (!acc.results[statusGroup]) {
-				acc.results[statusGroup] = {
+			// Initialise le groupe si nécessaire
+			if (!acc.results[group]) {
+				acc.results[group] = {
 					results: [],
 					total_results: 0,
 				};
 			}
 
-			// Transform the issue using the provided transformer, passing the issue and its links
+			// Transforme la tâche et ses liens
 			const transformedIssue = issueTransformer(issue, [], issueLinks);
 
-			// Add the transformed issue to the corresponding group
-			acc.results[statusGroup].results.push(transformedIssue);
-			acc.results[statusGroup].total_results++;
+			// Ajoute l'élément transformé au groupe
+			acc.results[group].results.push(transformedIssue);
+			acc.results[group].total_results++;
 
-			// Increment the total results counter
+			// Met à jour les compteurs globaux
 			acc.total_results++;
 			acc.total_count++;
 			acc.count++;
 			return acc;
 		},
-		// Initial accumulator object
 		{
-			grouped_by: 'state__group',
+			grouped_by: groupedByLabel,
 			sub_grouped_by: null,
-			total_count: 5,
-			next_cursor: '30:1:0',
-			prev_cursor: '30:-1:1',
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
 			next_page_results: false,
 			prev_page_results: false,
 			count: 0,
@@ -193,101 +195,39 @@ export function groupIssuesByStateGroup(
 			total_results: 0,
 			extra_stats: null,
 			results: {},
+			...initialAccumulator,
 		},
+	);
+}
+
+export function groupIssuesByStateGroup(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => stateGroup(issue.taskStatus), // Détermine le groupe par état
+		'state__group',
+		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' }, // Valeurs spécifiques pour l'accumulateur initial
 	);
 }
 
 export function groupIssuesByPriority(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 ) {
-	return issuesWithLinks.reduce(
-		(acc, { issue, issueLinks }) => {
-			// Determine the priority group; use "none" if priority is null or undefined
-			const priorityGroup = issue.priority || 'none';
-
-			// Initialize the priority group if it doesn't exist
-			if (!acc.results[priorityGroup]) {
-				acc.results[priorityGroup] = {
-					results: [],
-					total_results: 0,
-				};
-			}
-
-			// Transform the issue and its links
-			const transformedIssue = issueTransformer(issue, [], issueLinks);
-
-			// Add the transformed issue to the corresponding priority group
-			acc.results[priorityGroup].results.push(transformedIssue);
-			acc.results[priorityGroup].total_results++;
-
-			// Increment the total results counter
-			acc.total_results++;
-			acc.total_count++;
-			acc.count++;
-			return acc;
-		},
-		// Initial accumulator object
-		{
-			grouped_by: 'priority',
-			sub_grouped_by: null,
-			total_count: 0,
-			next_cursor: null,
-			prev_cursor: null,
-			next_page_results: false,
-			prev_page_results: false,
-			count: 0,
-			total_pages: 1,
-			total_results: 0,
-			extra_stats: null,
-			results: {},
-		},
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.priority || 'none', // Détermine le groupe par priorité
+		'priority',
 	);
 }
 
 export function groupIssuesByProjectId(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 ) {
-	return issuesWithLinks.reduce(
-		(acc, { issue, issueLinks }) => {
-			// Determine the project ID group; use "none" if 'projectId' is null or undefined
-			const projectGroup = issue.projectId || 'none';
-
-			// Initialize the project group if it doesn't exist
-			if (!acc.results[projectGroup]) {
-				acc.results[projectGroup] = {
-					results: [],
-					total_results: 0,
-				};
-			}
-
-			// Transform the issue and its links
-			const transformedIssue = issueTransformer(issue, [], issueLinks);
-
-			// Add the transformed issue to the corresponding project group
-			acc.results[projectGroup].results.push(transformedIssue);
-			acc.results[projectGroup].total_results++;
-
-			// Increment the total results counter
-			acc.total_results++;
-			acc.total_count++;
-			acc.count++;
-			return acc;
-		},
-		// Initial accumulator object
-		{
-			grouped_by: 'project_id',
-			sub_grouped_by: null,
-			total_count: 0,
-			next_cursor: null,
-			prev_cursor: null,
-			next_page_results: false,
-			prev_page_results: false,
-			count: 0,
-			total_pages: 1,
-			total_results: 0,
-			extra_stats: null,
-			results: {},
-		},
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.projectId || 'none', // Détermine le groupe par ID de projet
+		'project_id',
 	);
 }
 
@@ -306,13 +246,19 @@ export function userWorkNonGroupedIssues(
 		total_pages: 1,
 		total_results: issuesWithLinks.length,
 		extra_stats: null,
-		results: issuesWithLinks.map((issueLink) => {
-			// Transform the issue and its links
-			return issueTransformer(issueLink.issue, [], issueLink.issueLinks);
-		}),
+		results: issuesWithLinks.map((issueLink) =>
+			issueTransformer(issueLink.issue, [], issueLink.issueLinks),
+		),
 	};
 }
 
+/**
+ * Groups issues by their labels and transforms the issues accordingly.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with associated links.
+ *   Each item contains an issue and the related issue links.
+ * @returns The grouped issues by label.
+ */
 export function groupIssuesByLabel(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 ) {

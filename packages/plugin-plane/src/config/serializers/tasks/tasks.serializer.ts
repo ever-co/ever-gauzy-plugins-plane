@@ -175,6 +175,8 @@ export function groupIssuesByStateGroup(
 
 			// Increment the total results counter
 			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
 			return acc;
 		},
 		// Initial accumulator object
@@ -184,6 +186,53 @@ export function groupIssuesByStateGroup(
 			total_count: 5,
 			next_cursor: '30:1:0',
 			prev_cursor: '30:-1:1',
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {},
+		},
+	);
+}
+
+export function groupIssuesByPriorityGroup(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Determine the priority group; use "none" if priority is null or undefined
+			const priorityGroup = issue.priority || 'none';
+
+			// Initialize the priority group if it doesn't exist
+			if (!acc.results[priorityGroup]) {
+				acc.results[priorityGroup] = {
+					results: [],
+					total_results: 0,
+				};
+			}
+
+			// Transform the issue and its links
+			const transformedIssue = issueTransformer(issue, [], issueLinks);
+
+			// Add the transformed issue to the corresponding priority group
+			acc.results[priorityGroup].results.push(transformedIssue);
+			acc.results[priorityGroup].total_results++;
+
+			// Increment the total results counter
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		// Initial accumulator object
+		{
+			grouped_by: 'priority',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
 			next_page_results: false,
 			prev_page_results: false,
 			count: 0,

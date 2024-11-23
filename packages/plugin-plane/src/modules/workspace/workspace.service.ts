@@ -637,13 +637,16 @@ export class WorkspaceService extends ApiFetchService {
 	) {
 		try {
 			let tasks: (ITask | IIssue)[];
+			const dateRangesRelations = [
+				'taskStatus',
+				'linkedIssues.taskTo',
+				'linkedIssues.taskFrom',
+			];
 			const relations = [
 				'members.user',
 				'creator',
 				'project.members.employee.user.role',
-				'taskStatus',
-				'linkedIssues.taskTo',
-				'linkedIssues.taskFrom',
+				...dateRangesRelations,
 			];
 
 			// If a target date is provided, fetch tasks by date
@@ -656,22 +659,14 @@ export class WorkspaceService extends ApiFetchService {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
-						relations: [
-							'taskStatus',
-							'linkedIssues.taskTo',
-							'linkedIssues.taskFrom',
-						],
+						relations: dateRangesRelations,
 						employeeId: id, // Explicitly specify employeeId
 					});
 				} else {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
-						relations: [
-							'taskStatus',
-							'linkedIssues.taskTo',
-							'linkedIssues.taskFrom',
-						],
+						relations: dateRangesRelations,
 						creatorId: id, // Explicitly specify creatorId
 					});
 				}

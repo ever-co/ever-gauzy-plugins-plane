@@ -313,6 +313,62 @@ export function userWorkNonGroupedIssues(
 	};
 }
 
+export function groupIssuesByLabel(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Extract the labels (tags) from the issue, defaulting to "None" if none exist
+			const tags = issue.tags?.length
+				? issue.tags
+				: [{ id: 'None', name: 'None', color: null }];
+
+			// Iterate over each tag to group the issue accordingly
+			tags.forEach((tag) => {
+				// Initialize the tag group if it doesn't exist
+				if (!acc.results[tag.id]) {
+					acc.results[tag.id] = {
+						results: [],
+						total_results: 0,
+					};
+				}
+
+				// Transform the issue and its links
+				const transformedIssue = issueTransformer(
+					issue,
+					[],
+					issueLinks,
+				);
+
+				// Add the transformed issue to the current tag group
+				acc.results[tag.id].results.push(transformedIssue);
+				acc.results[tag.id].total_results++;
+			});
+
+			// Increment the global total results counter
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		// Initial accumulator object
+		{
+			grouped_by: 'labels__id',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {},
+		},
+	);
+}
+
 /**
  * @description - Group Issue by Target Date for Calendar Layout display
  * @param {ITask[]} issues - Tasks to be trasnformed and grouped

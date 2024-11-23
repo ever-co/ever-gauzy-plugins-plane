@@ -68,7 +68,8 @@ export enum IssueGroupBy {
 	TARGET_DATE = 'target_date',
 	STATE_GROUP = 'state__group',
 	PRIORITY = 'priority',
-	PROJECT_ID = 'project_id'
+	PROJECT_ID = 'project_id',
+	LABEL_ID = 'labels__id'
 }
 
 export enum IssueActivityTypeEnum {

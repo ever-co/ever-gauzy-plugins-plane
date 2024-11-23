@@ -1,4 +1,5 @@
 import { ID, IOrganizationSprint, TaskPriorityEnum } from './imports';
+import { IssueOrderByField } from './base.model';
 import { IReactionData } from './reaction.model';
 import { IIssueLink } from './issue-link.model';
 import { ICycle } from './cycle.model';
@@ -58,6 +59,7 @@ export type IIssueUpdateInput = IIssue;
 export interface IIssueFindInput {
 	module?: ID;
 	group_by?: IssueGroupBy;
+	order_by?: IssueOrderByField;
 	creatorId?: ID;
 	created_by?: ID;
 	assignees?: ID;

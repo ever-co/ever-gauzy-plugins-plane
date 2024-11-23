@@ -30,6 +30,7 @@ import {
 	IReactionData,
 	IssueActivityTypeEnum,
 	IssueGroupBy,
+	IssueOrderByField,
 	IState,
 	ISubIssueResponse,
 	ITask,
@@ -112,9 +113,12 @@ export class IssuesService extends ApiFetchService {
 	async findAllExternal(
 		options: ITask,
 		relations?: string[],
+		orderByField?: IssueOrderByField,
 	): Promise<IPagination<ITask>> {
 		try {
-			const query = qs.stringify(getTaskQuery(null, options, relations));
+			const query = qs.stringify(
+				getTaskQuery(null, options, relations, orderByField),
+			);
 
 			return (
 				await this.apiFetch({
@@ -140,10 +144,13 @@ export class IssuesService extends ApiFetchService {
 	async findExternalByEmployee(
 		employeeId: ID,
 		relations?: string[],
+		orderByField?: IssueOrderByField,
 	): Promise<ITask[]> {
 		try {
 			// Build query for task retrieval
-			const query = qs.stringify(getTaskQuery(null, null, relations));
+			const query = qs.stringify(
+				getTaskQuery(null, null, relations, orderByField),
+			);
 
 			// Fetch tasks for the authenticated employee
 			const tasks: ITask[] = (

@@ -76,3 +76,13 @@ export interface IUpdateUserPropertiesInput {
 	filters?: IViewPropsFilters;
 	display_properties?: IDisplayProperties;
 }
+
+export enum IssueOrderByField {
+	DESC_CREATED_AT = '-created_at',
+	DESC_UPDATED_AT = '-updated_at',
+	ASC_CREATED_AT = 'created_at',
+	ASC_UPDATED_AT = 'updated_at',
+	START_DATE = 'start_date',
+	DESC_PRIORITY = '-priority',
+	MANUAL = 'sort_order'
+}

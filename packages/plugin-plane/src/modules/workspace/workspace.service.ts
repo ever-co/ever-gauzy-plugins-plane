@@ -846,7 +846,7 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findUserGroupedIssueAssigned(options: IIssueFindInput) {
 		try {
-			const { group_by, assignees, created_by } = options;
+			const { assignees, created_by, group_by, order_by } = options;
 			let assignedIssues: ITask[] = [];
 			const relations = ['taskStatus'];
 
@@ -855,6 +855,7 @@ export class WorkspaceService extends ApiFetchService {
 					await this._issueService.findExternalByEmployee(
 						assignees,
 						relations,
+						order_by,
 					);
 			} else if (created_by) {
 				const createdTasks = await this._issueService.findAllExternal(
@@ -862,6 +863,7 @@ export class WorkspaceService extends ApiFetchService {
 						creatorId: defaultUserId(), // TODO : Change here with current autheticated user.
 					},
 					relations,
+					order_by,
 				);
 				assignedIssues = createdTasks.items;
 			}

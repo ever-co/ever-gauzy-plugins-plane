@@ -10,6 +10,7 @@ import {
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
 	IReactionData,
+	IssueOrderByField,
 	ITag,
 	ITask,
 	ITaskCreateInput,
@@ -22,19 +23,48 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
+import { orderByDirection, orderByFieldTransformer } from '../../utils';
 
+/**
+ * Extracts the IDs of the assignees from a given issue.
+ *
+ * @param {ITask} issue - The issue object from which to extract assignee IDs.
+ *   The `issue` should have a `members` property containing an array of assignee objects.
+ * @returns {ID[]} An array of assignee IDs.
+ *   If no assignees are found, the function returns `undefined` or an empty array.
+ */
 export function issueAssigneesIds(issue: ITask): ID[] {
 	const assignees = issue?.members;
 
 	return assignees?.map((member) => member.id);
 }
 
+/**
+ * Extracts the IDs of the labels (tags) from a given issue.
+ *
+ * @param {ITask} issue - The issue object from which to extract label IDs.
+ *   The `issue` should have a `tags` property containing an array of label objects.
+ * @returns {ID[]} An array of label IDs.
+ *   If no labels are found, the function returns `undefined` or an empty array.
+ */
 export function issueLabelsIds(issue: ITask): ID[] {
 	const labels = issue?.tags;
 
-	return labels?.map((member) => member.id);
+	return labels?.map((tag) => tag.id);
 }
 
+/**
+ * Transforms an issue object to a standardized format.
+ *
+ * @param {ITask} issue - The issue object to be transformed.
+ *   The `issue` should contain properties such as `id`, `title`, `status`, `priority`, `tags`, etc.
+ * @param {IReactionData[]} [reactions] - Optional array of reactions associated with the issue.
+ * @param {IIssueLink[]} [links] - Optional array of links associated with the issue.
+ * @returns {IIssue} The transformed issue object in a standardized format.
+ *   The returned object includes properties like `id`, `name`, `state`, `priority`, `description_html`,
+ *   `assignee_ids`, `label_ids`, `cycle_id`, and more.
+ *   It also processes optional properties like reactions, links, and sub-issues, providing default values where necessary.
+ */
 export function issueTransformer(
 	issue: ITask,
 	reactions?: IReactionData[],
@@ -83,6 +113,17 @@ export function issueTransformer(
 	};
 }
 
+/**
+ * Transforms an array of issues into a format suitable for displaying parentable issues.
+ *
+ * @param {ITask[]} issues - An array of issue objects to be transformed.
+ *   Each `issue` should contain properties such as `id`, `title`, `startDate`, `dueDate`, `taskStatus`, etc.
+ * @returns An array of transformed issue objects, each containing a subset of the original issue's properties.
+ *   The returned objects include properties like `id`, `name`, `start_date`, `target_date`, `sequence_id`, and `project` details.
+ *   Additionally, the `workspace__slug` is statically set to "cardano", and the `state__group` is derived from the issue's task status.
+ *   Some properties, such as `project__identifier` and `state__color`, are extracted from related objects.
+ *   The `type_id` is set to a static value.
+ */
 export function parentableIssuesTransformer(issues: ITask[]) {
 	return issues.map((issue) => ({
 		id: issue.id,
@@ -400,6 +441,7 @@ export const getTaskQuery = (
 	projectId?: ID,
 	options?: IIssueFindInput,
 	relations?: string[],
+	orderByField?: IssueOrderByField,
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
@@ -428,6 +470,12 @@ export const getTaskQuery = (
 		taskRelations.forEach((relation, i) => {
 			query[`relations[${i}]`] = relation;
 		});
+	}
+
+	if (orderByField) {
+		const orderField = orderByFieldTransformer(orderByField);
+		const orderDirection = orderByDirection(orderByField);
+		query['order'] = { [orderField]: orderDirection };
 	}
 
 	return query;

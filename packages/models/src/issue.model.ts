@@ -60,9 +60,11 @@ export interface IIssueFindInput {
 	module?: ID;
 	group_by?: IssueGroupBy;
 	order_by?: IssueOrderByField;
+	sub_issue?: boolean;
 	creatorId?: ID;
 	created_by?: ID;
 	assignees?: ID;
+	priotity?: string;
 }
 
 export enum IssueGroupBy {

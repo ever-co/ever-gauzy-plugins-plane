@@ -90,8 +90,8 @@ export class IssuesService extends ApiFetchService {
 	 * @returns - A promise that resolved after getting issue
 	 * @memberof IssuesService
 	 */
-	async getExternalIssue(id: ID): Promise<ITask> {
-		const query = qs.stringify(getTaskQuery());
+	async getExternalIssue(id: ID, relations?: string[]): Promise<ITask> {
+		const query = qs.stringify(getTaskQuery(null, null, relations));
 		return (
 			await this.apiFetch({
 				path: `${this.path}/${id}`,

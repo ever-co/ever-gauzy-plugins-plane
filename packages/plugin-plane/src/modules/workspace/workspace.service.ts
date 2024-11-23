@@ -576,6 +576,10 @@ export class WorkspaceService extends ApiFetchService {
 				activityLogs.map(async (activityLog) => {
 					const task = await this._issueService.getExternalIssue(
 						activityLog.entityId,
+						[
+							'project.members.employee.user.role',
+							'organizationSprint',
+						],
 					);
 
 					if (task.projectId) {
@@ -779,9 +783,9 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
 	 */
-	async findUserRecentActivity(): Promise<any> {
+	async findUserRecentActivity(per_page: number): Promise<any> {
 		try {
-			const activities = await this.findRecentIssueActivity(10);
+			const activities = await this.findRecentIssueActivity(per_page);
 			return {
 				grouped_by: null,
 				sub_grouped_by: null,

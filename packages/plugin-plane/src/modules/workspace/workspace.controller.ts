@@ -106,8 +106,10 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user recent activities' })
 	@Get('user-activity/:id')
-	async findUserRecentActivity(): Promise<any> {
-		return await this._workspaceService.findUserRecentActivity();
+	async findUserRecentActivity(
+		@Query('per_page') per_page: number,
+	): Promise<any> {
+		return await this._workspaceService.findUserRecentActivity(per_page);
 	}
 
 	/**

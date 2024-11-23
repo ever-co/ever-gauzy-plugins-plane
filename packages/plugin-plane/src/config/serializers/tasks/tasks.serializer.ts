@@ -291,6 +291,28 @@ export function groupIssuesByProjectId(
 	);
 }
 
+export function userWorkNonGroupedIssues(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+) {
+	return {
+		grouped_by: null,
+		sub_grouped_by: null,
+		total_count: issuesWithLinks.length,
+		next_cursor: null,
+		prev_cursor: null,
+		next_page_results: false,
+		prev_page_results: false,
+		count: issuesWithLinks.length,
+		total_pages: 1,
+		total_results: issuesWithLinks.length,
+		extra_stats: null,
+		results: issuesWithLinks.map((issueLink) => {
+			// Transform the issue and its links
+			return issueTransformer(issueLink.issue, [], issueLink.issueLinks);
+		}),
+	};
+}
+
 /**
  * @description - Group Issue by Target Date for Calendar Layout display
  * @param {ITask[]} issues - Tasks to be trasnformed and grouped

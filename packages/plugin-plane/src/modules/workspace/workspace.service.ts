@@ -38,6 +38,7 @@ import {
 	issueTransformer,
 	modulesTransformer,
 	userIssuesByPriority,
+	userWorkNonGroupedIssues,
 	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
 } from '../../config';
@@ -892,7 +893,7 @@ export class WorkspaceService extends ApiFetchService {
 				return groupIssuesByProjectId(issuesWithLinks);
 			}
 
-			return [];
+			return userWorkNonGroupedIssues(issuesWithLinks);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

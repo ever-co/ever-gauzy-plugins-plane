@@ -497,9 +497,11 @@ export const getFilteredByDatesTaskQuery = (
 		}
 	});
 
-	taskRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (!options.relations) {
+		taskRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
 
 	return query;
 };

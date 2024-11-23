@@ -495,9 +495,9 @@ export class IssuesService extends ApiFetchService {
 	 * @returns {Promise<IIssue[]>} A promise that resolves to a list of transformed issues.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async findAll(options?: ITask): Promise<IIssue[]> {
+	async findAll(options?: ITask, relations?: string[]): Promise<IIssue[]> {
 		try {
-			const query = qs.stringify(getTaskQuery(null, options));
+			const query = qs.stringify(getTaskQuery(null, options, relations));
 
 			const tasks: IPagination<ITask> = (
 				await this.apiFetch({
@@ -524,9 +524,15 @@ export class IssuesService extends ApiFetchService {
 	 * @returns {Promise<ITask[]>} A promise that resolves to a list of transformed tasks.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async findByEmployee(employeeId: ID): Promise<IIssue[]> {
+	async findByEmployee(
+		employeeId: ID,
+		relations?: string[],
+	): Promise<IIssue[]> {
 		try {
-			const tasks = await this.findExternalByEmployee(employeeId);
+			const tasks = await this.findExternalByEmployee(
+				employeeId,
+				relations,
+			);
 
 			return tasks.map((task) => issueTransformer(task));
 		} catch (error) {

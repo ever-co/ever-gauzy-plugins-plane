@@ -6,8 +6,11 @@ export function widgetTargetDateTransformer(dateString: string): {
 
 	const [dueDateFrom, dueDateTo] = parts;
 
+	const dueDate = new Date(dueDateTo.split(';')[0]);
+	dueDate.setDate(dueDate.getDate() + 1);
+
 	return {
 		dueDateFrom: new Date(dueDateFrom.split(';')[0]),
-		dueDateTo: new Date(dueDateTo.split(';')[0]),
+		dueDateTo: dueDate,
 	};
 }

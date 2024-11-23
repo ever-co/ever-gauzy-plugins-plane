@@ -459,6 +459,7 @@ export class WorkspaceService extends ApiFetchService {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
+					['taskStatus'],
 				); // TODO: Adjust this to use correct authenticated employee;
 
 			if (target_date) {
@@ -468,6 +469,7 @@ export class WorkspaceService extends ApiFetchService {
 				tasks = await this._issueService.findByStartAndDueDate({
 					dueDateFrom,
 					dueDateTo,
+					relations: ['members'],
 					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
 				});
 			}
@@ -511,6 +513,7 @@ export class WorkspaceService extends ApiFetchService {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
+					['taskStatus'],
 				); // TODO: Adjust this to use correct authenticated employee;
 
 			if (target_date) {
@@ -520,6 +523,7 @@ export class WorkspaceService extends ApiFetchService {
 				tasks = await this._issueService.findByStartAndDueDate({
 					dueDateFrom,
 					dueDateTo,
+					relations: ['members'],
 					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
 				});
 			}
@@ -633,6 +637,14 @@ export class WorkspaceService extends ApiFetchService {
 	) {
 		try {
 			let tasks: (ITask | IIssue)[];
+			const relations = [
+				'members.user',
+				'creator',
+				'project.members.employee.user.role',
+				'taskStatus',
+				'linkedIssues.taskTo',
+				'linkedIssues.taskFrom',
+			];
 
 			// If a target date is provided, fetch tasks by date
 			if (target_date) {
@@ -644,12 +656,22 @@ export class WorkspaceService extends ApiFetchService {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
+						relations: [
+							'taskStatus',
+							'linkedIssues.taskTo',
+							'linkedIssues.taskFrom',
+						],
 						employeeId: id, // Explicitly specify employeeId
 					});
 				} else {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
+						relations: [
+							'taskStatus',
+							'linkedIssues.taskTo',
+							'linkedIssues.taskFrom',
+						],
 						creatorId: id, // Explicitly specify creatorId
 					});
 				}
@@ -690,9 +712,15 @@ export class WorkspaceService extends ApiFetchService {
 			} else {
 				// Fetch all tasks based on idField
 				if (idField === 'employeeId') {
-					tasks = await this._issueService.findByEmployee(id); // Directly pass the employeeId
+					tasks = await this._issueService.findByEmployee(
+						id,
+						relations,
+					); // Directly pass the employeeId
 				} else {
-					tasks = await this._issueService.findAll({ creatorId: id }); // Directly pass the creatorId
+					tasks = await this._issueService.findAll(
+						{ creatorId: id },
+						relations,
+					); // Directly pass the creatorId
 				}
 			}
 

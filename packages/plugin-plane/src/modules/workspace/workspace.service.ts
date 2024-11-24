@@ -459,6 +459,7 @@ export class WorkspaceService extends ApiFetchService {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
+					['taskStatus'],
 				); // TODO: Adjust this to use correct authenticated employee;
 
 			if (target_date) {
@@ -468,6 +469,7 @@ export class WorkspaceService extends ApiFetchService {
 				tasks = await this._issueService.findByStartAndDueDate({
 					dueDateFrom,
 					dueDateTo,
+					relations: ['members'],
 					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
 				});
 			}
@@ -511,6 +513,7 @@ export class WorkspaceService extends ApiFetchService {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
+					['taskStatus'],
 				); // TODO: Adjust this to use correct authenticated employee;
 
 			if (target_date) {
@@ -520,6 +523,7 @@ export class WorkspaceService extends ApiFetchService {
 				tasks = await this._issueService.findByStartAndDueDate({
 					dueDateFrom,
 					dueDateTo,
+					relations: ['members'],
 					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
 				});
 			}
@@ -576,6 +580,10 @@ export class WorkspaceService extends ApiFetchService {
 				activityLogs.map(async (activityLog) => {
 					const task = await this._issueService.getExternalIssue(
 						activityLog.entityId,
+						[
+							'project.members.employee.user.role',
+							'organizationSprint',
+						],
 					);
 
 					if (task.projectId) {
@@ -629,6 +637,17 @@ export class WorkspaceService extends ApiFetchService {
 	) {
 		try {
 			let tasks: (ITask | IIssue)[];
+			const dateRangesRelations = [
+				'taskStatus',
+				'linkedIssues.taskTo',
+				'linkedIssues.taskFrom',
+			];
+			const relations = [
+				'members.user',
+				'creator',
+				'project.members.employee.user.role',
+				...dateRangesRelations,
+			];
 
 			// If a target date is provided, fetch tasks by date
 			if (target_date) {
@@ -640,12 +659,14 @@ export class WorkspaceService extends ApiFetchService {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
+						relations: dateRangesRelations,
 						employeeId: id, // Explicitly specify employeeId
 					});
 				} else {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
+						relations: dateRangesRelations,
 						creatorId: id, // Explicitly specify creatorId
 					});
 				}
@@ -686,9 +707,15 @@ export class WorkspaceService extends ApiFetchService {
 			} else {
 				// Fetch all tasks based on idField
 				if (idField === 'employeeId') {
-					tasks = await this._issueService.findByEmployee(id); // Directly pass the employeeId
+					tasks = await this._issueService.findByEmployee(
+						id,
+						relations,
+					); // Directly pass the employeeId
 				} else {
-					tasks = await this._issueService.findAll({ creatorId: id }); // Directly pass the creatorId
+					tasks = await this._issueService.findAll(
+						{ creatorId: id },
+						relations,
+					); // Directly pass the creatorId
 				}
 			}
 
@@ -779,9 +806,9 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
 	 */
-	async findUserRecentActivity(): Promise<any> {
+	async findUserRecentActivity(per_page: number): Promise<any> {
 		try {
-			const activities = await this.findRecentIssueActivity(10);
+			const activities = await this.findRecentIssueActivity(per_page);
 			return {
 				grouped_by: null,
 				sub_grouped_by: null,

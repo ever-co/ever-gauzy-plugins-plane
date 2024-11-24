@@ -110,4 +110,5 @@ export interface ITaskDateFilterInput
 	dueDateFrom?: Date;
 	dueDateTo?: Date;
 	creatorId?: ID;
+	relations?: string[];
 }

@@ -66,8 +66,8 @@ export class CommentsService extends ApiFetchService {
 			).data;
 
 			return comment;
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}

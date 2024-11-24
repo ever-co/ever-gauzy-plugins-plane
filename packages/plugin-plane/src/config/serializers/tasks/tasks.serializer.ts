@@ -421,17 +421,13 @@ export function nonGroupedIssues(issues: ITask[]) {
 
 export const taskRelations = [
 	'tags',
-	'teams',
-	'members',
 	'members.user',
 	'creator',
 	'project.members.employee.user.role',
 	'organizationSprint',
-	'linkedIssues',
 	'linkedIssues.taskTo',
 	'linkedIssues.taskFrom',
 	'parent',
-	'children',
 	'children.taskStatus',
 	'taskStatus',
 	'modules',
@@ -497,9 +493,11 @@ export const getFilteredByDatesTaskQuery = (
 		}
 	});
 
-	taskRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (!options.relations) {
+		taskRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
 
 	return query;
 };

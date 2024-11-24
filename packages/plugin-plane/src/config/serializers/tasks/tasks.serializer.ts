@@ -421,17 +421,13 @@ export function nonGroupedIssues(issues: ITask[]) {
 
 export const taskRelations = [
 	'tags',
-	'teams',
-	'members',
 	'members.user',
 	'creator',
 	'project.members.employee.user.role',
 	'organizationSprint',
-	'linkedIssues',
 	'linkedIssues.taskTo',
 	'linkedIssues.taskFrom',
 	'parent',
-	'children',
 	'children.taskStatus',
 	'taskStatus',
 	'modules',

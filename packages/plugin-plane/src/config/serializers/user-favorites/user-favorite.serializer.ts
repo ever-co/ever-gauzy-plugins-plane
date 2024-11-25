@@ -62,11 +62,11 @@ export const getFavoriteQuery = (
 		...baseGetItemsWhereQuery(),
 	};
 
-	if (options.entity) {
+	if (options?.entity) {
 		query['where[entity]'] = options.entity;
 	}
 
-	if (options.entityId) {
+	if (options?.entityId) {
 		query['where[entityId]'] = options.entityId;
 	}
 

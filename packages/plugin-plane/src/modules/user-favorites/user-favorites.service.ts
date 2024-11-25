@@ -111,11 +111,13 @@ export class UserFavoritesService extends ApiFetchService {
 	 */
 	async findEmployeeFavorites(): Promise<IFavoriteData[]> {
 		try {
+			const query = qs.stringify(getFavoriteQuery());
 			// Retrieve all favorites
 			const favorites: IPagination<IFavorite> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/employee`,
+					query,
 				})
 			).data;
 			const favoritesItems = favorites.items;
@@ -176,7 +178,7 @@ export class UserFavoritesService extends ApiFetchService {
 			// Return transformed favorites
 			return enrichedFavorites;
 		} catch (error: any) {
-			console.log(error);
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}

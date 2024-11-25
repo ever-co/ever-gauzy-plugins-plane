@@ -43,9 +43,10 @@ export class ProjectModuleService extends ApiFetchService {
 	async getExternalModule(
 		id: ID,
 		projectId?: ID,
+		relations?: string[],
 	): Promise<IOrganizationProjectModule> {
 		// Construct the query string once
-		const query = qs.stringify(getModulesQuery(projectId));
+		const query = qs.stringify(getModulesQuery(projectId, relations));
 
 		return (
 			await this.apiFetch({

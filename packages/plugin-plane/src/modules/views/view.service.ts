@@ -43,9 +43,13 @@ export class IssueViewService extends ApiFetchService {
 	 * @returns {Promise<ITaskView>} - A promise resolved to found Task View
 	 * @memberof IssueViewService
 	 */
-	async getExternalView(id: ID, projectId?: ID): Promise<ITaskView> {
+	async getExternalView(
+		id: ID,
+		projectId?: ID,
+		relations?: string[],
+	): Promise<ITaskView> {
 		// Build the query string once
-		const query = qs.stringify(getViewsQuery(projectId));
+		const query = qs.stringify(getViewsQuery(projectId, relations));
 
 		return await (
 			await this.apiFetch({

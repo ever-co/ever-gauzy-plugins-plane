@@ -136,6 +136,8 @@ export class UserFavoritesService extends ApiFetchService {
 							const module = modulesTransformer(
 								await this._projectModuleService.getExternalModule(
 									favorite.entityId,
+									null,
+									['creator'],
 								),
 							);
 							entityData = module;
@@ -144,6 +146,7 @@ export class UserFavoritesService extends ApiFetchService {
 						case FavoriteEntityTypeEnum.PROJECT:
 							entityData = await this._projectService.getProject(
 								favorite.entityId,
+								['members'],
 							);
 							break;
 
@@ -151,6 +154,8 @@ export class UserFavoritesService extends ApiFetchService {
 							entityData =
 								await this._issueViewService.getExternalView(
 									favorite.entityId,
+									null,
+									['project'],
 								);
 							break;
 
@@ -158,6 +163,8 @@ export class UserFavoritesService extends ApiFetchService {
 							entityData =
 								await this._cycleService.getExternalSprint(
 									favorite.entityId,
+									null,
+									['project'],
 								);
 							break;
 

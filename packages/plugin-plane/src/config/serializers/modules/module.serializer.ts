@@ -227,7 +227,10 @@ export const moduleRelations = [
 	'tasks.members.user',
 ];
 
-export const getModulesQuery = (projectId?: ID): Record<string, any> => {
+export const getModulesQuery = (
+	projectId?: ID,
+	relations?: string[],
+): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery(),
@@ -238,9 +241,15 @@ export const getModulesQuery = (projectId?: ID): Record<string, any> => {
 	}
 
 	// Add relations
-	moduleRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (relations) {
+		relations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	} else {
+		moduleRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
 
 	return query;
 };

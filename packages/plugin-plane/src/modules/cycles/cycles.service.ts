@@ -57,9 +57,10 @@ export class CyclesService extends ApiFetchService {
 	async getExternalSprint(
 		id: ID,
 		projectId?: ID,
+		relations?: string[],
 	): Promise<IOrganizationSprint> {
 		// Build the query string once
-		const query = qs.stringify(getSprintsQuery(projectId));
+		const query = qs.stringify(getSprintsQuery(projectId, relations));
 
 		return await (
 			await this.apiFetch({

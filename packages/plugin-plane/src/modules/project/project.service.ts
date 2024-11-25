@@ -72,9 +72,9 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolves after getting all projects for a workspace
 	 * @memberof ProjectService
 	 */
-	async getProjects(): Promise<Partial<IProject>[]> {
+	async getProjects(relations?: string[]): Promise<Partial<IProject>[]> {
 		try {
-			const projects = await this.getExternalProjects();
+			const projects = await this.getExternalProjects(relations);
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
@@ -127,9 +127,12 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolved after getting project
 	 * @memberof ProjectService
 	 */
-	async getExternalProject(id: ID): Promise<IOrganizationProject> {
+	async getExternalProject(
+		id: ID,
+		relations?: string[],
+	): Promise<IOrganizationProject> {
 		try {
-			const query = qs.stringify(getProjectsQuery());
+			const query = qs.stringify(getProjectsQuery(relations));
 			return (
 				await this.apiFetch({
 					method: 'GET',
@@ -148,10 +151,12 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolves after getting the project
 	 * @memberof ProjectService
 	 */
-	async getProject(id: ID): Promise<IProject> {
+	async getProject(id: ID, relations?: string[]): Promise<IProject> {
 		try {
-			const project: IOrganizationProject =
-				await this.getExternalProject(id);
+			const project: IOrganizationProject = await this.getExternalProject(
+				id,
+				relations,
+			);
 
 			if (!project) {
 				throw new BadRequestException('Project not found');

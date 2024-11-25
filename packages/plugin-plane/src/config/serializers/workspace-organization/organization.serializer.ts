@@ -37,7 +37,7 @@ export function roleTransformer(role: IRole): number {
 		[RolesEnum.VIEWER]: 5,
 	};
 
-	return rolePriority[role.name] ?? 0;
+	return rolePriority[role?.name] ?? 0;
 }
 
 export function organizationMembersTransformer(

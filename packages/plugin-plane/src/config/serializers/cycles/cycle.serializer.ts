@@ -267,7 +267,10 @@ const cycleRelations = [
  * @param {ID} [projectId] - Optional Project ID to get sprints by Project filter
  * @returns {Record<string, string>} A object with queries filters and relations
  */
-export function getSprintsQuery(projectId?: ID): Record<string, string> {
+export function getSprintsQuery(
+	projectId?: ID,
+	relations?: string[],
+): Record<string, string> {
 	// Tenant and Organization based Query
 	const query: Record<string, string> = {
 		...baseGetItemsWhereQuery(),
@@ -278,9 +281,15 @@ export function getSprintsQuery(projectId?: ID): Record<string, string> {
 	}
 
 	// Add relations
-	cycleRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (relations) {
+		relations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	} else {
+		cycleRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
 
 	return query;
 }

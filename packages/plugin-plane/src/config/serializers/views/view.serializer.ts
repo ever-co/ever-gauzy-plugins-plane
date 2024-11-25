@@ -234,7 +234,10 @@ export const viewRelations = [
  * @param {ID} [projectId] - Optional Project ID to get views by Project filter
  * @returns {Record<string, string>} A object with queries filters and relations
  */
-export function getViewsQuery(projectId?: ID): Record<string, string> {
+export function getViewsQuery(
+	projectId?: ID,
+	relations?: string[],
+): Record<string, string> {
 	// Tenant and Organization based Query
 	const query: Record<string, string> = {
 		...baseGetItemsWhereQuery(),
@@ -245,9 +248,15 @@ export function getViewsQuery(projectId?: ID): Record<string, string> {
 	}
 
 	// Add relations
-	viewRelations.forEach((relation, i) => {
-		query[`relations[${i}]`] = relation;
-	});
+	if (relations) {
+		relations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	} else {
+		viewRelations.forEach((relation, i) => {
+			query[`relations[${i}]`] = relation;
+		});
+	}
 
 	return query;
 }

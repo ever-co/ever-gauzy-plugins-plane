@@ -30,7 +30,11 @@ export class ProjectController {
 	@ApiOperation({ summary: 'Get workspace projects' })
 	@Get()
 	async getProjects() {
-		return await this._projectService.getProjects();
+		return await this._projectService.getProjects([
+			'members.employee.user.role',
+			'organizationSprints',
+			'modules',
+		]);
 	}
 
 	/**

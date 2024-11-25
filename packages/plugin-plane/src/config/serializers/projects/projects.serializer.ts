@@ -23,14 +23,14 @@ export function getProjectsResponse(
 		// Safely handle the presence of `project.members` by using a fallback to an empty array.
 		const members = Array.isArray(project?.members)
 			? project.members.map((member) => ({
-					id: member.employee.user.id,
+					id: member.employee?.user.id || member.employee?.userId,
 					member_id: member.employeeId,
 					member__display_name:
-						member.employee.user.fullName ||
-						member.employee.fullName ||
-						`${member.employee.user.firstName} ${member.employee.user.lastName}`,
-					member__avatar: member.employee.user.imageUrl,
-					role: roleTransformer(member.employee.user.role),
+						member.employee?.user.fullName ||
+						member.employee?.fullName ||
+						`${member.employee?.user.firstName} ${member.employee?.user.lastName}`,
+					member__avatar: member.employee?.user.imageUrl,
+					role: roleTransformer(member.employee?.user.role),
 				}))
 			: []; // If `project.members` is undefined, set `members` to an empty array
 

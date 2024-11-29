@@ -181,7 +181,7 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
-		const project = await this.getProject(id);
+		const project = await this.getProject(id, ['members']);
 		const members = project.members;
 		return members.map((member) => ({
 			id: member.id,

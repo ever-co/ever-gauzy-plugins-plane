@@ -59,6 +59,11 @@ export interface IBasePerTenantAndOrganizationEntityMutationInput extends Partia
 	organization?: Partial<IOrganization>; // Allow additional fields from IOrganization
 }
 
+export interface IBasePerEntityType {
+	entityId: ID; // Unique ID of the entity
+	entity: BaseEntityEnum; // The type of the entity, defined in BaseEntityEnum enumeration.
+}
+
 // Actor type defines if it's User or system performed some action
 export enum ActorTypeEnum {
 	System = 'System', // System performed the action

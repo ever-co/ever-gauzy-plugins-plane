@@ -47,7 +47,7 @@ export class ProjectController {
 	@ApiOperation({ summary: 'Get one project' })
 	@Get(':id')
 	async getProject(@Param('id') id: ID) {
-		return await this._projectService.getProject(id);
+		return await this._projectService.getProject(id, ['members']);
 	}
 
 	@HttpCode(HttpStatus.OK)

@@ -207,7 +207,13 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findOne(id: ID): Promise<IIssue> {
 		try {
-			const issue = await this.getExternalIssue(id);
+			const issue = await this.getExternalIssue(id, [
+				'tags',
+				'members.user',
+				'creator',
+				'project.members.employee.user.role',
+				'organizationSprint',
+			]);
 
 			if (!issue) {
 				throw new BadRequestException('Issue not found');
@@ -307,6 +313,7 @@ export class IssuesService extends ApiFetchService {
 			// Find project
 			const project = await this._projectService.getExternalProject(
 				issue.project_id,
+				['modules', 'members.employee'],
 			);
 
 			// Calculate the final set of modules after additions and removals
@@ -465,7 +472,10 @@ export class IssuesService extends ApiFetchService {
 	async findIssueChildren(id: ID): Promise<ISubIssueResponse> {
 		try {
 			const sub_issues: IIssue[] = [];
-			const issue = await this.getExternalIssue(id);
+			const issue = await this.getExternalIssue(id, [
+				'children.taskStatus',
+				'children.members',
+			]);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}
@@ -757,6 +767,11 @@ export class IssuesService extends ApiFetchService {
 		try {
 			const comments = await this._commentService.findAll(options);
 
+			const task = await this.getExternalIssue(options.entityId, [
+				'project.members.employee.user.role',
+				'project.tenant',
+			]);
+
 			const issueComments: IIssueComment[] = await Promise.all(
 				comments.map(async (comment) => {
 					const reactions =
@@ -773,6 +788,8 @@ export class IssuesService extends ApiFetchService {
 							options.entityId,
 							projectId,
 							comment.creatorId,
+							task,
+							task.project,
 						);
 					const transformedComment = issueCommentTrasnsformer(
 						comment,
@@ -802,6 +819,11 @@ export class IssuesService extends ApiFetchService {
 				entityId: id,
 			});
 
+			const task = await this.getExternalIssue(id, [
+				'project.members.employee.user.role',
+				'project.tenant',
+			]);
+
 			const issueActivities = await Promise.all(
 				activityLogs.map(async (activityLog) => {
 					const { actor, issue, project, workspace } =
@@ -809,6 +831,8 @@ export class IssuesService extends ApiFetchService {
 							id,
 							projectId,
 							activityLog.creatorId,
+							task,
+							task.project,
 						);
 
 					const transformedActivityLogs = issueActivityLogTransformer(
@@ -843,6 +867,8 @@ export class IssuesService extends ApiFetchService {
 									id,
 									projectId,
 									log.creatorId,
+									task,
+									task.project,
 								);
 
 							return issueLinksActivities(
@@ -877,6 +903,8 @@ export class IssuesService extends ApiFetchService {
 									id,
 									projectId,
 									log.creatorId,
+									task,
+									task.project,
 								);
 
 							return issueRelationActivities(
@@ -920,6 +948,11 @@ export class IssuesService extends ApiFetchService {
 		input: ICreateReactionInput,
 	): Promise<IReactionData> {
 		try {
+			const task = await this.getExternalIssue(entityId, [
+				'project.members.employee.user.role',
+				'project.tenant',
+			]);
+
 			// Create reaction
 			const reaction = await this._reactionService.create(
 				input,
@@ -933,6 +966,8 @@ export class IssuesService extends ApiFetchService {
 					entityId,
 					projectId,
 					reaction.creatorId,
+					task,
+					task.project,
 				);
 
 			// Transform Reaction
@@ -964,6 +999,11 @@ export class IssuesService extends ApiFetchService {
 		projectId: ID,
 	): Promise<any> {
 		try {
+			const task = await this.getExternalIssue(options.entityId, [
+				'project.members.employee.user.role',
+				'project.tenant',
+			]);
+
 			const reactions = await this._reactionService.findAll(options);
 
 			const issueReactions: IReactionData[] = await Promise.all(
@@ -973,6 +1013,8 @@ export class IssuesService extends ApiFetchService {
 							options.entityId,
 							projectId,
 							reaction.creatorId,
+							task,
+							task.project,
 						);
 
 					const transformedReaction = reactionTransformer(

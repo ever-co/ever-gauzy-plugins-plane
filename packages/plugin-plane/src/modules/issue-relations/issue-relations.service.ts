@@ -181,7 +181,9 @@ export class IssueRelationsService extends ApiFetchService {
 				duplicate: [],
 				relates_to: [],
 			};
-			const issue = await this._issueService.getExternalIssue(issueId);
+			const issue = await this._issueService.getExternalIssue(issueId, [
+				'linkedIssues.taskFrom',
+			]);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}

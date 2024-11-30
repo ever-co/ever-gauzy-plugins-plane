@@ -237,8 +237,10 @@ export class CommentsService extends ApiFetchService {
 	async getCommentReactionDetails(projectId: ID, creatorId: ID) {
 		try {
 			// Find project
-			const project =
-				await this._projectService.getExternalProject(projectId);
+			const project = await this._projectService.getExternalProject(
+				projectId,
+				['tenant', 'members.employee.user'],
+			);
 
 			// Workspace details
 			const tenant = project.tenant;

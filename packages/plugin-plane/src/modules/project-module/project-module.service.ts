@@ -217,6 +217,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Retrieve the project and check its existence
 			const project = await this._projectService.getExternalProject(
 				input.project_id || projectId,
+				['members.employee'],
 			);
 			if (!project) {
 				throw new BadRequestException('Project could not be found');

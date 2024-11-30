@@ -115,8 +115,10 @@ export class ProjectModuleService extends ApiFetchService {
 			const query = qs.stringify(getModulesQuery(projectId));
 
 			// Retrieve the project information
-			const project =
-				await this._projectService.getExternalProject(projectId);
+			const project = await this._projectService.getExternalProject(
+				projectId,
+				['members.employee'],
+			);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
@@ -167,8 +169,10 @@ export class ProjectModuleService extends ApiFetchService {
 	async getModule(id: ID, projectId: ID) {
 		try {
 			// Retrieve the project data
-			const project =
-				await this._projectService.getExternalProject(projectId);
+			const project = await this._projectService.getExternalProject(
+				projectId,
+				['members.employee'],
+			);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');

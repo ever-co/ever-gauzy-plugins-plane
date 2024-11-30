@@ -429,6 +429,7 @@ export class IssuesService extends ApiFetchService {
 			let path = '';
 			// If a module is specified, modify the path accordingly
 			if (module) {
+				console.log({ module });
 				path = 'module';
 			}
 

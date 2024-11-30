@@ -450,7 +450,7 @@ export const getTaskQuery = (
 
 	if (options?.module) {
 		query['join[alias]'] = 'task';
-		// query['where[modules][0]'] = options.module;
+		query['where[modules][0]'] = options.module;
 	}
 
 	if (options?.creatorId) {

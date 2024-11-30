@@ -628,11 +628,21 @@ export class IssuesService extends ApiFetchService {
 		input: ICreateCommentInput,
 	): Promise<IIssueComment> {
 		try {
+			const task = await this.getExternalIssue(entityId, [
+				'project.members.employee.user.role',
+				'project.tenant',
+			]);
+
+			const projectMembers = task.project.members.map(
+				(member) => member.employee,
+			);
+
 			// Create comment
 			const comment = await this._commentService.create(
 				input,
 				BaseEntityEnum.Task,
 				entityId,
+				projectMembers,
 			);
 
 			const { actor, issue, project, workspace } =
@@ -640,6 +650,8 @@ export class IssuesService extends ApiFetchService {
 					entityId,
 					projectId,
 					comment.creatorId,
+					task,
+					task.project,
 				);
 
 			const transformedComment = issueCommentTrasnsformer(

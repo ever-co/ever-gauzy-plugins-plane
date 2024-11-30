@@ -12,6 +12,7 @@ import {
 	ICreateCommentInput,
 	ICreateReactionInput,
 	ID,
+	IEmployee,
 	IPagination,
 	IReaction,
 	IReactionData,
@@ -46,6 +47,7 @@ export class CommentsService extends ApiFetchService {
 	 * @param {ICreateCommentInput} input body request for comment creation
 	 * @param {BaseEntityEnum} entity commented entity type
 	 * @param {ID} entityId commented entity ID
+	 * @param {IEmployee[]} employees - Optional mentioned employees
 	 * @returns A promise resolved to created comment
 	 * @memberof CommentsService
 	 */
@@ -53,9 +55,15 @@ export class CommentsService extends ApiFetchService {
 		input: ICreateCommentInput,
 		entity: BaseEntityEnum,
 		entityId: ID,
+		employees?: IEmployee[],
 	): Promise<IComment> {
 		try {
-			const body = createCommentInputTransformer(input, entity, entityId);
+			const body = createCommentInputTransformer(
+				input,
+				entity,
+				entityId,
+				employees,
+			);
 
 			const comment: IComment = (
 				await this.apiFetch({

@@ -322,7 +322,7 @@ export class ProjectService extends ApiFetchService {
 
 	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
 		try {
-			const project = await this.getProject(id);
+			const project = await this.getProject(id, ['tenant']);
 			const memberInfos = await this._workspaceService.getMembersMe('');
 
 			return {

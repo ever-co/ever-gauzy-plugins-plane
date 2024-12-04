@@ -4,9 +4,11 @@ import {
 	ISubscriber,
 	ISubscription,
 	ISubscriptionCreateInput,
+	ISubscriptionFindInput,
 	SubscriptionTypeEnum,
 } from '@plane-plugin/models';
 import { defaultUserId } from '../../credentials';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 /**
  * Transforms the given entity ID into a subscription creation input.
@@ -64,3 +66,25 @@ export function subscriptionTransformer(
 
 	return transformSubscription(subscriptions);
 }
+
+export const getSubscriptionQuery = (
+	options: ISubscriptionFindInput,
+): Record<string, any> => {
+	const query: Record<string, any> = {
+		...baseGetItemsWhereQuery(),
+	};
+
+	if (options?.entity) {
+		query['where[entity]'] = options.entity;
+	}
+
+	if (options?.entityId) {
+		query['where[entityId]'] = options.entityId;
+	}
+
+	if (options?.userId) {
+		query['where[userId]'] = options.userId;
+	}
+
+	return query;
+};

@@ -69,6 +69,7 @@ export function issueTransformer(
 	issue: ITask,
 	reactions?: IReactionData[],
 	links?: IIssueLink[],
+	is_subscribed?: boolean,
 ): IIssue {
 	return {
 		id: issue.id,
@@ -95,6 +96,7 @@ export function issueTransformer(
 		created_by: issue.creatorId,
 		updated_by: issue.creatorId,
 		is_draft: issue.isDraft,
+		is_subscribed,
 		archived_at: issue.archivedAt,
 		state__group: stateGroup(issue.taskStatus),
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity

@@ -41,6 +41,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
+	defaultUserId,
 	extractViewIdFromReferer,
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
@@ -232,10 +233,18 @@ export class IssuesService extends ApiFetchService {
 				issue.projectId,
 			);
 
+			//Check current user subscription.
+			const subscriptions = await this._subscriptionService.findAll({
+				entity: BaseEntityEnum.Task,
+				entityId: issue.id,
+				userId: defaultUserId(),
+			}); // TODO : Adjust this to use current connected user;
+			const isSubscribed = subscriptions && subscriptions.length > 0;
+
 			// Find issue links
 			const links = await this.findIssueLinks(id, issue.projectId, issue);
 
-			return issueTransformer(issue, reactions, links);
+			return issueTransformer(issue, reactions, links, isSubscribed);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -1295,6 +1304,13 @@ export class IssuesService extends ApiFetchService {
 		return await this._issueLinkService.delete(id);
 	}
 
+	/**
+	 * Subscribes to a specific issue within a project and returns the subscription details.
+	 *
+	 * @param {ID} issueId - The ID of the issue to subscribe to.
+	 * @param {ID} projectId - The ID of the project where the issue exists.
+	 * @returns {Promise<ISubscriber | ISubscriber[]>} A promise that resolves to the transformed subscription data, either a single subscriber or a list of subscribers.
+	 */
 	async subscribe(
 		issueId: ID,
 		projectId: ID,

@@ -21,6 +21,7 @@ import {
 	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
+	ISubscriber,
 } from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
 import {
@@ -253,13 +254,20 @@ export class IssuesController {
 		return await this._issueService.createIssueRelations(taskToId, input);
 	}
 
+	/**
+	 * Subscribes to a specific issue within a project and returns the subscription details.
+	 *
+	 * @param {ID} issueId - The ID of the issue to subscribe to.
+	 * @param {ID} projectId - The ID of the project where the issue exists.
+	 * @returns {Promise<ISubscriber | ISubscriber[]>} A promise that resolves to the transformed subscription data, either a single subscriber or a list of subscribers.
+	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Subscribe' })
 	@Post(':id/subscribe')
 	async subscribe(
 		@Param('id') issueId: ID,
 		@Param('projectId') projectId: ID,
-	) {
+	): Promise<ISubscriber | ISubscriber[]> {
 		return await this._issueService.subscribe(issueId, projectId);
 	}
 

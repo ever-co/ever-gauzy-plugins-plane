@@ -4,20 +4,16 @@ import { WorkspaceService } from './workspace.service';
 import { WorkspaceController } from './workspace.controller';
 import { ProjectModule } from '../project/project.module';
 import { IssuesModule } from '../issues/issues.module';
-import { StatesModule } from '../states/states.module';
-import { ProjectModuleModule } from '../project-module/project-module.module';
-import { CyclesModule } from '../cycles/cycles.module';
 import { IssueLinksModule } from '../issue-links/issue-links.module';
+import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
 	imports: [
 		RouterModule.register([{ path: '/', module: WorkspaceModule }]),
 		ProjectModule,
 		IssuesModule,
-		StatesModule,
-		ProjectModuleModule,
-		CyclesModule,
 		IssueLinksModule,
+		SubscriptionModule,
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

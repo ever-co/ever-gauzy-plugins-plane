@@ -233,7 +233,7 @@ export class ProjectService extends ApiFetchService {
 			const { members, ...restInput } = input;
 
 			// Retrieve the project details from a remote source
-			const project = await this.getExternalProject(id);
+			const project = await this.getExternalProject(id, ['members']);
 
 			if (!project) {
 				throw new BadRequestException('Project could not be found');

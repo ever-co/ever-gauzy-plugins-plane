@@ -253,6 +253,13 @@ export class IssuesController {
 		return await this._issueService.createIssueRelations(taskToId, input);
 	}
 
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Subscribe' })
+	@Post(':id/subscribe')
+	async subscribe(@Param('id') issueId: ID) {
+		return await this._issueService.subscribe(issueId);
+	}
+
 	/**
 	 * @description Delete issue relation.
 	 * @param {ID} taskToId Issue ID for whom to delete main relation.

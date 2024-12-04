@@ -111,6 +111,7 @@ export * from './shared-types';
 export * from './skill-entity.model';
 export * from './sms.model';
 export * from './social-account.model';
+export * from './subscription.model';
 export * from './tag.model';
 export * from './task-estimation.model';
 export * from './task-linked-issue.model';

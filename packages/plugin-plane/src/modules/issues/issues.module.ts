@@ -9,6 +9,7 @@ import { ReactionsModule } from '../reactions/reactions.module';
 import { IssueRelationsModule } from '../issue-relations/issue-relations.module';
 import { IssueLinksModule } from '../issue-links/issue-links.module';
 import { IssueLabelsModule } from './issue-labels/issue-labels.module';
+import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
 	imports: [
@@ -18,6 +19,7 @@ import { IssueLabelsModule } from './issue-labels/issue-labels.module';
 		CommentsModule,
 		ReactionsModule,
 		IssueLinksModule,
+		SubscriptionModule,
 		forwardRef(() => IssueRelationsModule),
 		forwardRef(() => ProjectModule),
 	],

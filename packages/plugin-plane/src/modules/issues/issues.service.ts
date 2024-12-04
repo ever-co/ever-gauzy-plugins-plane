@@ -64,6 +64,7 @@ import { IssueRelationsService } from '../issue-relations/issue-relations.servic
 import { IssueLinksService } from '../issue-links/issue-links.service';
 import { ActivityService } from '../activity/activity.service';
 import { IssueLabelsService } from './issue-labels/issue-labels.service';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -77,6 +78,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _activityService: ActivityService,
+		private readonly _subscriptionService: SubscriptionService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -245,12 +247,13 @@ export class IssuesService extends ApiFetchService {
 	 * @memberof IssuesService
 	 */
 	async create(input: IIssueCreateInput): Promise<IIssue> {
+		console.log({ input });
 		try {
 			const { state_id } = input;
 
 			// Set default status
 			let state: IState = { name: TaskStatusEnum.BACKLOG };
-			if (state_id) {
+			if (state_id && state_id.length > 0) {
 				state = await this._stateSerive.getOne(input.state_id);
 			}
 
@@ -269,7 +272,7 @@ export class IssuesService extends ApiFetchService {
 
 			return issueTransformer(issue);
 		} catch (error: any) {
-			console.log(error);
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1288,5 +1291,9 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async deleteLink(id: ID): Promise<any> {
 		return await this._issueLinkService.delete(id);
+	}
+
+	async subscribe(issueId: ID) {
+		return await this._subscriptionService.create(issueId); // TODO : Make sure we pass correct userId
 	}
 }

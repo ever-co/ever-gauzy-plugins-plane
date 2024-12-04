@@ -524,7 +524,7 @@ export function createIssueInputTransformer(
 		members,
 		organizationSprintId: issue.cycle_id,
 		parentId: issue.parent_id,
-		taskStatusId: issue.state_id,
+		taskStatusId: issue.state_id?.length > 0 ? issue.state_id : null,
 		tenantId: defaultTestTenantId(),
 		organizationId: defaultOrganizationId(),
 		modules:

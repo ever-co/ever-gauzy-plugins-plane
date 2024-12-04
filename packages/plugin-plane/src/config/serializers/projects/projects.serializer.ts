@@ -142,7 +142,6 @@ export const projectRelations = [
 	'tasks.members',
 	'modules',
 	'tags',
-	'teams',
 	'tenant',
 	'statuses',
 	'modules',

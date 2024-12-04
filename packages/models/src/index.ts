@@ -17,6 +17,7 @@ export * from './issue-relation.model';
 export * from './module.model';
 export * from './project.model';
 export * from './reaction.model';
+export * from './subscriber.model';
 export * from './state.model';
 export * from './user.model';
 export * from './view.model';

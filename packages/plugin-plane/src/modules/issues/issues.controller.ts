@@ -21,6 +21,7 @@ import {
 	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
+	ISubscriber,
 } from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
 import {
@@ -254,6 +255,23 @@ export class IssuesController {
 	}
 
 	/**
+	 * Subscribes to a specific issue within a project and returns the subscription details.
+	 *
+	 * @param {ID} issueId - The ID of the issue to subscribe to.
+	 * @param {ID} projectId - The ID of the project where the issue exists.
+	 * @returns {Promise<ISubscriber | ISubscriber[]>} A promise that resolves to the transformed subscription data, either a single subscriber or a list of subscribers.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Subscribe' })
+	@Post(':id/subscribe')
+	async subscribe(
+		@Param('id') issueId: ID,
+		@Param('projectId') projectId: ID,
+	): Promise<ISubscriber | ISubscriber[]> {
+		return await this._issueService.subscribe(issueId, projectId);
+	}
+
+	/**
 	 * @description Delete issue relation.
 	 * @param {ID} taskToId Issue ID for whom to delete main relation.
 	 * @param {ICreateIssueRelationInput} input - Body request data for delete main and inversed relation.
@@ -358,10 +376,23 @@ export class IssuesController {
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue' })
+	@ApiOperation({ summary: 'Delete issue comment' })
 	@Delete(':id/comments/:commentId')
 	async deleteComment(@Param('commentId') id: ID) {
 		return await this._issueService.deleteComment(id);
+	}
+
+	/**
+	 * Unsubscribes the default user from a task subscription based on the provided issue ID.
+	 *
+	 * @param {ID} id - The unique identifier of the issue/task to unsubscribe from.
+	 * @returns {Promise<any>} A promise that resolves to the response of the unsubscribe operation.
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Un-subscribe' })
+	@Delete(':id/subscribe')
+	async unsubscribe(@Param('id') id: ID): Promise<any> {
+		return await this._issueService.unsubscribe(id);
 	}
 
 	/**

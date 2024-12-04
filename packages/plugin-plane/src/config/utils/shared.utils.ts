@@ -1,4 +1,5 @@
-import { IssueOrderByField } from '@plane-plugin/models';
+import * as cheerio from 'cheerio';
+import { ID, IssueOrderByField } from '@plane-plugin/models';
 
 /**
  * Convert slug back to a readable string
@@ -48,4 +49,35 @@ export function orderByFieldTransformer(field: IssueOrderByField): string {
 
 export function orderByDirection(field: IssueOrderByField): string {
 	return field.startsWith('-') ? 'DESC' : 'ASC';
+}
+
+/**
+ * Extract mention IDs from comment HTML.
+ *
+ * @param commentHtml - The HTML content of the comment.
+ * @returns An array of mention IDs extracted from the comment HTML.
+ */
+export function extractEmployeeMentionIds(commentHtml: string): ID[] {
+	if (!commentHtml) {
+		return [];
+	}
+
+	try {
+		// Load the HTML into cheerio
+		const commenMentionParser = cheerio.load(commentHtml);
+
+		// Select all mention-component elements and extract their 'entity_identifier'
+		const mentionIds: ID[] = commenMentionParser('mention-component')
+			.map((_, element) =>
+				commenMentionParser(element).attr('entity_identifier'),
+			)
+			.get() // Convert cheerio object to a plain array
+			.filter((id): id is ID => !!id); // Ensure IDs are non-null
+
+		// Remove duplicates by converting to a Set and back to an array
+		return [...new Set(mentionIds)];
+	} catch (error) {
+		console.error('Error extracting mention IDs:', error);
+		return [];
+	}
 }

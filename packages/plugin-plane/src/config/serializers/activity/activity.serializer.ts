@@ -85,7 +85,11 @@ const transformIssueActivityLog = (
 	sprint: IOrganizationSprint | ICycle,
 	oldStatusValue?: string,
 ): IIssueActivity[] => {
-	const { updatedFields, updatedValues, previousValues } = activityLog;
+	const {
+		updatedFields = [],
+		updatedValues = [],
+		previousValues = [],
+	} = activityLog;
 
 	// Map of activity fields to their corresponding names
 	const activityFieldMap: { [key: string]: string } = {
@@ -108,10 +112,10 @@ const transformIssueActivityLog = (
 
 	// Process updated fields to create activity entries
 	const activities = updatedFields
-		.filter(
+		?.filter(
 			(f) => !['taskStatusId', 'members', 'tags', 'modules'].includes(f),
 		)
-		.map((field, index) => {
+		?.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
 				field as keyof ITask,
 			);
@@ -165,7 +169,7 @@ const transformIssueActivityLog = (
 		});
 
 	// Handle task status updates
-	if (updatedFields.includes('taskStatusId')) {
+	if (updatedFields?.includes('taskStatusId')) {
 		const { previousEntity, updatedEntity } =
 			statusActivityTransformer(activityLog);
 
@@ -183,7 +187,7 @@ const transformIssueActivityLog = (
 	}
 
 	// Handle changes in assignees
-	if (updatedFields.includes('members')) {
+	if (updatedFields?.includes('members')) {
 		const { added, removed } = assigneesActivityTransformer(activityLog);
 
 		if (added) {
@@ -228,7 +232,7 @@ const transformIssueActivityLog = (
 	}
 
 	// Handle changes in tags
-	if (updatedFields.includes('tags')) {
+	if (updatedFields?.includes('tags')) {
 		const { added, removed } = labelsActivityTransformer(activityLog);
 
 		if (added) {
@@ -269,7 +273,7 @@ const transformIssueActivityLog = (
 	}
 
 	// Handle changes in modules
-	if (updatedFields.includes('modules')) {
+	if (updatedFields?.includes('modules')) {
 		const { added, removed } = modulesActivityTransformer(activityLog);
 
 		if (added) {
@@ -315,7 +319,7 @@ const transformIssueActivityLog = (
 	}
 
 	// Filter out activities without a defined field
-	return activities.filter((log) => log.field !== undefined);
+	return activities?.filter((log) => log.field !== undefined);
 };
 
 /**

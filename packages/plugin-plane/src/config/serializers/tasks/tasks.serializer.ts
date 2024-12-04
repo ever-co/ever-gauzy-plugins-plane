@@ -69,6 +69,7 @@ export function issueTransformer(
 	issue: ITask,
 	reactions?: IReactionData[],
 	links?: IIssueLink[],
+	is_subscribed?: boolean,
 ): IIssue {
 	return {
 		id: issue.id,
@@ -95,6 +96,7 @@ export function issueTransformer(
 		created_by: issue.creatorId,
 		updated_by: issue.creatorId,
 		is_draft: issue.isDraft,
+		is_subscribed,
 		archived_at: issue.archivedAt,
 		state__group: stateGroup(issue.taskStatus),
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
@@ -450,7 +452,7 @@ export const getTaskQuery = (
 
 	if (options?.module) {
 		query['join[alias]'] = 'task';
-		// query['where[modules][0]'] = options.module;
+		query['where[modules][0]'] = options.module;
 	}
 
 	if (options?.creatorId) {
@@ -524,7 +526,7 @@ export function createIssueInputTransformer(
 		members,
 		organizationSprintId: issue.cycle_id,
 		parentId: issue.parent_id,
-		taskStatusId: issue.state_id,
+		taskStatusId: issue.state_id?.length > 0 ? issue.state_id : null,
 		tenantId: defaultTestTenantId(),
 		organizationId: defaultOrganizationId(),
 		modules:

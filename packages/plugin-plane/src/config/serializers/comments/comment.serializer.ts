@@ -15,6 +15,7 @@ import {
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
 import { ActorTypeEnum } from 'packages/models/src/imports/base-entity.model';
+import { extractEmployeeMentionIds } from '../../utils';
 
 export function issueCommentTrasnsformer(
 	comments: IComment[] | IComment,
@@ -65,16 +66,38 @@ export function issueCommentTrasnsformer(
 	return transformIssueComment(comments);
 }
 
+/**
+ * Transforms the input from the front-end into a format suitable for creating a comment.
+ *
+ * @param input - The comment input data from the front-end.
+ * @param entity - The type of entity associated with the comment (e.g., Task, Project).
+ * @param entityId - The ID of the associated entity.
+ * @param employees - Optional list of employees for mapping mentioned employee IDs to user IDs.
+ * @returns The transformed comment input ready for back-end processing.
+ */
 export function createCommentInputTransformer(
 	input: ICreateCommentInput,
 	entity: BaseEntityEnum,
 	entityId: ID,
+	employees?: IEmployee[],
 ): ICommentCreateInput {
+	const commentHtml = input.comment_html;
+
+	// Extract employee IDs mentioned in the comment
+	const mentionedEmployeeIds = extractEmployeeMentionIds(commentHtml);
+
+	// Map employee IDs to user IDs
+	const mentionedUserIds = employees
+		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
+		.map((employee) => employee.userId) // Map to corresponding user IDs
+		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
+
 	return {
 		entity,
 		entityId,
-		comment: input.comment_html,
+		comment: commentHtml,
 		actorType: ActorTypeEnum.User,
+		mentionIds: mentionedUserIds ?? [], // Default to an empty array if no employees are provided
 	};
 }
 

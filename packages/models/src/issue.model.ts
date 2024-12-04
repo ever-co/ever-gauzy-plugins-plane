@@ -32,6 +32,7 @@ export interface IIssue {
 	created_by?: string;
 	updated_by?: string;
 	is_draft?: boolean;
+	is_subscribed?: boolean;
 	archived_at?: Date;
 	state__group?: string;
 	type_id?: string;

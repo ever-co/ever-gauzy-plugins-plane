@@ -76,7 +76,7 @@ export class UserFavoritesService extends ApiFetchService {
 					),
 
 				[FavoriteEntityTypeEnum.PROJECT]: () =>
-					this._projectService.getProject(project_id),
+					this._projectService.getProject(project_id, []),
 
 				[FavoriteEntityTypeEnum.VIEW]: () =>
 					this._issueViewService.findOne(entity_identifier),

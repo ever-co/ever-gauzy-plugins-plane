@@ -18,6 +18,7 @@ import {
 	IModule,
 	ICycle,
 	IIssueLabel,
+	IssueOrderByField,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -766,6 +767,8 @@ export class WorkspaceService extends ApiFetchService {
 					['taskStatus'],
 				);
 
+			const subscribedIssues = await this.findUserSubscribedIssues([]);
+
 			const {
 				completedIssues,
 				backlogIssues,
@@ -787,7 +790,7 @@ export class WorkspaceService extends ApiFetchService {
 				assigned_issues: assignedIssues.length,
 				completed_issues: completedIssues,
 				pending_issues: backlogIssues + startedIssues + unstartedIssues,
-				subscribed_issues: 0,
+				subscribed_issues: subscribedIssues.length || 0,
 				present_cycles: [],
 				upcoming_cycles: [],
 			};
@@ -891,21 +894,9 @@ export class WorkspaceService extends ApiFetchService {
 				);
 				assignedIssues = createdTasks.items;
 			} else if (subscriber) {
-				const tasks = await this._issueService.findAllExternal(
-					{},
+				assignedIssues = await this.findUserSubscribedIssues(
 					relations,
 					order_by,
-				);
-
-				const subscriptions = await this._subscriptionService.findAll({
-					entity: BaseEntityEnum.Task,
-					userId: defaultUserId(),
-				}); // TODO : Make sure we pass correct userId
-				const subscribedTaskIds = subscriptions.map(
-					(subscription) => subscription.entityId,
-				);
-				assignedIssues = tasks.items.filter((task) =>
-					subscribedTaskIds.includes(task.id),
 				);
 			}
 
@@ -946,6 +937,28 @@ export class WorkspaceService extends ApiFetchService {
 			console.log(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	async findUserSubscribedIssues(
+		relations?: string[],
+		order_by?: IssueOrderByField,
+	) {
+		const tasks = await this._issueService.findAllExternal(
+			{},
+			relations,
+			order_by,
+		);
+
+		const subscriptions = await this._subscriptionService.findAll({
+			entity: BaseEntityEnum.Task,
+			userId: defaultUserId(),
+		}); // TODO : Make sure we pass correct userId
+		const subscribedTaskIds = subscriptions.map(
+			(subscription) => subscription.entityId,
+		);
+		return tasks.items.filter((task) =>
+			subscribedTaskIds.includes(task.id),
+		);
 	}
 
 	/**

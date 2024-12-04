@@ -376,10 +376,23 @@ export class IssuesController {
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue' })
+	@ApiOperation({ summary: 'Delete issue comment' })
 	@Delete(':id/comments/:commentId')
 	async deleteComment(@Param('commentId') id: ID) {
 		return await this._issueService.deleteComment(id);
+	}
+
+	/**
+	 * Unsubscribes the default user from a task subscription based on the provided issue ID.
+	 *
+	 * @param {ID} id - The unique identifier of the issue/task to unsubscribe from.
+	 * @returns {Promise<any>} A promise that resolves to the response of the unsubscribe operation.
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Un-subscribe' })
+	@Delete(':id/subscribe')
+	async unsubscribe(@Param('id') id: ID): Promise<any> {
+		return await this._issueService.unsubscribe(id);
 	}
 
 	/**

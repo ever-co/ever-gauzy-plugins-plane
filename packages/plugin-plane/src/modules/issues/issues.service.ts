@@ -1318,4 +1318,19 @@ export class IssuesService extends ApiFetchService {
 		const subscription = await this._subscriptionService.create(issueId); // TODO : Make sure we pass correct userId
 		return subscriptionTransformer(subscription, projectId);
 	}
+
+	/**
+	 * Unsubscribes the default user from a task subscription based on the provided issue ID.
+	 *
+	 * @param {ID} issueId - The unique identifier of the issue/task to unsubscribe from.
+	 * @returns {Promise<any>} A promise that resolves to the response of the unsubscribe operation.
+	 * @throws {BadRequestException} If the unsubscription fails or encounters an error.
+	 */
+	async unsubscribe(issueId: ID): Promise<any> {
+		return await this._subscriptionService.unsubscribe({
+			entity: BaseEntityEnum.Task,
+			entityId: issueId,
+			userId: defaultUserId(),
+		}); // TODO : Make sure we pass correct userId
+	}
 }

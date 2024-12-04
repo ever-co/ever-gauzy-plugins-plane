@@ -69,4 +69,32 @@ export class SubscriptionService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
+
+	/**
+	 * Unsubscribes a user from a subscription based on the provided options.
+	 *
+	 * @param {ISubscriptionFindInput} options - The filters to locate the subscription to be deleted.
+	 *   Must include sufficient data (e.g., `entity`, `entityId`, and optionally `userId`) to identify the subscription.
+	 * @returns {Promise<any>} A promise that resolves to the API response upon successful deletion.
+	 * @throws {BadRequestException} If the subscription cannot be found or the API request fails.
+	 */
+	async unsubscribe(options: ISubscriptionFindInput): Promise<any> {
+		try {
+			const subscription = (await this.findAll(options))[0];
+
+			return (
+				await this.apiFetch({
+					method: 'DELETE',
+					path: `${this.path}/${subscription.id}`,
+					query: qs.stringify({
+						entity: options.entity,
+						entityId: options.entityId,
+					}),
+				})
+			).data;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
+	}
 }

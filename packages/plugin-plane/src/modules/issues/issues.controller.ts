@@ -256,8 +256,11 @@ export class IssuesController {
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Subscribe' })
 	@Post(':id/subscribe')
-	async subscribe(@Param('id') issueId: ID) {
-		return await this._issueService.subscribe(issueId);
+	async subscribe(
+		@Param('id') issueId: ID,
+		@Param('projectId') projectId: ID,
+	) {
+		return await this._issueService.subscribe(issueId, projectId);
 	}
 
 	/**

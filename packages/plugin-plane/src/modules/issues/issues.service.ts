@@ -33,6 +33,7 @@ import {
 	IssueOrderByField,
 	IState,
 	ISubIssueResponse,
+	ISubscriber,
 	ITask,
 	ITaskDateFilterInput,
 	ReactionEntityEnum,
@@ -54,6 +55,7 @@ import {
 	issueTransformer,
 	nonGroupedIssues,
 	reactionTransformer,
+	subscriptionTransformer,
 	updateIssueInputTransformer,
 } from '../../config';
 import { StatesService } from '../states/states.service';
@@ -1293,7 +1295,11 @@ export class IssuesService extends ApiFetchService {
 		return await this._issueLinkService.delete(id);
 	}
 
-	async subscribe(issueId: ID) {
-		return await this._subscriptionService.create(issueId); // TODO : Make sure we pass correct userId
+	async subscribe(
+		issueId: ID,
+		projectId: ID,
+	): Promise<ISubscriber | ISubscriber[]> {
+		const subscription = await this._subscriptionService.create(issueId); // TODO : Make sure we pass correct userId
+		return subscriptionTransformer(subscription, projectId);
 	}
 }

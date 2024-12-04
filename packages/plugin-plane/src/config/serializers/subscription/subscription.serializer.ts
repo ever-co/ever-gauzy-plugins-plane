@@ -1,6 +1,8 @@
 import {
 	BaseEntityEnum,
 	ID,
+	ISubscriber,
+	ISubscription,
 	ISubscriptionCreateInput,
 	SubscriptionTypeEnum,
 } from '@plane-plugin/models';
@@ -28,4 +30,37 @@ export function createSubscriptionTransformer(
 		type: SubscriptionTypeEnum.MANUAL,
 		userId,
 	};
+}
+
+/**
+ * Transforms subscription(s) into subscriber format.
+ *
+ * @param {ISubscription | ISubscription[]} subscriptions - A single subscription or an array of subscriptions.
+ * @param {ID} [projectId] - Optional project ID to include in the transformed data.
+ * @returns {ISubscriber | ISubscriber[]} Transformed subscriber(s).
+ */
+export function subscriptionTransformer(
+	subscriptions: ISubscription | ISubscription[],
+	projectId?: ID,
+): ISubscriber | ISubscriber[] {
+	const transformSubscription = (
+		subscription: ISubscription,
+	): ISubscriber => ({
+		id: subscription.id,
+		created_at: subscription.createdAt,
+		updated_at: subscription.updatedAt,
+		deleted_at: subscription.deletedAt,
+		created_by: subscription.userId,
+		updated_by: null,
+		project: projectId,
+		workspace: subscription.tenantId,
+		issue: subscription.entityId,
+		subscriber: subscription.userId,
+	});
+
+	if (Array.isArray(subscriptions)) {
+		return subscriptions.map(transformSubscription);
+	}
+
+	return transformSubscription(subscriptions);
 }

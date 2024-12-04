@@ -26,8 +26,6 @@ export class SubscriptionService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ subscription });
-
 			return subscription;
 		} catch (error: any) {
 			console.log(error.response);

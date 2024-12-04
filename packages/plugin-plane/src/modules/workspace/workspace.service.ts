@@ -50,10 +50,8 @@ import {
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
 import { ActivityService } from '../activity/activity.service';
-import { StatesService } from '../states/states.service';
-import { ProjectModuleService } from '../project-module/project-module.service';
-import { CyclesService } from '../cycles/cycles.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -61,10 +59,8 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _issueService: IssuesService,
 		private readonly _projectService: ProjectService,
 		private readonly _activityService: ActivityService,
-		private readonly _stateService: StatesService,
-		private readonly _projectModuleService: ProjectModuleService,
-		private readonly _cycleService: CyclesService,
 		private readonly _issueLinkService: IssueLinksService,
+		private readonly _subscriptionService: SubscriptionService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -873,7 +869,8 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findUserGroupedIssueAssigned(options: IIssueFindInput) {
 		try {
-			const { assignees, created_by, group_by, order_by } = options;
+			const { assignees, created_by, group_by, order_by, subscriber } =
+				options;
 			let assignedIssues: ITask[] = [];
 			const relations = ['taskStatus'];
 
@@ -893,6 +890,23 @@ export class WorkspaceService extends ApiFetchService {
 					order_by,
 				);
 				assignedIssues = createdTasks.items;
+			} else if (subscriber) {
+				const tasks = await this._issueService.findAllExternal(
+					{},
+					relations,
+					order_by,
+				);
+
+				const subscriptions = await this._subscriptionService.findAll({
+					entity: BaseEntityEnum.Task,
+					userId: defaultUserId(),
+				}); // TODO : Make sure we pass correct userId
+				const subscribedTaskIds = subscriptions.map(
+					(subscription) => subscription.entityId,
+				);
+				assignedIssues = tasks.items.filter((task) =>
+					subscribedTaskIds.includes(task.id),
+				);
 			}
 
 			const issuesWithLinks = await Promise.all(

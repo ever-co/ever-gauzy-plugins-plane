@@ -65,27 +65,10 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async create(input: ICreateModuleInput): Promise<IModule | IModule[]> {
 		try {
-			// Fetch the project to ensure it exists and get its members
-			const project = await this._projectService.getExternalProject(
-				input.project_id,
-			);
-
-			if (!project) {
-				throw new BadRequestException('Project could not be found');
-			}
-
-			// Find the lead (manager) in the project members based on the input lead_id
-			const lead = input.lead_id
-				? project.members.find(
-						(member) => member.employee.id === input.lead_id,
-					)
-				: undefined;
-
 			// Transform input data for creating a module, assigning the correct manager's userId
-			const body = createModuleInputTransformer(
-				input,
-				lead?.employee.userId,
-			);
+			const body = createModuleInputTransformer(input, input.lead_id);
+
+			console.log({ body });
 
 			const projectModule: IOrganizationProjectModule = (
 				await this.apiFetch({
@@ -95,8 +78,10 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
+			console.log({ projectModule });
+
 			// Return the transformed module, including the managerId if lead is found
-			return modulesTransformer(projectModule, [], lead?.employeeId);
+			return modulesTransformer(projectModule, []);
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -114,24 +99,6 @@ export class ProjectModuleService extends ApiFetchService {
 			// Build the query string once
 			const query = qs.stringify(getModulesQuery(projectId));
 
-			// Retrieve the project information
-			const project = await this._projectService.getExternalProject(
-				projectId,
-				['members.employee'],
-			);
-
-			if (!project) {
-				throw new BadRequestException('Project could not be found');
-			}
-
-			// Create a Map for quick access to employees by `userId`
-			const memberMap = new Map(
-				project.members.map((member) => [
-					member.employee.userId,
-					member.employeeId,
-				]),
-			);
-
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
 					BaseEntityEnum.OrganizationProjectModule,
@@ -146,14 +113,10 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			// Transform modules and link them to the corresponding managers
-			const modulesWithManagers = modules.items.map((module) => ({
-				...module,
-				managerId: memberMap.get(module.managerId),
-			}));
+			console.log({ modules });
 
 			// Return the transformed modules
-			return modulesTransformer(modulesWithManagers, favoriteIds);
+			return modulesTransformer(modules.items, favoriteIds);
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException();
@@ -168,25 +131,9 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async getModule(id: ID, projectId: ID) {
 		try {
-			// Retrieve the project data
-			const project = await this._projectService.getExternalProject(
-				projectId,
-				['members.employee'],
-			);
-
-			if (!project) {
-				throw new BadRequestException('Project could not be found');
-			}
-
-			// Build a Map for quick employee lookup using `userId`
-			const memberMap = new Map(
-				project.members.map((member) => [
-					member.employee.userId,
-					member.employeeId,
-				]),
-			);
-
 			const module = await this.getExternalModule(id, projectId);
+
+			console.log({ module });
 
 			// Favorites
 			const favoriteIds =
@@ -194,11 +141,8 @@ export class ProjectModuleService extends ApiFetchService {
 					BaseEntityEnum.OrganizationProjectModule,
 				);
 
-			// Transform the module with the correct `managerId`
-			const managerId = memberMap.get(module.managerId);
-
 			// Return the transformed module using `modulesTransformer`
-			return modulesTransformer({ ...module, managerId }, favoriteIds);
+			return modulesTransformer(module, favoriteIds);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException();
@@ -249,6 +193,7 @@ export class ProjectModuleService extends ApiFetchService {
 				lead?.employee.userId,
 			);
 
+			console.log({ body });
 			// Update the module using a PATCH request
 			await this.apiFetch({
 				method: 'PUT',
@@ -264,7 +209,7 @@ export class ProjectModuleService extends ApiFetchService {
 			const module = await this.getExternalModule(id);
 
 			// Return the updated module, with managerId set to employeeId instead of userId
-			return modulesTransformer(module, favoriteIds, lead?.employeeId);
+			return modulesTransformer(module, favoriteIds);
 		} catch (error) {
 			// Log the error and throw a BadRequestException
 			console.error(error);

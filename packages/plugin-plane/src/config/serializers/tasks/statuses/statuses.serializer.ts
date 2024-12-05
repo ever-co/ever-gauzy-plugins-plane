@@ -8,7 +8,6 @@ import {
 } from '@plane-plugin/models';
 import {
 	defaultOrganizationId,
-	defaultProjectId,
 	defaultTestTenantId,
 } from '../../../credentials';
 
@@ -61,7 +60,7 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 		const group = stateGroup(status);
 		return {
 			id: status.id,
-			project_id: status.projectId ?? defaultProjectId(),
+			project_id: status.projectId,
 			workspace_id: status.tenantId,
 			name: capitalizeWords(
 				status.name.replace('-', ' '),

@@ -5,7 +5,6 @@ import {
 	forwardRef,
 } from '@nestjs/common';
 import qs from 'qs';
-import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	BaseEntityEnum,
 	ICommentFindInput,
@@ -59,6 +58,7 @@ import {
 	subscriptionTransformer,
 	updateIssueInputTransformer,
 } from '../../config';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { StatesService } from '../states/states.service';
 import { CommentsService } from '../comments/comments.service';
 import { ProjectService } from '../project/project.service';
@@ -258,7 +258,6 @@ export class IssuesService extends ApiFetchService {
 	 * @memberof IssuesService
 	 */
 	async create(input: IIssueCreateInput): Promise<IIssue> {
-		console.log({ input });
 		try {
 			const { state_id } = input;
 

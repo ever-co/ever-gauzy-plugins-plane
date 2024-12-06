@@ -1,9 +1,11 @@
 import {
+	Body,
 	Controller,
 	Get,
 	HttpCode,
 	HttpStatus,
 	Param,
+	Post,
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -13,16 +15,24 @@ import {
 	DashboardWigetQueryEnum,
 	ICycle,
 	ID,
+	IIssue,
 	IIssueFindInput,
 	IIssueLabel,
 	IModule,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
+import { CreateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
 	constructor(private readonly _workspaceService: WorkspaceService) {}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DASHBOARD ROUTES
+	|--------------------------------------------------------------------------
+	*/
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
@@ -60,6 +70,12 @@ export class WorkspaceController {
 		);
 	}
 
+	/*
+	|--------------------------------------------------------------------------
+	| WORKSPACE MEMBERS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
 	 * @description - Get member (from connected user) info for a workspace
 	 * @param {string} workspace_name - slug for workspace name
@@ -84,6 +100,12 @@ export class WorkspaceController {
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
 	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| WORKSPACE USER PROFILE ROUTES
+	|--------------------------------------------------------------------------
+	*/
 
 	/**
 	 * Retrieves a summary of the user's work statistics, including task distribution
@@ -149,6 +171,12 @@ export class WorkspaceController {
 		);
 	}
 
+	/*
+	|--------------------------------------------------------------------------
+	| WORKSPACE GLOBAL DATA ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
 	 * Fetches all workspace states associated with projects in the workspace.
 	 *
@@ -196,5 +224,23 @@ export class WorkspaceController {
 	@Get('labels')
 	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
 		return await this._workspaceService.findWorkspaceLabels();
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DRAFT ISSUES ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Creates a new draft issue.
+	 * @param {CreateIssueDTO} input - The input data required to create a draft issue.
+	 * @returns {Promise<IIssue>} A promise that resolves to the newly created draft issue.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create draft issue' })
+	@Post('draft-issues')
+	async createDraftIssue(@Body() input: CreateIssueDTO): Promise<IIssue> {
+		return await this._workspaceService.createDraftIssue(input);
 	}
 }

@@ -521,6 +521,7 @@ export function createIssueInputTransformer(
 		startDate: issue.start_date,
 		dueDate: issue.target_date,
 		projectId: issue.project_id,
+		isDraft: issue?.is_draft || false,
 		status,
 		tags,
 		members,

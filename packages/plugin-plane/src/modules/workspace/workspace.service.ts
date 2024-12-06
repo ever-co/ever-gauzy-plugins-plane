@@ -19,6 +19,7 @@ import {
 	ICycle,
 	IIssueLabel,
 	IssueOrderByField,
+	IIssueCreateInput,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -53,6 +54,7 @@ import { IssuesService } from '../issues/issues.service';
 import { ActivityService } from '../activity/activity.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { DraftIssuesService } from '../issues/draft-issues/draft-issues.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -62,6 +64,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _activityService: ActivityService,
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _subscriptionService: SubscriptionService,
+		private readonly _draftIssueService: DraftIssuesService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -1109,5 +1112,20 @@ export class WorkspaceService extends ApiFetchService {
 			console.error(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DRAFT ISSUES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Creates a new draft issue.
+	 * @param {IIssueCreateInput} input - The input data required to create a draft issue.
+	 * @returns {Promise<IIssue>} A promise that resolves to the newly created draft issue.
+	 */
+	async createDraftIssue(input: IIssueCreateInput): Promise<IIssue> {
+		return await this._draftIssueService.create(input);
 	}
 }

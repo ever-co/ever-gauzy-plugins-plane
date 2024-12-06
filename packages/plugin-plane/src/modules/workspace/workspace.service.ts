@@ -359,12 +359,27 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findRecentCollaborators(): Promise<IRecentCollaborator[]> {
 		try {
-			const employees = (await this.getWorkspaceMembers()).slice(0, 10);
+			const employees = await this.getWorkspaceMembers();
 
-			return employees.map((employee) => ({
-				user_id: employee.member.id,
-				active_issue_count: 0, // Find a way  to make this working
-			}));
+			const collaborators = await Promise.all(
+				employees.map(async (employee) => {
+					const tasks: ITask[] =
+						await this._issueService.findExternalByEmployee(
+							employee.member.id,
+							['taskStatus'],
+						);
+					const { startedIssues, unstartedIssues } =
+						getTaskCounts(tasks);
+
+					return {
+						user_id: employee.member.id,
+						active_issue_count: startedIssues + unstartedIssues,
+					};
+				}),
+			);
+			return collaborators.sort(
+				(a, b) => b.active_issue_count - a.active_issue_count,
+			);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

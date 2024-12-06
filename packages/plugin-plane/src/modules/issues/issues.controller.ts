@@ -41,6 +41,12 @@ import {
 export class IssuesController {
 	constructor(private readonly _issueService: IssuesService) {}
 
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUES ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
 	 * @description - Get project issues
 	 * @param {ID} projectId - The ID of the project for whom get issues
@@ -72,34 +78,56 @@ export class IssuesController {
 	@ApiOperation({ summary: 'Find issue by ID' })
 	@Get(':id')
 	async findOne(@Param('id') id: ID) {
-		return await this._issueService.findOne(id);
+		return await this._issueService.findOne(id, false);
 	}
 
 	/**
-	 * @description - Find issue children by Id
-	 * @param {ID} id - The issue ID to search
-	 * @returns - A promise that resolves after issue children fetched
-	 * @memberof WorkspaceController
+	 * @description - Create issue
+	 * @param {CreateIssueDTO} input - data for creating new issue
+	 * @returns - A promise that resolves after issue created
+	 * @memberof IssuesController
 	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Find issue by ID' })
-	@Get(':id/sub-issues')
-	async findIssueSubIssues(@Param('id') id: ID) {
-		return await this._issueService.findIssueChildren(id);
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue' })
+	@Post()
+	async create(@Body() input: CreateIssueDTO): Promise<IIssue> {
+		return await this._issueService.create(input);
 	}
 
 	/**
-	 * @description - Find issue children by Id
-	 * @param {ID} id - The issue ID to search
-	 * @returns - A promise that resolves after issue children fetched
-	 * @memberof WorkspaceController
+	 * @description - Update issue
+	 * @param {UpdateIssueDTO} input - data for updating issue
+	 * @returns - A promise that resolves after issue updated
+	 * @memberof IssuesController
 	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Find issue by ID' })
-	@Get(':id/issue-relation')
-	async findIssueRelations(@Param('id') id: ID) {
-		return await this._issueService.findIssueRelations(id);
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Update Issue' })
+	@Patch(':id')
+	async update(
+		@Body() input: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._issueService.update(id, input, false);
 	}
+
+	/**
+	 * @description Delete issue
+	 * @param {ID} id - The issue ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete issue' })
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._issueService.delete(id);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUE COMMENT AND ACTIVITY ROUTES
+	|--------------------------------------------------------------------------
+	*/
 
 	/**
 	 * @description Get issue activity and comments
@@ -122,54 +150,6 @@ export class IssuesController {
 			projectId,
 			activity_type,
 		);
-	}
-
-	/**
-	 * @description - Create issue
-	 * @param {CreateIssueDTO} input - data for creating new issue
-	 * @returns - A promise that resolves after issue created
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create Issue' })
-	@Post()
-	async create(@Body() input: CreateIssueDTO): Promise<IIssue> {
-		return await this._issueService.create(input);
-	}
-
-	/**
-	 * Updates the parent-child relationship between a parent task and multiple sub-tasks.
-	 *
-	 * @param {ID} id - The ID of the parent task.
-	 * @param {Pick<IIssueUpdateInput, 'sub_issue_ids'>} input - Object containing the IDs of the sub-tasks (`sub_issue_ids`).
-	 * @returns {Promise<ITask[]>} - A promise that resolves to an array of updated tasks
-	 * @throws {BadRequestException} - Throws an exception in case of an update error.
-	 */
-	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Add children to Issue' })
-	@Post(':id/sub-issues')
-	async addChildrenToIssue(
-		@Param('id') id: ID,
-		@Body() input: UpdateIssueDTO,
-	): Promise<ISubIssueResponse> {
-		return await this._issueService.updateRelationnalIssueParent(id, input);
-	}
-
-	/**
-	 * @description Add issue to Module
-	 * @param {ID} id - Issue ID for asssign module
-	 * @param {IIssueCreateInput} input - data for updating issue
-	 * @returns A promise resoved to updated Issue
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Add issue to module' })
-	@Post(':id/modules')
-	async addIssueToModule(
-		@Param('id') id: ID,
-		@Body() input: UpdateIssueDTO,
-	): Promise<IIssue> {
-		return await this._issueService.update(id, input);
 	}
 
 	/**
@@ -196,100 +176,7 @@ export class IssuesController {
 	}
 
 	/**
-	 * @description Create Issue reaction
-	 * @param {ID} entityId - Issue ID for whom create reaction.
-	 * @param {ID} projectId - The project ID for returning project data.
-	 * @param {CreateIssueReactionDTO} input -  Body request data
-	 * @returns A promise resolved to created and transformed reaction.
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create Issue Reaction' })
-	@Post(':id/reactions')
-	async createReaction(
-		@Param('id') entityId: ID,
-		@Param('projectId') projectId: ID,
-		@Body() input: CreateIssueReactionDTO,
-	): Promise<IReactionData> {
-		return await this._issueService.createReaction(
-			entityId,
-			projectId,
-			input,
-		);
-	}
-
-	/**
-	 * @description Create Issue Link
-	 * @param {ID} id - Issue ID for whom create link
-	 * @param {ID} projectId - The project ID for returning project data
-	 * @param {CreateIssueLinkDTO} input - Body request data
-	 * @returns A promise resolved to created and transformed link
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create Issue Link' })
-	@Post(':id/issue-links')
-	async createLink(
-		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
-		@Body() input: CreateIssueLinkDTO,
-	): Promise<IIssueLink> {
-		return await this._issueService.createLink(id, projectId, input);
-	}
-
-	/**
-	 * @description Create issue relations.
-	 * @param {ID} taskToId Issue ID for whom to create main relations.
-	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.
-	 * @returns A promise resolved to created and transformed main relations.
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Create Issue Relation' })
-	@Post(':id/issue-relation')
-	async createIssueRelations(
-		@Param('id') taskToId: ID,
-		@Body() input: CreateIssueRelationDTO,
-	) {
-		return await this._issueService.createIssueRelations(taskToId, input);
-	}
-
-	/**
-	 * Subscribes to a specific issue within a project and returns the subscription details.
-	 *
-	 * @param {ID} issueId - The ID of the issue to subscribe to.
-	 * @param {ID} projectId - The ID of the project where the issue exists.
-	 * @returns {Promise<ISubscriber | ISubscriber[]>} A promise that resolves to the transformed subscription data, either a single subscriber or a list of subscribers.
-	 */
-	@HttpCode(HttpStatus.CREATED)
-	@ApiOperation({ summary: 'Subscribe' })
-	@Post(':id/subscribe')
-	async subscribe(
-		@Param('id') issueId: ID,
-		@Param('projectId') projectId: ID,
-	): Promise<ISubscriber | ISubscriber[]> {
-		return await this._issueService.subscribe(issueId, projectId);
-	}
-
-	/**
-	 * @description Delete issue relation.
-	 * @param {ID} taskToId Issue ID for whom to delete main relation.
-	 * @param {ICreateIssueRelationInput} input - Body request data for delete main and inversed relation.
-	 * @returns A promise resolved to deleted result.
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete Issue Relation' })
-	@Post(':id/remove-relation')
-	async deleteIssueRelation(
-		@Param('id') taskToId: ID,
-		@Body() input: DeleteIssueRelationDTO,
-	) {
-		return await this._issueService.deleteIssueRelation(taskToId, input);
-	}
-
-	/**
-	 * @description Create issue comment
+	 * @description Update issue comment
 	 * @param {ID} id - Comment ID to be updated
 	 * @param {ID} projectId - Project ID for find details
 	 * @param {ICreateCommentInput} input - Body Request data
@@ -312,6 +199,128 @@ export class IssuesController {
 			input,
 			entityId,
 		);
+	}
+
+	/**
+	 * @description Delete issue comment
+	 * @param {ID} id - The issue comment ID to be deleted
+	 * @returns A promise resolved to delete result
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete issue comment' })
+	@Delete(':id/comments/:commentId')
+	async deleteComment(@Param('commentId') id: ID) {
+		return await this._issueService.deleteComment(id);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUE RELATIONS AND SUB-ISSUES ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * @description - Find issue children by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue children fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':id/sub-issues')
+	async findIssueSubIssues(@Param('id') id: ID) {
+		return await this._issueService.findIssueChildren(id);
+	}
+
+	/**
+	 * Updates the parent-child relationship between a parent task and multiple sub-tasks.
+	 *
+	 * @param {ID} id - The ID of the parent task.
+	 * @param {Pick<IIssueUpdateInput, 'sub_issue_ids'>} input - Object containing the IDs of the sub-tasks (`sub_issue_ids`).
+	 * @returns {Promise<ITask[]>} - A promise that resolves to an array of updated tasks
+	 * @throws {BadRequestException} - Throws an exception in case of an update error.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Add children to Issue' })
+	@Post(':id/sub-issues')
+	async addChildrenToIssue(
+		@Param('id') id: ID,
+		@Body() input: UpdateIssueDTO,
+	): Promise<ISubIssueResponse> {
+		return await this._issueService.updateRelationnalIssueParent(id, input);
+	}
+
+	/**
+	 * @description - Find issue children by Id
+	 * @param {ID} id - The issue ID to search
+	 * @returns - A promise that resolves after issue children fetched
+	 * @memberof WorkspaceController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find issue by ID' })
+	@Get(':id/issue-relation')
+	async findIssueRelations(@Param('id') id: ID) {
+		return await this._issueService.findIssueRelations(id);
+	}
+
+	/**
+	 * @description Create issue relations.
+	 * @param {ID} taskToId Issue ID for whom to create main relations.
+	 * @param {ICreateIssueRelationInput} input - Body request data for creating main and inversed relations.
+	 * @returns A promise resolved to created and transformed main relations.
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Relation' })
+	@Post(':id/issue-relation')
+	async createIssueRelations(
+		@Param('id') taskToId: ID,
+		@Body() input: CreateIssueRelationDTO,
+	) {
+		return await this._issueService.createIssueRelations(taskToId, input);
+	}
+
+	/**
+	 * @description Delete issue relation.
+	 * @param {ID} taskToId Issue ID for whom to delete main relation.
+	 * @param {ICreateIssueRelationInput} input - Body request data for delete main and inversed relation.
+	 * @returns A promise resolved to deleted result.
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Issue Relation' })
+	@Post(':id/remove-relation')
+	async deleteIssueRelation(
+		@Param('id') taskToId: ID,
+		@Body() input: DeleteIssueRelationDTO,
+	) {
+		return await this._issueService.deleteIssueRelation(taskToId, input);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUE LINKS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * @description Create Issue Link
+	 * @param {ID} id - Issue ID for whom create link
+	 * @param {ID} projectId - The project ID for returning project data
+	 * @param {CreateIssueLinkDTO} input - Body request data
+	 * @returns A promise resolved to created and transformed link
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Link' })
+	@Post(':id/issue-links')
+	async createLink(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: CreateIssueLinkDTO,
+	): Promise<IIssueLink> {
+		return await this._issueService.createLink(id, projectId, input);
 	}
 
 	/**
@@ -341,58 +350,45 @@ export class IssuesController {
 	}
 
 	/**
-	 * @description - Update issue
-	 * @param {UpdateIssueDTO} input - data for updating issue
-	 * @returns - A promise that resolves after issue updated
+	 * @description Delete Issue Link.
+	 * @param {ID} linkId - Issue Link ID to delete
+	 * @returns A promise resolved to deleted result
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Update Issue' })
-	@Patch(':id')
-	async update(
-		@Body() input: UpdateIssueDTO,
-		@Param('id') id: ID,
-	): Promise<IIssue> {
-		return await this._issueService.update(id, input);
+	@ApiOperation({ summary: 'Delete issue link' })
+	@Delete(':id/issue-links/:linkId')
+	async deleteLink(@Param('linkId') linkId: ID) {
+		return await this._issueService.deleteLink(linkId);
 	}
 
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUE REACTION ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
-	 * @description Delete issue
-	 * @param {ID} id - The issue ID to be deleted
-	 * @returns A promise resolved to delete result
+	 * @description Create Issue reaction
+	 * @param {ID} entityId - Issue ID for whom create reaction.
+	 * @param {ID} projectId - The project ID for returning project data.
+	 * @param {CreateIssueReactionDTO} input -  Body request data
+	 * @returns A promise resolved to created and transformed reaction.
 	 * @memberof IssuesController
 	 */
-	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue' })
-	@Delete(':id')
-	async delete(@Param('id') id: ID) {
-		return await this._issueService.delete(id);
-	}
-
-	/**
-	 * @description Delete issue comment
-	 * @param {ID} id - The issue comment ID to be deleted
-	 * @returns A promise resolved to delete result
-	 * @memberof IssuesController
-	 */
-	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue comment' })
-	@Delete(':id/comments/:commentId')
-	async deleteComment(@Param('commentId') id: ID) {
-		return await this._issueService.deleteComment(id);
-	}
-
-	/**
-	 * Unsubscribes the default user from a task subscription based on the provided issue ID.
-	 *
-	 * @param {ID} id - The unique identifier of the issue/task to unsubscribe from.
-	 * @returns {Promise<any>} A promise that resolves to the response of the unsubscribe operation.
-	 */
-	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Un-subscribe' })
-	@Delete(':id/subscribe')
-	async unsubscribe(@Param('id') id: ID): Promise<any> {
-		return await this._issueService.unsubscribe(id);
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Issue Reaction' })
+	@Post(':id/reactions')
+	async createReaction(
+		@Param('id') entityId: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: CreateIssueReactionDTO,
+	): Promise<IReactionData> {
+		return await this._issueService.createReaction(
+			entityId,
+			projectId,
+			input,
+		);
 	}
 
 	/**
@@ -415,16 +411,62 @@ export class IssuesController {
 		);
 	}
 
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUE SUBSCRIPTION ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
-	 * @description Delete Issue Link.
-	 * @param {ID} linkId - Issue Link ID to delete
-	 * @returns A promise resolved to deleted result
-	 * @memberof IssuesController
+	 * Subscribes to a specific issue within a project and returns the subscription details.
+	 *
+	 * @param {ID} issueId - The ID of the issue to subscribe to.
+	 * @param {ID} projectId - The ID of the project where the issue exists.
+	 * @returns {Promise<ISubscriber | ISubscriber[]>} A promise that resolves to the transformed subscription data, either a single subscriber or a list of subscribers.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Subscribe' })
+	@Post(':id/subscribe')
+	async subscribe(
+		@Param('id') issueId: ID,
+		@Param('projectId') projectId: ID,
+	): Promise<ISubscriber | ISubscriber[]> {
+		return await this._issueService.subscribe(issueId, projectId);
+	}
+
+	/**
+	 * Unsubscribes the default user from a task subscription based on the provided issue ID.
+	 *
+	 * @param {ID} id - The unique identifier of the issue/task to unsubscribe from.
+	 * @returns {Promise<any>} A promise that resolves to the response of the unsubscribe operation.
 	 */
 	@HttpCode(HttpStatus.NO_CONTENT)
-	@ApiOperation({ summary: 'Delete issue link' })
-	@Delete(':id/issue-links/:linkId')
-	async deleteLink(@Param('linkId') linkId: ID) {
-		return await this._issueService.deleteLink(linkId);
+	@ApiOperation({ summary: 'Un-subscribe' })
+	@Delete(':id/subscribe')
+	async unsubscribe(@Param('id') id: ID): Promise<any> {
+		return await this._issueService.unsubscribe(id);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| ISSUE MODULES ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * @description Add issue to Module
+	 * @param {ID} id - Issue ID for asssign module
+	 * @param {IIssueCreateInput} input - data for updating issue
+	 * @returns A promise resoved to updated Issue
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Add issue to module' })
+	@Post(':id/modules')
+	async addIssueToModule(
+		@Param('id') id: ID,
+		@Body() input: UpdateIssueDTO,
+	): Promise<IIssue> {
+		return await this._issueService.update(id, input, false);
 	}
 }

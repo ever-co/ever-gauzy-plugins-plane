@@ -1,9 +1,12 @@
 import {
+	Body,
 	Controller,
 	Get,
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
+	Post,
 	Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -13,16 +16,24 @@ import {
 	DashboardWigetQueryEnum,
 	ICycle,
 	ID,
+	IIssue,
 	IIssueFindInput,
 	IIssueLabel,
 	IModule,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
+import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
 	constructor(private readonly _workspaceService: WorkspaceService) {}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DASHBOARD ROUTES
+	|--------------------------------------------------------------------------
+	*/
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
@@ -60,6 +71,12 @@ export class WorkspaceController {
 		);
 	}
 
+	/*
+	|--------------------------------------------------------------------------
+	| WORKSPACE MEMBERS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
 	 * @description - Get member (from connected user) info for a workspace
 	 * @param {string} workspace_name - slug for workspace name
@@ -84,6 +101,12 @@ export class WorkspaceController {
 	async getMembers() {
 		return await this._workspaceService.getWorkspaceMembers();
 	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| WORKSPACE USER PROFILE ROUTES
+	|--------------------------------------------------------------------------
+	*/
 
 	/**
 	 * Retrieves a summary of the user's work statistics, including task distribution
@@ -149,6 +172,12 @@ export class WorkspaceController {
 		);
 	}
 
+	/*
+	|--------------------------------------------------------------------------
+	| WORKSPACE GLOBAL DATA ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
 	/**
 	 * Fetches all workspace states associated with projects in the workspace.
 	 *
@@ -196,5 +225,62 @@ export class WorkspaceController {
 	@Get('labels')
 	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
 		return await this._workspaceService.findWorkspaceLabels();
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DRAFT ISSUES ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Creates a new draft issue.
+	 * @param {CreateIssueDTO} input - The input data required to create a draft issue.
+	 * @returns {Promise<IIssue>} A promise that resolves to the newly created draft issue.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create draft issue' })
+	@Post('draft-issues')
+	async createDraftIssue(@Body() input: CreateIssueDTO): Promise<IIssue> {
+		return await this._workspaceService.createDraftIssue(input);
+	}
+
+	/**
+	 * Updates an issue with the given ID and input data, ensuring it remains a draft.
+	 *
+	 * @param {ID} id - The unique identifier of the issue to update.
+	 * @param {IIssueUpdateInput} input - The data to update the issue with.
+	 * @returns {Promise<IIssue>} A promise that resolves to the updated issue.
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Update Draft issue' })
+	@Patch('draft-issues/:id')
+	async update(
+		@Body() input: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._workspaceService.updateDraftIssue(id, input);
+	}
+
+	/**
+	 * Retrieves all draft issues.
+	 *
+	 * @returns {Promise<any>} A promise that resolves to a list of transformed issues.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find draft issues' })
+	@Get('draft-issues')
+	async findDraftIssues(): Promise<any> {
+		return await this._workspaceService.findDraftIssues();
+	}
+
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Update Draft issue' })
+	@Post('draft-to-issue/:id')
+	async draftToIssue(
+		@Body() input: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._workspaceService.draftToIssue(id, input);
 	}
 }

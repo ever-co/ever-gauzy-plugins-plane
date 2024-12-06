@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
@@ -19,6 +24,8 @@ import {
 	ICycle,
 	IIssueLabel,
 	IssueOrderByField,
+	IIssueCreateInput,
+	IIssueUpdateInput,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -53,15 +60,18 @@ import { IssuesService } from '../issues/issues.service';
 import { ActivityService } from '../activity/activity.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { DraftIssuesService } from '../issues/draft-issues/draft-issues.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
 	constructor(
-		private readonly _issueService: IssuesService,
+		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
+		private readonly _issueService: IssuesService,
 		private readonly _activityService: ActivityService,
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _subscriptionService: SubscriptionService,
+		private readonly _draftIssueService: DraftIssuesService,
 		private readonly _serverFetchService: ApiFetchService,
 	) {
 		super(_serverFetchService['_httpService']);
@@ -240,6 +250,7 @@ export class WorkspaceService extends ApiFetchService {
 			deleted_at: null,
 			role: 20,
 			company_role: '',
+			// draft_issue_count: 2,
 			view_props: {
 				filters: {
 					state: null,
@@ -1109,5 +1120,44 @@ export class WorkspaceService extends ApiFetchService {
 			console.error(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DRAFT ISSUES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Creates a new draft issue.
+	 * @param {IIssueCreateInput} input - The input data required to create a draft issue.
+	 * @returns {Promise<IIssue>} A promise that resolves to the newly created draft issue.
+	 */
+	async createDraftIssue(input: IIssueCreateInput): Promise<IIssue> {
+		return await this._draftIssueService.create(input);
+	}
+
+	/**
+	 * Updates an issue with the given ID and input data, ensuring it remains a draft.
+	 *
+	 * @param {ID} id - The unique identifier of the issue to update.
+	 * @param {IIssueUpdateInput} input - The data to update the issue with.
+	 * @returns {Promise<IIssue>} A promise that resolves to the updated issue.
+	 */
+	async updateDraftIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+		return await this._draftIssueService.update(id, input);
+	}
+
+	/**
+	 * Retrieves all draft issues.
+	 *
+	 * @returns {Promise<any>} A promise that resolves to a list of transformed issues.
+	 */
+	async findDraftIssues(): Promise<any> {
+		return await this._draftIssueService.findAll();
+	}
+
+	async draftToIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+		return await this._draftIssueService.dratfToIssue(id, input);
 	}
 }

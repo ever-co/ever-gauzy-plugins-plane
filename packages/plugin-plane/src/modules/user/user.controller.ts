@@ -34,4 +34,11 @@ export class UserController {
 	async getMe() {
 		return this._userService.getMe();
 	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find user project roles' })
+	@Get('me/workspaces/:workspace_name/project-roles')
+	async findProjectRoles() {
+		return await this._userService.findProjectRoles();
+	}
 }

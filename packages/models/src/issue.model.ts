@@ -67,6 +67,7 @@ export interface IIssueFindInput {
 	assignees?: ID;
 	priotity?: string;
 	subscriber?: ID;
+	module_ids?: ID[];
 }
 
 export enum IssueGroupBy {

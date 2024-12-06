@@ -1,8 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { defaultEmployeeId, defaultTestTenantId } from '../../config';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	defaultEmployeeId,
+	defaultTestTenantId,
+	roleTransformer,
+} from '../../config';
+import { ProjectService } from '../project/project.service';
 
 @Injectable()
 export class UserService {
+	constructor(private readonly _projectService: ProjectService) {}
+
 	async getMe() {
 		return {
 			id: defaultEmployeeId(),
@@ -87,5 +94,37 @@ export class UserService {
 				updated_by: defaultEmployeeId(),
 			},
 		];
+	}
+
+	async findProjectRoles(): Promise<{ [key: string]: number }> {
+		try {
+			const employeeId = defaultEmployeeId(); // TODO : Ensure that will be changed with authenticated employee
+			const employeeProjects =
+				await this._projectService.getExternalProjectsByEmployee(
+					employeeId,
+					['members.employee.user.role'],
+				);
+
+			const projectRoles = employeeProjects.reduce(
+				(acc, project) => {
+					const member = project.members.find(
+						(member) => member.employeeId === employeeId,
+					);
+
+					if (member) {
+						acc[project.id] = roleTransformer(
+							member.employee.user.role,
+						);
+					}
+					return acc;
+				},
+				{} as { [key: string]: number },
+			);
+
+			return projectRoles;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
 	}
 }

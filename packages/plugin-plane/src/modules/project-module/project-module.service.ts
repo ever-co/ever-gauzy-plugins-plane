@@ -68,8 +68,6 @@ export class ProjectModuleService extends ApiFetchService {
 			// Transform input data for creating a module, assigning the correct manager's userId
 			const body = createModuleInputTransformer(input, input.lead_id);
 
-			console.log({ body });
-
 			const projectModule: IOrganizationProjectModule = (
 				await this.apiFetch({
 					method: 'POST',
@@ -77,8 +75,6 @@ export class ProjectModuleService extends ApiFetchService {
 					body,
 				})
 			).data;
-
-			console.log({ projectModule });
 
 			// Return the transformed module, including the managerId if lead is found
 			return modulesTransformer(projectModule, []);
@@ -113,8 +109,6 @@ export class ProjectModuleService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ modules });
-
 			// Return the transformed modules
 			return modulesTransformer(modules.items, favoriteIds);
 		} catch (error: any) {
@@ -132,8 +126,6 @@ export class ProjectModuleService extends ApiFetchService {
 	async getModule(id: ID, projectId: ID) {
 		try {
 			const module = await this.getExternalModule(id, projectId);
-
-			console.log({ module });
 
 			// Favorites
 			const favoriteIds =
@@ -193,7 +185,6 @@ export class ProjectModuleService extends ApiFetchService {
 				lead?.employee.userId,
 			);
 
-			console.log({ body });
 			// Update the module using a PATCH request
 			await this.apiFetch({
 				method: 'PUT',

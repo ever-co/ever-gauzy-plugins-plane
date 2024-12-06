@@ -1156,4 +1156,8 @@ export class WorkspaceService extends ApiFetchService {
 	async findDraftIssues(): Promise<any> {
 		return await this._draftIssueService.findAll();
 	}
+
+	async draftToIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+		return await this._draftIssueService.dratfToIssue(id, input);
+	}
 }

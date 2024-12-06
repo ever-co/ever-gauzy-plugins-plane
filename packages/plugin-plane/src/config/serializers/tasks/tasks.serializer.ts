@@ -440,7 +440,7 @@ export const getTaskQuery = (
 	options?: IIssueFindInput,
 	relations?: string[],
 	orderByField?: IssueOrderByField,
-	isDraft: boolean = false,
+	isDraft?: boolean,
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
@@ -460,7 +460,9 @@ export const getTaskQuery = (
 		query['where[creatorId]'] = options.creatorId;
 	}
 
-	query['where[isDraft]'] = isDraft;
+	if (typeof isDraft !== 'undefined') {
+		query['where[isDraft]'] = isDraft;
+	}
 
 	// Add relations
 	if (relations) {
@@ -558,6 +560,7 @@ export function updateIssueInputTransformer(
 		start_date: 'startDate',
 		target_date: 'dueDate',
 		project_id: 'projectId',
+		is_draft: 'isDraft',
 		cycle_id: 'organizationSprintId',
 		parent_id: 'parentId',
 		state_id: 'taskStatusId',

@@ -18,8 +18,6 @@ export class DraftIssuesService extends ApiFetchService {
 		super(_serverFetchService['_httpService']);
 	}
 
-	private readonly path = '/tasks';
-
 	private readonly is_draft = true;
 
 	/**
@@ -81,6 +79,22 @@ export class DraftIssuesService extends ApiFetchService {
 			);
 
 			return nonGroupedIssues(tasks.items);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	async dratfToIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+		try {
+			return await this._issueService.update(
+				id,
+				{
+					...input,
+					is_draft: false,
+				},
+				this.is_draft,
+			);
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error.response);

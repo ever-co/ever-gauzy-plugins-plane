@@ -273,4 +273,14 @@ export class WorkspaceController {
 	async findDraftIssues(): Promise<any> {
 		return await this._workspaceService.findDraftIssues();
 	}
+
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Update Draft issue' })
+	@Post('draft-to-issue/:id')
+	async draftToIssue(
+		@Body() input: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._workspaceService.draftToIssue(id, input);
+	}
 }

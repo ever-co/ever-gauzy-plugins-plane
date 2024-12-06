@@ -161,7 +161,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Build query for task retrieval
 			const query = qs.stringify(
-				getTaskQuery(null, null, relations, orderByField),
+				getTaskQuery(null, null, relations, orderByField, false),
 			);
 
 			// Fetch tasks for the authenticated employee
@@ -386,11 +386,7 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			const updatedTask = await this.getExternalIssue(
-				task.id,
-				null,
-				isDraft,
-			);
+			const updatedTask = await this.getExternalIssue(task.id, null);
 
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
@@ -416,7 +412,11 @@ export class IssuesService extends ApiFetchService {
 			const tasks: ITask[] = [];
 			const subIssues: IIssue[] = await Promise.all(
 				sub_issue_ids?.map(async (issueId) => {
-					const issue = await this.getExternalIssue(issueId);
+					const issue = await this.getExternalIssue(
+						issueId,
+						null,
+						false,
+					);
 
 					await this.apiFetch({
 						path: `${this.path}/${issueId}`,
@@ -470,7 +470,9 @@ export class IssuesService extends ApiFetchService {
 			const { group_by, module } = options;
 
 			// Create the query string based on the provided options and projectId
-			const query = qs.stringify(getTaskQuery(projectId, options));
+			const query = qs.stringify(
+				getTaskQuery(projectId, options, null, null, false),
+			);
 
 			let path = '';
 			// If a module is specified, modify the path accordingly
@@ -518,10 +520,11 @@ export class IssuesService extends ApiFetchService {
 	async findIssueChildren(id: ID): Promise<ISubIssueResponse> {
 		try {
 			const sub_issues: IIssue[] = [];
-			const issue = await this.getExternalIssue(id, [
-				'children.taskStatus',
-				'children.members',
-			]);
+			const issue = await this.getExternalIssue(
+				id,
+				['children.taskStatus', 'children.members'],
+				false,
+			);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}
@@ -690,10 +693,11 @@ export class IssuesService extends ApiFetchService {
 		input: ICreateCommentInput,
 	): Promise<IIssueComment> {
 		try {
-			const task = await this.getExternalIssue(entityId, [
-				'project.members.employee.user.role',
-				'project.tenant',
-			]);
+			const task = await this.getExternalIssue(
+				entityId,
+				['project.members.employee.user.role', 'project.tenant'],
+				false,
+			);
 
 			const projectMembers = task.project.members.map(
 				(member) => member.employee,
@@ -819,10 +823,11 @@ export class IssuesService extends ApiFetchService {
 		try {
 			const comments = await this._commentService.findAll(options);
 
-			const task = await this.getExternalIssue(options.entityId, [
-				'project.members.employee.user.role',
-				'project.tenant',
-			]);
+			const task = await this.getExternalIssue(
+				options.entityId,
+				['project.members.employee.user.role', 'project.tenant'],
+				false,
+			);
 
 			const issueComments: IIssueComment[] = await Promise.all(
 				comments?.map(async (comment) => {
@@ -871,10 +876,11 @@ export class IssuesService extends ApiFetchService {
 				entityId: id,
 			});
 
-			const task = await this.getExternalIssue(id, [
-				'project.members.employee.user.role',
-				'project.tenant',
-			]);
+			const task = await this.getExternalIssue(
+				id,
+				['project.members.employee.user.role', 'project.tenant'],
+				false,
+			);
 
 			const issueActivities = await Promise.all(
 				activityLogs?.map(async (activityLog) => {
@@ -1000,10 +1006,11 @@ export class IssuesService extends ApiFetchService {
 		input: ICreateReactionInput,
 	): Promise<IReactionData> {
 		try {
-			const task = await this.getExternalIssue(entityId, [
-				'project.members.employee.user.role',
-				'project.tenant',
-			]);
+			const task = await this.getExternalIssue(
+				entityId,
+				['project.members.employee.user.role', 'project.tenant'],
+				false,
+			);
 
 			// Create reaction
 			const reaction = await this._reactionService.create(
@@ -1159,7 +1166,7 @@ export class IssuesService extends ApiFetchService {
 
 			// remote issue to find creator member if no task provided
 			if (!task) {
-				task = await this.getExternalIssue(id);
+				task = await this.getExternalIssue(id, null, false);
 			}
 
 			// Commented issue

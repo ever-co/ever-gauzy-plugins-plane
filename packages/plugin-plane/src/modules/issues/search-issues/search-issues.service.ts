@@ -36,7 +36,9 @@ export class SearchIssuesService extends ApiFetchService {
 				search,
 			} = options;
 
-			const query = qs.stringify(getTaskQuery(projectId));
+			const query = qs.stringify(
+				getTaskQuery(projectId, {}, null, null, false),
+			);
 
 			const issues: IPagination<ITask> = (
 				await this.apiFetch({

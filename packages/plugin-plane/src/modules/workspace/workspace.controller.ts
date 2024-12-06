@@ -5,6 +5,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 	Query,
 } from '@nestjs/common';
@@ -21,7 +22,7 @@ import {
 	IModule,
 	IUserStatsResponse,
 } from '@plane-plugin/models';
-import { CreateIssueDTO } from '../issues/dto';
+import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')
 @Controller()
@@ -242,6 +243,23 @@ export class WorkspaceController {
 	@Post('draft-issues')
 	async createDraftIssue(@Body() input: CreateIssueDTO): Promise<IIssue> {
 		return await this._workspaceService.createDraftIssue(input);
+	}
+
+	/**
+	 * Updates an issue with the given ID and input data, ensuring it remains a draft.
+	 *
+	 * @param {ID} id - The unique identifier of the issue to update.
+	 * @param {IIssueUpdateInput} input - The data to update the issue with.
+	 * @returns {Promise<IIssue>} A promise that resolves to the updated issue.
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Update Draft issue' })
+	@Patch('draft-issues/:id')
+	async update(
+		@Body() input: UpdateIssueDTO,
+		@Param('id') id: ID,
+	): Promise<IIssue> {
+		return await this._workspaceService.updateDraftIssue(id, input);
 	}
 
 	/**

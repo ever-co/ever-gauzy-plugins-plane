@@ -205,9 +205,13 @@ export class CyclesService extends ApiFetchService {
 			await Promise.all(
 				input.issues.map(
 					async (issue) =>
-						await this._issueService.update(issue, {
-							cycle_id: id,
-						}),
+						await this._issueService.update(
+							issue,
+							{
+								cycle_id: id,
+							},
+							false,
+						),
 				),
 			);
 

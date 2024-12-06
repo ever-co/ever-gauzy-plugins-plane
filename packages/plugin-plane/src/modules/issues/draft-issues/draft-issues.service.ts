@@ -1,5 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { IIssue, IIssueCreateInput } from '@plane-plugin/models';
+import {
+	ID,
+	IIssue,
+	IIssueCreateInput,
+	IIssueUpdateInput,
+} from '@plane-plugin/models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import { IssuesService } from '../issues.service';
 import { nonGroupedIssues } from '../../../config';
@@ -15,6 +20,8 @@ export class DraftIssuesService extends ApiFetchService {
 
 	private readonly path = '/tasks';
 
+	private readonly is_draft = true;
+
 	/**
 	 * Creates a new draft issue.
 	 *
@@ -26,8 +33,32 @@ export class DraftIssuesService extends ApiFetchService {
 		try {
 			return await this._issueService.create({
 				...input,
-				is_draft: true, // Ensures the issue is marked as a draft
+				is_draft: this.is_draft, // Ensures the issue is marked as a draft
 			});
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Updates an issue with the given ID and input data, ensuring it remains a draft.
+	 *
+	 * @param {ID} id - The unique identifier of the issue to update.
+	 * @param {IIssueUpdateInput} input - The data to update the issue with.
+	 * @returns {Promise<IIssue>} A promise that resolves to the updated issue.
+	 * @throws {BadRequestException} Throws an exception if the update operation fails.
+	 */
+	async update(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+		try {
+			return await this._issueService.update(
+				id,
+				{
+					...input,
+					is_draft: this.is_draft,
+				},
+				this.is_draft,
+			);
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error.response);

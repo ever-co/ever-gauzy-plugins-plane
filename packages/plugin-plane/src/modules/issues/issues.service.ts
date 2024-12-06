@@ -95,8 +95,14 @@ export class IssuesService extends ApiFetchService {
 	 * @returns - A promise that resolved after getting issue
 	 * @memberof IssuesService
 	 */
-	async getExternalIssue(id: ID, relations?: string[]): Promise<ITask> {
-		const query = qs.stringify(getTaskQuery(null, null, relations));
+	async getExternalIssue(
+		id: ID,
+		relations?: string[],
+		isDraft?: boolean,
+	): Promise<ITask> {
+		const query = qs.stringify(
+			getTaskQuery(null, null, relations, null, isDraft),
+		);
 		return (
 			await this.apiFetch({
 				path: `${this.path}/${id}`,
@@ -211,15 +217,19 @@ export class IssuesService extends ApiFetchService {
 	 * @returns - A promise that resolves after issue fetched
 	 * @memberof IssuesService
 	 */
-	async findOne(id: ID): Promise<IIssue> {
+	async findOne(id: ID, isDraft?: boolean): Promise<IIssue> {
 		try {
-			const issue = await this.getExternalIssue(id, [
-				'tags',
-				'members.user',
-				'creator',
-				'project.members.employee.user.role',
-				'organizationSprint',
-			]);
+			const issue = await this.getExternalIssue(
+				id,
+				[
+					'tags',
+					'members.user',
+					'creator',
+					'project.members.employee.user.role',
+					'organizationSprint',
+				],
+				isDraft,
+			);
 
 			if (!issue) {
 				throw new BadRequestException('Issue not found');
@@ -232,6 +242,7 @@ export class IssuesService extends ApiFetchService {
 					entity: ReactionEntityEnum.Task,
 				},
 				issue.projectId,
+				isDraft,
 			);
 
 			//Check current user subscription.
@@ -246,8 +257,8 @@ export class IssuesService extends ApiFetchService {
 			const links = await this.findIssueLinks(id, issue.projectId, issue);
 
 			return issueTransformer(issue, reactions, links, isSubscribed);
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}
@@ -295,10 +306,18 @@ export class IssuesService extends ApiFetchService {
 	 * @returns - A promise that resolves after issue updated
 	 * @memberof IssuesService
 	 */
-	async update(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+	async update(
+		id: ID,
+		input: IIssueUpdateInput,
+		isDraft: boolean,
+	): Promise<IIssue> {
 		try {
 			// Extract modules to be added and removed from the input
-			const { modules: added_modules = [], removed_modules = [] } = input;
+			const {
+				modules: added_modules = [],
+				removed_modules = [],
+				module_ids = [],
+			} = input;
 
 			// Fetch the state only if a state_id is provided
 			let state: IState | undefined;
@@ -313,8 +332,8 @@ export class IssuesService extends ApiFetchService {
 
 			// Retrieve the existing issue and external issue details simultaneously
 			const [issue, externalIssue] = await Promise.all([
-				this.findOne(id),
-				this.getExternalIssue(id),
+				this.findOne(id, isDraft),
+				this.getExternalIssue(id, null, isDraft),
 			]);
 
 			if (!issue) {
@@ -338,15 +357,18 @@ export class IssuesService extends ApiFetchService {
 
 			// Calculate the final set of modules after additions and removals
 			const existingModules =
-				externalIssue?.modules.map((module) => module.id) || [];
-			const modules = new Set([...existingModules, ...added_modules]);
+				externalIssue?.modules?.map((module) => module.id) || [];
+			const modules = new Set([
+				...existingModules,
+				...added_modules.concat(module_ids),
+			]);
 			removed_modules.forEach((module) => modules.delete(module)); // Remove the modules marked for deletion
 
 			// Transform the input data for the update request
 			const body = updateIssueInputTransformer(
 				input,
 				state?.name as TaskStatusEnum,
-				project.members.map((member) => member.employee),
+				project.members?.map((member) => member.employee),
 				labels,
 				Array.from(modules),
 				project.modules,
@@ -364,7 +386,11 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			const updatedTask = await this.getExternalIssue(task.id);
+			const updatedTask = await this.getExternalIssue(
+				task.id,
+				null,
+				isDraft,
+			);
 
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
@@ -389,7 +415,7 @@ export class IssuesService extends ApiFetchService {
 			const { sub_issue_ids } = input;
 			const tasks: ITask[] = [];
 			const subIssues: IIssue[] = await Promise.all(
-				sub_issue_ids.map(async (issueId) => {
+				sub_issue_ids?.map(async (issueId) => {
 					const issue = await this.getExternalIssue(issueId);
 
 					await this.apiFetch({
@@ -449,7 +475,6 @@ export class IssuesService extends ApiFetchService {
 			let path = '';
 			// If a module is specified, modify the path accordingly
 			if (module) {
-				console.log({ module });
 				path = 'module';
 			}
 
@@ -544,7 +569,7 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			return tasks.items.map((task) => issueTransformer(task));
+			return tasks.items?.map((task) => issueTransformer(task));
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -800,7 +825,7 @@ export class IssuesService extends ApiFetchService {
 			]);
 
 			const issueComments: IIssueComment[] = await Promise.all(
-				comments.map(async (comment) => {
+				comments?.map(async (comment) => {
 					const reactions =
 						await this._commentService.findCommentReactions(
 							{
@@ -852,7 +877,7 @@ export class IssuesService extends ApiFetchService {
 			]);
 
 			const issueActivities = await Promise.all(
-				activityLogs.map(async (activityLog) => {
+				activityLogs?.map(async (activityLog) => {
 					const { actor, issue, project, workspace } =
 						await this.getIssueCommentDetails(
 							id,
@@ -881,14 +906,14 @@ export class IssuesService extends ApiFetchService {
 			const links = await this._issueLinkService.findAll(id);
 
 			const linkActivities = await Promise.all(
-				links.map(async (link) => {
+				links?.map(async (link) => {
 					const logs = await this._activityService.findAll({
 						entity: BaseEntityEnum.ResourceLink,
 						entityId: link.id,
 					});
 
 					const activities = await Promise.all(
-						logs.map(async (log) => {
+						logs?.map(async (log) => {
 							const { actor, issue, project, workspace } =
 								await this.getIssueCommentDetails(
 									id,
@@ -917,14 +942,14 @@ export class IssuesService extends ApiFetchService {
 				await this._issueRelationService.findAllByIssueId(id, true);
 
 			const issueRelationsActivities = await Promise.all(
-				issueRelations.map(async (issueRelation) => {
+				issueRelations?.map(async (issueRelation) => {
 					const logs = await this._activityService.findAll({
 						entity: BaseEntityEnum.TaskLinkedIssue,
 						entityId: issueRelation.id,
 					});
 
 					const activities = await Promise.all(
-						logs.map(async (log) => {
+						logs?.map(async (log) => {
 							const { actor, issue, project, workspace } =
 								await this.getIssueCommentDetails(
 									id,
@@ -1024,17 +1049,19 @@ export class IssuesService extends ApiFetchService {
 	async findIssueReactions(
 		options: Partial<IReaction>,
 		projectId: ID,
+		isDraft?: boolean,
 	): Promise<any> {
 		try {
-			const task = await this.getExternalIssue(options.entityId, [
-				'project.members.employee.user.role',
-				'project.tenant',
-			]);
+			const task = await this.getExternalIssue(
+				options.entityId,
+				['project.members.employee.user.role', 'project.tenant'],
+				isDraft,
+			);
 
 			const reactions = await this._reactionService.findAll(options);
 
 			const issueReactions: IReactionData[] = await Promise.all(
-				reactions.map(async (reaction) => {
+				reactions?.map(async (reaction) => {
 					const { actor, project, workspace } =
 						await this.getIssueCommentDetails(
 							options.entityId,
@@ -1254,7 +1281,7 @@ export class IssuesService extends ApiFetchService {
 			const links = await this._issueLinkService.findAll(id);
 
 			const issueLinks: IIssueLink[] = await Promise.all(
-				links.map(async (link) => {
+				links?.map(async (link) => {
 					const { actor, project } =
 						await this.getIssueCommentDetails(
 							id,
@@ -1299,7 +1326,7 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			return issues.items.map((issue) => issueTransformer(issue));
+			return issues.items?.map((issue) => issueTransformer(issue));
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);

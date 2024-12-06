@@ -78,7 +78,7 @@ export class IssuesController {
 	@ApiOperation({ summary: 'Find issue by ID' })
 	@Get(':id')
 	async findOne(@Param('id') id: ID) {
-		return await this._issueService.findOne(id);
+		return await this._issueService.findOne(id, false);
 	}
 
 	/**
@@ -107,7 +107,7 @@ export class IssuesController {
 		@Body() input: UpdateIssueDTO,
 		@Param('id') id: ID,
 	): Promise<IIssue> {
-		return await this._issueService.update(id, input);
+		return await this._issueService.update(id, input, false);
 	}
 
 	/**
@@ -467,6 +467,6 @@ export class IssuesController {
 		@Param('id') id: ID,
 		@Body() input: UpdateIssueDTO,
 	): Promise<IIssue> {
-		return await this._issueService.update(id, input);
+		return await this._issueService.update(id, input, false);
 	}
 }

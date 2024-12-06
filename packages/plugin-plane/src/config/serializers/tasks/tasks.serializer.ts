@@ -127,7 +127,7 @@ export function issueTransformer(
  *   The `type_id` is set to a static value.
  */
 export function parentableIssuesTransformer(issues: ITask[]) {
-	return issues.map((issue) => ({
+	return issues?.map((issue) => ({
 		id: issue.id,
 		name: issue.title,
 		start_date: issue.startDate,
@@ -289,7 +289,7 @@ export function userWorkNonGroupedIssues(
 		total_pages: 1,
 		total_results: issuesWithLinks.length,
 		extra_stats: null,
-		results: issuesWithLinks.map((issueLink) =>
+		results: issuesWithLinks?.map((issueLink) =>
 			issueTransformer(issueLink.issue, [], issueLink.issueLinks),
 		),
 	};
@@ -417,7 +417,7 @@ export function nonGroupedIssues(issues: ITask[]) {
 		total_pages: 1,
 		total_results: issues.length,
 		extra_stats: null,
-		results: issues.map((issue) => issueTransformer(issue)),
+		results: issues?.map((issue) => issueTransformer(issue)),
 	};
 }
 
@@ -512,10 +512,10 @@ export function createIssueInputTransformer(
 	status: TaskStatusEnum,
 ): ITaskCreateInput {
 	const tags = issue.label_ids
-		? issue.label_ids.map((id) => ({ id }) as ITag)
+		? issue.label_ids?.map((id) => ({ id }) as ITag)
 		: [];
 	const members = issue.assignee_ids
-		? issue.assignee_ids.map((id) => ({ id }) as IEmployee)
+		? issue.assignee_ids?.map((id) => ({ id }) as IEmployee)
 		: [];
 	return {
 		title: issue.name,
@@ -590,8 +590,8 @@ export function updateIssueInputTransformer(
 
 			if (issue.module_ids || issue.modules) {
 				acc['modules'] = modules
-					.filter((module) => modulesIds.includes(module.id))
-					.map((module) => ({ id: module.id, name: module.name }));
+					?.filter((module) => modulesIds.includes(module.id))
+					?.map((module) => ({ id: module.id, name: module.name }));
 			}
 
 			return acc;
@@ -602,15 +602,15 @@ export function updateIssueInputTransformer(
 	// Add tags only if label_ids is defined
 	if (issue.label_ids) {
 		transformedInput.tags = tags
-			.filter((tag) => issue.label_ids.includes(tag.id))
-			.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
+			?.filter((tag) => issue.label_ids.includes(tag.id))
+			?.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
 	}
 
 	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
 		transformedInput.members = members
-			.filter((member) => issue.assignee_ids.includes(member.id))
-			.map((employee) => ({
+			?.filter((member) => issue.assignee_ids.includes(member.id))
+			?.map((employee) => ({
 				id: employee.id,
 				fullName: employee.fullName,
 				userId: employee.userId,
@@ -685,7 +685,7 @@ export function issuesByPriority(
 	};
 
 	// Count tasks for each priority
-	return Object.entries(priorityMapping).map(([priority, value]) => ({
+	return Object.entries(priorityMapping)?.map(([priority, value]) => ({
 		priority,
 		count: tasks.filter(
 			(task) =>

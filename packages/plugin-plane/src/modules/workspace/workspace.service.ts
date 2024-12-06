@@ -20,6 +20,7 @@ import {
 	IIssueLabel,
 	IssueOrderByField,
 	IIssueCreateInput,
+	IIssueUpdateInput,
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -1127,6 +1128,10 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async createDraftIssue(input: IIssueCreateInput): Promise<IIssue> {
 		return await this._draftIssueService.create(input);
+	}
+
+	async updateDraftIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
+		return await this._draftIssueService.update(id, input);
 	}
 
 	/**

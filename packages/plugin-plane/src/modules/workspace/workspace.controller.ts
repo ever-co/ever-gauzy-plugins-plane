@@ -12,6 +12,7 @@ import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
 	ICycle,
+	ID,
 	IIssueFindInput,
 	IIssueLabel,
 	IModule,
@@ -94,8 +95,10 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user stats' })
 	@Get('user-stats/:id')
-	async findUserWorkSummary(): Promise<IUserStatsResponse> {
-		return await this._workspaceService.findUserWorkSummary();
+	async findUserWorkSummary(
+		@Param('id') employeeId: ID,
+	): Promise<IUserStatsResponse> {
+		return await this._workspaceService.findUserWorkSummary(employeeId);
 	}
 
 	/**
@@ -107,9 +110,13 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get user recent activities' })
 	@Get('user-activity/:id')
 	async findUserRecentActivity(
+		@Param('id') employeeId: ID,
 		@Query('per_page') per_page: number,
 	): Promise<any> {
-		return await this._workspaceService.findUserRecentActivity(per_page);
+		return await this._workspaceService.findUserRecentActivity(
+			per_page,
+			employeeId,
+		);
 	}
 
 	/**
@@ -121,8 +128,8 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user profile and project data' })
 	@Get('user-profile/:id')
-	async findUserProjectsData(): Promise<any> {
-		return await this._workspaceService.findUserProjectsData();
+	async findUserProjectsData(@Param('id') employeeId: ID): Promise<any> {
+		return await this._workspaceService.findUserProjectsData(employeeId);
 	}
 
 	/**

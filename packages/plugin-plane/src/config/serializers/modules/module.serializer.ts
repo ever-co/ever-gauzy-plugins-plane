@@ -59,7 +59,6 @@ export function getTaskCounts(tasks: ITask[]) {
 export function modulesTransformer(
 	modules: IOrganizationProjectModule[] | IOrganizationProjectModule,
 	favoriteIds?: ID[],
-	managerId?: ID,
 ): IModule[] | IModule {
 	const transformModule = (projectModule: IOrganizationProjectModule) => {
 		const {
@@ -70,6 +69,9 @@ export function modulesTransformer(
 		} = getTaskCounts(projectModule?.tasks);
 
 		const isFavorite = favoriteIds?.includes(projectModule.id);
+		const leadId = projectModule.members?.filter(
+			(member) => member.isManager && member.roleId,
+		)[0]?.employeeId;
 
 		return {
 			id: projectModule.id,
@@ -81,7 +83,7 @@ export function modulesTransformer(
 			start_date: projectModule.startDate,
 			target_date: projectModule.endDate,
 			project_id: projectModule.projectId,
-			lead_id: managerId ?? projectModule.managerId,
+			lead_id: leadId,
 			view_props: {},
 			sort_order: 0,
 			external_id: null,
@@ -98,7 +100,9 @@ export function modulesTransformer(
 			total_issues: projectModule.tasks?.length,
 			completed_estimate_points: 0,
 			total_estimate_points: 0,
-			member_ids: projectModule?.members?.map((member) => member.id),
+			member_ids: projectModule?.members?.map(
+				(member) => member.employeeId,
+			),
 			workspace_id: projectModule.tenantId,
 			...moduleDetailsAdapter(projectModule),
 		};
@@ -147,7 +151,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 
 	// Module members
 	const assignees = module?.members?.map((member) => {
-		const user = member?.user;
+		const user = member?.employee?.user;
 
 		let totalIssues = 0;
 		let completedIssues = 0;
@@ -174,7 +178,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 			first_name: user?.firstName,
 			last_name: user?.lastName,
 			assignee_id: member.id,
-			display_name: member.fullName,
+			display_name: member.employee.fullName,
 			avatar: user?.imageUrl,
 			total_issues: totalIssues,
 			completed_issues: completedIssues,
@@ -203,11 +207,11 @@ export function createModuleInputTransformer(
 	return {
 		name: module.name,
 		description: module.description,
-		managerId,
 		status: module.status as ProjectModuleStatusEnum,
 		startDate: module.start_date,
 		endDate: module.target_date,
-		members: (module.member_ids ?? []).map((id) => ({ id })),
+		memberIds: (module.member_ids ?? []).map((id) => id),
+		managerIds: [managerId],
 		projectId: module.project_id,
 		tenantId: defaultTestTenantId(),
 		organizationId: defaultOrganizationId(),
@@ -218,9 +222,7 @@ export const moduleRelations = [
 	'parent',
 	'project',
 	'creator',
-	'manager',
-	'members',
-	'members.user',
+	'members.employee.user',
 	'children',
 	'tasks',
 	'tasks.tags',

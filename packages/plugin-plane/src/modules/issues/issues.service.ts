@@ -301,9 +301,15 @@ export class IssuesService extends ApiFetchService {
 			const { modules: added_modules = [], removed_modules = [] } = input;
 
 			// Fetch the state only if a state_id is provided
-			const state = input.state_id
-				? await this._stateSerive.getOne(input.state_id)
-				: undefined;
+			let state: IState | undefined;
+
+			try {
+				if (input.state_id) {
+					state = await this._stateSerive.getOne(input.state_id);
+				}
+			} catch (error: any) {
+				console.log(error.response);
+			}
 
 			// Retrieve the existing issue and external issue details simultaneously
 			const [issue, externalIssue] = await Promise.all([

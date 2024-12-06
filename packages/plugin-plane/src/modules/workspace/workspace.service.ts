@@ -359,12 +359,27 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findRecentCollaborators(): Promise<IRecentCollaborator[]> {
 		try {
-			const employees = (await this.getWorkspaceMembers()).slice(0, 10);
+			const employees = await this.getWorkspaceMembers();
 
-			return employees.map((employee) => ({
-				user_id: employee.member.id,
-				active_issue_count: 0, // Find a way  to make this working
-			}));
+			const collaborators = await Promise.all(
+				employees.map(async (employee) => {
+					const tasks: ITask[] =
+						await this._issueService.findExternalByEmployee(
+							employee.member.id,
+							['taskStatus'],
+						);
+					const { startedIssues, unstartedIssues } =
+						getTaskCounts(tasks);
+
+					return {
+						user_id: employee.member.id,
+						active_issue_count: startedIssues + unstartedIssues,
+					};
+				}),
+			);
+			return collaborators.sort(
+				(a, b) => b.active_issue_count - a.active_issue_count,
+			);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);
@@ -422,8 +437,9 @@ export class WorkspaceService extends ApiFetchService {
 	async findMyAssignedIssues(
 		target_date?: string,
 		issue_type?: DashboardIssueTypeEnum,
+		employee?: ID,
 	) {
-		const employeeId = defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
+		const employeeId = employee || defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
 		return this.getIssues(
 			employeeId,
 			'employeeId',
@@ -566,11 +582,14 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * @throws {BadRequestException} If an error occurs during the retrieval or processing of activity logs.
 	 */
-	async findRecentIssueActivity(length?: number): Promise<any> {
+	async findRecentIssueActivity(
+		length?: number,
+		employeeId?: ID,
+	): Promise<any> {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				creatorId: defaultUserId(), // Use authenticated user ID
+				creatorId: defaultUserId() || employeeId, // Use authenticated user ID
 			});
 
 			const issueActivities = await Promise.all(
@@ -759,13 +778,12 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * @throws {BadRequestException} If an error occurs during the retrieval of work statistics.
 	 */
-	async findUserWorkSummary(): Promise<IUserStatsResponse> {
+	async findUserWorkSummary(employeeId: ID): Promise<IUserStatsResponse> {
 		try {
 			const assignedIssues =
-				await this._issueService.findExternalByEmployee(
-					defaultEmployeeId(),
-					['taskStatus'],
-				);
+				await this._issueService.findExternalByEmployee(employeeId, [
+					'taskStatus',
+				]);
 
 			const subscribedIssues = await this.findUserSubscribedIssues([]);
 
@@ -805,9 +823,15 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 * @returns {Promise<Object>} A promise that resolves with a structured response containing user activity details.
 	 */
-	async findUserRecentActivity(per_page: number): Promise<any> {
+	async findUserRecentActivity(
+		per_page: number,
+		employeeId: ID,
+	): Promise<any> {
 		try {
-			const activities = await this.findRecentIssueActivity(per_page);
+			const activities = await this.findRecentIssueActivity(
+				per_page,
+				employeeId,
+			);
 			return {
 				grouped_by: null,
 				sub_grouped_by: null,
@@ -837,9 +861,10 @@ export class WorkspaceService extends ApiFetchService {
 	 * @throws {BadRequestException} If an error occurs during the data retrieval or transformation process.
 	 *
 	 */
-	async findUserProjectsData(): Promise<IUserProjectsDataResponse> {
+	async findUserProjectsData(
+		employeeId: ID,
+	): Promise<IUserProjectsDataResponse> {
 		try {
-			const employeeId = defaultEmployeeId(); // TODO : Change this with real connected employee ID
 			const userId = defaultUserId(); // TODO : Change this with real connected user ID
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(

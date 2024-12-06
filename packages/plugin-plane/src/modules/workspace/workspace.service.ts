@@ -1128,4 +1128,13 @@ export class WorkspaceService extends ApiFetchService {
 	async createDraftIssue(input: IIssueCreateInput): Promise<IIssue> {
 		return await this._draftIssueService.create(input);
 	}
+
+	/**
+	 * Retrieves all draft issues.
+	 *
+	 * @returns {Promise<any>} A promise that resolves to a list of transformed issues.
+	 */
+	async findDraftIssues(): Promise<any> {
+		return await this._draftIssueService.findAll();
+	}
 }

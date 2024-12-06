@@ -440,6 +440,7 @@ export const getTaskQuery = (
 	options?: IIssueFindInput,
 	relations?: string[],
 	orderByField?: IssueOrderByField,
+	isDraft: boolean = false,
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
@@ -458,6 +459,8 @@ export const getTaskQuery = (
 	if (options?.creatorId) {
 		query['where[creatorId]'] = options.creatorId;
 	}
+
+	query['where[isDraft]'] = isDraft;
 
 	// Add relations
 	if (relations) {

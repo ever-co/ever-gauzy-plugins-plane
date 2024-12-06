@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { IIssue, IIssueCreateInput } from '@plane-plugin/models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import { IssuesService } from '../issues.service';
+import { nonGroupedIssues } from '../../../config';
 
 @Injectable()
 export class DraftIssuesService extends ApiFetchService {
@@ -27,6 +28,28 @@ export class DraftIssuesService extends ApiFetchService {
 				...input,
 				is_draft: true, // Ensures the issue is marked as a draft
 			});
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Retrieves all draft issues.
+	 *
+	 * @returns {Promise<any>} A promise that resolves to a list of transformed issues.
+	 * @throws {BadRequestException} Throws an exception if the retrieval or processing of issues fails.
+	 */
+	async findAll(): Promise<any> {
+		try {
+			const tasks = await this._issueService.findAllExternal(
+				{},
+				null,
+				null,
+				true,
+			);
+
+			return nonGroupedIssues(tasks.items);
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error.response);

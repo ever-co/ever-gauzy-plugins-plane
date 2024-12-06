@@ -112,17 +112,18 @@ export class IssuesService extends ApiFetchService {
 	 * Sends a GET request to an external API to fetch tasks based on the provided options.
 	 *
 	 * @param {ITask} options - Optional task filters or configurations to customize the query.
-	 * @returns {Promise<ITask[]>} A promise that resolves to an array of tasks.
+	 * @returns {Promise<IPagination<ITask>>} A promise that resolves to an array of tasks.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
 	async findAllExternal(
 		options: ITask,
 		relations?: string[],
 		orderByField?: IssueOrderByField,
+		isDraft: boolean = false,
 	): Promise<IPagination<ITask>> {
 		try {
 			const query = qs.stringify(
-				getTaskQuery(null, options, relations, orderByField),
+				getTaskQuery(null, options, relations, orderByField, isDraft),
 			);
 
 			return (
@@ -525,9 +526,15 @@ export class IssuesService extends ApiFetchService {
 	 * @returns {Promise<IIssue[]>} A promise that resolves to a list of transformed issues.
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
-	async findAll(options?: ITask, relations?: string[]): Promise<IIssue[]> {
+	async findAll(
+		options?: ITask,
+		relations?: string[],
+		isDraft: boolean = false,
+	): Promise<IIssue[]> {
 		try {
-			const query = qs.stringify(getTaskQuery(null, options, relations));
+			const query = qs.stringify(
+				getTaskQuery(null, options, relations, null, isDraft),
+			);
 
 			const tasks: IPagination<ITask> = (
 				await this.apiFetch({

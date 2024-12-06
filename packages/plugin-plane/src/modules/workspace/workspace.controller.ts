@@ -243,4 +243,16 @@ export class WorkspaceController {
 	async createDraftIssue(@Body() input: CreateIssueDTO): Promise<IIssue> {
 		return await this._workspaceService.createDraftIssue(input);
 	}
+
+	/**
+	 * Retrieves all draft issues.
+	 *
+	 * @returns {Promise<any>} A promise that resolves to a list of transformed issues.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find draft issues' })
+	@Get('draft-issues')
+	async findDraftIssues(): Promise<any> {
+		return await this._workspaceService.findDraftIssues();
+	}
 }

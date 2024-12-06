@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable,
+} from '@nestjs/common';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
@@ -60,8 +65,9 @@ import { DraftIssuesService } from '../issues/draft-issues/draft-issues.service'
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
 	constructor(
-		private readonly _issueService: IssuesService,
+		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
+		private readonly _issueService: IssuesService,
 		private readonly _activityService: ActivityService,
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _subscriptionService: SubscriptionService,
@@ -244,6 +250,7 @@ export class WorkspaceService extends ApiFetchService {
 			deleted_at: null,
 			role: 20,
 			company_role: '',
+			// draft_issue_count: 2,
 			view_props: {
 				filters: {
 					state: null,
@@ -1130,6 +1137,13 @@ export class WorkspaceService extends ApiFetchService {
 		return await this._draftIssueService.create(input);
 	}
 
+	/**
+	 * Updates an issue with the given ID and input data, ensuring it remains a draft.
+	 *
+	 * @param {ID} id - The unique identifier of the issue to update.
+	 * @param {IIssueUpdateInput} input - The data to update the issue with.
+	 * @returns {Promise<IIssue>} A promise that resolves to the updated issue.
+	 */
 	async updateDraftIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
 		return await this._draftIssueService.update(id, input);
 	}

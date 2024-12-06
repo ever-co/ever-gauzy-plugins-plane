@@ -9,6 +9,7 @@ export async function bootstrap() {
 			'auth/:authEndPoint',
 			'api/users/me',
 			'api/users/me/:slug',
+			'api/users/me/workspaces/:workspace_name/project-roles',
 			'api/instances',
 			'api/dashboard/:id/:dashboardEndpoint',
 			'api/dashboard/:id/:dashboardEndpoint/:endPointParam',

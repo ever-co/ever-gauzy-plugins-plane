@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { WorkspaceService } from './workspace.service';
 import { WorkspaceController } from './workspace.controller';
@@ -11,7 +11,7 @@ import { DraftIssuesModule } from '../issues/draft-issues/draft-issues.module';
 @Module({
 	imports: [
 		RouterModule.register([{ path: '/', module: WorkspaceModule }]),
-		ProjectModule,
+		forwardRef(() => ProjectModule),
 		IssuesModule,
 		IssueLinksModule,
 		SubscriptionModule,

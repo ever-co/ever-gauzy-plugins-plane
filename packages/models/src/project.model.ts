@@ -36,9 +36,9 @@ export interface IProject {
 	cycle_view?: true;
 	issue_views_view?: true;
 	page_view?: true;
-	inbox_view?: false;
-	is_time_tracking_enabled?: false;
-	is_issue_type_enabled?: false;
+	inbox_view?: boolean;
+	is_time_tracking_enabled?: boolean;
+	is_issue_type_enabled?: boolean;
 	cover_image?: string;
 	archive_in?: number;
 	close_in?: number;

@@ -69,42 +69,42 @@ export function modulesTransformer(
 		} = getTaskCounts(projectModule?.tasks);
 
 		const isFavorite = favoriteIds?.includes(projectModule.id);
-		const leadId = projectModule.members?.filter(
+		const leadId = projectModule?.members?.filter(
 			(member) => member.isManager && member.roleId,
 		)[0]?.employeeId;
 
 		return {
-			id: projectModule.id,
-			name: projectModule.name,
-			status: projectModule.status,
-			description: projectModule.description,
-			description_html: projectModule.description,
-			description_text: projectModule.description,
-			start_date: projectModule.startDate,
-			target_date: projectModule.endDate,
-			project_id: projectModule.projectId,
+			id: projectModule?.id,
+			name: projectModule?.name,
+			status: projectModule?.status,
+			description: projectModule?.description,
+			description_html: projectModule?.description,
+			description_text: projectModule?.description,
+			start_date: projectModule?.startDate,
+			target_date: projectModule?.endDate,
+			project_id: projectModule?.projectId,
 			lead_id: leadId,
 			view_props: {},
 			sort_order: 0,
 			external_id: null,
 			external_source: null,
 			logo_props: {},
-			created_at: projectModule.createdAt,
-			updated_at: projectModule.updatedAt,
+			created_at: projectModule?.createdAt,
+			updated_at: projectModule?.updatedAt,
 			is_favorite: isFavorite,
 			completed_issues: completedIssues,
 			started_issues: startedIssues,
 			unstarted_issues: unstartedIssues,
 			backlog_issues: backlogIssues,
 			cancelled_issues: 0,
-			total_issues: projectModule.tasks?.length,
+			total_issues: projectModule?.tasks?.length,
 			completed_estimate_points: 0,
 			total_estimate_points: 0,
 			member_ids: projectModule?.members?.map(
 				(member) => member.employeeId,
 			),
-			workspace_id: projectModule.tenantId,
-			...moduleDetailsAdapter(projectModule),
+			workspace_id: projectModule?.tenantId,
+			...(projectModule ? moduleDetailsAdapter(projectModule) : {}),
 		};
 	};
 
@@ -116,7 +116,7 @@ export function modulesTransformer(
 }
 
 export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
-	const tasks = module.tasks;
+	const tasks = module?.tasks;
 
 	const labelMap = new Map<string, any>();
 
@@ -177,8 +177,8 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		return {
 			first_name: user?.firstName,
 			last_name: user?.lastName,
-			assignee_id: member.id,
-			display_name: member.employee.fullName,
+			assignee_id: member?.id,
+			display_name: member?.employee.fullName,
 			avatar: user?.imageUrl,
 			total_issues: totalIssues,
 			completed_issues: completedIssues,
@@ -195,7 +195,9 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		distribution: {
 			assignees,
 			labels,
-			completion_chart: completionChartMapping(module),
+			completion_chart: {
+				...(module ? completionChartMapping(module) : {}),
+			},
 		},
 	};
 }

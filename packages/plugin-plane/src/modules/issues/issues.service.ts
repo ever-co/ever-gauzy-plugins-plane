@@ -411,7 +411,7 @@ export class IssuesService extends ApiFetchService {
 			const { sub_issue_ids } = input;
 			const tasks: ITask[] = [];
 			const subIssues: IIssue[] = await Promise.all(
-				sub_issue_ids?.map(async (issueId) => {
+				(sub_issue_ids ?? []).map(async (issueId) => {
 					const issue = await this.getExternalIssue(
 						issueId,
 						null,
@@ -830,7 +830,7 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			const issueComments: IIssueComment[] = await Promise.all(
-				comments?.map(async (comment) => {
+				(comments ?? []).map(async (comment) => {
 					const reactions =
 						await this._commentService.findCommentReactions(
 							{
@@ -883,7 +883,7 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			const issueActivities = await Promise.all(
-				activityLogs?.map(async (activityLog) => {
+				(activityLogs ?? []).map(async (activityLog) => {
 					const { actor, issue, project, workspace } =
 						await this.getIssueCommentDetails(
 							id,
@@ -912,14 +912,14 @@ export class IssuesService extends ApiFetchService {
 			const links = await this._issueLinkService.findAll(id);
 
 			const linkActivities = await Promise.all(
-				links?.map(async (link) => {
+				(links ?? []).map(async (link) => {
 					const logs = await this._activityService.findAll({
 						entity: BaseEntityEnum.ResourceLink,
 						entityId: link.id,
 					});
 
 					const activities = await Promise.all(
-						logs?.map(async (log) => {
+						(logs ?? []).map(async (log) => {
 							const { actor, issue, project, workspace } =
 								await this.getIssueCommentDetails(
 									id,
@@ -948,14 +948,14 @@ export class IssuesService extends ApiFetchService {
 				await this._issueRelationService.findAllByIssueId(id, true);
 
 			const issueRelationsActivities = await Promise.all(
-				issueRelations?.map(async (issueRelation) => {
+				(issueRelations ?? []).map(async (issueRelation) => {
 					const logs = await this._activityService.findAll({
 						entity: BaseEntityEnum.TaskLinkedIssue,
 						entityId: issueRelation.id,
 					});
 
 					const activities = await Promise.all(
-						logs?.map(async (log) => {
+						(logs ?? []).map(async (log) => {
 							const { actor, issue, project, workspace } =
 								await this.getIssueCommentDetails(
 									id,
@@ -1068,7 +1068,7 @@ export class IssuesService extends ApiFetchService {
 			const reactions = await this._reactionService.findAll(options);
 
 			const issueReactions: IReactionData[] = await Promise.all(
-				reactions?.map(async (reaction) => {
+				(reactions ?? []).map(async (reaction) => {
 					const { actor, project, workspace } =
 						await this.getIssueCommentDetails(
 							options.entityId,
@@ -1288,7 +1288,7 @@ export class IssuesService extends ApiFetchService {
 			const links = await this._issueLinkService.findAll(id);
 
 			const issueLinks: IIssueLink[] = await Promise.all(
-				links?.map(async (link) => {
+				(links ?? []).map(async (link) => {
 					const { actor, project } =
 						await this.getIssueCommentDetails(
 							id,

@@ -37,17 +37,17 @@ export function getProjectsResponse(
 		const isFavorite = favoriteIds?.includes(project.id);
 
 		// Ensure safe access to `project.members` to find the first manager
-		const manager = Array.isArray(project.members)
+		const manager = Array.isArray(project?.members)
 			? project.members.find((member) => member.isManager)
 			: null;
 
 		return {
-			id: project.id,
+			id: project?.id,
 			is_favorite: isFavorite, // To be implemented after Auth,
-			total_members: project.membersCount,
-			total_cycles: project.organizationSprints?.length || 0,
-			total_issues: project.tasks?.length || 0,
-			total_modules: project.modules?.length || 0,
+			total_members: project?.membersCount,
+			total_cycles: project?.organizationSprints?.length || 0,
+			total_issues: project?.tasks?.length || 0,
+			total_modules: project?.modules?.length || 0,
 			is_member: true, // Research and know what it is exactly
 			sort_order: 66373.5, // Research and know what it is exactly
 			member_role: 20, // Seems it should be a project creator/owner/etc. role associated to that user.
@@ -55,40 +55,41 @@ export function getProjectsResponse(
 			members,
 			state_id: null, // Research and know what it is exactly,
 			priority: null, // To add for external API
-			start_date: project.startDate,
-			target_date: project.endDate,
-			created_at: project.createdAt,
-			updated_at: project.updatedAt,
-			deleted_at: project.deletedAt,
-			name: project.name,
-			description: project.description,
+			start_date: project?.startDate,
+			target_date: project?.endDate,
+			created_at: project?.createdAt,
+			updated_at: project?.updatedAt,
+			deleted_at: project?.deletedAt,
+			name: project?.name,
+			description: project?.description,
 			description_text: null, // To add for external API
 			description_html: null, // To add for external API
-			network: project.public ? 2 : 0,
-			identifier: project.code || project.name?.slice(0, 4).toUpperCase(),
+			network: project?.public ? 2 : 0,
+			identifier:
+				project?.code || project?.name?.slice(0, 4).toUpperCase(),
 			emoji: null, // To add for external API
 			icon_prop: null, // To add for external API
 			module_view: true, // To add for external API
 			cycle_view: true, // To add for external API
 			issue_views_view: true, // To add for external API
 			page_view: true, // To add for external API
-			inbox_view: false, // To add for external API
-			is_time_tracking_enabled: false, // To add for external API
-			is_issue_type_enabled: false, // To add for external API
-			cover_image: project.imageUrl,
-			archive_in: project.archiveTasksIn,
-			close_in: project.closeTasksIn,
+			inbox_view: true, // To add for external API
+			is_time_tracking_enabled: true, // To add for external API
+			is_issue_type_enabled: true, // To add for external API
+			cover_image: project?.imageUrl,
+			archive_in: project?.archiveTasksIn,
+			close_in: project?.closeTasksIn,
 			logo_props: {
 				emoji: {
 					value: '127891',
 				},
 				in_use: 'emoji',
 			},
-			archived_at: project.archivedAt,
+			archived_at: project?.archivedAt,
 			created_by: defaultEmployeeId(), // To add for external API
 			updated_by: defaultEmployeeId(), // To add for external API
-			workspace: project.tenantId,
-			default_assignee: project.defaultAssigneeId,
+			workspace: project?.tenantId,
+			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
 			estimate: null, // To add for external API
 			default_state: null, // To add for external API

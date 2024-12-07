@@ -72,46 +72,46 @@ export function issueTransformer(
 	is_subscribed?: boolean,
 ): IIssue {
 	return {
-		id: issue.id,
-		name: issue.title,
-		state: issue.status,
-		state_id: issue.taskStatusId,
+		id: issue?.id,
+		name: issue?.title,
+		state: issue?.status,
+		state_id: issue?.taskStatusId,
 		sort_order: 65535.0, // TODO : Research usecase and add to API
-		completed_at: issue.resolvedAt,
+		completed_at: issue?.resolvedAt,
 		estimate_point: null, // TODO : Research usecase and add to API
-		priority: issue.priority?.toLocaleLowerCase() as TaskPriorityEnum,
-		start_date: issue.startDate,
-		target_date: issue.dueDate,
-		sequence_id: issue.number,
-		project_id: issue.projectId,
-		parent_id: issue.parentId,
+		priority: issue?.priority?.toLocaleLowerCase() as TaskPriorityEnum,
+		start_date: issue?.startDate,
+		target_date: issue?.dueDate,
+		sequence_id: issue?.number,
+		project_id: issue?.projectId,
+		parent_id: issue?.parentId,
 		parent: {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
 			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
-			sequence_id: issue.parent?.number,
+			sequence_id: issue?.parent?.number,
 		},
-		created_at: issue.createdAt,
-		updated_at: issue.updatedAt,
-		created_by: issue.creatorId,
-		updated_by: issue.creatorId,
-		is_draft: issue.isDraft,
+		created_at: issue?.createdAt,
+		updated_at: issue?.updatedAt,
+		created_by: issue?.creatorId,
+		updated_by: issue?.creatorId,
+		is_draft: issue?.isDraft,
 		is_subscribed,
-		archived_at: issue.archivedAt,
-		state__group: stateGroup(issue.taskStatus),
+		archived_at: issue?.archivedAt,
+		state__group: stateGroup(issue?.taskStatus),
 		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
-		description_html: issue.description ?? '<p></p>',
-		cycle_id: issue.organizationSprintId,
+		description_html: issue?.description ?? '<p></p>',
+		cycle_id: issue?.organizationSprintId,
 		link_count: links?.length || 0,
 		attachment_count: 0, // TODO : Add to API,
-		sub_issues_count: issue.children?.length,
+		sub_issues_count: issue?.children?.length,
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
-		module_ids: issue.modules?.map(({ id }) => id),
+		module_ids: issue?.modules?.map(({ id }) => id),
 		issue_reactions: reactions || [],
-		issue_relation: issueRelationTransformer(issue.linkedIssues) || [],
+		issue_relation: issueRelationTransformer(issue?.linkedIssues) || [],
 		issue_link: links || [],
-		cycle: issue.organizationSprint,
+		cycle: issue?.organizationSprint,
 	};
 }
 
@@ -280,14 +280,14 @@ export function userWorkNonGroupedIssues(
 	return {
 		grouped_by: null,
 		sub_grouped_by: null,
-		total_count: issuesWithLinks.length,
+		total_count: issuesWithLinks?.length,
 		next_cursor: null,
 		prev_cursor: null,
 		next_page_results: false,
 		prev_page_results: false,
-		count: issuesWithLinks.length,
+		count: issuesWithLinks?.length,
 		total_pages: 1,
-		total_results: issuesWithLinks.length,
+		total_results: issuesWithLinks?.length,
 		extra_stats: null,
 		results: issuesWithLinks?.map((issueLink) =>
 			issueTransformer(issueLink.issue, [], issueLink.issueLinks),
@@ -408,14 +408,14 @@ export function nonGroupedIssues(issues: ITask[]) {
 	return {
 		grouped_by: null,
 		sub_grouped_by: null,
-		total_count: issues.length,
+		total_count: issues?.length,
 		next_cursor: '30:1:0',
 		prev_cursor: '30:-1:1',
 		next_page_results: false,
 		prev_page_results: false,
-		count: issues.length,
+		count: issues?.length,
 		total_pages: 1,
-		total_results: issues.length,
+		total_results: issues?.length,
 		extra_stats: null,
 		results: issues?.map((issue) => issueTransformer(issue)),
 	};
@@ -513,30 +513,30 @@ export function createIssueInputTransformer(
 	issue: IIssueCreateInput,
 	status: TaskStatusEnum,
 ): ITaskCreateInput {
-	const tags = issue.label_ids
-		? issue.label_ids?.map((id) => ({ id }) as ITag)
+	const tags = issue?.label_ids
+		? issue?.label_ids?.map((id) => ({ id }) as ITag)
 		: [];
-	const members = issue.assignee_ids
-		? issue.assignee_ids?.map((id) => ({ id }) as IEmployee)
+	const members = issue?.assignee_ids
+		? issue?.assignee_ids?.map((id) => ({ id }) as IEmployee)
 		: [];
 	return {
-		title: issue.name,
-		description: issue.description_html,
-		priority: issue.priority,
-		startDate: issue.start_date,
-		dueDate: issue.target_date,
-		projectId: issue.project_id,
+		title: issue?.name,
+		description: issue?.description_html,
+		priority: issue?.priority,
+		startDate: issue?.start_date,
+		dueDate: issue?.target_date,
+		projectId: issue?.project_id,
 		isDraft: issue?.is_draft || false,
 		status,
 		tags,
 		members,
-		organizationSprintId: issue.cycle_id,
-		parentId: issue.parent_id,
-		taskStatusId: issue.state_id?.length > 0 ? issue.state_id : null,
+		organizationSprintId: issue?.cycle_id,
+		parentId: issue?.parent_id,
+		taskStatusId: issue?.state_id?.length > 0 ? issue?.state_id : null,
 		tenantId: defaultTestTenantId(),
 		organizationId: defaultOrganizationId(),
 		modules:
-			issue.module_ids?.map(
+			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule,
 			) || [],
 	};

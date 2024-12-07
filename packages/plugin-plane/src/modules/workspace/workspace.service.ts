@@ -1042,7 +1042,7 @@ export class WorkspaceService extends ApiFetchService {
 			const modules = projects.map((project) => project.modules).flat();
 
 			const transformedModules = modulesTransformer(
-				Array.isArray(modules) ? modules : modules,
+				Array.isArray(modules) ? modules : [modules],
 			);
 
 			return Array.isArray(transformedModules)
@@ -1075,7 +1075,7 @@ export class WorkspaceService extends ApiFetchService {
 				.flat();
 
 			const transformedSprints = cycleTransformer(
-				Array.isArray(cycles) ? cycles : cycles,
+				Array.isArray(cycles) ? cycles : [cycles],
 			);
 
 			return Array.isArray(transformedSprints)

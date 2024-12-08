@@ -2,7 +2,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -12,7 +12,7 @@ import {
 	ID,
 	IFavorite,
 	IFavoriteData,
-	IPagination,
+	IPagination
 } from '@plane-plugin/models';
 import {
 	apiFavoriteEntityToProxy,
@@ -20,7 +20,7 @@ import {
 	defaultOrganizationId,
 	favoriteTransformer,
 	getFavoriteQuery,
-	modulesTransformer,
+	modulesTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -38,7 +38,7 @@ export class UserFavoritesService extends ApiFetchService {
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 		private readonly _issueViewService: IssueViewService,
-		private readonly _cycleService: CyclesService,
+		private readonly _cycleService: CyclesService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -55,7 +55,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const { entity_identifier, entity_type, project_id } = input;
 			const body = {
 				...createFavoriteInputTransformer(input),
-				organizationId: defaultOrganizationId(),
+				organizationId: defaultOrganizationId()
 			};
 
 			// Create the favorite entity
@@ -63,7 +63,7 @@ export class UserFavoritesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -72,7 +72,7 @@ export class UserFavoritesService extends ApiFetchService {
 				[FavoriteEntityTypeEnum.MODULE]: () =>
 					this._projectModuleService.getModule(
 						entity_identifier,
-						project_id,
+						project_id
 					),
 
 				[FavoriteEntityTypeEnum.PROJECT]: () =>
@@ -82,7 +82,7 @@ export class UserFavoritesService extends ApiFetchService {
 					this._issueViewService.findOne(entity_identifier),
 
 				[FavoriteEntityTypeEnum.CYCLE]: () =>
-					this._cycleService.findOne(entity_identifier, project_id),
+					this._cycleService.findOne(entity_identifier, project_id)
 			};
 
 			// Retrieve entity data if available
@@ -96,7 +96,7 @@ export class UserFavoritesService extends ApiFetchService {
 				projectId:
 					entity_type === FavoriteEntityTypeEnum.PROJECT
 						? entityData.id
-						: entityData.project_id || entityData.project,
+						: entityData.project_id || entityData.project
 			});
 		} catch (error) {
 			console.log(error);
@@ -117,7 +117,7 @@ export class UserFavoritesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/employee`,
-					query,
+					query
 				})
 			).data;
 			const favoritesItems = favorites.items;
@@ -126,7 +126,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const enrichedFavorites = await Promise.all(
 				favoritesItems.map(async (favorite) => {
 					const entityType = apiFavoriteEntityToProxy(
-						favorite.entity,
+						favorite.entity
 					);
 					let entityData: any = null;
 
@@ -137,8 +137,8 @@ export class UserFavoritesService extends ApiFetchService {
 								await this._projectModuleService.getExternalModule(
 									favorite.entityId,
 									null,
-									['creator'],
-								),
+									['creator']
+								)
 							);
 							entityData = module;
 							break;
@@ -146,7 +146,7 @@ export class UserFavoritesService extends ApiFetchService {
 						case FavoriteEntityTypeEnum.PROJECT:
 							entityData = await this._projectService.getProject(
 								favorite.entityId,
-								['members'],
+								['members']
 							);
 							break;
 
@@ -155,7 +155,7 @@ export class UserFavoritesService extends ApiFetchService {
 								await this._issueViewService.getExternalView(
 									favorite.entityId,
 									null,
-									['project'],
+									['project']
 								);
 							break;
 
@@ -164,7 +164,7 @@ export class UserFavoritesService extends ApiFetchService {
 								await this._cycleService.getExternalSprint(
 									favorite.entityId,
 									null,
-									['project'],
+									['project']
 								);
 							break;
 
@@ -177,9 +177,9 @@ export class UserFavoritesService extends ApiFetchService {
 						projectId:
 							entityType === FavoriteEntityTypeEnum.PROJECT
 								? entityData.id
-								: entityData?.project_id || null,
+								: entityData?.project_id || null
 					});
-				}),
+				})
 			);
 
 			// Return transformed favorites
@@ -197,7 +197,7 @@ export class UserFavoritesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/employee`,
-					query,
+					query
 				})
 			).data;
 
@@ -219,7 +219,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const deleted = (
 				await this.apiFetch({
 					method: 'DELETE',
-					path: `${this.path}/${id}`,
+					path: `${this.path}/${id}`
 				})
 			).data;
 

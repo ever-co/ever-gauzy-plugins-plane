@@ -26,7 +26,7 @@ export class InstancesService {
 			is_verified: true,
 			created_by: null,
 			updated_by: null,
-			workspaces_exist: true,
+			workspaces_exist: true
 		};
 	}
 
@@ -51,7 +51,7 @@ export class InstancesService {
 			is_smtp_configured: true,
 			admin_base_url: this._configService.get('CLIENT_ADMIN_URL'),
 			space_base_url: this._configService.get('CLIENT_SPACE_URL'),
-			app_base_url: this._configService.get('APP_BASE_URL'),
+			app_base_url: this._configService.get('APP_BASE_URL')
 		};
 	}
 }

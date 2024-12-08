@@ -15,10 +15,10 @@ import { DraftIssuesModule } from '../issues/draft-issues/draft-issues.module';
 		IssuesModule,
 		IssueLinksModule,
 		SubscriptionModule,
-		DraftIssuesModule,
+		DraftIssuesModule
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],
-	exports: [WorkspaceService],
+	exports: [WorkspaceService]
 })
 export class WorkspaceModule {}

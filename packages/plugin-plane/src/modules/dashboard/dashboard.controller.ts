@@ -4,7 +4,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	Patch,
+	Patch
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ID } from '@plane-plugin/models';
@@ -22,11 +22,11 @@ export class DashboardController {
 	@Patch(':id/widgets/:widgetId')
 	async updateDashboardWidget(
 		@Param('widgetId') widgetId: ID,
-		@Body() data: any,
+		@Body() data: any
 	) {
 		return await this._dashboardService.updateDashboardWidget(
 			widgetId,
-			data,
+			data
 		);
 	}
 }

@@ -4,13 +4,13 @@ import {
 	ID,
 	IPagination,
 	ISubscription,
-	ISubscriptionFindInput,
+	ISubscriptionFindInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createSubscriptionTransformer,
 	defaultOrganizationId,
-	getSubscriptionQuery,
+	getSubscriptionQuery
 } from '../../config';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class SubscriptionService extends ApiFetchService {
 		try {
 			const body = {
 				...createSubscriptionTransformer(issueId, userId),
-				organizationId: defaultOrganizationId(),
+				organizationId: defaultOrganizationId()
 			};
 
 			// Create Subscription
@@ -37,7 +37,7 @@ export class SubscriptionService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -88,8 +88,8 @@ export class SubscriptionService extends ApiFetchService {
 					path: `${this.path}/${subscription.id}`,
 					query: qs.stringify({
 						entity: options.entity,
-						entityId: options.entityId,
-					}),
+						entityId: options.entityId
+					})
 				})
 			).data;
 		} catch (error: any) {

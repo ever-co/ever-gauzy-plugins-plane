@@ -2,7 +2,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -16,7 +16,7 @@ import {
 	IPagination,
 	IReaction,
 	IReactionData,
-	ReactionEntityEnum,
+	ReactionEntityEnum
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -24,7 +24,7 @@ import {
 	defaultOrganizationId,
 	getCommentsQuery,
 	reactionTransformer,
-	updateCommentInputTransformer,
+	updateCommentInputTransformer
 } from '../../config';
 import { ProjectService } from '../project/project.service';
 import { ReactionsService } from '../reactions/reactions.service';
@@ -35,7 +35,7 @@ export class CommentsService extends ApiFetchService {
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 		private readonly _reactionService: ReactionsService,
-		private readonly _serverFetchService: ApiFetchService,
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -55,21 +55,21 @@ export class CommentsService extends ApiFetchService {
 		input: ICreateCommentInput,
 		entity: BaseEntityEnum,
 		entityId: ID,
-		employees?: IEmployee[],
+		employees?: IEmployee[]
 	): Promise<IComment> {
 		try {
 			const body = createCommentInputTransformer(
 				input,
 				entity,
 				entityId,
-				employees,
+				employees
 			);
 
 			const comment: IComment = (
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body: { ...body, organizationId: defaultOrganizationId() },
+					body: { ...body, organizationId: defaultOrganizationId() }
 				})
 			).data;
 
@@ -90,7 +90,7 @@ export class CommentsService extends ApiFetchService {
 	async update(
 		id: ID,
 		options: ICommentFindInput,
-		input: ICreateCommentInput,
+		input: ICreateCommentInput
 	): Promise<IComment> {
 		try {
 			const existingComment = await this.findOne(id, options);
@@ -105,7 +105,7 @@ export class CommentsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body,
+					body
 				})
 			).data;
 
@@ -156,7 +156,7 @@ export class CommentsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/${id}`,
-					query,
+					query
 				})
 			).data;
 
@@ -177,7 +177,7 @@ export class CommentsService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}
@@ -193,21 +193,21 @@ export class CommentsService extends ApiFetchService {
 	async createReaction(
 		entityId: ID,
 		projectId: ID,
-		input: ICreateReactionInput,
+		input: ICreateReactionInput
 	): Promise<IReactionData> {
 		try {
 			// Create reaction
 			const reaction = await this._reactionService.create(
 				input,
 				ReactionEntityEnum.Comment,
-				entityId,
+				entityId
 			);
 
 			// Reaction details
 			const { actor, project, workspace } =
 				await this.getCommentReactionDetails(
 					projectId,
-					reaction.creatorId,
+					reaction.creatorId
 				);
 
 			// Transform Reaction
@@ -215,7 +215,7 @@ export class CommentsService extends ApiFetchService {
 				reaction,
 				actor,
 				project,
-				workspace,
+				workspace
 			);
 
 			return Array.isArray(transformedReaction)
@@ -239,7 +239,7 @@ export class CommentsService extends ApiFetchService {
 			// Find project
 			const project = await this._projectService.getExternalProject(
 				projectId,
-				['tenant', 'members.employee.user'],
+				['tenant', 'members.employee.user']
 			);
 
 			// Workspace details
@@ -247,12 +247,12 @@ export class CommentsService extends ApiFetchService {
 			const workspace = {
 				name: tenant?.name,
 				id: tenant?.id,
-				slug: tenant?.name.toLowerCase(),
+				slug: tenant?.name.toLowerCase()
 			};
 
 			// Find actor by userId
 			const actor = project.members.find(
-				(member) => member.employee.userId === creatorId,
+				(member) => member.employee.userId === creatorId
 			)?.employee;
 
 			return { project, workspace, actor };
@@ -271,7 +271,7 @@ export class CommentsService extends ApiFetchService {
 	 */
 	async findCommentReactions(
 		options: Partial<IReaction>,
-		projectId: ID,
+		projectId: ID
 	): Promise<any> {
 		try {
 			const reactions = await this._reactionService.findAll(options);
@@ -281,20 +281,20 @@ export class CommentsService extends ApiFetchService {
 					const { actor, project, workspace } =
 						await this.getCommentReactionDetails(
 							projectId,
-							reaction.creatorId,
+							reaction.creatorId
 						);
 
 					const transformedReaction = reactionTransformer(
 						reaction,
 						actor,
 						project,
-						workspace,
+						workspace
 					);
 
 					return Array.isArray(transformedReaction)
 						? transformedReaction[0]
 						: transformedReaction;
-				}),
+				})
 			);
 
 			return commentReactions;
@@ -313,12 +313,12 @@ export class CommentsService extends ApiFetchService {
 	 */
 	async deleteCommentReactionByEmoji(
 		reaction: string,
-		entityId: ID,
+		entityId: ID
 	): Promise<any> {
 		return await this._reactionService.deleteByEmoji(
 			reaction,
 			ReactionEntityEnum.Comment,
-			entityId,
+			entityId
 		);
 	}
 }

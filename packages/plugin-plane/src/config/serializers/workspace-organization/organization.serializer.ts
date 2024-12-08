@@ -12,14 +12,14 @@ import {
 	IUserProjectData,
 	ID,
 	IUserProjectsDataResponse,
-	IUserProfileData,
+	IUserProfileData
 } from '@plane-plugin/models';
 
 const organizationRelations = [
 	'employees',
 	'employees.user',
 	'employees.user.role',
-	'tenant',
+	'tenant'
 ];
 
 export const getOrganizationQuery: Record<string, string> = {};
@@ -34,7 +34,7 @@ export function roleTransformer(role: IRole): number {
 		[RolesEnum.ADMIN]: 20,
 		[RolesEnum.MANAGER]: 20,
 		[RolesEnum.EMPLOYEE]: 15,
-		[RolesEnum.VIEWER]: 5,
+		[RolesEnum.VIEWER]: 5
 	};
 
 	return rolePriority[role?.name] ?? 0;
@@ -42,7 +42,7 @@ export function roleTransformer(role: IRole): number {
 
 export function organizationMembersTransformer(
 	members: IEmployee[],
-	tenant: ITenant,
+	tenant: ITenant
 ): IWorkspaceUserInfo[] {
 	return members.map((member) => {
 		return {
@@ -56,12 +56,12 @@ export function organizationMembersTransformer(
 				email: member.user.email,
 				display_name:
 					member.fullName ||
-					`${member.user.firstName} ${member.user.lastName}`,
+					`${member.user.firstName} ${member.user.lastName}`
 			},
 			workspace: {
 				id: tenant.id,
 				name: tenant.name,
-				slug: tenant.name.toLowerCase(),
+				slug: tenant.name.toLowerCase()
 			},
 			created_at: member.createdAt,
 			updated_at: member.updatedAt,
@@ -78,7 +78,7 @@ export function organizationMembersTransformer(
 					start_date: null,
 					subscriber: null,
 					state_group: null,
-					target_date: null,
+					target_date: null
 				},
 				display_filters: {
 					type: null,
@@ -87,7 +87,7 @@ export function organizationMembersTransformer(
 					order_by: '-created_at',
 					sub_issue: true,
 					show_empty_groups: true,
-					calendar_date_range: '',
+					calendar_date_range: ''
 				},
 				display_properties: {
 					key: true,
@@ -102,8 +102,8 @@ export function organizationMembersTransformer(
 					start_date: true,
 					updated_on: true,
 					sub_issue_count: true,
-					attachment_count: true,
-				},
+					attachment_count: true
+				}
 			},
 			default_props: {
 				filters: {
@@ -115,7 +115,7 @@ export function organizationMembersTransformer(
 					start_date: null,
 					subscriber: null,
 					state_group: null,
-					target_date: null,
+					target_date: null
 				},
 				display_filters: {
 					type: null,
@@ -124,7 +124,7 @@ export function organizationMembersTransformer(
 					order_by: '-created_at',
 					sub_issue: true,
 					show_empty_groups: true,
-					calendar_date_range: '',
+					calendar_date_range: ''
 				},
 				display_properties: {
 					key: true,
@@ -139,32 +139,32 @@ export function organizationMembersTransformer(
 					start_date: true,
 					updated_on: true,
 					sub_issue_count: true,
-					attachment_count: true,
-				},
+					attachment_count: true
+				}
 			},
 			issue_props: {
 				created: true,
 				assigned: true,
 				all_issues: true,
-				subscribed: true,
+				subscribed: true
 			},
-			is_active: member.isActive,
+			is_active: member.isActive
 		};
 	});
 }
 
 /**
- * Categorizes a list of tasks by priority and calculates the count of tasks 
+ * Categorizes a list of tasks by priority and calculates the count of tasks
  * for each priority level.
  *
  * @param {ITask[]} tasks - An array of tasks to be categorized by priority.
- * @returns {IUserPriorityDistribution[]} An array of priority distributions, 
- * where each object contains the priority, the count of tasks with that priority, 
+ * @returns {IUserPriorityDistribution[]} An array of priority distributions,
+ * where each object contains the priority, the count of tasks with that priority,
  * and the priority's order.
- 
+
  */
 export function userIssuesByPriority(
-	tasks: ITask[],
+	tasks: ITask[]
 ): IUserPriorityDistribution[] {
 	// Mapping of priorities to their corresponding filters
 	const priorityMapping = {
@@ -172,7 +172,7 @@ export function userIssuesByPriority(
 		high: TaskPriorityEnum.HIGH,
 		medium: TaskPriorityEnum.MEDIUM,
 		low: TaskPriorityEnum.LOW,
-		none: null, // Tasks without a priority
+		none: null // Tasks without a priority
 	};
 
 	// Count tasks for each priority
@@ -180,9 +180,9 @@ export function userIssuesByPriority(
 		priority,
 		priority_count: tasks.filter(
 			(task) =>
-				task.priority === value || (value === null && !task.priority),
+				task.priority === value || (value === null && !task.priority)
 		).length,
-		priority_order: index,
+		priority_order: index
 	}));
 }
 
@@ -201,7 +201,7 @@ export function userIssuesByPriority(
 export function userWorkProjectsTransformer(
 	projects: IOrganizationProject[],
 	employeeId: ID,
-	userId: ID,
+	userId: ID
 ): IUserProjectsDataResponse {
 	const employee = projects
 		.map((project) => project.members)
@@ -210,17 +210,17 @@ export function userWorkProjectsTransformer(
 
 	const transformedProjects: IUserProjectData[] = projects.map((project) => {
 		const createdIssues = project.tasks?.filter(
-			(task) => task.creatorId === userId,
+			(task) => task.creatorId === userId
 		);
 
 		const assignedIssues = project.tasks?.filter((task) =>
-			task.members.map((member) => member.id).includes(employeeId),
+			task.members.map((member) => member.id).includes(employeeId)
 		);
 		const {
 			completedIssues,
 			backlogIssues,
 			startedIssues,
-			unstartedIssues,
+			unstartedIssues
 		} = getTaskCounts(assignedIssues);
 
 		return {
@@ -228,15 +228,14 @@ export function userWorkProjectsTransformer(
 			logo_props: {
 				emoji: {
 					url: project.imageUrl,
-					value: project.icon,
+					value: project.icon
 				},
-				in_use: 'emoji',
+				in_use: 'emoji'
 			},
 			created_issues: createdIssues?.length || 0,
 			assigned_issues: assignedIssues?.length || 0,
 			completed_issues: completedIssues || 0,
-			pending_issues:
-				backlogIssues + startedIssues + unstartedIssues || 0,
+			pending_issues: backlogIssues + startedIssues + unstartedIssues || 0
 		};
 	});
 
@@ -248,7 +247,7 @@ export function userWorkProjectsTransformer(
 		cover_image_url: null,
 		date_joined: employee.createdAt,
 		user_timezone: 'UTC',
-		display_name: employee.fullName,
+		display_name: employee.fullName
 	};
 
 	return { project_data: transformedProjects, user_data };

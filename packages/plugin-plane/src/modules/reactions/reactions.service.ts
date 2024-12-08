@@ -5,12 +5,12 @@ import {
 	ID,
 	IPagination,
 	IReaction,
-	ReactionEntityEnum,
+	ReactionEntityEnum
 } from '@plane-plugin/models';
 import {
 	createReactionInputTransformer,
 	defaultOrganizationId,
-	getReactionsQuery,
+	getReactionsQuery
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
@@ -29,19 +29,19 @@ export class ReactionsService extends ApiFetchService {
 	async create(
 		input: ICreateReactionInput,
 		entity: ReactionEntityEnum,
-		entityId: ID,
+		entityId: ID
 	): Promise<IReaction> {
 		try {
 			const body = {
 				...createReactionInputTransformer(input, entity, entityId),
-				organizationId: defaultOrganizationId(),
+				organizationId: defaultOrganizationId()
 			};
 
 			const reaction: IReaction = (
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -63,14 +63,14 @@ export class ReactionsService extends ApiFetchService {
 			const { entity, entityId, emoji } = options;
 
 			const query = qs.stringify(
-				getReactionsQuery(entityId, entity, emoji),
+				getReactionsQuery(entityId, entity, emoji)
 			);
 
 			const reactions: IPagination<IReaction> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 
@@ -98,7 +98,7 @@ export class ReactionsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/${id}`,
-					query,
+					query
 				})
 			).data;
 
@@ -123,7 +123,7 @@ export class ReactionsService extends ApiFetchService {
 	async deleteByEmoji(
 		reaction: string,
 		entity: ReactionEntityEnum,
-		entityId: ID,
+		entityId: ID
 	): Promise<any> {
 		return await this.create({ reaction }, entity, entityId);
 	}
@@ -138,7 +138,7 @@ export class ReactionsService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}

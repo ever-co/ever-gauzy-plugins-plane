@@ -6,7 +6,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ID, IReactionData } from '@plane-plugin/models';
 import { CreateIssueReactionDTO } from '../issues/dto';
@@ -30,12 +30,12 @@ export class CommentsController {
 	async createReaction(
 		@Param('id') entityId: ID,
 		@Param('projectId') projectId: ID,
-		@Body() input: CreateIssueReactionDTO,
+		@Body() input: CreateIssueReactionDTO
 	): Promise<IReactionData> {
 		return await this._commentService.createReaction(
 			entityId,
 			projectId,
-			input,
+			input
 		);
 	}
 
@@ -51,11 +51,11 @@ export class CommentsController {
 	@Delete(':id/reactions/:emoji')
 	async deleteReaction(
 		@Param('id') commentId: ID,
-		@Param('emoji') emoji: string,
+		@Param('emoji') emoji: string
 	) {
 		return await this._commentService.deleteCommentReactionByEmoji(
 			emoji,
-			commentId,
+			commentId
 		);
 	}
 }

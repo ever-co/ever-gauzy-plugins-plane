@@ -12,8 +12,8 @@ export async function bootstrap() {
 			'api/users/me/workspaces/:workspace_name/project-roles',
 			'api/instances',
 			'api/dashboard/:id/:dashboardEndpoint',
-			'api/dashboard/:id/:dashboardEndpoint/:endPointParam',
-		], // Exclude all the routes starting with /auth, /users, /dashboard and /instances from the global prefix
+			'api/dashboard/:id/:dashboardEndpoint/:endPointParam'
+		] // Exclude all the routes starting with /auth, /users, /dashboard and /instances from the global prefix
 	});
 
 	app.enableCors({
@@ -21,7 +21,7 @@ export async function bootstrap() {
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
 		credentials: true,
 		allowedHeaders:
-			'Authorization, Language, Content-Type, Content-Language, Accept, Accept-Language, Observe',
+			'Authorization, Language, Content-Type, Content-Language, Accept, Accept-Language, Observe'
 	});
 
 	await app.listen(3300);

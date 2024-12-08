@@ -23,7 +23,7 @@ export function manyToManyFieldActivityTransformer<T>(
 	getAddedItems: (previousItems: T[], updatedItems: T[]) => T[],
 	getRemovedItems: (previousItems: T[], updatedItems: T[]) => T[],
 	verbAdded: string,
-	verbRemoved: string,
+	verbRemoved: string
 ): {
 	added: { [x: string]: any; verb: string } | null;
 	removed: { [x: string]: any; verb: string } | null;
@@ -60,6 +60,6 @@ export function manyToManyFieldActivityTransformer<T>(
 		removed:
 			removedItems.length > 0
 				? { [fieldName]: removedItems, verb: verbRemoved }
-				: null,
+				: null
 	};
 }

@@ -7,7 +7,7 @@ import {
 	IsNumber,
 	IsObject,
 	IsOptional,
-	IsString,
+	IsString
 } from 'class-validator';
 import { ICreateProjectInput, ID } from '@plane-plugin/models';
 

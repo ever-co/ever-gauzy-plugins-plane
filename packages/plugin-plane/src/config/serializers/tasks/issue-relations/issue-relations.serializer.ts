@@ -6,7 +6,7 @@ import {
 	ITask,
 	ITaskLinkedIssue,
 	ITaskLinkedIssueCreateInput,
-	TaskRelatedIssuesRelationEnum,
+	TaskRelatedIssuesRelationEnum
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../../query-params.serializers';
 
@@ -15,18 +15,17 @@ const issueRelationToTypeMap = {
 		IssueRelationTypeEnum.BLOCKED_BY,
 	[TaskRelatedIssuesRelationEnum.BLOCKS]: IssueRelationTypeEnum.BLOCKING,
 	[TaskRelatedIssuesRelationEnum.DUPLICATES]: IssueRelationTypeEnum.DUPLICATE,
-	[TaskRelatedIssuesRelationEnum.RELATES_TO]:
-		IssueRelationTypeEnum.RELATES_TO,
+	[TaskRelatedIssuesRelationEnum.RELATES_TO]: IssueRelationTypeEnum.RELATES_TO
 };
 
 export function getIssueRelationType(
-	relation: TaskRelatedIssuesRelationEnum,
+	relation: TaskRelatedIssuesRelationEnum
 ): IssueRelationTypeEnum | undefined {
 	return issueRelationToTypeMap[relation];
 }
 
 export function getTaskRelatedIssueRelation(
-	issueRelationType: IssueRelationTypeEnum,
+	issueRelationType: IssueRelationTypeEnum
 ): TaskRelatedIssuesRelationEnum | undefined {
 	const reverseMap = {
 		[IssueRelationTypeEnum.BLOCKED_BY]:
@@ -35,7 +34,7 @@ export function getTaskRelatedIssueRelation(
 		[IssueRelationTypeEnum.DUPLICATE]:
 			TaskRelatedIssuesRelationEnum.DUPLICATES,
 		[IssueRelationTypeEnum.RELATES_TO]:
-			TaskRelatedIssuesRelationEnum.RELATES_TO,
+			TaskRelatedIssuesRelationEnum.RELATES_TO
 	};
 
 	return reverseMap[issueRelationType];
@@ -44,25 +43,25 @@ export function getTaskRelatedIssueRelation(
 export function createIssueRelationInputTranformer(
 	relation_type: IssueRelationTypeEnum,
 	taskToId: ID,
-	taskFromId: ID,
+	taskFromId: ID
 ): ITaskLinkedIssueCreateInput {
 	return {
 		action: getTaskRelatedIssueRelation(relation_type),
 		taskFromId,
-		taskToId,
+		taskToId
 	};
 }
 
 export function createdIssueRelationTranformer(
 	linkedIssue: ITaskLinkedIssue,
-	issue: ITask,
+	issue: ITask
 ): ICreatedIssueRelation {
 	return {
 		id: linkedIssue.taskFromId,
 		relation_type: getIssueRelationType(linkedIssue.action),
 		name: issue?.title,
 		sequence_id: 0, // TODO : Search usecase
-		project_id: issue?.projectId, // Best to be consistent
+		project_id: issue?.projectId // Best to be consistent
 	};
 }
 
@@ -71,7 +70,7 @@ const taskLinkedIssueRelations = ['taskTo', 'taskFrom'];
 export const getTaskRelationQuery = (): Record<string, string> => {
 	// Tenant and Organization based query
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	// Add relations
@@ -84,12 +83,12 @@ export const getTaskRelationQuery = (): Record<string, string> => {
 
 export const findByOptionsQuery = (
 	options: Partial<ITaskLinkedIssue>,
-	withDeleted?: boolean,
+	withDeleted?: boolean
 ) => {
 	// Base queries
 	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery(),
-		withDeleted,
+		withDeleted
 	};
 	const { action, taskFromId, taskToId } = options;
 
@@ -114,7 +113,7 @@ export const findByOptionsQuery = (
 };
 
 export function issueRelationTransformer(
-	linkedIssues: ITaskLinkedIssue[],
+	linkedIssues: ITaskLinkedIssue[]
 ): IIssueRelation[] {
 	return linkedIssues?.map((linkedIssue) => {
 		return {
@@ -129,7 +128,7 @@ export function issueRelationTransformer(
 			created_at: linkedIssue.createdAt,
 			updated_at: linkedIssue.updatedAt,
 			created_by_id: null, // To update
-			updated_by_id: null, // To update
+			updated_by_id: null // To update
 		};
 	});
 }

@@ -47,7 +47,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 		CyclesModule,
 		ActivityModule,
 		DashboardModule,
-		SubscriptionModule,
-	],
+		SubscriptionModule
+	]
 })
 export class AppModule {}

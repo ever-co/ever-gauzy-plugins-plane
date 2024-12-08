@@ -1,7 +1,7 @@
 import {
 	BadRequestException,
 	Injectable,
-	InternalServerErrorException,
+	InternalServerErrorException
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -9,13 +9,13 @@ import {
 	ID,
 	IPagination,
 	IState,
-	ITaskStatus,
+	ITaskStatus
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createStateInputTransformer,
 	getStatesQuery,
-	getStatesTransformer,
+	getStatesTransformer
 } from '../../config';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class StatesService extends ApiFetchService {
 			const state: ITaskStatus = (
 				await this.apiFetch({
 					path: `${this.path}/${id}`,
-					method: 'GET',
+					method: 'GET'
 				})
 			).data;
 
@@ -57,7 +57,7 @@ export class StatesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -80,7 +80,7 @@ export class StatesService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}
@@ -98,7 +98,7 @@ export class StatesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 			return getStatesTransformer(states.items);

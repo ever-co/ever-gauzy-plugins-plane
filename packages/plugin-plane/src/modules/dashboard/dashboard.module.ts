@@ -6,10 +6,10 @@ import { RouterModule } from '@nestjs/core';
 @Module({
 	imports: [
 		RouterModule.register([
-			{ path: '/api/dashboard', module: DashboardModule },
-		]),
+			{ path: '/api/dashboard', module: DashboardModule }
+		])
 	],
 	providers: [DashboardService],
-	controllers: [DashboardController],
+	controllers: [DashboardController]
 })
 export class DashboardModule {}

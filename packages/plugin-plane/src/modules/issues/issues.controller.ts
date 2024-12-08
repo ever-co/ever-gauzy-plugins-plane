@@ -9,7 +9,7 @@ import {
 	Param,
 	Patch,
 	Post,
-	Query,
+	Query
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
@@ -21,7 +21,7 @@ import {
 	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
-	ISubscriber,
+	ISubscriber
 } from '@plane-plugin/models';
 import { IssuesService } from './issues.service';
 import {
@@ -29,11 +29,11 @@ import {
 	CreateIssueDTO,
 	CreateIssueLinkDTO,
 	CreateIssueReactionDTO,
-	UpdateIssueDTO,
+	UpdateIssueDTO
 } from './dto';
 import {
 	CreateIssueRelationDTO,
-	DeleteIssueRelationDTO,
+	DeleteIssueRelationDTO
 } from '../issue-relations/dto';
 
 @ApiTags('Issues routes')
@@ -59,12 +59,12 @@ export class IssuesController {
 	async getAllByProjectId(
 		@Param('projectId') projectId: ID,
 		@Query() options: IIssueFindInput,
-		@Headers('referer') referer: string,
+		@Headers('referer') referer: string
 	) {
 		return await this._issueService.getAllIssuesByProject(
 			projectId,
 			options,
-			referer,
+			referer
 		);
 	}
 
@@ -105,7 +105,7 @@ export class IssuesController {
 	@Patch(':id')
 	async update(
 		@Body() input: UpdateIssueDTO,
-		@Param('id') id: ID,
+		@Param('id') id: ID
 	): Promise<IIssue> {
 		return await this._issueService.update(id, input, false);
 	}
@@ -143,12 +143,12 @@ export class IssuesController {
 	async findActivity(
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID,
-		@Query('activity_type') activity_type: IssueActivityTypeEnum,
+		@Query('activity_type') activity_type: IssueActivityTypeEnum
 	) {
 		return await this._issueService.findActivity(
 			id,
 			projectId,
-			activity_type,
+			activity_type
 		);
 	}
 
@@ -166,12 +166,12 @@ export class IssuesController {
 	async createComment(
 		@Param('id') entityId: ID,
 		@Param('projectId') projectId: ID,
-		@Body() input: CreateIssueCommentDTO,
+		@Body() input: CreateIssueCommentDTO
 	): Promise<IIssueComment> {
 		return await this._issueService.createComment(
 			entityId,
 			projectId,
-			input,
+			input
 		);
 	}
 
@@ -191,13 +191,13 @@ export class IssuesController {
 		@Body() input: CreateIssueCommentDTO,
 		@Param('id') entityId: ID,
 		@Param('commentId') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<IIssue> {
 		return await this._issueService.updateComment(
 			id,
 			projectId,
 			input,
-			entityId,
+			entityId
 		);
 	}
 
@@ -246,7 +246,7 @@ export class IssuesController {
 	@Post(':id/sub-issues')
 	async addChildrenToIssue(
 		@Param('id') id: ID,
-		@Body() input: UpdateIssueDTO,
+		@Body() input: UpdateIssueDTO
 	): Promise<ISubIssueResponse> {
 		return await this._issueService.updateRelationnalIssueParent(id, input);
 	}
@@ -276,7 +276,7 @@ export class IssuesController {
 	@Post(':id/issue-relation')
 	async createIssueRelations(
 		@Param('id') taskToId: ID,
-		@Body() input: CreateIssueRelationDTO,
+		@Body() input: CreateIssueRelationDTO
 	) {
 		return await this._issueService.createIssueRelations(taskToId, input);
 	}
@@ -293,7 +293,7 @@ export class IssuesController {
 	@Post(':id/remove-relation')
 	async deleteIssueRelation(
 		@Param('id') taskToId: ID,
-		@Body() input: DeleteIssueRelationDTO,
+		@Body() input: DeleteIssueRelationDTO
 	) {
 		return await this._issueService.deleteIssueRelation(taskToId, input);
 	}
@@ -318,7 +318,7 @@ export class IssuesController {
 	async createLink(
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID,
-		@Body() input: CreateIssueLinkDTO,
+		@Body() input: CreateIssueLinkDTO
 	): Promise<IIssueLink> {
 		return await this._issueService.createLink(id, projectId, input);
 	}
@@ -339,13 +339,13 @@ export class IssuesController {
 		@Body() input: CreateIssueLinkDTO,
 		@Param('id') issueId: ID,
 		@Param('linkId') linkId: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<IIssueLink> {
 		return await this._issueService.updateLink(
 			linkId,
 			issueId,
 			projectId,
-			input,
+			input
 		);
 	}
 
@@ -382,12 +382,12 @@ export class IssuesController {
 	async createReaction(
 		@Param('id') entityId: ID,
 		@Param('projectId') projectId: ID,
-		@Body() input: CreateIssueReactionDTO,
+		@Body() input: CreateIssueReactionDTO
 	): Promise<IReactionData> {
 		return await this._issueService.createReaction(
 			entityId,
 			projectId,
-			input,
+			input
 		);
 	}
 
@@ -403,11 +403,11 @@ export class IssuesController {
 	@Delete(':id/reactions/:emoji')
 	async deleteReaction(
 		@Param('id') issueId: ID,
-		@Param('emoji') emoji: string,
+		@Param('emoji') emoji: string
 	) {
 		return await this._issueService.deleteIssueReactionByEmoji(
 			emoji,
-			issueId,
+			issueId
 		);
 	}
 
@@ -429,7 +429,7 @@ export class IssuesController {
 	@Post(':id/subscribe')
 	async subscribe(
 		@Param('id') issueId: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<ISubscriber | ISubscriber[]> {
 		return await this._issueService.subscribe(issueId, projectId);
 	}
@@ -465,7 +465,7 @@ export class IssuesController {
 	@Post(':id/modules')
 	async addIssueToModule(
 		@Param('id') id: ID,
-		@Body() input: UpdateIssueDTO,
+		@Body() input: UpdateIssueDTO
 	): Promise<IIssue> {
 		return await this._issueService.update(id, input, false);
 	}

@@ -5,7 +5,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	Query,
+	Query
 } from '@nestjs/common';
 import { ID, IParentableIssuesQueryParams } from '@plane-plugin/models';
 import { SearchIssuesService } from './search-issues.service';
@@ -26,11 +26,11 @@ export class SearchIssuesController {
 	@Get()
 	async findIssuesByOptions(
 		@Param('projectId') projectId: ID,
-		@Query() options: IParentableIssuesQueryParams,
+		@Query() options: IParentableIssuesQueryParams
 	) {
 		return await this._searchIssuesService.findIssuesByOptions(
 			projectId,
-			options,
+			options
 		);
 	}
 }

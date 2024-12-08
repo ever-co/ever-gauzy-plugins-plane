@@ -8,7 +8,7 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ID, IView } from '@plane-plugin/models';
 import { IssueViewService } from './view.service';
@@ -31,7 +31,7 @@ export class IssueViewController {
 	@Post()
 	async create(
 		@Body() input: CreateViewDTO,
-		@Param('projectId') projectId?: ID,
+		@Param('projectId') projectId?: ID
 	): Promise<IView | IView[]> {
 		return await this._issueViewService.create(input, projectId);
 	}
@@ -50,7 +50,7 @@ export class IssueViewController {
 	async update(
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID,
-		@Body() input: UpdateViewDTO,
+		@Body() input: UpdateViewDTO
 	): Promise<IView | IView[]> {
 		return await this._issueViewService.update(id, input, projectId);
 	}
@@ -79,7 +79,7 @@ export class IssueViewController {
 	@Get(':id')
 	async findOne(
 		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<IView | IView[]> {
 		return this._issueViewService.findOne(id, projectId);
 	}

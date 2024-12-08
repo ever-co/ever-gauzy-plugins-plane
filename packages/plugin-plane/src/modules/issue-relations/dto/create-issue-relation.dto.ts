@@ -3,7 +3,7 @@ import { IsArray, IsEnum, IsNotEmpty } from 'class-validator';
 import {
 	ICreateIssueRelationInput,
 	ID,
-	IssueRelationTypeEnum,
+	IssueRelationTypeEnum
 } from '@plane-plugin/models';
 
 export class CreateIssueRelationDTO implements ICreateIssueRelationInput {

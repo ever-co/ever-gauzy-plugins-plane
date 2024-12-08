@@ -7,6 +7,6 @@ import { IssueViewController } from './view.controller';
 	imports: [forwardRef(() => UserFavoritesModule)],
 	providers: [IssueViewService],
 	controllers: [IssueViewController],
-	exports: [IssueViewService],
+	exports: [IssueViewService]
 })
 export class IssueViewModule {}

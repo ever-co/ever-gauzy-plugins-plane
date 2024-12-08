@@ -5,13 +5,13 @@ import {
 	IsNotEmpty,
 	IsObject,
 	IsOptional,
-	IsUUID,
+	IsUUID
 } from 'class-validator';
 import {
 	FavoriteEntityTypeEnum,
 	ICreateFavoriteInput,
 	ID,
-	IFavoriteEntityData,
+	IFavoriteEntityData
 } from '@plane-plugin/models';
 
 export class CreateFavoriteDTO implements ICreateFavoriteInput {

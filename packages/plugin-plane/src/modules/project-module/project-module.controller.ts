@@ -8,7 +8,7 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ID, IModule } from '@plane-plugin/models';
 import { ProjectModuleService } from './project-module.service';
@@ -28,7 +28,7 @@ export class ProjectModuleController {
 	@ApiOperation({ summary: 'Create Project Module' })
 	@Post()
 	async createModule(
-		@Body() input: CreateModuleDTO,
+		@Body() input: CreateModuleDTO
 	): Promise<IModule | IModule[]> {
 		return await this._projectModuleService.create(input);
 	}
@@ -57,7 +57,7 @@ export class ProjectModuleController {
 	@Get(':id')
 	async getWorkspaceProjectModule(
 		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	) {
 		return this._projectModuleService.getModule(id, projectId);
 	}
@@ -77,11 +77,11 @@ export class ProjectModuleController {
 	@Get(':id/user-properties')
 	async getModuleUserProperties(
 		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	) {
 		return this._projectModuleService.getModuleUserProperties(
 			id,
-			projectId,
+			projectId
 		);
 	}
 
@@ -98,7 +98,7 @@ export class ProjectModuleController {
 	async update(
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID,
-		@Body() input: UpdateModuleDTO,
+		@Body() input: UpdateModuleDTO
 	) {
 		return await this._projectModuleService.update(id, projectId, input);
 	}

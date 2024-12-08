@@ -6,7 +6,7 @@ import {
 	IIssueTagetFilterValueEnum,
 	IPagination,
 	IParentableIssuesQueryParams,
-	ITask,
+	ITask
 } from '@plane-plugin/models';
 import { getTaskQuery, parentableIssuesTransformer } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
@@ -24,7 +24,7 @@ export class SearchIssuesService extends ApiFetchService {
 	 */
 	async findIssuesByOptions(
 		projectId: ID,
-		options: IParentableIssuesQueryParams,
+		options: IParentableIssuesQueryParams
 	): Promise<IIssue[]> {
 		try {
 			const {
@@ -33,18 +33,18 @@ export class SearchIssuesService extends ApiFetchService {
 				sub_issue,
 				issue_relation,
 				target_date,
-				search,
+				search
 			} = options;
 
 			const query = qs.stringify(
-				getTaskQuery(projectId, {}, null, null, false),
+				getTaskQuery(projectId, {}, null, null, false)
 			);
 
 			const issues: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}`,
-					query,
+					query
 				})
 			).data;
 
@@ -76,7 +76,7 @@ export class SearchIssuesService extends ApiFetchService {
 				// If searching for parent (`parent`), exclude tasks that are already children or the current issue itself
 				if (parent) {
 					const isNotChild = !issue.children?.some(
-						(child) => child.id === issue_id,
+						(child) => child.id === issue_id
 					);
 					return (
 						isNotSelf &&

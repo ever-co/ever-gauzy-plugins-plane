@@ -17,7 +17,7 @@ import {
 	ITaskDateFilterInput,
 	ITaskUpdateInput,
 	TaskPriorityEnum,
-	TaskStatusEnum,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
@@ -69,7 +69,7 @@ export function issueTransformer(
 	issue: ITask,
 	reactions?: IReactionData[],
 	links?: IIssueLink[],
-	is_subscribed?: boolean,
+	is_subscribed?: boolean
 ): IIssue {
 	return {
 		id: issue?.id,
@@ -89,7 +89,7 @@ export function issueTransformer(
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
 			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
-			sequence_id: issue?.parent?.number,
+			sequence_id: issue?.parent?.number
 		},
 		created_at: issue?.createdAt,
 		updated_at: issue?.updatedAt,
@@ -111,7 +111,7 @@ export function issueTransformer(
 		issue_reactions: reactions || [],
 		issue_relation: issueRelationTransformer(issue?.linkedIssues) || [],
 		issue_link: links || [],
-		cycle: issue?.organizationSprint,
+		cycle: issue?.organizationSprint
 	};
 }
 
@@ -142,7 +142,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		state__name: issue.taskStatus?.name,
 		state__group: stateGroup(issue.taskStatus),
 		state__color: issue.taskStatus?.color,
-		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
+		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22'
 	}));
 }
 
@@ -159,7 +159,7 @@ export function groupIssuesByStateId(issues: ITask[]) {
 			if (!acc.results[stateId]) {
 				acc.results[stateId] = {
 					results: [],
-					total_results: 0,
+					total_results: 0
 				};
 			}
 			const issue = issueTransformer(item);
@@ -182,8 +182,8 @@ export function groupIssuesByStateId(issues: ITask[]) {
 			total_pages: 1,
 			total_results: issues.length,
 			extra_stats: null,
-			results: {},
-		},
+			results: {}
+		}
 	);
 }
 
@@ -197,7 +197,7 @@ function groupIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 	groupByKey: (issue: ITask) => string,
 	groupedByLabel: string,
-	initialAccumulator: Partial<Record<string, any>> = {},
+	initialAccumulator: Partial<Record<string, any>> = {}
 ) {
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
@@ -208,7 +208,7 @@ function groupIssues(
 			if (!acc.results[group]) {
 				acc.results[group] = {
 					results: [],
-					total_results: 0,
+					total_results: 0
 				};
 			}
 
@@ -238,44 +238,44 @@ function groupIssues(
 			total_results: 0,
 			extra_stats: null,
 			results: {},
-			...initialAccumulator,
-		},
+			...initialAccumulator
+		}
 	);
 }
 
 export function groupIssuesByStateGroup(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ) {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => stateGroup(issue.taskStatus), // Détermine le groupe par état
 		'state__group',
-		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' }, // Valeurs spécifiques pour l'accumulateur initial
+		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Valeurs spécifiques pour l'accumulateur initial
 	);
 }
 
 export function groupIssuesByPriority(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ) {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.priority || 'none', // Détermine le groupe par priorité
-		'priority',
+		'priority'
 	);
 }
 
 export function groupIssuesByProjectId(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ) {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.projectId || 'none', // Détermine le groupe par ID de projet
-		'project_id',
+		'project_id'
 	);
 }
 
 export function userWorkNonGroupedIssues(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ) {
 	return {
 		grouped_by: null,
@@ -290,8 +290,8 @@ export function userWorkNonGroupedIssues(
 		total_results: issuesWithLinks?.length,
 		extra_stats: null,
 		results: issuesWithLinks?.map((issueLink) =>
-			issueTransformer(issueLink.issue, [], issueLink.issueLinks),
-		),
+			issueTransformer(issueLink.issue, [], issueLink.issueLinks)
+		)
 	};
 }
 
@@ -303,7 +303,7 @@ export function userWorkNonGroupedIssues(
  * @returns The grouped issues by label.
  */
 export function groupIssuesByLabel(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ) {
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
@@ -318,7 +318,7 @@ export function groupIssuesByLabel(
 				if (!acc.results[tag.id]) {
 					acc.results[tag.id] = {
 						results: [],
-						total_results: 0,
+						total_results: 0
 					};
 				}
 
@@ -326,7 +326,7 @@ export function groupIssuesByLabel(
 				const transformedIssue = issueTransformer(
 					issue,
 					[],
-					issueLinks,
+					issueLinks
 				);
 
 				// Add the transformed issue to the current tag group
@@ -353,8 +353,8 @@ export function groupIssuesByLabel(
 			total_pages: 1,
 			total_results: 0,
 			extra_stats: null,
-			results: {},
-		},
+			results: {}
+		}
 	);
 }
 
@@ -371,7 +371,7 @@ export function groupIssuesByTargetDate(issues: ITask[]) {
 			if (!acc.results[targetDate]) {
 				acc.results[targetDate] = {
 					results: [],
-					total_results: 0,
+					total_results: 0
 				};
 			}
 			const issue = issueTransformer(item);
@@ -394,8 +394,8 @@ export function groupIssuesByTargetDate(issues: ITask[]) {
 			total_pages: 1,
 			total_results: issues.length,
 			extra_stats: null,
-			results: {},
-		},
+			results: {}
+		}
 	);
 }
 
@@ -417,7 +417,7 @@ export function nonGroupedIssues(issues: ITask[]) {
 		total_pages: 1,
 		total_results: issues?.length,
 		extra_stats: null,
-		results: issues?.map((issue) => issueTransformer(issue)),
+		results: issues?.map((issue) => issueTransformer(issue))
 	};
 }
 
@@ -432,7 +432,7 @@ export const taskRelations = [
 	'parent',
 	'children.taskStatus',
 	'taskStatus',
-	'modules',
+	'modules'
 ];
 
 export const getTaskQuery = (
@@ -440,11 +440,11 @@ export const getTaskQuery = (
 	options?: IIssueFindInput,
 	relations?: string[],
 	orderByField?: IssueOrderByField,
-	isDraft?: boolean,
+	isDraft?: boolean
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (projectId) {
@@ -485,12 +485,12 @@ export const getTaskQuery = (
 };
 
 export const getFilteredByDatesTaskQuery = (
-	options: ITaskDateFilterInput,
+	options: ITaskDateFilterInput
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
 		organizationId: defaultOrganizationId(),
-		tenantId: defaultTestTenantId(),
+		tenantId: defaultTestTenantId()
 	};
 
 	Object.keys(options).forEach((key) => {
@@ -511,7 +511,7 @@ export const getFilteredByDatesTaskQuery = (
 
 export function createIssueInputTransformer(
 	issue: IIssueCreateInput,
-	status: TaskStatusEnum,
+	status: TaskStatusEnum
 ): ITaskCreateInput {
 	const tags = issue?.label_ids
 		? issue?.label_ids?.map((id) => ({ id }) as ITag)
@@ -537,8 +537,8 @@ export function createIssueInputTransformer(
 		organizationId: defaultOrganizationId(),
 		modules:
 			issue?.module_ids?.map(
-				(id) => ({ id }) as IOrganizationProjectModule,
-			) || [],
+				(id) => ({ id }) as IOrganizationProjectModule
+			) || []
 	};
 }
 
@@ -548,7 +548,7 @@ export function updateIssueInputTransformer(
 	members?: IEmployee[],
 	tags?: IIssueLabel[],
 	modulesIds?: ID[],
-	modules?: IOrganizationProjectModule[],
+	modules?: IOrganizationProjectModule[]
 ): Partial<ITaskUpdateInput> {
 	// Mapping between IIssueUpdateInput and ITaskUpdateInput
 	const keyMapping: Partial<
@@ -564,16 +564,16 @@ export function updateIssueInputTransformer(
 		cycle_id: 'organizationSprintId',
 		parent_id: 'parentId',
 		state_id: 'taskStatusId',
-		module_ids: 'modules',
+		module_ids: 'modules'
 	};
 
 	// Include only user provided flelds in the final request
 	const transformedInput: ITaskUpdateInput = Object.entries(
-		keyMapping,
+		keyMapping
 	).reduce(
 		(
 			acc: Partial<Omit<ITaskUpdateInput, 'parent'>>,
-			[issueKey, taskKey],
+			[issueKey, taskKey]
 		) => {
 			if (issueKey in issue) {
 				const value = issue[issueKey as keyof IIssueUpdateInput];
@@ -599,7 +599,7 @@ export function updateIssueInputTransformer(
 
 			return acc;
 		},
-		{} as ITaskUpdateInput,
+		{} as ITaskUpdateInput
 	);
 
 	// Add tags only if label_ids is defined
@@ -616,7 +616,7 @@ export function updateIssueInputTransformer(
 			?.map((employee) => ({
 				id: employee.id,
 				fullName: employee.fullName,
-				userId: employee.userId,
+				userId: employee.userId
 			}));
 	}
 
@@ -628,7 +628,7 @@ export function getTaskDistribution(tasks: ITask[]) {
 		completed: [],
 		started: [],
 		unstarted: [],
-		backlog: [],
+		backlog: []
 	};
 
 	const statusMap: { [key: string]: keyof typeof stateDistribution } = {
@@ -639,7 +639,7 @@ export function getTaskDistribution(tasks: ITask[]) {
 		[TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()]: 'started',
 		[TaskStatusEnum.BLOCKED.toLocaleLowerCase()]: 'started',
 		[TaskStatusEnum.OPEN.toLocaleLowerCase()]: 'unstarted',
-		[TaskStatusEnum.BACKLOG.toLocaleLowerCase()]: 'backlog',
+		[TaskStatusEnum.BACKLOG.toLocaleLowerCase()]: 'backlog'
 	};
 
 	tasks.forEach((task) => {
@@ -676,7 +676,7 @@ export function getTaskDistribution(tasks: ITask[]) {
  * @returns {Array<{ priority: string; count: number }>} An array of objects containing the priority and the count of tasks with that priority.
  */
 export function issuesByPriority(
-	tasks: ITask[],
+	tasks: ITask[]
 ): { priority: string; count: number }[] {
 	// Mapping of priorities to their corresponding filters
 	const priorityMapping = {
@@ -684,7 +684,7 @@ export function issuesByPriority(
 		high: TaskPriorityEnum.HIGH,
 		medium: TaskPriorityEnum.MEDIUM,
 		low: TaskPriorityEnum.LOW,
-		none: null, // Tasks without a priority
+		none: null // Tasks without a priority
 	};
 
 	// Count tasks for each priority
@@ -692,7 +692,7 @@ export function issuesByPriority(
 		priority,
 		count: tasks.filter(
 			(task) =>
-				task.priority === value || (value === null && !task.priority),
-		).length,
+				task.priority === value || (value === null && !task.priority)
+		).length
 	}));
 }

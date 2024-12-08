@@ -3,6 +3,6 @@ import { IssueLinksService } from './issue-links.service';
 
 @Module({
 	providers: [IssueLinksService],
-	exports: [IssueLinksService],
+	exports: [IssueLinksService]
 })
 export class IssueLinksModule {}

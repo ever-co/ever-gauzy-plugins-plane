@@ -7,7 +7,7 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ID } from '@plane-plugin/models';
@@ -43,7 +43,7 @@ export class IssueLabelsController {
 	@Post()
 	async createIssueLabel(
 		@Body() input: CreateIssueLabelDTO,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	) {
 		return await this._issueLabelService.createIssueLabel(projectId, input);
 	}
@@ -62,12 +62,12 @@ export class IssueLabelsController {
 	async updateIssueLabel(
 		@Body() input: UpdateIssueLabelDTO,
 		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	) {
 		return await this._issueLabelService.updateIssueLabel(
 			id,
 			projectId,
-			input,
+			input
 		);
 	}
 

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import {
 	defaultEmployeeId,
 	defaultTestTenantId,
-	roleTransformer,
+	roleTransformer
 } from '../../config';
 import { ProjectService } from '../project/project.service';
 
@@ -26,7 +26,7 @@ export class UserService {
 			user_timezone: 'UTC',
 			username: '1612687cee92431b8c6da7d1532cb7a4',
 			is_password_autoset: false,
-			last_login_medium: 'email',
+			last_login_medium: 'email'
 		};
 	}
 
@@ -41,7 +41,7 @@ export class UserService {
 				workspace_join: true,
 				profile_complete: true,
 				workspace_create: true,
-				workspace_invite: true,
+				workspace_invite: true
 			},
 			use_case: 'Engineering',
 			role: 'Individual contributor',
@@ -51,7 +51,7 @@ export class UserService {
 			billing_address: null,
 			has_billing_address: false,
 			company_name: '',
-			user: defaultEmployeeId(),
+			user: defaultEmployeeId()
 		};
 	}
 
@@ -64,8 +64,8 @@ export class UserService {
 				last_workspace_slug: 'cardano',
 				fallback_workspace_id: defaultTestTenantId(),
 				fallback_workspace_slug: 'cardano',
-				invites: 0,
-			},
+				invites: 0
+			}
 		};
 	}
 
@@ -79,7 +79,7 @@ export class UserService {
 					last_name: 'Cardano',
 					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
 					is_bot: false,
-					display_name: 'salva.cardano1',
+					display_name: 'salva.cardano1'
 				},
 				total_members: 1,
 				total_issues: 2,
@@ -91,8 +91,8 @@ export class UserService {
 				slug: 'cardano',
 				organization_size: '11-50',
 				created_by: defaultEmployeeId(),
-				updated_by: defaultEmployeeId(),
-			},
+				updated_by: defaultEmployeeId()
+			}
 		];
 	}
 
@@ -102,23 +102,23 @@ export class UserService {
 			const employeeProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
-					['members.employee.user.role'],
+					['members.employee.user.role']
 				);
 
 			const projectRoles = employeeProjects.reduce(
 				(acc, project) => {
 					const member = project.members.find(
-						(member) => member.employeeId === employeeId,
+						(member) => member.employeeId === employeeId
 					);
 
 					if (member) {
 						acc[project.id] = roleTransformer(
-							member.employee.user.role,
+							member.employee.user.role
 						);
 					}
 					return acc;
 				},
-				{} as { [key: string]: number },
+				{} as { [key: string]: number }
 			);
 
 			return projectRoles;

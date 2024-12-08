@@ -27,29 +27,29 @@ import { CyclesModule } from '../cycles/cycles.module';
 					{ path: '/:projectId/cycles', module: CyclesModule },
 					{
 						path: '/:projectId/search-issues',
-						module: SearchIssuesModule,
+						module: SearchIssuesModule
 					},
 					{
 						path: '/:projectId/issue-labels',
-						module: IssueLabelsModule,
+						module: IssueLabelsModule
 					},
 					{
 						path: '/:projectId/modules',
-						module: ProjectModuleModule,
+						module: ProjectModuleModule
 					},
-					{ path: '/:projectId/comments', module: CommentsModule },
-				],
-			},
+					{ path: '/:projectId/comments', module: CommentsModule }
+				]
+			}
 		]),
 		forwardRef(() => WorkspaceModule),
 		StatesModule,
 		IssuesModule,
 		IssueLabelsModule,
 		ProjectIdentifiersModule,
-		UserFavoritesModule,
+		UserFavoritesModule
 	],
 	providers: [ProjectService],
 	controllers: [ProjectController],
-	exports: [ProjectService],
+	exports: [ProjectService]
 })
 export class ProjectModule {}

@@ -21,7 +21,7 @@ function parseRelativeDate(dateString: string): string | null {
 		'days',
 		'weeks',
 		'months',
-		'years',
+		'years'
 	];
 	if (!validUnits.includes(unit as moment.unitOfTime.DurationConstructor)) {
 		throw new Error(`Unsupported time unit: ${unit}`);
@@ -34,7 +34,7 @@ function parseRelativeDate(dateString: string): string | null {
 	} else if (operator === 'before') {
 		date = date.subtract(
 			amount,
-			unit as moment.unitOfTime.DurationConstructor,
+			unit as moment.unitOfTime.DurationConstructor
 		); // Subtract time
 	} else {
 		throw new Error(`Unsupported operator: ${operator}`);

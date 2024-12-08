@@ -6,11 +6,11 @@ import { ProjectIdentifiersController } from './project-identifiers.controller';
 @Module({
 	imports: [
 		RouterModule.register([
-			{ path: '/project-identifiers', module: ProjectIdentifiersModule },
-		]),
+			{ path: '/project-identifiers', module: ProjectIdentifiersModule }
+		])
 	],
 	providers: [ProjectIdentifiersService],
 	controllers: [ProjectIdentifiersController],
-	exports: [ProjectIdentifiersService],
+	exports: [ProjectIdentifiersService]
 })
 export class ProjectIdentifiersModule {}

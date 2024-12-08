@@ -7,7 +7,7 @@ import {
 	IsNumber,
 	IsOptional,
 	IsString,
-	IsUUID,
+	IsUUID
 } from 'class-validator';
 import { ID, IIssueCreateInput, TaskPriorityEnum } from '@plane-plugin/models';
 

@@ -9,7 +9,7 @@ import {
 	IsObject,
 	IsOptional,
 	IsString,
-	IsUUID,
+	IsUUID
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CycleStatusEnum, ICycle, ID } from '@plane-plugin/models';

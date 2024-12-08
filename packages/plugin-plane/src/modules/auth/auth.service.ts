@@ -3,7 +3,7 @@ import {
 	CheckUserExistEnum,
 	ICheckUserExist,
 	IEmailInput,
-	IPasswordInput,
+	IPasswordInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
@@ -11,7 +11,7 @@ import { ApiFetchService } from '../api-fetch/api-fetch.service';
 export class AuthService {
 	constructor(private readonly _serverFetchService: ApiFetchService) {}
 	async checkExistingUser(
-		input: IEmailInput & Partial<IPasswordInput>,
+		input: IEmailInput & Partial<IPasswordInput>
 	): Promise<ICheckUserExist> {
 		console.log(input);
 		// try {
@@ -35,7 +35,7 @@ export class AuthService {
 	async getCsrfToken(): Promise<{ csrf_token: string }> {
 		return {
 			csrf_token:
-				'VewsJqujUGoIJKA7iTvbqmirySLbzFJVqha7Nxk5U39DCNfk2OLvCxQWYzPymhK4',
+				'VewsJqujUGoIJKA7iTvbqmirySLbzFJVqha7Nxk5U39DCNfk2OLvCxQWYzPymhK4'
 		};
 	}
 }

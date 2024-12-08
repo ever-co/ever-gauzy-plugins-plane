@@ -8,7 +8,7 @@ import {
 	IOrganizationProjectModuleCreateInput,
 	ITask,
 	ProjectModuleStatusEnum,
-	TaskStatusEnum,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
@@ -20,7 +20,7 @@ export function getTaskCounts(tasks: ITask[]) {
 			task.status?.toLocaleLowerCase() ===
 				TaskStatusEnum.DONE.toLocaleLowerCase() ||
 			task.status?.toLocaleLowerCase() ===
-				TaskStatusEnum.COMPLETED.toLocaleLowerCase(),
+				TaskStatusEnum.COMPLETED.toLocaleLowerCase()
 	).length;
 
 	const startedIssues = tasks?.filter(
@@ -29,48 +29,48 @@ export function getTaskCounts(tasks: ITask[]) {
 				deslugify(TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase()) ||
 			task.status ===
 				deslugify(
-					TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase(),
+					TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase()
 				) ||
 			task.status ===
 				deslugify(TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()) ||
-			task.status === TaskStatusEnum.BLOCKED.toLocaleLowerCase(),
+			task.status === TaskStatusEnum.BLOCKED.toLocaleLowerCase()
 	).length;
 
 	const unstartedIssues = tasks?.filter(
 		(task) =>
 			task.status?.toLocaleLowerCase() ===
-			TaskStatusEnum.OPEN.toLocaleLowerCase(),
+			TaskStatusEnum.OPEN.toLocaleLowerCase()
 	).length;
 
 	const backlogIssues = tasks?.filter(
 		(task) =>
 			task.status?.toLocaleLowerCase() ===
-			TaskStatusEnum.BACKLOG.toLocaleLowerCase(),
+			TaskStatusEnum.BACKLOG.toLocaleLowerCase()
 	).length;
 
 	return {
 		completedIssues,
 		startedIssues,
 		unstartedIssues,
-		backlogIssues,
+		backlogIssues
 	};
 }
 
 export function modulesTransformer(
 	modules: IOrganizationProjectModule[] | IOrganizationProjectModule,
-	favoriteIds?: ID[],
+	favoriteIds?: ID[]
 ): IModule[] | IModule {
 	const transformModule = (projectModule: IOrganizationProjectModule) => {
 		const {
 			completedIssues,
 			startedIssues,
 			unstartedIssues,
-			backlogIssues,
+			backlogIssues
 		} = getTaskCounts(projectModule?.tasks);
 
 		const isFavorite = favoriteIds?.includes(projectModule.id);
 		const leadId = projectModule?.members?.filter(
-			(member) => member.isManager && member.roleId,
+			(member) => member.isManager && member.roleId
 		)[0]?.employeeId;
 
 		return {
@@ -101,10 +101,10 @@ export function modulesTransformer(
 			completed_estimate_points: 0,
 			total_estimate_points: 0,
 			member_ids: projectModule?.members?.map(
-				(member) => member.employeeId,
+				(member) => member.employeeId
 			),
 			workspace_id: projectModule?.tenantId,
-			...(projectModule ? moduleDetailsAdapter(projectModule) : {}),
+			...(projectModule ? moduleDetailsAdapter(projectModule) : {})
 		};
 	};
 
@@ -129,7 +129,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 					label_id: label.id,
 					total_issues: 0,
 					completed_issues: 0,
-					pending_issues: 0,
+					pending_issues: 0
 				});
 			}
 
@@ -182,7 +182,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 			avatar: user?.imageUrl,
 			total_issues: totalIssues,
 			completed_issues: completedIssues,
-			pending_issues: pendingIssues,
+			pending_issues: pendingIssues
 		};
 	});
 
@@ -190,21 +190,21 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		estimate_distribution: {
 			assignees,
 			labels: [],
-			completion_chart: {},
+			completion_chart: {}
 		},
 		distribution: {
 			assignees,
 			labels,
 			completion_chart: {
-				...(module ? completionChartMapping(module) : {}),
-			},
-		},
+				...(module ? completionChartMapping(module) : {})
+			}
+		}
 	};
 }
 
 export function createModuleInputTransformer(
 	module: ICreateModuleInput | Partial<ICreateModuleInput>,
-	managerId?: ID,
+	managerId?: ID
 ): IOrganizationProjectModuleCreateInput {
 	return {
 		name: module.name,
@@ -216,7 +216,7 @@ export function createModuleInputTransformer(
 		managerIds: [managerId],
 		projectId: module.project_id,
 		tenantId: defaultTestTenantId(),
-		organizationId: defaultOrganizationId(),
+		organizationId: defaultOrganizationId()
 	};
 }
 
@@ -228,16 +228,16 @@ export const moduleRelations = [
 	'children',
 	'tasks',
 	'tasks.tags',
-	'tasks.members.user',
+	'tasks.members.user'
 ];
 
 export const getModulesQuery = (
 	projectId?: ID,
-	relations?: string[],
+	relations?: string[]
 ): Record<string, any> => {
 	// Base queries
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (projectId) {

@@ -3,7 +3,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -16,7 +16,7 @@ import {
 	IPagination,
 	IProject,
 	IUpdateProjectInput,
-	IUpdateUserPropertiesInput,
+	IUpdateUserPropertiesInput
 } from '@plane-plugin/models';
 import {
 	assignMembersToProjectTransformer,
@@ -25,7 +25,7 @@ import {
 	defaultTestTenantId,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
-	getProjectsResponse,
+	getProjectsResponse
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
@@ -37,7 +37,7 @@ export class ProjectService extends ApiFetchService {
 		@Inject(forwardRef(() => WorkspaceService))
 		private readonly _workspaceService: WorkspaceService,
 		private readonly _userFavoriteService: UserFavoritesService,
-		private readonly _serverFetchService: ApiFetchService,
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -45,7 +45,7 @@ export class ProjectService extends ApiFetchService {
 	private readonly path = '/organization-projects';
 
 	async getExternalProjects(
-		relations?: string[],
+		relations?: string[]
 	): Promise<IOrganizationProject[]> {
 		const query = qs.stringify(getProjectsQuery(relations));
 		try {
@@ -53,7 +53,7 @@ export class ProjectService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 
@@ -78,7 +78,7 @@ export class ProjectService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationProject,
+					BaseEntityEnum.OrganizationProject
 				);
 
 			return getProjectsResponse(projects, favoriteIds);
@@ -100,7 +100,7 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async getExternalProjectsByEmployee(
 		employeeId: ID,
-		relations?: string[],
+		relations?: string[]
 	): Promise<IOrganizationProject[]> {
 		try {
 			const query = qs.stringify(findEmployeeProjectsQuery(relations));
@@ -109,7 +109,7 @@ export class ProjectService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/employee/${employeeId}`,
-					query,
+					query
 				})
 			).data;
 
@@ -129,7 +129,7 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async getExternalProject(
 		id: ID,
-		relations?: string[],
+		relations?: string[]
 	): Promise<IOrganizationProject> {
 		try {
 			const query = qs.stringify(getProjectsQuery(relations));
@@ -137,7 +137,7 @@ export class ProjectService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/${id}`,
-					query,
+					query
 				})
 			).data;
 		} catch (error: any) {
@@ -155,7 +155,7 @@ export class ProjectService extends ApiFetchService {
 		try {
 			const project: IOrganizationProject = await this.getExternalProject(
 				id,
-				relations,
+				relations
 			);
 
 			if (!project) {
@@ -164,7 +164,7 @@ export class ProjectService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationProject,
+					BaseEntityEnum.OrganizationProject
 				);
 
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;
@@ -187,7 +187,7 @@ export class ProjectService extends ApiFetchService {
 			id: member.id,
 			member: member.member_id,
 			role: member.role,
-			project: project.id,
+			project: project.id
 		}));
 	}
 
@@ -201,7 +201,7 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async createOrganizationProject(
-		input: ICreateProjectInput,
+		input: ICreateProjectInput
 	): Promise<IProject> {
 		const body = createProjectInputTransformer(input);
 		try {
@@ -209,7 +209,7 @@ export class ProjectService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -255,14 +255,14 @@ export class ProjectService extends ApiFetchService {
 			const body = {
 				...projectWithoutMembers,
 				...transformedInput,
-				memberIds,
+				memberIds
 			};
 
 			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body: { ...project, ...body },
+					body: { ...project, ...body }
 				})
 			).data;
 
@@ -283,7 +283,7 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async assignMembersToProject(
 		id: ID,
-		input: IAssignMembersToProject,
+		input: IAssignMembersToProject
 	): Promise<IProject> {
 		try {
 			const { members } = input;
@@ -301,15 +301,15 @@ export class ProjectService extends ApiFetchService {
 			const memberIds = [
 				...new Set([
 					...assignMembersToProjectTransformer(members),
-					...existingMembers.map((m) => m.employeeId),
-				]),
+					...existingMembers.map((m) => m.employeeId)
+				])
 			];
 
 			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body: { ...projectWithoutMembers, memberIds },
+					body: { ...projectWithoutMembers, memberIds }
 				})
 			).data;
 
@@ -330,7 +330,7 @@ export class ProjectService extends ApiFetchService {
 				workspace: {
 					name: 'Cardano',
 					slug: 'cardano',
-					id: project.workspace,
+					id: project.workspace
 				},
 				project: {
 					id: project.id,
@@ -338,7 +338,7 @@ export class ProjectService extends ApiFetchService {
 					name: project.name,
 					cover_image: project.cover_image,
 					logo_props: project.logo_props,
-					desciption: project.description,
+					desciption: project.description
 				},
 				member: {
 					id: memberInfos.member,
@@ -346,7 +346,7 @@ export class ProjectService extends ApiFetchService {
 					last_name: 'Cardano',
 					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
 					is_bot: false,
-					display_name: 'salva.cardano1',
+					display_name: 'salva.cardano1'
 				},
 				created_at: memberInfos.created_at,
 				updated_at: memberInfos.updated_at,
@@ -355,21 +355,21 @@ export class ProjectService extends ApiFetchService {
 				role: memberInfos.role,
 				view_props: {
 					filters: memberInfos.view_props.filters,
-					display_filters: memberInfos.view_props.display_filters,
+					display_filters: memberInfos.view_props.display_filters
 				},
 				default_props: {
 					filters: memberInfos.default_props.filters,
-					display_filters: memberInfos.default_props.display_filters,
+					display_filters: memberInfos.default_props.display_filters
 				},
 				preferences: {
 					pages: {
-						block_display: true,
-					},
+						block_display: true
+					}
 				},
 				sort_order: 65535.0,
 				is_active: memberInfos.is_active,
 				created_by: memberInfos.created_by,
-				updated_by: memberInfos.updated_by,
+				updated_by: memberInfos.updated_by
 			};
 		} catch (error) {
 			throw new BadRequestException(error);
@@ -400,20 +400,20 @@ export class ProjectService extends ApiFetchService {
 				start_date: null,
 				subscriber: null,
 				state_group: null,
-				target_date: null,
+				target_date: null
 			},
 			display_filters: {
 				type: null,
 				layout: 'kanban',
 				calendar: {
 					layout: 'month',
-					show_weekends: false,
+					show_weekends: false
 				},
 				group_by: 'state',
 				order_by: '-created_at',
 				sub_issue: true,
 				sub_group_by: null,
-				show_empty_groups: true,
+				show_empty_groups: true
 			},
 			display_properties: {
 				key: true,
@@ -428,19 +428,19 @@ export class ProjectService extends ApiFetchService {
 				start_date: true,
 				updated_on: true,
 				sub_issue_count: true,
-				attachment_count: true,
+				attachment_count: true
 			},
 			created_by: defaultEmployeeId(),
 			updated_by: defaultEmployeeId(),
 			project: id,
 			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId(),
+			user: defaultEmployeeId()
 		};
 	}
 
 	async updateProjectUserProperties(
 		id: ID,
-		input: IUpdateUserPropertiesInput,
+		input: IUpdateUserPropertiesInput
 	) {
 		const { display_filters, display_properties, filters } = input;
 		return {
@@ -461,7 +461,7 @@ export class ProjectService extends ApiFetchService {
 			updated_by: defaultEmployeeId(),
 			project: id,
 			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId(),
+			user: defaultEmployeeId()
 		};
 	}
 }

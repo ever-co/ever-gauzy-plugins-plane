@@ -10,7 +10,7 @@ import {
 	IIssueComment,
 	IOrganizationProject,
 	IReactionData,
-	IWorkspaceInfo,
+	IWorkspaceInfo
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
@@ -23,7 +23,7 @@ export function issueCommentTrasnsformer(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspace_detail: IWorkspaceInfo,
-	reactions: IReactionData[],
+	reactions: IReactionData[]
 ): IIssueComment[] | IIssueComment {
 	const transformIssueComment = (comment: IComment): IIssueComment => {
 		return {
@@ -35,7 +35,7 @@ export function issueCommentTrasnsformer(
 				last_name: actor?.user?.lastName,
 				avatar: actor?.user?.imageUrl,
 				is_bot: false,
-				display_name: actor?.fullName,
+				display_name: actor?.fullName
 			},
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail,
@@ -55,7 +55,7 @@ export function issueCommentTrasnsformer(
 			project: project.id,
 			workspace: workspace_detail.id,
 			issue: issue.id,
-			actor: actor?.id,
+			actor: actor?.id
 		};
 	};
 
@@ -79,7 +79,7 @@ export function createCommentInputTransformer(
 	input: ICreateCommentInput,
 	entity: BaseEntityEnum,
 	entityId: ID,
-	employees?: IEmployee[],
+	employees?: IEmployee[]
 ): ICommentCreateInput {
 	const commentHtml = input.comment_html;
 
@@ -97,27 +97,27 @@ export function createCommentInputTransformer(
 		entityId,
 		comment: commentHtml,
 		actorType: ActorTypeEnum.User,
-		mentionIds: mentionedUserIds ?? [], // Default to an empty array if no employees are provided
+		mentionIds: mentionedUserIds ?? [] // Default to an empty array if no employees are provided
 	};
 }
 
 export function updateCommentInputTransformer(
 	input: ICreateCommentInput,
-	commentUpdate: IComment,
+	commentUpdate: IComment
 ): ICommentUpdateInput {
 	return {
 		...commentUpdate,
-		comment: input.comment_html,
+		comment: input.comment_html
 	};
 }
 
 export function getCommentsQuery(
 	entityId?: ID,
-	entity?: BaseEntityEnum,
+	entity?: BaseEntityEnum
 ): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (entityId) {

@@ -9,7 +9,7 @@ export class InstancesController {
 	getDefaultIntanceAndConfigs() {
 		return {
 			instance: this.instancesService.getDefaultInstance(),
-			configs: this.instancesService.getDefaultConfigs(),
+			configs: this.instancesService.getDefaultConfigs()
 		};
 	}
 }

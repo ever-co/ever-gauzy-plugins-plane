@@ -5,6 +5,6 @@ import { SearchIssuesController } from './search-issues.controller';
 @Module({
 	providers: [SearchIssuesService],
 	controllers: [SearchIssuesController],
-	exports: [SearchIssuesService],
+	exports: [SearchIssuesService]
 })
 export class SearchIssuesModule {}

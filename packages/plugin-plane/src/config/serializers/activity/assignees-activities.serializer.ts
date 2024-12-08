@@ -40,7 +40,7 @@ export function assigneesActivityTransformer(activityLog: IActivityLog) {
 		removed:
 			removedMembers.length > 0
 				? { members: removedMembers, verb: 'removed' }
-				: null,
+				: null
 	};
 }
 
@@ -54,7 +54,7 @@ export function assigneesActivityTransformer(activityLog: IActivityLog) {
 function getAddedMembers(previousMembers: any[], updatedMembers: any[]): any[] {
 	const previousSet = new Set(previousMembers.map((member) => member.id));
 	const updated = updatedMembers.filter(
-		(member) => !previousSet.has(member.id),
+		(member) => !previousSet.has(member.id)
 	);
 	return updated;
 }
@@ -68,11 +68,11 @@ function getAddedMembers(previousMembers: any[], updatedMembers: any[]): any[] {
  */
 function getRemovedMembers(
 	previousMembers: any[],
-	updatedMembers: any[],
+	updatedMembers: any[]
 ): any[] {
 	const updatedSet = new Set(updatedMembers.map((member) => member.id));
 	const previous = previousMembers.filter(
-		(member) => !updatedSet.has(member.id),
+		(member) => !updatedSet.has(member.id)
 	);
 	return previous;
 }

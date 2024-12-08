@@ -5,6 +5,6 @@ import { IssueRelationsService } from './issue-relations.service';
 @Module({
 	imports: [forwardRef(() => IssuesModule)],
 	providers: [IssueRelationsService],
-	exports: [IssueRelationsService],
+	exports: [IssueRelationsService]
 })
 export class IssueRelationsModule {}

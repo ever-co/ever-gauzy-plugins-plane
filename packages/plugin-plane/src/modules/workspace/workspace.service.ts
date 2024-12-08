@@ -2,7 +2,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -25,7 +25,7 @@ import {
 	IIssueLabel,
 	IssueOrderByField,
 	IIssueCreateInput,
-	IIssueUpdateInput,
+	IIssueUpdateInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -49,11 +49,11 @@ import {
 	userIssuesByPriority,
 	userWorkNonGroupedIssues,
 	userWorkProjectsTransformer,
-	widgetTargetDateTransformer,
+	widgetTargetDateTransformer
 } from '../../config';
 import {
 	getOrganizationQuery,
-	organizationMembersTransformer,
+	organizationMembersTransformer
 } from '../../config';
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
@@ -72,7 +72,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _subscriptionService: SubscriptionService,
 		private readonly _draftIssueService: DraftIssuesService,
-		private readonly _serverFetchService: ApiFetchService,
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -103,42 +103,42 @@ export class WorkspaceService extends ApiFetchService {
 				logo_props: {},
 				created_by: defaultEmployeeId(),
 				updated_by: defaultEmployeeId(),
-				owned_by: defaultEmployeeId(),
+				owned_by: defaultEmployeeId()
 			},
 			widgets: [
 				{
 					id: '2aeac7af-6040-488c-8f5c-6ebac65ca4b7',
 					key: 'recent_collaborators',
 					is_visible: true,
-					widget_filters: {},
+					widget_filters: {}
 				},
 				{
 					id: '59f310e4-0473-4fb9-ad2d-d709edcc44e2',
 					key: 'recent_projects',
 					is_visible: true,
-					widget_filters: {},
+					widget_filters: {}
 				},
 				{
 					id: '6bbda6d1-73cc-4e95-82e2-6f4677cc4993',
 					key: 'recent_activity',
 					is_visible: true,
-					widget_filters: {},
+					widget_filters: {}
 				},
 				{
 					id: '99748079-63ff-413a-95e2-3d1a706512dd',
 					key: 'issues_by_priority',
 					is_visible: true,
 					widget_filters: {
-						duration: 'none',
-					},
+						duration: 'none'
+					}
 				},
 				{
 					id: '15eebb02-7be0-472d-a621-5a886e39f10e',
 					key: 'issues_by_state_groups',
 					is_visible: true,
 					widget_filters: {
-						duration: 'none',
-					},
+						duration: 'none'
+					}
 				},
 				{
 					id: 'b07deb33-9e8d-42aa-9515-134c26e5d7df',
@@ -146,8 +146,8 @@ export class WorkspaceService extends ApiFetchService {
 					is_visible: true,
 					widget_filters: {
 						tab: 'pending',
-						duration: 'none',
-					},
+						duration: 'none'
+					}
 				},
 				{
 					id: 'fd3307a4-11e3-4013-ab65-d1f9bcfcaad4',
@@ -155,16 +155,16 @@ export class WorkspaceService extends ApiFetchService {
 					is_visible: true,
 					widget_filters: {
 						tab: 'pending',
-						duration: 'none',
-					},
+						duration: 'none'
+					}
 				},
 				{
 					id: 'b2c401a3-ce8a-42e5-853f-55302b0b5502',
 					key: 'overview_stats',
 					is_visible: true,
-					widget_filters: {},
-				},
-			],
+					widget_filters: {}
+				}
+			]
 		};
 	}
 
@@ -181,7 +181,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findDashboardWidgetsData(
 		widget: DashboardWigetQueryEnum,
 		target_date?: string,
-		issue_type?: DashboardIssueTypeEnum,
+		issue_type?: DashboardIssueTypeEnum
 	): Promise<any> {
 		// Mapping object for each widget type and its corresponding handler function
 		const widgetHandlers: {
@@ -193,7 +193,7 @@ export class WorkspaceService extends ApiFetchService {
 			[DashboardWigetQueryEnum.CREATED_ISSUES]: async () => {
 				const issues = await this.findMyCreatedIssues(
 					target_date,
-					issue_type,
+					issue_type
 				);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
@@ -201,7 +201,7 @@ export class WorkspaceService extends ApiFetchService {
 			[DashboardWigetQueryEnum.ASSIGNED_ISSUES]: async () => {
 				const issues = await this.findMyAssignedIssues(
 					target_date,
-					issue_type,
+					issue_type
 				);
 				return { issues: issues.slice(0, 5), count: issues.length };
 			},
@@ -223,7 +223,7 @@ export class WorkspaceService extends ApiFetchService {
 
 			[DashboardWigetQueryEnum.OVERVIEW]: async () => {
 				return await this.findOverViewWidgetStats();
-			},
+			}
 		};
 
 		// Execute the corresponding handler if the widget type exists in the mapping
@@ -261,7 +261,7 @@ export class WorkspaceService extends ApiFetchService {
 					start_date: null,
 					subscriber: null,
 					state_group: null,
-					target_date: null,
+					target_date: null
 				},
 				display_filters: {
 					type: null,
@@ -270,7 +270,7 @@ export class WorkspaceService extends ApiFetchService {
 					order_by: '-created_at',
 					sub_issue: true,
 					show_empty_groups: true,
-					calendar_date_range: '',
+					calendar_date_range: ''
 				},
 				display_properties: {
 					key: true,
@@ -285,8 +285,8 @@ export class WorkspaceService extends ApiFetchService {
 					start_date: true,
 					updated_on: true,
 					sub_issue_count: true,
-					attachment_count: true,
-				},
+					attachment_count: true
+				}
 			},
 			default_props: {
 				filters: {
@@ -298,7 +298,7 @@ export class WorkspaceService extends ApiFetchService {
 					start_date: null,
 					subscriber: null,
 					state_group: null,
-					target_date: null,
+					target_date: null
 				},
 				display_filters: {
 					type: null,
@@ -307,7 +307,7 @@ export class WorkspaceService extends ApiFetchService {
 					order_by: '-created_at',
 					sub_issue: true,
 					show_empty_groups: true,
-					calendar_date_range: '',
+					calendar_date_range: ''
 				},
 				display_properties: {
 					key: true,
@@ -322,20 +322,20 @@ export class WorkspaceService extends ApiFetchService {
 					start_date: true,
 					updated_on: true,
 					sub_issue_count: true,
-					attachment_count: true,
-				},
+					attachment_count: true
+				}
 			},
 			issue_props: {
 				created: true,
 				assigned: true,
 				all_issues: true,
-				subscribed: true,
+				subscribed: true
 			},
 			is_active: true,
 			created_by: defaultEmployeeId(),
 			updated_by: defaultEmployeeId(),
 			workspace: defaultTestTenantId(),
-			member: defaultEmployeeId(),
+			member: defaultEmployeeId()
 		};
 	}
 
@@ -350,12 +350,12 @@ export class WorkspaceService extends ApiFetchService {
 			await this.apiFetch({
 				method: 'GET',
 				path: `/organization/${defaultOrganizationId()}`, // TODO : Get this organization ID from request
-				query,
+				query
 			})
 		).data;
 		return organizationMembersTransformer(
 			organization.employees,
-			organization.tenant,
+			organization.tenant
 		);
 	}
 
@@ -377,19 +377,19 @@ export class WorkspaceService extends ApiFetchService {
 					const tasks: ITask[] =
 						await this._issueService.findExternalByEmployee(
 							employee.member.id,
-							['taskStatus'],
+							['taskStatus']
 						);
 					const { startedIssues, unstartedIssues } =
 						getTaskCounts(tasks);
 
 					return {
 						user_id: employee.member.id,
-						active_issue_count: startedIssues + unstartedIssues,
+						active_issue_count: startedIssues + unstartedIssues
 					};
-				}),
+				})
 			);
 			return collaborators.sort(
-				(a, b) => b.active_issue_count - a.active_issue_count,
+				(a, b) => b.active_issue_count - a.active_issue_count
 			);
 		} catch (error) {
 			console.log(error);
@@ -418,7 +418,7 @@ export class WorkspaceService extends ApiFetchService {
 		const assigned = await this.findMyAssignedIssues();
 		const completed = await this.findMyAssignedIssues(
 			null,
-			DashboardIssueTypeEnum.COMPLETED,
+			DashboardIssueTypeEnum.COMPLETED
 		);
 		const created = await this.findMyCreatedIssues();
 		const overdue = assigned.filter((task) => {
@@ -436,7 +436,7 @@ export class WorkspaceService extends ApiFetchService {
 			assigned_issues_count: assigned.length,
 			pending_issues_count: overdue.length,
 			completed_issues_count: completed.length,
-			created_issues_count: created.length,
+			created_issues_count: created.length
 		};
 	}
 
@@ -448,20 +448,20 @@ export class WorkspaceService extends ApiFetchService {
 	async findMyAssignedIssues(
 		target_date?: string,
 		issue_type?: DashboardIssueTypeEnum,
-		employee?: ID,
+		employee?: ID
 	) {
 		const employeeId = employee || defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
 		return this.getIssues(
 			employeeId,
 			'employeeId',
 			target_date,
-			issue_type,
+			issue_type
 		);
 	}
 
 	async findMyCreatedIssues(
 		target_date?: string,
-		issue_type?: DashboardIssueTypeEnum,
+		issue_type?: DashboardIssueTypeEnum
 	) {
 		const userId = defaultUserId(); // TODO: Replace with the correct authenticated user
 		return this.getIssues(userId, 'creatorId', target_date, issue_type);
@@ -477,13 +477,13 @@ export class WorkspaceService extends ApiFetchService {
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
 	async finAssignedByState(
-		target_date?: string,
+		target_date?: string
 	): Promise<{ state: string; count: number }[]> {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-					['taskStatus'],
+					['taskStatus']
 				); // TODO: Adjust this to use correct authenticated employee;
 
 			if (target_date) {
@@ -494,7 +494,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+					employeeId: defaultEmployeeId() // TODO: Adjust this to use correct authenticated employee
 				});
 			}
 
@@ -503,7 +503,7 @@ export class WorkspaceService extends ApiFetchService {
 				backlogIssues,
 				completedIssues,
 				startedIssues,
-				unstartedIssues,
+				unstartedIssues
 			} = getTaskCounts(tasks);
 
 			// Return the task counts grouped by state
@@ -512,7 +512,7 @@ export class WorkspaceService extends ApiFetchService {
 				{ state: 'unstarted', count: unstartedIssues },
 				{ state: 'started', count: startedIssues },
 				{ state: 'completed', count: completedIssues },
-				{ state: 'cancelled', count: 0 }, // Assuming 0 cancelled issues as not specified
+				{ state: 'cancelled', count: 0 } // Assuming 0 cancelled issues as not specified
 			];
 		} catch (error: any) {
 			// Log error and throw BadRequestException
@@ -531,13 +531,13 @@ export class WorkspaceService extends ApiFetchService {
 	 * @throws {BadRequestException} If an error occurs during task retrieval.
 	 */
 	async findAssignedByPriority(
-		target_date?: string,
+		target_date?: string
 	): Promise<{ priority: string; count: number }[]> {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
 					defaultEmployeeId(),
-					['taskStatus'],
+					['taskStatus']
 				); // TODO: Adjust this to use correct authenticated employee;
 
 			if (target_date) {
@@ -548,7 +548,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: defaultEmployeeId(), // TODO: Adjust this to use correct authenticated employee
+					employeeId: defaultEmployeeId() // TODO: Adjust this to use correct authenticated employee
 				});
 			}
 
@@ -595,12 +595,12 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findRecentIssueActivity(
 		length?: number,
-		employeeId?: ID,
+		employeeId?: ID
 	): Promise<any> {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				creatorId: defaultUserId() || employeeId, // Use authenticated user ID
+				creatorId: defaultUserId() || employeeId // Use authenticated user ID
 			});
 
 			const issueActivities = await Promise.all(
@@ -609,8 +609,8 @@ export class WorkspaceService extends ApiFetchService {
 						activityLog.entityId,
 						[
 							'project.members.employee.user.role',
-							'organizationSprint',
-						],
+							'organizationSprint'
+						]
 					);
 
 					if (task.projectId) {
@@ -620,7 +620,7 @@ export class WorkspaceService extends ApiFetchService {
 								task.projectId,
 								activityLog.creatorId,
 								task,
-								task.project,
+								task.project
 							);
 
 						const transformedActivityLogs =
@@ -630,14 +630,14 @@ export class WorkspaceService extends ApiFetchService {
 								actor,
 								project,
 								workspace,
-								issue.cycle,
+								issue.cycle
 							);
 
 						return Array.isArray(transformedActivityLogs)
 							? transformedActivityLogs
 							: [transformedActivityLogs];
 					}
-				}),
+				})
 			);
 
 			// TODO: Include also links activities and filter both by createdAt to return most recent activities.
@@ -660,20 +660,20 @@ export class WorkspaceService extends ApiFetchService {
 		id: string,
 		idField: 'employeeId' | 'creatorId',
 		target_date?: string,
-		issue_type?: DashboardIssueTypeEnum,
+		issue_type?: DashboardIssueTypeEnum
 	) {
 		try {
 			let tasks: (ITask | IIssue)[];
 			const dateRangesRelations = [
 				'taskStatus',
 				'linkedIssues.taskTo',
-				'linkedIssues.taskFrom',
+				'linkedIssues.taskFrom'
 			];
 			const relations = [
 				'members.user',
 				'creator',
 				'project.members.employee.user.role',
-				...dateRangesRelations,
+				...dateRangesRelations
 			];
 
 			// If a target date is provided, fetch tasks by date
@@ -687,14 +687,14 @@ export class WorkspaceService extends ApiFetchService {
 						dueDateFrom,
 						dueDateTo,
 						relations: dateRangesRelations,
-						employeeId: id, // Explicitly specify employeeId
+						employeeId: id // Explicitly specify employeeId
 					});
 				} else {
 					tasks = await this._issueService.findByStartAndDueDate({
 						dueDateFrom,
 						dueDateTo,
 						relations: dateRangesRelations,
-						creatorId: id, // Explicitly specify creatorId
+						creatorId: id // Explicitly specify creatorId
 					});
 				}
 
@@ -736,12 +736,12 @@ export class WorkspaceService extends ApiFetchService {
 				if (idField === 'employeeId') {
 					tasks = await this._issueService.findByEmployee(
 						id,
-						relations,
+						relations
 					); // Directly pass the employeeId
 				} else {
 					tasks = await this._issueService.findAll(
 						{ creatorId: id },
-						relations,
+						relations
 					); // Directly pass the creatorId
 				}
 			}
@@ -759,7 +759,7 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	private filterAndTransformTasks(
 		tasks: (ITask | IIssue)[],
-		issue_type?: DashboardIssueTypeEnum,
+		issue_type?: DashboardIssueTypeEnum
 	) {
 		const isCompleted = issue_type === DashboardIssueTypeEnum.COMPLETED;
 
@@ -793,7 +793,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			const assignedIssues =
 				await this._issueService.findExternalByEmployee(employeeId, [
-					'taskStatus',
+					'taskStatus'
 				]);
 
 			const subscribedIssues = await this.findUserSubscribedIssues([]);
@@ -802,7 +802,7 @@ export class WorkspaceService extends ApiFetchService {
 				completedIssues,
 				backlogIssues,
 				startedIssues,
-				unstartedIssues,
+				unstartedIssues
 			} = getTaskCounts(assignedIssues);
 
 			const createdIssues = await this.findMyCreatedIssues();
@@ -812,7 +812,7 @@ export class WorkspaceService extends ApiFetchService {
 					{ state_group: 'backlog', state_count: backlogIssues },
 					{ state_group: 'unstarted', state_count: unstartedIssues },
 					{ state_group: 'started', state_count: startedIssues },
-					{ state_group: 'completed', state_count: completedIssues },
+					{ state_group: 'completed', state_count: completedIssues }
 				],
 				priority_distribution: userIssuesByPriority(assignedIssues),
 				created_issues: createdIssues.length,
@@ -821,7 +821,7 @@ export class WorkspaceService extends ApiFetchService {
 				pending_issues: backlogIssues + startedIssues + unstartedIssues,
 				subscribed_issues: subscribedIssues.length || 0,
 				present_cycles: [],
-				upcoming_cycles: [],
+				upcoming_cycles: []
 			};
 		} catch (error: any) {
 			console.log(error.response);
@@ -836,12 +836,12 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findUserRecentActivity(
 		per_page: number,
-		employeeId: ID,
+		employeeId: ID
 	): Promise<any> {
 		try {
 			const activities = await this.findRecentIssueActivity(
 				per_page,
-				employeeId,
+				employeeId
 			);
 			return {
 				grouped_by: null,
@@ -855,7 +855,7 @@ export class WorkspaceService extends ApiFetchService {
 				total_pages: 17,
 				total_results: 165,
 				extra_stats: null,
-				results: activities,
+				results: activities
 			};
 		} catch (error: any) {
 			console.log(error);
@@ -873,20 +873,20 @@ export class WorkspaceService extends ApiFetchService {
 	 *
 	 */
 	async findUserProjectsData(
-		employeeId: ID,
+		employeeId: ID
 	): Promise<IUserProjectsDataResponse> {
 		try {
 			const userId = defaultUserId(); // TODO : Change this with real connected user ID
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
-					['members.employee.user', 'tasks.members'],
+					['members.employee.user', 'tasks.members']
 				);
 
 			return userWorkProjectsTransformer(
 				userProjects,
 				employeeId,
-				userId,
+				userId
 			);
 		} catch (error: any) {
 			console.log(error);
@@ -918,28 +918,28 @@ export class WorkspaceService extends ApiFetchService {
 					await this._issueService.findExternalByEmployee(
 						assignees,
 						relations,
-						order_by,
+						order_by
 					);
 			} else if (created_by) {
 				const createdTasks = await this._issueService.findAllExternal(
 					{
-						creatorId: defaultUserId(), // TODO : Change here with current autheticated user.
+						creatorId: defaultUserId() // TODO : Change here with current autheticated user.
 					},
 					relations,
-					order_by,
+					order_by
 				);
 				assignedIssues = createdTasks.items;
 			} else if (subscriber) {
 				assignedIssues = await this.findUserSubscribedIssues(
 					relations,
-					order_by,
+					order_by
 				);
 			}
 
 			const issuesWithLinks = await Promise.all(
 				assignedIssues.map(async (issue) => {
 					const issueLinks = await this._issueLinkService.findAll(
-						issue.id,
+						issue.id
 					);
 
 					const transformedIssueLinks =
@@ -947,9 +947,9 @@ export class WorkspaceService extends ApiFetchService {
 
 					return {
 						issue,
-						issueLinks: transformedIssueLinks,
+						issueLinks: transformedIssueLinks
 					};
-				}),
+				})
 			);
 
 			if (group_by === IssueGroupBy.STATE_GROUP) {
@@ -977,23 +977,23 @@ export class WorkspaceService extends ApiFetchService {
 
 	async findUserSubscribedIssues(
 		relations?: string[],
-		order_by?: IssueOrderByField,
+		order_by?: IssueOrderByField
 	) {
 		const tasks = await this._issueService.findAllExternal(
 			{},
 			relations,
-			order_by,
+			order_by
 		);
 
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
-			userId: defaultUserId(),
+			userId: defaultUserId()
 		}); // TODO : Make sure we pass correct userId
 		const subscribedTaskIds = subscriptions.map(
-			(subscription) => subscription.entityId,
+			(subscription) => subscription.entityId
 		);
 		return tasks.items.filter((task) =>
-			subscribedTaskIds.includes(task.id),
+			subscribedTaskIds.includes(task.id)
 		);
 	}
 
@@ -1011,7 +1011,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findWorkspaceStates() {
 		try {
 			const projects = await this._projectService.getExternalProjects([
-				'statuses',
+				'statuses'
 			]);
 
 			const states = projects.map((project) => project.statuses);
@@ -1036,13 +1036,13 @@ export class WorkspaceService extends ApiFetchService {
 	async findWorkspaceModules(): Promise<IModule[]> {
 		try {
 			const projects = await this._projectService.getExternalProjects([
-				'modules',
+				'modules'
 			]);
 
 			const modules = projects.map((project) => project.modules).flat();
 
 			const transformedModules = modulesTransformer(
-				Array.isArray(modules) ? modules : [modules],
+				Array.isArray(modules) ? modules : [modules]
 			);
 
 			return Array.isArray(transformedModules)
@@ -1067,7 +1067,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findWorkspaceCycles(): Promise<ICycle[]> {
 		try {
 			const projects = await this._projectService.getExternalProjects([
-				'organizationSprints',
+				'organizationSprints'
 			]);
 
 			const cycles = projects
@@ -1075,7 +1075,7 @@ export class WorkspaceService extends ApiFetchService {
 				.flat();
 
 			const transformedSprints = cycleTransformer(
-				Array.isArray(cycles) ? cycles : [cycles],
+				Array.isArray(cycles) ? cycles : [cycles]
 			);
 
 			return Array.isArray(transformedSprints)
@@ -1100,14 +1100,14 @@ export class WorkspaceService extends ApiFetchService {
 	async findWorkspaceLabels(): Promise<IIssueLabel[]> {
 		try {
 			const projects = await this._projectService.getExternalProjects([
-				'tags',
+				'tags'
 			]);
 
 			const labels: IIssueLabel[] = projects
 				.map((project) => {
 					const transformed = issueLabelsTransformer(
 						project.tags,
-						project.id,
+						project.id
 					);
 					return Array.isArray(transformed)
 						? transformed

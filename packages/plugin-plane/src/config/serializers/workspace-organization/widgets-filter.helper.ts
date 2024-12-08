@@ -11,6 +11,6 @@ export function widgetTargetDateTransformer(dateString: string): {
 
 	return {
 		dueDateFrom: new Date(dueDateFrom.split(';')[0]),
-		dueDateTo: dueDate,
+		dueDateTo: dueDate
 	};
 }

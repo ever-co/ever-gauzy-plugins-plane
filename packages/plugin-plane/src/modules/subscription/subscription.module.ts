@@ -3,6 +3,6 @@ import { SubscriptionService } from './subscription.service';
 
 @Module({
 	providers: [SubscriptionService],
-	exports: [SubscriptionService],
+	exports: [SubscriptionService]
 })
 export class SubscriptionModule {}

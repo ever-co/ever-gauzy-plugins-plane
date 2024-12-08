@@ -6,7 +6,7 @@ import { ProjectIdentifiersService } from './project-identifiers.service';
 @Controller()
 export class ProjectIdentifiersController {
 	constructor(
-		private readonly _projectIdentifierService: ProjectIdentifiersService,
+		private readonly _projectIdentifierService: ProjectIdentifiersService
 	) {}
 
 	/**--------------------------------------------------------------
@@ -23,7 +23,7 @@ export class ProjectIdentifiersController {
 	@Get()
 	async getProjects(@Query('name') identifier: string) {
 		return await this._projectIdentifierService.getProjectsByCode(
-			identifier,
+			identifier
 		);
 	}
 }

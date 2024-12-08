@@ -7,9 +7,9 @@ import { ProjectModule } from '../project/project.module';
 @Module({
 	imports: [
 		RouterModule.register([{ path: '/api/users', module: UserModule }]),
-		forwardRef(() => ProjectModule),
+		forwardRef(() => ProjectModule)
 	],
 	providers: [UserService],
-	controllers: [UserController],
+	controllers: [UserController]
 })
 export class UserModule {}

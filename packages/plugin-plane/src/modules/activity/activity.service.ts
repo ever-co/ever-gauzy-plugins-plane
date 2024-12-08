@@ -3,7 +3,7 @@ import qs from 'qs';
 import {
 	IActivityLog,
 	IIssueActivityFindInput,
-	IPagination,
+	IPagination
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { getActivityLogsQuery } from '../../config';

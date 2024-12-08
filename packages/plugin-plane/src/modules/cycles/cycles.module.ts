@@ -9,10 +9,10 @@ import { IssuesModule } from '../issues/issues.module';
 	imports: [
 		IssuesModule,
 		forwardRef(() => UserFavoritesModule),
-		forwardRef(() => ProjectModule),
+		forwardRef(() => ProjectModule)
 	],
 	providers: [CyclesService],
 	controllers: [CyclesController],
-	exports: [CyclesService],
+	exports: [CyclesService]
 })
 export class CyclesModule {}

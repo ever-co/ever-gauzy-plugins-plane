@@ -7,7 +7,7 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ID } from '@plane-plugin/models';
 import { ProjectService } from './project.service';
@@ -33,7 +33,7 @@ export class ProjectController {
 		return await this._projectService.getProjects([
 			'members.employee.user.role',
 			'organizationSprints',
-			'modules',
+			'modules'
 		]);
 	}
 
@@ -114,7 +114,7 @@ export class ProjectController {
 	@Post(':id/members')
 	async assignMembersToProject(
 		@Body() input: { members: ProjectMemberDTO[] },
-		@Param('id') id: ID,
+		@Param('id') id: ID
 	) {
 		return await this._projectService.assignMembersToProject(id, input);
 	}
@@ -146,7 +146,7 @@ export class ProjectController {
 	async updateProjectUserProperties(@Param('id') id: ID, @Body() input: any) {
 		return await this._projectService.updateProjectUserProperties(
 			id,
-			input,
+			input
 		);
 	}
 }

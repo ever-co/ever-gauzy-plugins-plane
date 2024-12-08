@@ -13,7 +13,7 @@ import {
 	ITag,
 	ITask,
 	ITaskLinkedIssue,
-	IWorkspaceInfo,
+	IWorkspaceInfo
 } from '@plane-plugin/models';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { getProjectsResponse } from '../projects';
@@ -38,7 +38,7 @@ function activityLogDetails(
 	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspaceDetail: IWorkspaceInfo,
+	workspaceDetail: IWorkspaceInfo
 ) {
 	return {
 		issue_detail: issue,
@@ -48,7 +48,7 @@ function activityLogDetails(
 			last_name: actor?.user?.lastName,
 			avatar: actor?.user?.imageUrl,
 			is_bot: false, // Indicates if the actor is a bot
-			display_name: actor?.fullName,
+			display_name: actor?.fullName
 		},
 		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
 		workspace_detail: workspaceDetail,
@@ -61,7 +61,7 @@ function activityLogDetails(
 		project: project.id,
 		workspace: workspaceDetail.id,
 		issue: issue.id,
-		actor: actor?.id,
+		actor: actor?.id
 	};
 }
 
@@ -83,12 +83,12 @@ const transformIssueActivityLog = (
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
 	sprint: IOrganizationSprint | ICycle,
-	oldStatusValue?: string,
+	oldStatusValue?: string
 ): IIssueActivity[] => {
 	const {
 		updatedFields = [],
 		updatedValues = [],
-		previousValues = [],
+		previousValues = []
 	} = activityLog;
 
 	// Map of activity fields to their corresponding names
@@ -98,7 +98,7 @@ const transformIssueActivityLog = (
 		module_ids: 'module',
 		issue_link: 'link',
 		issue_reactions: 'reaction',
-		cycle_id: 'cycles',
+		cycle_id: 'cycles'
 	};
 
 	// Generate details for the activity log
@@ -107,17 +107,17 @@ const transformIssueActivityLog = (
 		issue,
 		actor,
 		project,
-		workspaceDetail,
+		workspaceDetail
 	);
 
 	// Process updated fields to create activity entries
 	const activities = updatedFields
 		?.filter(
-			(f) => !['taskStatusId', 'members', 'tags', 'modules'].includes(f),
+			(f) => !['taskStatusId', 'members', 'tags', 'modules'].includes(f)
 		)
 		?.map((field, index) => {
 			const transformedField = activityLogFieldTransformer(
-				field as keyof ITask,
+				field as keyof ITask
 			);
 			const activityField =
 				activityFieldMap[transformedField] || transformedField;
@@ -138,7 +138,7 @@ const transformIssueActivityLog = (
 					: updatedValues[index][field];
 
 			const updatedCycleId = updatedValues.find(
-				(value) => 'organizationSprintId' in value,
+				(value) => 'organizationSprintId' in value
 			);
 			const cycleNewId = updatedCycleId
 				? updatedCycleId['organizationSprintId']
@@ -164,7 +164,7 @@ const transformIssueActivityLog = (
 				old_value: oldValue,
 				new_value: newValue,
 				old_identifier: null,
-				new_identifier: activityField === 'cycles' ? cycleNewId : null,
+				new_identifier: activityField === 'cycles' ? cycleNewId : null
 			};
 		});
 
@@ -182,7 +182,7 @@ const transformIssueActivityLog = (
 			old_value: oldStatusValue,
 			new_value: activityLog.data['status'],
 			old_identifier: previousEntity,
-			new_identifier: updatedEntity,
+			new_identifier: updatedEntity
 		});
 	}
 
@@ -203,8 +203,8 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: member.fullName,
 					old_identifier: null,
-					new_identifier: member.id,
-				}),
+					new_identifier: member.id
+				})
 			);
 		}
 
@@ -225,8 +225,8 @@ const transformIssueActivityLog = (
 					old_value: member.profile_link,
 					new_value: null,
 					old_identifier: member.id,
-					new_identifier: null,
-				}),
+					new_identifier: null
+				})
 			);
 		}
 	}
@@ -248,8 +248,8 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: tag.name,
 					old_identifier: null,
-					new_identifier: tag.id as any,
-				}),
+					new_identifier: tag.id as any
+				})
 			);
 		}
 
@@ -266,8 +266,8 @@ const transformIssueActivityLog = (
 					old_value: tag.name,
 					new_value: null,
 					old_identifier: tag.id,
-					new_identifier: null,
-				}),
+					new_identifier: null
+				})
 			);
 		}
 	}
@@ -289,8 +289,8 @@ const transformIssueActivityLog = (
 					old_value: '',
 					new_value: module.name,
 					old_identifier: null,
-					new_identifier: module.id as any,
-				}),
+					new_identifier: module.id as any
+				})
 			);
 		}
 
@@ -312,8 +312,8 @@ const transformIssueActivityLog = (
 						old_value: module.name,
 						new_value: null,
 						old_identifier: module.id,
-						new_identifier: null,
-					}),
+						new_identifier: null
+					})
 			);
 		}
 	}
@@ -340,7 +340,7 @@ export function issueLinksActivities(
 	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspaceDetail: IWorkspaceInfo,
+	workspaceDetail: IWorkspaceInfo
 ): IIssueActivity[] {
 	// Map over activity logs and transform each log into an issue activity entry
 	const activities = activityLogs.map((activityLog, i) => {
@@ -350,7 +350,7 @@ export function issueLinksActivities(
 			issue,
 			actor,
 			project,
-			workspaceDetail,
+			workspaceDetail
 		);
 
 		// Extract and normalize the action performed (verb) to lowercase
@@ -369,7 +369,7 @@ export function issueLinksActivities(
 					: (activityLog.previousValues[i]['link'] as any),
 			new_value: link.url,
 			old_identifier: null,
-			new_identifier: link.id,
+			new_identifier: link.id
 		};
 	});
 
@@ -382,7 +382,7 @@ export function issueRelationActivities(
 	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspaceDetail: IWorkspaceInfo,
+	workspaceDetail: IWorkspaceInfo
 ): IIssueActivity[] {
 	// Map over activity logs and transform each log into an issue activity entry
 	const activities = activityLogs.map((activityLog) => {
@@ -392,7 +392,7 @@ export function issueRelationActivities(
 			issue,
 			actor,
 			project,
-			workspaceDetail,
+			workspaceDetail
 		);
 
 		// Extract and normalize the action performed (verb) to lowercase
@@ -421,7 +421,7 @@ export function issueRelationActivities(
 					? projectCode + '-' + taskLinkedIssue.taskFrom.number
 					: '',
 			old_identifier: taskLinkedIssue.id,
-			new_identifier: taskLinkedIssue.id,
+			new_identifier: taskLinkedIssue.id
 		};
 	});
 
@@ -444,7 +444,7 @@ export function issueActivityLogTransformer(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
-	sprint: IOrganizationSprint | ICycle,
+	sprint: IOrganizationSprint | ICycle
 ): IIssueActivity[] | IIssueActivity {
 	if (Array.isArray(activityLogs)) {
 		// Combine multiple activity logs into a single array of structured activities
@@ -456,8 +456,8 @@ export function issueActivityLogTransformer(
 					actor,
 					project,
 					workspaceDetail,
-					sprint,
-				),
+					sprint
+				)
 			)
 			.reduce((acc, cur) => acc.concat(cur), []);
 
@@ -471,7 +471,7 @@ export function issueActivityLogTransformer(
 		actor,
 		project,
 		workspaceDetail,
-		sprint,
+		sprint
 	);
 }
 
@@ -496,21 +496,21 @@ export function activityLogFieldTransformer(field: keyof ITask): keyof IIssue {
 		description: 'description',
 		members: 'assignee_ids',
 		tags: 'label_ids',
-		modules: 'module_ids',
+		modules: 'module_ids'
 	};
 
 	return issueFieldsMap[field];
 }
 
 export function getActivityLogsQuery(
-	options: IIssueActivityFindInput,
+	options: IIssueActivityFindInput
 ): Record<string, string> {
 	const { action, creatorId, entity, entityId } = options;
 
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
 		organizationId: defaultOrganizationId(),
-		tenantId: defaultTestTenantId(),
+		tenantId: defaultTestTenantId()
 	};
 
 	if (action) {

@@ -4,11 +4,11 @@ import {
 	IState,
 	ITaskStatus,
 	ITaskStatusCreateInput,
-	TaskStatusEnum,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import {
 	defaultOrganizationId,
-	defaultTestTenantId,
+	defaultTestTenantId
 } from '../../../credentials';
 
 function capitalizeWords(word: string) {
@@ -35,7 +35,7 @@ export function stateGroup(state: ITaskStatus) {
 		[TaskStatusEnum.IN_REVIEW]: 'started',
 		[TaskStatusEnum.BLOCKED]: 'started',
 		[TaskStatusEnum.DONE]: TaskStatusEnum.COMPLETED,
-		[TaskStatusEnum.COMPLETED]: TaskStatusEnum.COMPLETED,
+		[TaskStatusEnum.COMPLETED]: TaskStatusEnum.COMPLETED
 	};
 
 	return groupMapping[templateOrValue] || TaskStatusEnum.CUSTOM;
@@ -49,7 +49,7 @@ export const mapGroupToTemplate = (group: string): TaskStatusEnum => {
 		unstarted: TaskStatusEnum.OPEN,
 		started: TaskStatusEnum.IN_PROGRESS, // Default for 'started' group
 		completed: TaskStatusEnum.COMPLETED,
-		custom: TaskStatusEnum.CUSTOM,
+		custom: TaskStatusEnum.CUSTOM
 	};
 
 	return groupToTemplateMapping[group] || TaskStatusEnum.CUSTOM; // if not found, return 'custom'
@@ -63,19 +63,19 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 			project_id: status.projectId,
 			workspace_id: status.tenantId,
 			name: capitalizeWords(
-				status.name.replace('-', ' '),
+				status.name.replace('-', ' ')
 			) as TaskStatusEnum,
 			color: status.color,
 			group,
 			default: false,
 			description: status.description,
-			sequence: 25000.0 + i * 10000, // TO DO : Should try to adjust this
+			sequence: 25000.0 + i * 10000 // TO DO : Should try to adjust this
 		};
 	});
 }
 
 export function createStateInputTransformer(
-	input: ICreateStateInput,
+	input: ICreateStateInput
 ): ITaskStatusCreateInput {
 	const template = mapGroupToTemplate(input.group);
 	return {
@@ -86,14 +86,14 @@ export function createStateInputTransformer(
 		template,
 		projectId: input.project_id,
 		tenantId: defaultTestTenantId(),
-		organizationId: defaultOrganizationId(),
+		organizationId: defaultOrganizationId()
 	};
 }
 
 export const getStatesQuery = (id?: ID): Record<string, string> => {
 	const query = {
 		organizationId: defaultOrganizationId(),
-		tenantId: defaultTestTenantId(),
+		tenantId: defaultTestTenantId()
 	};
 
 	if (id) {

@@ -3,7 +3,7 @@ import qs from 'qs';
 import {
 	IOrganizationProject,
 	IPagination,
-	IProjectIdentifierResponse,
+	IProjectIdentifierResponse
 } from '@plane-plugin/models';
 import { getProjectByIdentifiersQuery } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
@@ -26,11 +26,11 @@ export class ProjectIdentifiersService extends ApiFetchService {
 	 * @memberof ProjectIdentifiersService
 	 */
 	async getProjectsByCode(
-		identifier: string,
+		identifier: string
 	): Promise<IProjectIdentifierResponse> {
 		try {
 			const query = qs.stringify(
-				getProjectByIdentifiersQuery(identifier),
+				getProjectByIdentifiersQuery(identifier)
 			);
 
 			const projects: IPagination<IOrganizationProject> = (
@@ -41,11 +41,11 @@ export class ProjectIdentifiersService extends ApiFetchService {
 				const identifiers = projects.items.map((project, id) => ({
 					id,
 					name: project.code.toLocaleUpperCase(),
-					project: project.id,
+					project: project.id
 				}));
 				return {
 					exists: 1,
-					identifiers,
+					identifiers
 				};
 			}
 

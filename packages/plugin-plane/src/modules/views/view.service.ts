@@ -2,7 +2,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -12,14 +12,14 @@ import {
 	IPagination,
 	ITaskView,
 	IUpdateViewInput,
-	IView,
+	IView
 } from '@plane-plugin/models';
 import {
 	createViewInputTransformer,
 	defaultOrganizationId,
 	getViewsQuery,
 	issueViewTransformer,
-	updateViewInputTransformer,
+	updateViewInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
@@ -29,7 +29,7 @@ export class IssueViewService extends ApiFetchService {
 	constructor(
 		private readonly _serverFetchService: ApiFetchService,
 		@Inject(forwardRef(() => UserFavoritesService))
-		private readonly _userFavoriteService: UserFavoritesService,
+		private readonly _userFavoriteService: UserFavoritesService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -46,7 +46,7 @@ export class IssueViewService extends ApiFetchService {
 	async getExternalView(
 		id: ID,
 		projectId?: ID,
-		relations?: string[],
+		relations?: string[]
 	): Promise<ITaskView> {
 		// Build the query string once
 		const query = qs.stringify(getViewsQuery(projectId, relations));
@@ -55,7 +55,7 @@ export class IssueViewService extends ApiFetchService {
 			await this.apiFetch({
 				method: 'GET',
 				path: `${this.path}/${id}`,
-				query,
+				query
 			})
 		).data;
 	}
@@ -69,22 +69,22 @@ export class IssueViewService extends ApiFetchService {
 	 */
 	async create(
 		input: ICreateViewInput,
-		projectId?: ID,
+		projectId?: ID
 	): Promise<IView | IView[]> {
 		try {
 			const body = {
 				...createViewInputTransformer(
 					input,
 					projectId,
-					defaultOrganizationId(),
-				),
+					defaultOrganizationId()
+				)
 			};
 
 			const view: ITaskView = (
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -106,28 +106,28 @@ export class IssueViewService extends ApiFetchService {
 	async update(
 		id: ID,
 		input: IUpdateViewInput,
-		projectId?: ID,
+		projectId?: ID
 	): Promise<IView | IView[]> {
 		try {
 			const body = {
 				...updateViewInputTransformer(
 					input,
 					projectId,
-					defaultOrganizationId(),
-				),
+					defaultOrganizationId()
+				)
 			};
 
 			const view: ITaskView = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body,
+					body
 				})
 			).data;
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.TaskView,
+					BaseEntityEnum.TaskView
 				);
 
 			return issueViewTransformer(view, favoriteIds);
@@ -151,7 +151,7 @@ export class IssueViewService extends ApiFetchService {
 			// Search for user favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.TaskView,
+					BaseEntityEnum.TaskView
 				);
 
 			// Perform the API call to fetch the views
@@ -159,7 +159,7 @@ export class IssueViewService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 
@@ -184,7 +184,7 @@ export class IssueViewService extends ApiFetchService {
 			// Search for user favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.TaskView,
+					BaseEntityEnum.TaskView
 				);
 
 			return issueViewTransformer(view, favoriteIds);
@@ -204,7 +204,7 @@ export class IssueViewService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}

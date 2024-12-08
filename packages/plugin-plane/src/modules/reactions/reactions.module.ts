@@ -3,6 +3,6 @@ import { ReactionsService } from './reactions.service';
 
 @Module({
 	providers: [ReactionsService],
-	exports: [ReactionsService],
+	exports: [ReactionsService]
 })
 export class ReactionsModule {}

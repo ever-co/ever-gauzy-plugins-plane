@@ -3,7 +3,7 @@ import {
 	forwardRef,
 	Inject,
 	Injectable,
-	NotFoundException,
+	NotFoundException
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -12,7 +12,7 @@ import {
 	ICycleIssuesResponse,
 	ID,
 	IOrganizationSprint,
-	IPagination,
+	IPagination
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
@@ -20,7 +20,7 @@ import {
 	cycleTransformer,
 	getSprintsQuery,
 	issueTransformer,
-	updateCycleInputTransformer,
+	updateCycleInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -40,7 +40,7 @@ export class CyclesService extends ApiFetchService {
 		private readonly _userFavoriteService: UserFavoritesService,
 
 		@Inject(forwardRef(() => ProjectService))
-		private readonly _projectService: ProjectService,
+		private readonly _projectService: ProjectService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -57,7 +57,7 @@ export class CyclesService extends ApiFetchService {
 	async getExternalSprint(
 		id: ID,
 		projectId?: ID,
-		relations?: string[],
+		relations?: string[]
 	): Promise<IOrganizationSprint> {
 		// Build the query string once
 		const query = qs.stringify(getSprintsQuery(projectId, relations));
@@ -66,7 +66,7 @@ export class CyclesService extends ApiFetchService {
 			await this.apiFetch({
 				method: 'GET',
 				path: `${this.path}/${id}`,
-				query,
+				query
 			})
 		).data;
 	}
@@ -112,13 +112,13 @@ export class CyclesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body,
+					body
 				})
 			).data;
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationSprint,
+					BaseEntityEnum.OrganizationSprint
 				);
 
 			return cycleTransformer(sprint, favoriteIds);
@@ -143,7 +143,7 @@ export class CyclesService extends ApiFetchService {
 			// Search for user favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationSprint,
+					BaseEntityEnum.OrganizationSprint
 				);
 
 			// Perform the API call to fetch the sprints
@@ -151,7 +151,7 @@ export class CyclesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 
@@ -178,7 +178,7 @@ export class CyclesService extends ApiFetchService {
 			// Search for user favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationSprint,
+					BaseEntityEnum.OrganizationSprint
 				);
 
 			return cycleTransformer(sprint, favoriteIds);
@@ -199,7 +199,7 @@ export class CyclesService extends ApiFetchService {
 	 */
 	async addIssuesToSprint(
 		id: ID,
-		input: { issues: ID[] },
+		input: { issues: ID[] }
 	): Promise<{ message: string }> {
 		try {
 			await Promise.all(
@@ -208,11 +208,11 @@ export class CyclesService extends ApiFetchService {
 						await this._issueService.update(
 							issue,
 							{
-								cycle_id: id,
+								cycle_id: id
 							},
-							false,
-						),
-				),
+							false
+						)
+				)
 			);
 
 			return { message: 'success' };
@@ -234,7 +234,7 @@ export class CyclesService extends ApiFetchService {
 	 */
 	async findCycleIssues(
 		id: ID,
-		projectId: ID,
+		projectId: ID
 	): Promise<ICycleIssuesResponse> {
 		try {
 			// Retrieve the sprint (cycle) using the provided IDs
@@ -257,8 +257,8 @@ export class CyclesService extends ApiFetchService {
 			// Combine both current and previous tasks, ensuring uniqueness based on task ID
 			const allIssues = Array.from(
 				new Set(
-					[...currentTasks, ...previousTasks].map((task) => task.id),
-				),
+					[...currentTasks, ...previousTasks].map((task) => task.id)
+				)
 			).map((taskId) => {
 				// Find the task from either the current or previous tasks list
 				return (
@@ -284,7 +284,7 @@ export class CyclesService extends ApiFetchService {
 	 */
 	async checkDatesOverlap(
 		input: Pick<ICycle, 'start_date' | 'end_date'>,
-		projectId?: ID,
+		projectId?: ID
 	) {
 		try {
 			// Retrieve existing cycles
@@ -294,13 +294,13 @@ export class CyclesService extends ApiFetchService {
 			const hasOverlap = this.checkForDateOverlap(
 				cycles,
 				input.start_date,
-				input.end_date,
+				input.end_date
 			);
 
 			if (hasOverlap) {
 				return {
 					error: 'You have a cycle already on the given dates, if you want to create a draft cycle you can do that by removing dates',
-					status: false,
+					status: false
 				};
 			}
 			return { status: true };
@@ -321,7 +321,7 @@ export class CyclesService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}
@@ -337,7 +337,7 @@ export class CyclesService extends ApiFetchService {
 	private checkForDateOverlap(
 		cycles: ICycle[],
 		startDate: Date,
-		endDate: Date,
+		endDate: Date
 	): boolean {
 		const newStart = moment(startDate).startOf('day'); // Ignore time, use only the date
 		const newEnd = moment(endDate).startOf('day'); // Ignore time, use only the date

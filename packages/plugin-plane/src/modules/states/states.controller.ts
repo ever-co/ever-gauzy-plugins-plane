@@ -6,7 +6,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ID } from '@plane-plugin/models';
@@ -41,11 +41,11 @@ export class StatesController {
 	@Post()
 	async create(
 		@Param('projectId') project_id: ID,
-		@Body() input: CreateStateDto,
+		@Body() input: CreateStateDto
 	) {
 		return await this._stateService.create({
 			...input,
-			project_id,
+			project_id
 		});
 	}
 

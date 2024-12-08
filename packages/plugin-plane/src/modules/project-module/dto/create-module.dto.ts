@@ -6,13 +6,13 @@ import {
 	IsNotEmpty,
 	IsOptional,
 	IsString,
-	IsUUID,
+	IsUUID
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
 	ICreateModuleInput,
 	ID,
-	ProjectModuleStatusEnum,
+	ProjectModuleStatusEnum
 } from '@plane-plugin/models';
 
 export class CreateModuleDTO implements ICreateModuleInput {

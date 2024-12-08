@@ -8,6 +8,6 @@ import { ReactionsModule } from '../reactions/reactions.module';
 	imports: [forwardRef(() => ProjectModule), ReactionsModule],
 	providers: [CommentsService],
 	controllers: [CommentsController],
-	exports: [CommentsService],
+	exports: [CommentsService]
 })
 export class CommentsModule {}

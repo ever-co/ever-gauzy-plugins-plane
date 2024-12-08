@@ -7,10 +7,10 @@ import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
 @Module({
 	imports: [
 		forwardRef(() => ProjectModule),
-		forwardRef(() => UserFavoritesModule),
+		forwardRef(() => UserFavoritesModule)
 	],
 	providers: [ProjectModuleService],
 	controllers: [ProjectModuleController],
-	exports: [ProjectModuleService],
+	exports: [ProjectModuleService]
 })
 export class ProjectModuleModule {}

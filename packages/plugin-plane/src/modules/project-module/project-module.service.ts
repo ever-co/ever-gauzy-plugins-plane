@@ -2,7 +2,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -11,14 +11,14 @@ import {
 	ID,
 	IModule,
 	IOrganizationProjectModule,
-	IPagination,
+	IPagination
 } from '@plane-plugin/models';
 import {
 	createModuleInputTransformer,
 	defaultEmployeeId,
 	defaultTestTenantId,
 	getModulesQuery,
-	modulesTransformer,
+	modulesTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -33,7 +33,7 @@ export class ProjectModuleService extends ApiFetchService {
 		private readonly _userFavoriteService: UserFavoritesService,
 
 		@Inject(forwardRef(() => ProjectService))
-		private readonly _projectService: ProjectService,
+		private readonly _projectService: ProjectService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -43,7 +43,7 @@ export class ProjectModuleService extends ApiFetchService {
 	async getExternalModule(
 		id: ID,
 		projectId?: ID,
-		relations?: string[],
+		relations?: string[]
 	): Promise<IOrganizationProjectModule> {
 		// Construct the query string once
 		const query = qs.stringify(getModulesQuery(projectId, relations));
@@ -52,7 +52,7 @@ export class ProjectModuleService extends ApiFetchService {
 			await this.apiFetch({
 				method: 'GET',
 				path: `${this.path}/${id}`,
-				query,
+				query
 			})
 		).data;
 	}
@@ -72,7 +72,7 @@ export class ProjectModuleService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -97,7 +97,7 @@ export class ProjectModuleService extends ApiFetchService {
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationProjectModule,
+					BaseEntityEnum.OrganizationProjectModule
 				);
 
 			// Perform the API call to fetch the modules
@@ -105,7 +105,7 @@ export class ProjectModuleService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}`,
-					query,
+					query
 				})
 			).data;
 
@@ -130,7 +130,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Favorites
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationProjectModule,
+					BaseEntityEnum.OrganizationProjectModule
 				);
 
 			// Return the transformed module using `modulesTransformer`
@@ -151,13 +151,13 @@ export class ProjectModuleService extends ApiFetchService {
 	async update(
 		id: ID,
 		projectId: ID,
-		input: Partial<ICreateModuleInput>,
+		input: Partial<ICreateModuleInput>
 	): Promise<IModule | IModule[]> {
 		try {
 			// Retrieve the project and check its existence
 			const project = await this._projectService.getExternalProject(
 				input.project_id || projectId,
-				['members.employee'],
+				['members.employee']
 			);
 			if (!project) {
 				throw new BadRequestException('Project could not be found');
@@ -168,33 +168,33 @@ export class ProjectModuleService extends ApiFetchService {
 
 			if (!existingModule) {
 				throw new BadRequestException(
-					`Module with id ${id} could not be found`,
+					`Module with id ${id} could not be found`
 				);
 			}
 
 			// Identify the lead (manager) if lead_id is provided in input
 			const lead = input.lead_id
 				? project.members.find(
-						(member) => member.employee.id === input.lead_id,
+						(member) => member.employee.id === input.lead_id
 					)
 				: undefined;
 
 			// Transform the update input for API compatibility, using the correct managerId (userId)
 			const body = createModuleInputTransformer(
 				input,
-				lead?.employee.userId,
+				lead?.employee.userId
 			);
 
 			// Update the module using a PATCH request
 			await this.apiFetch({
 				method: 'PUT',
 				path: `${this.path}/${id}`,
-				body,
+				body
 			});
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
-					BaseEntityEnum.OrganizationProjectModule,
+					BaseEntityEnum.OrganizationProjectModule
 				);
 
 			const module = await this.getExternalModule(id);
@@ -218,7 +218,7 @@ export class ProjectModuleService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}
@@ -248,20 +248,20 @@ export class ProjectModuleService extends ApiFetchService {
 				start_date: null,
 				subscriber: null,
 				state_group: null,
-				target_date: null,
+				target_date: null
 			},
 			display_filters: {
 				type: null,
 				layout: 'kanban',
 				calendar: {
 					layout: 'month',
-					show_weekends: false,
+					show_weekends: false
 				},
 				group_by: 'state',
 				order_by: '-created_at',
 				sub_issue: true,
 				sub_group_by: null,
-				show_empty_groups: true,
+				show_empty_groups: true
 			},
 			display_properties: {
 				key: true,
@@ -276,14 +276,14 @@ export class ProjectModuleService extends ApiFetchService {
 				start_date: true,
 				updated_on: true,
 				sub_issue_count: true,
-				attachment_count: true,
+				attachment_count: true
 			},
 			created_by: defaultEmployeeId(),
 			updated_by: defaultEmployeeId(),
 			project: projectId,
 			module: id,
 			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId(),
+			user: defaultEmployeeId()
 		};
 	}
 }

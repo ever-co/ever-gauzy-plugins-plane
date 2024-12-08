@@ -21,10 +21,10 @@ import { SubscriptionModule } from '../subscription/subscription.module';
 		IssueLinksModule,
 		SubscriptionModule,
 		forwardRef(() => IssueRelationsModule),
-		forwardRef(() => ProjectModule),
+		forwardRef(() => ProjectModule)
 	],
 	providers: [IssuesService],
 	controllers: [IssuesController],
-	exports: [IssuesService],
+	exports: [IssuesService]
 })
 export class IssuesModule {}

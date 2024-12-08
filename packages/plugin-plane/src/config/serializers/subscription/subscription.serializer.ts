@@ -5,7 +5,7 @@ import {
 	ISubscription,
 	ISubscriptionCreateInput,
 	ISubscriptionFindInput,
-	SubscriptionTypeEnum,
+	SubscriptionTypeEnum
 } from '@plane-plugin/models';
 import { defaultUserId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
@@ -24,13 +24,13 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  */
 export function createSubscriptionTransformer(
 	entityId: ID,
-	userId: ID = defaultUserId(),
+	userId: ID = defaultUserId()
 ): ISubscriptionCreateInput {
 	return {
 		entity: BaseEntityEnum.Task,
 		entityId,
 		type: SubscriptionTypeEnum.MANUAL,
-		userId,
+		userId
 	};
 }
 
@@ -43,10 +43,10 @@ export function createSubscriptionTransformer(
  */
 export function subscriptionTransformer(
 	subscriptions: ISubscription | ISubscription[],
-	projectId?: ID,
+	projectId?: ID
 ): ISubscriber | ISubscriber[] {
 	const transformSubscription = (
-		subscription: ISubscription,
+		subscription: ISubscription
 	): ISubscriber => ({
 		id: subscription.id,
 		created_at: subscription.createdAt,
@@ -57,7 +57,7 @@ export function subscriptionTransformer(
 		project: projectId,
 		workspace: subscription.tenantId,
 		issue: subscription.entityId,
-		subscriber: subscription.userId,
+		subscriber: subscription.userId
 	});
 
 	if (Array.isArray(subscriptions)) {
@@ -68,10 +68,10 @@ export function subscriptionTransformer(
 }
 
 export const getSubscriptionQuery = (
-	options: ISubscriptionFindInput,
+	options: ISubscriptionFindInput
 ): Record<string, any> => {
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (options?.entity) {

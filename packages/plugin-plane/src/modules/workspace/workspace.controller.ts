@@ -7,7 +7,7 @@ import {
 	Param,
 	Patch,
 	Post,
-	Query,
+	Query
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
@@ -20,7 +20,7 @@ import {
 	IIssueFindInput,
 	IIssueLabel,
 	IModule,
-	IUserStatsResponse,
+	IUserStatsResponse
 } from '@plane-plugin/models';
 import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 
@@ -47,11 +47,11 @@ export class WorkspaceController {
 	@Get('dashboard')
 	async getDashboard(
 		@Param('worspace_name') workspace_name: string,
-		@Query('dashboard_type') dashboard_type: string,
+		@Query('dashboard_type') dashboard_type: string
 	) {
 		return await this._workspaceService.getDashboard(
 			workspace_name,
-			dashboard_type,
+			dashboard_type
 		);
 	}
 
@@ -62,12 +62,12 @@ export class WorkspaceController {
 		@Query('widget_key')
 		widget: DashboardWigetQueryEnum,
 		@Query('target_date') target_date: string,
-		@Query('issue_type') issue_type: DashboardIssueTypeEnum,
+		@Query('issue_type') issue_type: DashboardIssueTypeEnum
 	) {
 		return await this._workspaceService.findDashboardWidgetsData(
 			widget,
 			target_date,
-			issue_type,
+			issue_type
 		);
 	}
 
@@ -119,7 +119,7 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get user stats' })
 	@Get('user-stats/:id')
 	async findUserWorkSummary(
-		@Param('id') employeeId: ID,
+		@Param('id') employeeId: ID
 	): Promise<IUserStatsResponse> {
 		return await this._workspaceService.findUserWorkSummary(employeeId);
 	}
@@ -134,11 +134,11 @@ export class WorkspaceController {
 	@Get('user-activity/:id')
 	async findUserRecentActivity(
 		@Param('id') employeeId: ID,
-		@Query('per_page') per_page: number,
+		@Query('per_page') per_page: number
 	): Promise<any> {
 		return await this._workspaceService.findUserRecentActivity(
 			per_page,
-			employeeId,
+			employeeId
 		);
 	}
 
@@ -165,10 +165,10 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get user profile and assigned issues' })
 	@Get('user-issues/:id')
 	async findUserGroupedIssueAssigned(
-		@Query() options: IIssueFindInput,
+		@Query() options: IIssueFindInput
 	): Promise<any> {
 		return await this._workspaceService.findUserGroupedIssueAssigned(
-			options,
+			options
 		);
 	}
 
@@ -257,7 +257,7 @@ export class WorkspaceController {
 	@Patch('draft-issues/:id')
 	async update(
 		@Body() input: UpdateIssueDTO,
-		@Param('id') id: ID,
+		@Param('id') id: ID
 	): Promise<IIssue> {
 		return await this._workspaceService.updateDraftIssue(id, input);
 	}
@@ -279,7 +279,7 @@ export class WorkspaceController {
 	@Post('draft-to-issue/:id')
 	async draftToIssue(
 		@Body() input: UpdateIssueDTO,
-		@Param('id') id: ID,
+		@Param('id') id: ID
 	): Promise<IIssue> {
 		return await this._workspaceService.draftToIssue(id, input);
 	}

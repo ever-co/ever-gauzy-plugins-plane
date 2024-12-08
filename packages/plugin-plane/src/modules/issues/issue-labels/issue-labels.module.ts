@@ -5,6 +5,6 @@ import { IssueLabelsController } from './issue-labels.controller';
 @Module({
 	providers: [IssueLabelsService],
 	controllers: [IssueLabelsController],
-	exports: [IssueLabelsService],
+	exports: [IssueLabelsService]
 })
 export class IssueLabelsModule {}

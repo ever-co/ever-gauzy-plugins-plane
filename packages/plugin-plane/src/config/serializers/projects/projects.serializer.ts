@@ -5,19 +5,19 @@ import {
 	IOrganizationProjectCreateInput,
 	IProject,
 	IProjectMember,
-	IUpdateProjectInput,
+	IUpdateProjectInput
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import {
 	defaultEmployeeId,
 	defaultOrganizationId,
-	defaultTestTenantId,
+	defaultTestTenantId
 } from '../../credentials';
 import { roleTransformer } from '../workspace-organization';
 
 export function getProjectsResponse(
 	projects: IOrganizationProject[],
-	favoriteIds?: ID[],
+	favoriteIds?: ID[]
 ): Partial<IProject>[] {
 	return projects?.map((project) => {
 		// Safely handle the presence of `project.members` by using a fallback to an empty array.
@@ -30,7 +30,7 @@ export function getProjectsResponse(
 						member.employee?.fullName ||
 						`${member.employee?.user.firstName} ${member.employee?.user.lastName}`,
 					member__avatar: member.employee?.user.imageUrl,
-					role: roleTransformer(member.employee?.user.role),
+					role: roleTransformer(member.employee?.user.role)
 				}))
 			: []; // If `project.members` is undefined, set `members` to an empty array
 
@@ -81,9 +81,9 @@ export function getProjectsResponse(
 			close_in: project?.closeTasksIn,
 			logo_props: {
 				emoji: {
-					value: '127891',
+					value: '127891'
 				},
-				in_use: 'emoji',
+				in_use: 'emoji'
 			},
 			archived_at: project?.archivedAt,
 			created_by: defaultEmployeeId(), // To add for external API
@@ -92,20 +92,20 @@ export function getProjectsResponse(
 			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
 			estimate: null, // To add for external API
-			default_state: null, // To add for external API
+			default_state: null // To add for external API
 		};
 	});
 }
 
 export function createProjectInputTransformer(
-	input: ICreateProjectInput | IUpdateProjectInput,
+	input: ICreateProjectInput | IUpdateProjectInput
 ): IOrganizationProjectCreateInput {
 	let memberIds = [];
 	let managerIds = [];
 
 	if (input.members) {
 		memberIds = input.members.map((member) => ({
-			employeeId: member.member_id,
+			employeeId: member.member_id
 		}));
 	}
 
@@ -125,12 +125,12 @@ export function createProjectInputTransformer(
 		memberIds,
 		managerIds,
 		tenantId: defaultTestTenantId(),
-		organizationId: defaultOrganizationId(),
+		organizationId: defaultOrganizationId()
 	};
 }
 
 export function assignMembersToProjectTransformer(
-	projectMembers: IProjectMember[],
+	projectMembers: IProjectMember[]
 ): ID[] {
 	const memberIds = projectMembers.map((member) => member.member_id);
 	return memberIds;
@@ -146,17 +146,17 @@ export const projectRelations = [
 	'tenant',
 	'statuses',
 	'modules',
-	'organizationSprints',
+	'organizationSprints'
 ];
 
 /**
  * Helper function to build query object
  */
 export const getProjectsQuery = (
-	relations?: string[],
+	relations?: string[]
 ): Record<string, string> => {
 	const baseQuery = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	// Add relations to the baseQuery
@@ -174,11 +174,11 @@ export const getProjectsQuery = (
 };
 
 export const findEmployeeProjectsQuery = (
-	relations?: string[],
+	relations?: string[]
 ): Record<string, string> => {
 	const query = {
 		organizationId: defaultOrganizationId(),
-		tenantId: defaultTestTenantId(),
+		tenantId: defaultTestTenantId()
 	};
 
 	// Add relations to the baseQuery
@@ -193,8 +193,8 @@ export const findEmployeeProjectsQuery = (
  * Get query with identifier for a project
  */
 export const getProjectByIdentifiersQuery = (
-	identifier: string,
+	identifier: string
 ): Record<string, string> => ({
 	...getProjectsQuery(),
-	'where[code]': identifier,
+	'where[code]': identifier
 });

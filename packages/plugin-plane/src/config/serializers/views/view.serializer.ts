@@ -11,7 +11,7 @@ import {
 	IViewPropsFilters,
 	TaskPriorityEnum,
 	TaskStatusEnum,
-	VisibilityLevelEnum,
+	VisibilityLevelEnum
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
@@ -21,7 +21,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  * @returns {IGetTasksByViewFilters} - A transformed object that matched external API naming
  */
 export function filtersToQueryParams(
-	filters: ICreateViewInput['filters'],
+	filters: ICreateViewInput['filters']
 ): IGetTasksByViewFilters {
 	const {
 		assignees = [],
@@ -35,7 +35,7 @@ export function filtersToQueryParams(
 		state = [],
 		state_group = [],
 		// subscriber = [], To be added in external API
-		target_date = [],
+		target_date = []
 	} = filters;
 
 	return {
@@ -49,7 +49,7 @@ export function filtersToQueryParams(
 		members: assignees,
 		startDates: start_date.map((date) => new Date(date)),
 		dueDates: target_date.map((date) => new Date(date)),
-		creators: created_by,
+		creators: created_by
 	};
 }
 
@@ -59,7 +59,7 @@ export function filtersToQueryParams(
  * @returns {ICreateViewInput['filters']} - An object that matches internal API naming
  */
 export function queryParamsToFilters(
-	queryParams: IGetTasksByViewFilters,
+	queryParams: IGetTasksByViewFilters
 ): ICreateViewInput['filters'] {
 	const {
 		projects = [],
@@ -72,7 +72,7 @@ export function queryParamsToFilters(
 		members = [],
 		startDates = [],
 		dueDates = [],
-		creators = [],
+		creators = []
 	} = queryParams;
 
 	return {
@@ -87,7 +87,7 @@ export function queryParamsToFilters(
 		assignees: members,
 		start_date: startDates as string[],
 		target_date: dueDates as string[],
-		created_by: creators,
+		created_by: creators
 	};
 }
 
@@ -105,7 +105,7 @@ export function createViewInputTransformer(
 	projectId?: ID,
 	organizationId?: ID,
 	moduleId?: ID,
-	sprintId?: ID,
+	sprintId?: ID
 ): ITaskViewCreateInput {
 	const {
 		filters,
@@ -113,7 +113,7 @@ export function createViewInputTransformer(
 		display_properties,
 		name,
 		access,
-		description,
+		description
 	} = view;
 
 	const visibilityLevel =
@@ -134,7 +134,7 @@ export function createViewInputTransformer(
 		organizationId,
 		projectId,
 		organizationSprintId: sprintId,
-		projectModuleId: moduleId,
+		projectModuleId: moduleId
 	};
 }
 
@@ -152,14 +152,14 @@ export function updateViewInputTransformer(
 	projectId?: ID,
 	organizationId?: ID,
 	moduleId?: ID,
-	sprintId?: ID,
+	sprintId?: ID
 ): ITaskViewUpdateInput {
 	// Default values if some properties are missing
 	const defaultView: ICreateViewInput = {
 		filters: {},
 		display_filters: {},
 		display_properties: {},
-		name: view.name,
+		name: view.name
 	};
 
 	// Merge partial `view` with default values
@@ -171,7 +171,7 @@ export function updateViewInputTransformer(
 		projectId,
 		moduleId,
 		sprintId,
-		organizationId,
+		organizationId
 	);
 }
 
@@ -183,7 +183,7 @@ export function updateViewInputTransformer(
  */
 export function issueViewTransformer(
 	taskViews: ITaskView | ITaskView[],
-	favoriteIds?: ID[],
+	favoriteIds?: ID[]
 ): IView | IView[] {
 	const transformIssueView = (taskView: ITaskView): IView => {
 		const isFavorite = favoriteIds?.includes(taskView.id);
@@ -197,7 +197,7 @@ export function issueViewTransformer(
 			name: taskView.name,
 			description: taskView.description,
 			query: queryParamsToFilters(
-				taskView.queryParams as IGetTasksByViewFilters,
+				taskView.queryParams as IGetTasksByViewFilters
 			),
 			filters: taskView.filterOptions as IViewPropsFilters,
 			display_filters:
@@ -211,7 +211,7 @@ export function issueViewTransformer(
 			updated_by: '', // TODO : Make sure we have this working
 			workspace: taskView.tenantId,
 			project: taskView.projectId,
-			owned_by: '', // TODO : Make sure we have this working
+			owned_by: '' // TODO : Make sure we have this working
 		};
 	};
 
@@ -226,7 +226,7 @@ export const viewRelations = [
 	'project',
 	'organizationTeam',
 	'projectModule',
-	'organizationSprint',
+	'organizationSprint'
 ];
 
 /**
@@ -236,11 +236,11 @@ export const viewRelations = [
  */
 export function getViewsQuery(
 	projectId?: ID,
-	relations?: string[],
+	relations?: string[]
 ): Record<string, string> {
 	// Tenant and Organization based Query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (projectId) {

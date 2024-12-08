@@ -6,10 +6,10 @@ import { WorkspaceIssueViewController } from './workspace-view.controller';
 @Module({
 	imports: [
 		RouterModule.register([
-			{ path: '/views', module: WorkspaceIssueViewModule },
+			{ path: '/views', module: WorkspaceIssueViewModule }
 		]),
-		IssueViewModule,
+		IssueViewModule
 	],
-	controllers: [WorkspaceIssueViewController],
+	controllers: [WorkspaceIssueViewController]
 })
 export class WorkspaceIssueViewModule {}

@@ -7,10 +7,10 @@ import { ConfigService } from '@nestjs/config';
 @Module({
 	imports: [
 		RouterModule.register([
-			{ path: '/api/instances', module: InstancesModule },
-		]),
+			{ path: '/api/instances', module: InstancesModule }
+		])
 	],
 	providers: [InstancesService, ConfigService],
-	controllers: [InstancesController],
+	controllers: [InstancesController]
 })
 export class InstancesModule {}

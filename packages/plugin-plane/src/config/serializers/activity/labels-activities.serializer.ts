@@ -8,7 +8,7 @@ export function labelsActivityTransformer(activityLog: IActivityLog) {
 		getAddedTags,
 		getRemovedTags,
 		'added',
-		'removed',
+		'removed'
 	);
 }
 

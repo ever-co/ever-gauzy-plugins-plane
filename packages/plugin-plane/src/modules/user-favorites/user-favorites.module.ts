@@ -11,15 +11,15 @@ import { CyclesModule } from '../cycles/cycles.module';
 @Module({
 	imports: [
 		RouterModule.register([
-			{ path: '/user-favorites', module: UserFavoritesModule },
+			{ path: '/user-favorites', module: UserFavoritesModule }
 		]),
 		forwardRef(() => IssueViewModule),
 		forwardRef(() => ProjectModule),
 		forwardRef(() => ProjectModuleModule),
-		forwardRef(() => CyclesModule),
+		forwardRef(() => CyclesModule)
 	],
 	providers: [UserFavoritesService],
 	controllers: [UserFavoritesController],
-	exports: [UserFavoritesService],
+	exports: [UserFavoritesService]
 })
 export class UserFavoritesModule {}

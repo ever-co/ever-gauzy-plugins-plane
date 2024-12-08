@@ -9,7 +9,7 @@ import {
 	IReactionCreateInput,
 	IReactionData,
 	IWorkspaceInfo,
-	ReactionEntityEnum,
+	ReactionEntityEnum
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
@@ -17,7 +17,7 @@ export function reactionTransformer(
 	reactions: IReaction[] | IReaction,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspace_detail: IWorkspaceInfo,
+	workspace_detail: IWorkspaceInfo
 	// issue?: IIssue,
 	// comment?: IIssueComment,
 ): IReactionData[] | IReactionData {
@@ -31,7 +31,7 @@ export function reactionTransformer(
 				last_name: actor.user.lastName,
 				avatar: actor.user.imageUrl,
 				is_bot: false,
-				display_name: actor.fullName,
+				display_name: actor.fullName
 			},
 			created_at: reaction.createdAt,
 			updated_at: reaction.updatedAt,
@@ -48,7 +48,7 @@ export function reactionTransformer(
 			comment:
 				reaction.entity === ReactionEntityEnum.Comment
 					? reaction.entityId
-					: null,
+					: null
 		};
 	};
 
@@ -62,23 +62,23 @@ export function reactionTransformer(
 export function createReactionInputTransformer(
 	input: ICreateReactionInput,
 	entity: ReactionEntityEnum,
-	entityId: ID,
+	entityId: ID
 ): IReactionCreateInput {
 	return {
 		entity,
 		entityId,
-		emoji: input.reaction,
+		emoji: input.reaction
 	};
 }
 
 export function getReactionsQuery(
 	entityId?: ID,
 	entity?: ReactionEntityEnum,
-	emoji?: string,
+	emoji?: string
 ): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (entityId) {

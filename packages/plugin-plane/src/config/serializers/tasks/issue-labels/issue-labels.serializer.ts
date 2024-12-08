@@ -4,7 +4,7 @@ import { defaultTestTenantId } from '../../../credentials';
 
 export function issueLabelsTransformer(
 	issues: ITag[] | ITag,
-	projectId: ID,
+	projectId: ID
 ): IIssueLabel[] | IIssueLabel {
 	if (Array.isArray(issues)) {
 		return issues.map((issue, i) => ({
@@ -14,7 +14,7 @@ export function issueLabelsTransformer(
 			color: issue.color,
 			project_id: projectId,
 			workspace_id: defaultTestTenantId(),
-			sort_order: 65535.0 + i * 1000,
+			sort_order: 65535.0 + i * 1000
 		}));
 	}
 
@@ -25,10 +25,10 @@ export function issueLabelsTransformer(
 		color: issues.color,
 		project_id: projectId,
 		workspace_id: defaultTestTenantId(),
-		sort_order: 65535.0,
+		sort_order: 65535.0
 	};
 }
 
 export const getLabelsQuery = () => ({
-	...baseGetItemsWhereQuery(),
+	...baseGetItemsWhereQuery()
 });

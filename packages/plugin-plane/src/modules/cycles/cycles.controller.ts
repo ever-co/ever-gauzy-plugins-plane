@@ -8,7 +8,7 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ICycle, ICycleIssuesResponse, ID } from '@plane-plugin/models';
 import { CyclesService } from './cycles.service';
@@ -42,7 +42,7 @@ export class CyclesController {
 	@ApiOperation({ summary: 'Check Data Overlaps' })
 	@Post('/date-check')
 	async checkDatesOverlap(
-		@Body() input: Pick<CycleDTO, 'start_date' | 'end_date'>,
+		@Body() input: Pick<CycleDTO, 'start_date' | 'end_date'>
 	) {
 		return await this._cycleService.checkDatesOverlap(input);
 	}
@@ -60,7 +60,7 @@ export class CyclesController {
 	@Post('/:id/cycle-issues')
 	async addIssuesToSprint(
 		@Param('id') id: ID,
-		@Body() input: { issues: ID[] },
+		@Body() input: { issues: ID[] }
 	): Promise<{ message: string }> {
 		return await this._cycleService.addIssuesToSprint(id, input);
 	}
@@ -77,7 +77,7 @@ export class CyclesController {
 	@Patch(':id')
 	async update(
 		@Param('id') id: ID,
-		@Body() input: CycleDTO,
+		@Body() input: CycleDTO
 	): Promise<ICycle | ICycle[]> {
 		return await this._cycleService.update(id, input);
 	}
@@ -92,7 +92,7 @@ export class CyclesController {
 	@ApiOperation({ summary: 'Get Cycles' })
 	@Get()
 	async findAll(
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<ICycle | ICycle[]> {
 		return this._cycleService.findAll(projectId);
 	}
@@ -109,7 +109,7 @@ export class CyclesController {
 	@Get(':id')
 	async findOne(
 		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<ICycle | ICycle[]> {
 		return this._cycleService.findOne(id, projectId);
 	}
@@ -126,7 +126,7 @@ export class CyclesController {
 	@Get(':id/cycle-issues')
 	async findCycleIssues(
 		@Param('id') id: ID,
-		@Param('projectId') projectId: ID,
+		@Param('projectId') projectId: ID
 	): Promise<ICycleIssuesResponse> {
 		return this._cycleService.findCycleIssues(id, projectId);
 	}

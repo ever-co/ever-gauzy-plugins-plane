@@ -8,7 +8,7 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	Post
 } from '@nestjs/common';
 import { ID, IView } from '@plane-plugin/models';
 import { IssueViewService } from './view.service';
@@ -43,7 +43,7 @@ export class WorkspaceIssueViewController {
 	@Patch(':id')
 	async update(
 		@Param('id') id: ID,
-		@Body() input: UpdateViewDTO,
+		@Body() input: UpdateViewDTO
 	): Promise<IView | IView[]> {
 		return await this._issueViewService.update(id, input);
 	}

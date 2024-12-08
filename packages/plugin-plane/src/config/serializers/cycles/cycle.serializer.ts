@@ -7,7 +7,7 @@ import {
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
 	IOrganizationSprintUpdateInput,
-	OrganizationSprintStatusEnum,
+	OrganizationSprintStatusEnum
 } from '@plane-plugin/models';
 import moment from 'moment';
 import { defaultEmployeeId, defaultOrganizationId } from '../../credentials';
@@ -22,7 +22,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  * @throws Will throw an error if the cycle status is not recognized.
  */
 export function cycleStatusToSprintStatus(
-	cycleStatus: CycleStatusEnum,
+	cycleStatus: CycleStatusEnum
 ): OrganizationSprintStatusEnum {
 	const cycleStatusMap: {
 		[key: string]: OrganizationSprintStatusEnum;
@@ -30,7 +30,7 @@ export function cycleStatusToSprintStatus(
 		[CycleStatusEnum.COMPLETED]: OrganizationSprintStatusEnum.COMPLETED,
 		[CycleStatusEnum.CURRENT]: OrganizationSprintStatusEnum.ACTIVE,
 		[CycleStatusEnum.DRAFT]: OrganizationSprintStatusEnum.DRAFT,
-		[CycleStatusEnum.UPCOMING]: OrganizationSprintStatusEnum.UPCOMING,
+		[CycleStatusEnum.UPCOMING]: OrganizationSprintStatusEnum.UPCOMING
 	};
 
 	const sprintStatus = cycleStatusMap[cycleStatus];
@@ -49,7 +49,7 @@ export function cycleStatusToSprintStatus(
  * @throws Will throw an error if the sprint status is not recognized.
  */
 export function sprintStatusToCycleStatus(
-	sprintStatus: OrganizationSprintStatusEnum,
+	sprintStatus: OrganizationSprintStatusEnum
 ): CycleStatusEnum {
 	const cycleStatusMap: {
 		[key: string]: CycleStatusEnum;
@@ -57,7 +57,7 @@ export function sprintStatusToCycleStatus(
 		[OrganizationSprintStatusEnum.COMPLETED]: CycleStatusEnum.COMPLETED,
 		[OrganizationSprintStatusEnum.ACTIVE]: CycleStatusEnum.CURRENT,
 		[OrganizationSprintStatusEnum.DRAFT]: CycleStatusEnum.DRAFT,
-		[OrganizationSprintStatusEnum.UPCOMING]: CycleStatusEnum.UPCOMING,
+		[OrganizationSprintStatusEnum.UPCOMING]: CycleStatusEnum.UPCOMING
 	};
 
 	const cycleStatus = cycleStatusMap[sprintStatus];
@@ -77,7 +77,7 @@ export function sprintStatusToCycleStatus(
  */
 function calculateDaysBetween(
 	startDate: string | Date,
-	endDate: string | Date,
+	endDate: string | Date
 ): number {
 	const start = moment(startDate);
 	const end = moment(endDate);
@@ -98,7 +98,7 @@ function calculateDaysBetween(
  */
 function determineCycleStatus(
 	startDate: Date,
-	endDate: Date,
+	endDate: Date
 ): OrganizationSprintStatusEnum {
 	const today = moment(); // Current date
 
@@ -131,7 +131,7 @@ function determineCycleStatus(
  * @returns {IOrganizationSprintCreateInput} - The transformed input for creating the sprint.
  */
 export function createCycleInputTransformer(
-	cycle: ICycle,
+	cycle: ICycle
 ): IOrganizationSprintCreateInput {
 	const { name, description, project_id, start_date, end_date } = cycle;
 
@@ -151,7 +151,7 @@ export function createCycleInputTransformer(
 		projectId: project_id,
 		organizationId: defaultOrganizationId(),
 		managerIds: [defaultEmployeeId()], // TODO : Change this and retrive it from authorization Request Header or Body Request
-		memberIds: [defaultEmployeeId()], // TODO : Change this and get it from Request
+		memberIds: [defaultEmployeeId()] // TODO : Change this and get it from Request
 	};
 }
 
@@ -162,7 +162,7 @@ export function createCycleInputTransformer(
  * @returns {IOrganizationSprintUpdateInput} - The transformed input for updating the sprint.
  */
 export function updateCycleInputTransformer(
-	cycle: ICycle,
+	cycle: ICycle
 ): IOrganizationSprintUpdateInput {
 	const {
 		name,
@@ -170,7 +170,7 @@ export function updateCycleInputTransformer(
 		project_id,
 		start_date,
 		end_date,
-		status: cycleStatus,
+		status: cycleStatus
 	} = cycle;
 
 	// Calculate the cycle length
@@ -189,7 +189,7 @@ export function updateCycleInputTransformer(
 		managerIds: [cycle.owned_by_id],
 		sprintProgress: cycle.progress_snapshot,
 		projectId: project_id,
-		status,
+		status
 	};
 }
 
@@ -201,7 +201,7 @@ export function updateCycleInputTransformer(
  */
 export function cycleTransformer(
 	sprints: IOrganizationSprint | IOrganizationSprint[],
-	favoriteIds?: ID[],
+	favoriteIds?: ID[]
 ): ICycle | ICycle[] {
 	const transformCycle = (sprint: IOrganizationSprint): ICycle => {
 		const isFavorite = favoriteIds?.includes(sprint.id);
@@ -209,7 +209,7 @@ export function cycleTransformer(
 		const { completedIssues } = getTaskCounts(
 			sprint.toSprintTaskHistories?.length > 0
 				? sprint.toSprintTaskHistories
-				: sprint.tasks,
+				: sprint.tasks
 		);
 
 		return {
@@ -237,7 +237,7 @@ export function cycleTransformer(
 			logo_props: {},
 			assignee_ids: sprint.members?.map((member) => member.employeeId),
 			external_id: null,
-			external_source: null,
+			external_source: null
 		};
 	};
 
@@ -259,7 +259,7 @@ const cycleRelations = [
 	'taskSprints.task',
 	'members',
 	'members.employee',
-	'members.employee.user',
+	'members.employee.user'
 ];
 
 /**
@@ -269,11 +269,11 @@ const cycleRelations = [
  */
 export function getSprintsQuery(
 	projectId?: ID,
-	relations?: string[],
+	relations?: string[]
 ): Record<string, string> {
 	// Tenant and Organization based Query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (projectId) {
@@ -307,6 +307,6 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 		total_pages: 1,
 		total_results: issues.length,
 		extra_stats: null,
-		results: issues,
+		results: issues
 	};
 }

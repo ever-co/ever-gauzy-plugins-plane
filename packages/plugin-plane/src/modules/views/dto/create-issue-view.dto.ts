@@ -4,13 +4,13 @@ import {
 	IsNumber,
 	IsObject,
 	IsOptional,
-	IsString,
+	IsString
 } from 'class-validator';
 import {
 	ICreateViewInput,
 	IDisplayProperties,
 	IViewPropsDisplayFilters,
-	IViewPropsFilters,
+	IViewPropsFilters
 } from '@plane-plugin/models';
 
 export class CreateViewDTO implements ICreateViewInput {

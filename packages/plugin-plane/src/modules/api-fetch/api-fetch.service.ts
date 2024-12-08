@@ -5,7 +5,7 @@ import { IServerFetchInputs } from '@plane-plugin/models';
 import {
 	defaultTestTenantId,
 	defaultTestToken,
-	EXTERNAL_BASE_API_URL,
+	EXTERNAL_BASE_API_URL
 } from '../../config';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class ApiFetchService {
 
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
-			Accept: 'application/json',
+			Accept: 'application/json'
 		};
 
 		if (bearer_token) {
@@ -50,9 +50,9 @@ export class ApiFetchService {
 					this._httpService.get(endPoint, {
 						...(init || {}),
 						headers: {
-							...headers,
-						},
-					}),
+							...headers
+						}
+					})
 				);
 
 			case 'POST':
@@ -60,9 +60,9 @@ export class ApiFetchService {
 					this._httpService.post(endPoint, body, {
 						...(init || {}),
 						headers: {
-							...headers,
-						},
-					}),
+							...headers
+						}
+					})
 				);
 
 			case 'PUT':
@@ -70,9 +70,9 @@ export class ApiFetchService {
 					this._httpService.put(endPoint, body, {
 						...(init || {}),
 						headers: {
-							...headers,
-						},
-					}),
+							...headers
+						}
+					})
 				);
 
 			case 'DELETE':
@@ -80,9 +80,9 @@ export class ApiFetchService {
 					this._httpService.delete(endPoint, {
 						...(init || {}),
 						headers: {
-							...headers,
-						},
-					}),
+							...headers
+						}
+					})
 				);
 			default:
 				throw new BadRequestException('Method not accepted');

@@ -25,7 +25,7 @@ export const orderByFieldMap: { [key in IssueOrderByField]: string } = {
 	[IssueOrderByField.DESC_PRIORITY]: 'priority',
 	[IssueOrderByField.START_DATE]: 'startDate',
 	[IssueOrderByField.DESC_UPDATED_AT]: 'updatedAt',
-	[IssueOrderByField.ASC_UPDATED_AT]: 'updatedAt',
+	[IssueOrderByField.ASC_UPDATED_AT]: 'updatedAt'
 };
 
 /**
@@ -69,7 +69,7 @@ export function extractEmployeeMentionIds(commentHtml: string): ID[] {
 		// Select all mention-component elements and extract their 'entity_identifier'
 		const mentionIds: ID[] = commenMentionParser('mention-component')
 			.map((_, element) =>
-				commenMentionParser(element).attr('entity_identifier'),
+				commenMentionParser(element).attr('entity_identifier')
 			)
 			.get() // Convert cheerio object to a plain array
 			.filter((id): id is ID => !!id); // Ensure IDs are non-null

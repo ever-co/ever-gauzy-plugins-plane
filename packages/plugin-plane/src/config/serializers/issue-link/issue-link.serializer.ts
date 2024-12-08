@@ -7,7 +7,7 @@ import {
 	IOrganizationProject,
 	IResourceLink,
 	IResourceLinkCreateInput,
-	IResourceLinkUpdateInput,
+	IResourceLinkUpdateInput
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
@@ -21,7 +21,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 export function issueLinkTransformer(
 	links: IResourceLink[] | IResourceLink,
 	actor?: IEmployee,
-	project?: IOrganizationProject,
+	project?: IOrganizationProject
 ): IIssueLink[] | IIssueLink {
 	const transformIssueLink = (link: IResourceLink): IIssueLink => {
 		return {
@@ -34,7 +34,7 @@ export function issueLinkTransformer(
 				last_name: actor?.user?.lastName,
 				avatar: actor?.user?.imageUrl,
 				is_bot: false,
-				display_name: actor?.fullName,
+				display_name: actor?.fullName
 			},
 			created_at: link.createdAt,
 			updated_at: link.updatedAt,
@@ -46,7 +46,7 @@ export function issueLinkTransformer(
 			created_by_id: link.creatorId,
 			updated_by: '', // TODO : Try to use this too,
 			project: project?.id,
-			workspace: link.tenantId,
+			workspace: link.tenantId
 		};
 	};
 
@@ -65,13 +65,13 @@ export function issueLinkTransformer(
  */
 export function createIssueLinkInputTransformer(
 	input: ICreateIssueLink,
-	issueId: ID,
+	issueId: ID
 ): IResourceLinkCreateInput {
 	return {
 		entity: BaseEntityEnum.Task,
 		entityId: issueId,
 		title: input.title,
-		url: input.url,
+		url: input.url
 	};
 }
 
@@ -81,7 +81,7 @@ export function createIssueLinkInputTransformer(
  * @returns {IResourceLinkUpdateInput} A Tranformed object
  */
 export function updateIssueLinkInputTransformer(
-	input: ICreateIssueLink,
+	input: ICreateIssueLink
 ): IResourceLinkUpdateInput {
 	return input;
 }
@@ -94,7 +94,7 @@ export function updateIssueLinkInputTransformer(
 export function getIssueLinksQuery(issueId?: ID): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (issueId) {

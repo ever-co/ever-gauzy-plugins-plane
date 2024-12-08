@@ -6,14 +6,14 @@ import {
 	IIssueLabel,
 	IPagination,
 	ITag,
-	IUpdateIssueLabelInput,
+	IUpdateIssueLabelInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import {
 	defaultOrganizationId,
 	defaultTestTenantId,
 	getLabelsQuery,
-	issueLabelsTransformer,
+	issueLabelsTransformer
 } from '../../../config';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class IssueLabelsService extends ApiFetchService {
 	 * @memberof IssueLabelsService
 	 */
 	async getProjectIssueLabels(
-		projectId: ID,
+		projectId: ID
 	): Promise<IIssueLabel[] | IIssueLabel> {
 		const query = qs.stringify(getLabelsQuery());
 		try {
@@ -35,7 +35,7 @@ export class IssueLabelsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}`,
-					query,
+					query
 				})
 			).data;
 
@@ -55,7 +55,7 @@ export class IssueLabelsService extends ApiFetchService {
 	 */
 	async createIssueLabel(
 		projectId: ID,
-		input: ICreateIssueLabelInput,
+		input: ICreateIssueLabelInput
 	): Promise<IIssueLabel | IIssueLabel[]> {
 		try {
 			const label: ITag = (
@@ -65,8 +65,8 @@ export class IssueLabelsService extends ApiFetchService {
 					body: {
 						...input,
 						organizationId: defaultOrganizationId(),
-						tenantId: defaultTestTenantId(),
-					},
+						tenantId: defaultTestTenantId()
+					}
 				})
 			).data;
 			return issueLabelsTransformer(label, projectId);
@@ -86,14 +86,14 @@ export class IssueLabelsService extends ApiFetchService {
 	async updateIssueLabel(
 		id: ID,
 		projectId: ID,
-		input: IUpdateIssueLabelInput,
+		input: IUpdateIssueLabelInput
 	): Promise<IIssueLabel | IIssueLabel[]> {
 		try {
 			const label: ITag = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body: input,
+					body: input
 				})
 			).data;
 			return issueLabelsTransformer(label, projectId);
@@ -113,7 +113,7 @@ export class IssueLabelsService extends ApiFetchService {
 			return (
 				await this.apiFetch({
 					method: 'DELETE',
-					path: `${this.path}/${id}`,
+					path: `${this.path}/${id}`
 				})
 			).data;
 		} catch (error) {

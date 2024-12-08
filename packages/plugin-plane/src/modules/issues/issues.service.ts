@@ -2,7 +2,7 @@ import {
 	Injectable,
 	BadRequestException,
 	Inject,
-	forwardRef,
+	forwardRef
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -36,7 +36,7 @@ import {
 	ITask,
 	ITaskDateFilterInput,
 	ReactionEntityEnum,
-	TaskStatusEnum,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
@@ -56,7 +56,7 @@ import {
 	nonGroupedIssues,
 	reactionTransformer,
 	subscriptionTransformer,
-	updateIssueInputTransformer,
+	updateIssueInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { StatesService } from '../states/states.service';
@@ -82,7 +82,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _activityService: ActivityService,
 		private readonly _subscriptionService: SubscriptionService,
-		private readonly _serverFetchService: ApiFetchService,
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -98,16 +98,16 @@ export class IssuesService extends ApiFetchService {
 	async getExternalIssue(
 		id: ID,
 		relations?: string[],
-		isDraft?: boolean,
+		isDraft?: boolean
 	): Promise<ITask> {
 		const query = qs.stringify(
-			getTaskQuery(null, null, relations, null, isDraft),
+			getTaskQuery(null, null, relations, null, isDraft)
 		);
 		return (
 			await this.apiFetch({
 				path: `${this.path}/${id}`,
 				method: 'GET',
-				query,
+				query
 			})
 		).data;
 	}
@@ -125,18 +125,18 @@ export class IssuesService extends ApiFetchService {
 		options: ITask,
 		relations?: string[],
 		orderByField?: IssueOrderByField,
-		isDraft: boolean = false,
+		isDraft: boolean = false
 	): Promise<IPagination<ITask>> {
 		try {
 			const query = qs.stringify(
-				getTaskQuery(null, options, relations, orderByField, isDraft),
+				getTaskQuery(null, options, relations, orderByField, isDraft)
 			);
 
 			return (
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 		} catch (error) {
@@ -156,12 +156,12 @@ export class IssuesService extends ApiFetchService {
 	async findExternalByEmployee(
 		employeeId: ID,
 		relations?: string[],
-		orderByField?: IssueOrderByField,
+		orderByField?: IssueOrderByField
 	): Promise<ITask[]> {
 		try {
 			// Build query for task retrieval
 			const query = qs.stringify(
-				getTaskQuery(null, null, relations, orderByField, false),
+				getTaskQuery(null, null, relations, orderByField, false)
 			);
 
 			// Fetch tasks for the authenticated employee
@@ -169,7 +169,7 @@ export class IssuesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/employee/${employeeId}`,
-					query,
+					query
 				})
 			).data;
 
@@ -191,7 +191,7 @@ export class IssuesService extends ApiFetchService {
 	 * @throws {BadRequestException} Throws an error if the API request fails or if the options are invalid.
 	 */
 	async findByStartAndDueDate(
-		options: ITaskDateFilterInput,
+		options: ITaskDateFilterInput
 	): Promise<ITask[]> {
 		try {
 			// Build query for task retrieval
@@ -201,7 +201,7 @@ export class IssuesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/filter-by-date`,
-					query,
+					query
 				})
 			).data;
 
@@ -226,9 +226,9 @@ export class IssuesService extends ApiFetchService {
 					'members.user',
 					'creator',
 					'project.members.employee.user.role',
-					'organizationSprint',
+					'organizationSprint'
 				],
-				isDraft,
+				isDraft
 			);
 
 			if (!issue) {
@@ -239,17 +239,17 @@ export class IssuesService extends ApiFetchService {
 			const reactions = await this.findIssueReactions(
 				{
 					entityId: id,
-					entity: ReactionEntityEnum.Task,
+					entity: ReactionEntityEnum.Task
 				},
 				issue.projectId,
-				isDraft,
+				isDraft
 			);
 
 			//Check current user subscription.
 			const subscriptions = await this._subscriptionService.findAll({
 				entity: BaseEntityEnum.Task,
 				entityId: issue.id,
-				userId: defaultUserId(),
+				userId: defaultUserId()
 			}); // TODO : Adjust this to use current connected user;
 			const isSubscribed = subscriptions && subscriptions.length > 0;
 
@@ -281,14 +281,14 @@ export class IssuesService extends ApiFetchService {
 
 			const body = createIssueInputTransformer(
 				input,
-				state.name as TaskStatusEnum,
+				state.name as TaskStatusEnum
 			);
 
 			const issue: ITask = (
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -309,14 +309,14 @@ export class IssuesService extends ApiFetchService {
 	async update(
 		id: ID,
 		input: IIssueUpdateInput,
-		isDraft: boolean,
+		isDraft: boolean
 	): Promise<IIssue> {
 		try {
 			// Extract modules to be added and removed from the input
 			const {
 				modules: added_modules = [],
 				removed_modules = [],
-				module_ids = [],
+				module_ids = []
 			} = input;
 
 			// Fetch the state only if a state_id is provided
@@ -333,7 +333,7 @@ export class IssuesService extends ApiFetchService {
 			// Retrieve the existing issue and external issue details simultaneously
 			const [issue, externalIssue] = await Promise.all([
 				this.findOne(id, isDraft),
-				this.getExternalIssue(id, null, isDraft),
+				this.getExternalIssue(id, null, isDraft)
 			]);
 
 			if (!issue) {
@@ -343,7 +343,7 @@ export class IssuesService extends ApiFetchService {
 			// Find labels
 			const labelResult =
 				await this._issueLabelService.getProjectIssueLabels(
-					issue.project_id,
+					issue.project_id
 				);
 			const labels: IIssueLabel[] = Array.isArray(labelResult)
 				? labelResult
@@ -352,7 +352,7 @@ export class IssuesService extends ApiFetchService {
 			// Find project
 			const project = await this._projectService.getExternalProject(
 				issue.project_id,
-				['modules', 'members.employee'],
+				['modules', 'members.employee']
 			);
 
 			// Calculate the final set of modules after additions and removals
@@ -360,7 +360,7 @@ export class IssuesService extends ApiFetchService {
 				externalIssue?.modules?.map((module) => module.id) || [];
 			const modules = new Set([
 				...existingModules,
-				...added_modules.concat(module_ids),
+				...added_modules.concat(module_ids)
 			]);
 			removed_modules.forEach((module) => modules.delete(module)); // Remove the modules marked for deletion
 
@@ -371,7 +371,7 @@ export class IssuesService extends ApiFetchService {
 				project.members?.map((member) => member.employee),
 				labels,
 				Array.from(modules),
-				project.modules,
+				project.modules
 			);
 
 			const task = (
@@ -381,8 +381,8 @@ export class IssuesService extends ApiFetchService {
 					body: {
 						...body,
 						title: input.name ?? issue.name,
-						status: state?.name || externalIssue.status,
-					},
+						status: state?.name || externalIssue.status
+					}
 				})
 			).data;
 
@@ -405,7 +405,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async updateRelationnalIssueParent(
 		id: ID,
-		input: Pick<IIssueUpdateInput, 'sub_issue_ids'>,
+		input: Pick<IIssueUpdateInput, 'sub_issue_ids'>
 	): Promise<ISubIssueResponse> {
 		try {
 			const { sub_issue_ids } = input;
@@ -415,7 +415,7 @@ export class IssuesService extends ApiFetchService {
 					const issue = await this.getExternalIssue(
 						issueId,
 						null,
-						false,
+						false
 					);
 
 					await this.apiFetch({
@@ -423,20 +423,20 @@ export class IssuesService extends ApiFetchService {
 						method: 'PUT',
 						body: {
 							...issue,
-							parentId: id,
-						},
+							parentId: id
+						}
 					});
 					tasks.push(issue);
 
 					return issueTransformer(issue);
-				}),
+				})
 			);
 
 			const stateDistribution = getTaskDistribution(tasks);
 
 			return {
 				sub_issues: subIssues,
-				state_distribution: stateDistribution,
+				state_distribution: stateDistribution
 			};
 		} catch (error: any) {
 			console.log(error.response);
@@ -460,7 +460,7 @@ export class IssuesService extends ApiFetchService {
 	async getAllIssuesByProject(
 		projectId: ID,
 		options?: IIssueFindInput,
-		referer?: string,
+		referer?: string
 	): Promise<any> {
 		try {
 			// Extract the view ID from the referer if it exists
@@ -471,7 +471,7 @@ export class IssuesService extends ApiFetchService {
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
-				getTaskQuery(projectId, options, null, null, false),
+				getTaskQuery(projectId, options, null, null, false)
 			);
 
 			let path = '';
@@ -487,7 +487,7 @@ export class IssuesService extends ApiFetchService {
 					path: !viewId
 						? `${this.path}/${path}` // Use module path if no viewId
 						: `${this.path}/view/${viewId}`, // Use view path if viewId is present
-					query,
+					query
 				})
 			).data;
 
@@ -523,7 +523,7 @@ export class IssuesService extends ApiFetchService {
 			const issue = await this.getExternalIssue(
 				id,
 				['children.taskStatus', 'children.members'],
-				false,
+				false
 			);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
@@ -531,7 +531,7 @@ export class IssuesService extends ApiFetchService {
 			if (issue.children.length > 0) {
 				const children = issue.children;
 				children.forEach((task) =>
-					sub_issues.push(issueTransformer(task)),
+					sub_issues.push(issueTransformer(task))
 				);
 			}
 
@@ -557,18 +557,18 @@ export class IssuesService extends ApiFetchService {
 	async findAll(
 		options?: ITask,
 		relations?: string[],
-		isDraft: boolean = false,
+		isDraft: boolean = false
 	): Promise<IIssue[]> {
 		try {
 			const query = qs.stringify(
-				getTaskQuery(null, options, relations, null, isDraft),
+				getTaskQuery(null, options, relations, null, isDraft)
 			);
 
 			const tasks: IPagination<ITask> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
-					query,
+					query
 				})
 			).data;
 
@@ -591,12 +591,12 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findByEmployee(
 		employeeId: ID,
-		relations?: string[],
+		relations?: string[]
 	): Promise<IIssue[]> {
 		try {
 			const tasks = await this.findExternalByEmployee(
 				employeeId,
-				relations,
+				relations
 			);
 
 			return tasks.map((task) => issueTransformer(task));
@@ -615,14 +615,14 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async createIssueRelations(
 		taskToId: ID,
-		input: ICreateIssueRelationInput,
+		input: ICreateIssueRelationInput
 	): Promise<ICreatedIssueRelation[]> {
 		try {
 			const { issues, relation_type } = input;
 			return await this._issueRelationService.create(
 				taskToId,
 				issues,
-				relation_type,
+				relation_type
 			);
 		} catch (error) {
 			console.log(error);
@@ -639,7 +639,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async deleteIssueRelation(
 		id: ID,
-		input: IDeleteRelationInput,
+		input: IDeleteRelationInput
 	): Promise<any> {
 		try {
 			return await this._issueRelationService.delete(id, input);
@@ -674,7 +674,7 @@ export class IssuesService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}
@@ -690,17 +690,17 @@ export class IssuesService extends ApiFetchService {
 	async createComment(
 		entityId: ID,
 		projectId: ID,
-		input: ICreateCommentInput,
+		input: ICreateCommentInput
 	): Promise<IIssueComment> {
 		try {
 			const task = await this.getExternalIssue(
 				entityId,
 				['project.members.employee.user.role', 'project.tenant'],
-				false,
+				false
 			);
 
 			const projectMembers = task.project.members.map(
-				(member) => member.employee,
+				(member) => member.employee
 			);
 
 			// Create comment
@@ -708,7 +708,7 @@ export class IssuesService extends ApiFetchService {
 				input,
 				BaseEntityEnum.Task,
 				entityId,
-				projectMembers,
+				projectMembers
 			);
 
 			const { actor, issue, project, workspace } =
@@ -717,7 +717,7 @@ export class IssuesService extends ApiFetchService {
 					projectId,
 					comment.creatorId,
 					task,
-					task.project,
+					task.project
 				);
 
 			const transformedComment = issueCommentTrasnsformer(
@@ -726,7 +726,7 @@ export class IssuesService extends ApiFetchService {
 				actor,
 				project,
 				workspace,
-				[], // On creation, comment has no reaction yet
+				[] // On creation, comment has no reaction yet
 			);
 
 			return Array.isArray(transformedComment)
@@ -751,34 +751,34 @@ export class IssuesService extends ApiFetchService {
 		id: ID,
 		projectId: ID,
 		input: ICreateCommentInput,
-		entityId: ID,
+		entityId: ID
 	): Promise<IIssueComment> {
 		try {
 			// Update comment
 			const options: ICommentFindInput = {
 				entity: BaseEntityEnum.Task,
-				entityId,
+				entityId
 			};
 			await this._commentService.update(id, options, input);
 
 			const updatedComment = await this._commentService.findOne(
 				id,
-				options,
+				options
 			);
 
 			const { actor, issue, project, workspace } =
 				await this.getIssueCommentDetails(
 					updatedComment.entityId,
 					projectId,
-					updatedComment.creatorId,
+					updatedComment.creatorId
 				);
 
 			const reactions = await this._commentService.findCommentReactions(
 				{
 					entityId: updatedComment.id,
-					entity: ReactionEntityEnum.Comment,
+					entity: ReactionEntityEnum.Comment
 				},
-				projectId,
+				projectId
 			);
 
 			const transformedComment = issueCommentTrasnsformer(
@@ -787,7 +787,7 @@ export class IssuesService extends ApiFetchService {
 				actor,
 				project,
 				workspace,
-				reactions,
+				reactions
 			);
 
 			return Array.isArray(transformedComment)
@@ -818,7 +818,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async getIssueComments(
 		options: Partial<ICommentFindInput>,
-		projectId: ID,
+		projectId: ID
 	): Promise<any> {
 		try {
 			const comments = await this._commentService.findAll(options);
@@ -826,7 +826,7 @@ export class IssuesService extends ApiFetchService {
 			const task = await this.getExternalIssue(
 				options.entityId,
 				['project.members.employee.user.role', 'project.tenant'],
-				false,
+				false
 			);
 
 			const issueComments: IIssueComment[] = await Promise.all(
@@ -835,9 +835,9 @@ export class IssuesService extends ApiFetchService {
 						await this._commentService.findCommentReactions(
 							{
 								entityId: comment.id,
-								entity: ReactionEntityEnum.Comment,
+								entity: ReactionEntityEnum.Comment
 							},
-							projectId,
+							projectId
 						);
 
 					const { actor, issue, project, workspace } =
@@ -846,7 +846,7 @@ export class IssuesService extends ApiFetchService {
 							projectId,
 							comment.creatorId,
 							task,
-							task.project,
+							task.project
 						);
 					const transformedComment = issueCommentTrasnsformer(
 						comment,
@@ -854,12 +854,12 @@ export class IssuesService extends ApiFetchService {
 						actor,
 						project,
 						workspace,
-						reactions,
+						reactions
 					);
 					return Array.isArray(transformedComment)
 						? transformedComment[0]
 						: transformedComment;
-				}),
+				})
 			);
 
 			return issueComments;
@@ -873,13 +873,13 @@ export class IssuesService extends ApiFetchService {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				entityId: id,
+				entityId: id
 			});
 
 			const task = await this.getExternalIssue(
 				id,
 				['project.members.employee.user.role', 'project.tenant'],
-				false,
+				false
 			);
 
 			const issueActivities = await Promise.all(
@@ -890,7 +890,7 @@ export class IssuesService extends ApiFetchService {
 							projectId,
 							activityLog.creatorId,
 							task,
-							task.project,
+							task.project
 						);
 
 					const transformedActivityLogs = issueActivityLogTransformer(
@@ -899,13 +899,13 @@ export class IssuesService extends ApiFetchService {
 						actor,
 						project,
 						workspace,
-						issue.cycle,
+						issue.cycle
 					);
 
 					return Array.isArray(transformedActivityLogs)
 						? transformedActivityLogs
 						: [transformedActivityLogs];
-				}),
+				})
 			);
 
 			// Find links for logs
@@ -915,7 +915,7 @@ export class IssuesService extends ApiFetchService {
 				(links ?? []).map(async (link) => {
 					const logs = await this._activityService.findAll({
 						entity: BaseEntityEnum.ResourceLink,
-						entityId: link.id,
+						entityId: link.id
 					});
 
 					const activities = await Promise.all(
@@ -926,7 +926,7 @@ export class IssuesService extends ApiFetchService {
 									projectId,
 									log.creatorId,
 									task,
-									task.project,
+									task.project
 								);
 
 							return issueLinksActivities(
@@ -935,12 +935,12 @@ export class IssuesService extends ApiFetchService {
 								issue,
 								actor,
 								project,
-								workspace,
+								workspace
 							);
-						}),
+						})
 					);
 					return activities;
-				}),
+				})
 			);
 
 			// Find issue relations activities logs
@@ -951,7 +951,7 @@ export class IssuesService extends ApiFetchService {
 				(issueRelations ?? []).map(async (issueRelation) => {
 					const logs = await this._activityService.findAll({
 						entity: BaseEntityEnum.TaskLinkedIssue,
-						entityId: issueRelation.id,
+						entityId: issueRelation.id
 					});
 
 					const activities = await Promise.all(
@@ -962,7 +962,7 @@ export class IssuesService extends ApiFetchService {
 									projectId,
 									log.creatorId,
 									task,
-									task.project,
+									task.project
 								);
 
 							return issueRelationActivities(
@@ -971,13 +971,13 @@ export class IssuesService extends ApiFetchService {
 								issue,
 								actor,
 								project,
-								workspace,
+								workspace
 							);
-						}),
+						})
 					);
 
 					return activities;
-				}),
+				})
 			);
 
 			// Combined activities
@@ -1003,20 +1003,20 @@ export class IssuesService extends ApiFetchService {
 	async createReaction(
 		entityId: ID,
 		projectId: ID,
-		input: ICreateReactionInput,
+		input: ICreateReactionInput
 	): Promise<IReactionData> {
 		try {
 			const task = await this.getExternalIssue(
 				entityId,
 				['project.members.employee.user.role', 'project.tenant'],
-				false,
+				false
 			);
 
 			// Create reaction
 			const reaction = await this._reactionService.create(
 				input,
 				ReactionEntityEnum.Task,
-				entityId,
+				entityId
 			);
 
 			// Reaction details
@@ -1026,7 +1026,7 @@ export class IssuesService extends ApiFetchService {
 					projectId,
 					reaction.creatorId,
 					task,
-					task.project,
+					task.project
 				);
 
 			// Transform Reaction
@@ -1034,7 +1034,7 @@ export class IssuesService extends ApiFetchService {
 				reaction,
 				actor,
 				project,
-				workspace,
+				workspace
 			);
 
 			return Array.isArray(transformedReaction)
@@ -1056,13 +1056,13 @@ export class IssuesService extends ApiFetchService {
 	async findIssueReactions(
 		options: Partial<IReaction>,
 		projectId: ID,
-		isDraft?: boolean,
+		isDraft?: boolean
 	): Promise<any> {
 		try {
 			const task = await this.getExternalIssue(
 				options.entityId,
 				['project.members.employee.user.role', 'project.tenant'],
-				isDraft,
+				isDraft
 			);
 
 			const reactions = await this._reactionService.findAll(options);
@@ -1075,20 +1075,20 @@ export class IssuesService extends ApiFetchService {
 							projectId,
 							reaction.creatorId,
 							task,
-							task.project,
+							task.project
 						);
 
 					const transformedReaction = reactionTransformer(
 						reaction,
 						actor,
 						project,
-						workspace,
+						workspace
 					);
 
 					return Array.isArray(transformedReaction)
 						? transformedReaction[0]
 						: transformedReaction;
-				}),
+				})
 			);
 
 			return issueReactions;
@@ -1107,12 +1107,12 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async deleteIssueReactionByEmoji(
 		reaction: string,
-		entityId: ID,
+		entityId: ID
 	): Promise<any> {
 		return await this._reactionService.deleteByEmoji(
 			reaction,
 			ReactionEntityEnum.Task,
-			entityId,
+			entityId
 		);
 	}
 
@@ -1127,13 +1127,13 @@ export class IssuesService extends ApiFetchService {
 	async findActivity(
 		id: ID,
 		projectId: ID,
-		activity_type: IssueActivityTypeEnum,
+		activity_type: IssueActivityTypeEnum
 	): Promise<any> {
 		try {
 			if (activity_type === IssueActivityTypeEnum.COMMENT) {
 				return await this.getIssueComments(
 					{ entityId: id, entity: BaseEntityEnum.Task },
-					projectId,
+					projectId
 				);
 			}
 			return await this.findIssueActivity(id, projectId);
@@ -1158,7 +1158,7 @@ export class IssuesService extends ApiFetchService {
 		projectId: ID,
 		creatorId: ID,
 		originalTask?: ITask,
-		originalProject?: IOrganizationProject,
+		originalProject?: IOrganizationProject
 	) {
 		try {
 			let task = originalTask;
@@ -1183,12 +1183,12 @@ export class IssuesService extends ApiFetchService {
 			const workspace = {
 				name: tenant?.name,
 				id: tenant?.id,
-				slug: tenant?.name.toLowerCase(),
+				slug: tenant?.name.toLowerCase()
 			};
 
 			// Find actor by userId
 			const actor = project?.members?.find(
-				(member) => member.employee.userId === creatorId,
+				(member) => member.employee.userId === creatorId
 			)?.employee;
 
 			return { issue, project, workspace, actor };
@@ -1209,7 +1209,7 @@ export class IssuesService extends ApiFetchService {
 	async createLink(
 		id: ID,
 		projectId: ID,
-		input: ICreateIssueLink,
+		input: ICreateIssueLink
 	): Promise<IIssueLink> {
 		try {
 			// Create link
@@ -1219,7 +1219,7 @@ export class IssuesService extends ApiFetchService {
 			const { actor, project } = await this.getIssueCommentDetails(
 				id,
 				projectId,
-				link.creatorId,
+				link.creatorId
 			);
 
 			// Transform Link
@@ -1247,21 +1247,21 @@ export class IssuesService extends ApiFetchService {
 		id: ID,
 		issueId: ID,
 		projectId: ID,
-		input: ICreateIssueLink,
+		input: ICreateIssueLink
 	): Promise<IIssueLink> {
 		try {
 			// Update link
 			const link = await this._issueLinkService.update(
 				id,
 				issueId,
-				input,
+				input
 			);
 
 			// Link Details
 			const { actor, project } = await this.getIssueCommentDetails(
 				issueId,
 				projectId,
-				link.creatorId,
+				link.creatorId
 			);
 
 			// Transform Link
@@ -1295,18 +1295,18 @@ export class IssuesService extends ApiFetchService {
 							projectId,
 							link.creatorId,
 							issue,
-							issue.project,
+							issue.project
 						);
 
 					const transformedLink = issueLinkTransformer(
 						link,
 						actor,
-						project,
+						project
 					);
 					return Array.isArray(transformedLink)
 						? transformedLink[0]
 						: transformedLink;
-				}),
+				})
 			);
 
 			return issueLinks;
@@ -1329,7 +1329,7 @@ export class IssuesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/view/${viewId}`,
-					query,
+					query
 				})
 			).data;
 
@@ -1359,7 +1359,7 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async subscribe(
 		issueId: ID,
-		projectId: ID,
+		projectId: ID
 	): Promise<ISubscriber | ISubscriber[]> {
 		const subscription = await this._subscriptionService.create(issueId); // TODO : Make sure we pass correct userId
 		return subscriptionTransformer(subscription, projectId);
@@ -1376,7 +1376,7 @@ export class IssuesService extends ApiFetchService {
 		return await this._subscriptionService.unsubscribe({
 			entity: BaseEntityEnum.Task,
 			entityId: issueId,
-			userId: defaultUserId(),
+			userId: defaultUserId()
 		}); // TODO : Make sure we pass correct userId
 	}
 }

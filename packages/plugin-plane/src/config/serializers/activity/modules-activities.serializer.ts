@@ -8,7 +8,7 @@ export function modulesActivityTransformer(activityLog: IActivityLog) {
 		getAddedModules,
 		getRemovedModules,
 		'created',
-		'deleted',
+		'deleted'
 	);
 }
 
@@ -21,7 +21,7 @@ export function modulesActivityTransformer(activityLog: IActivityLog) {
  */
 function getAddedModules(
 	previousModules: IOrganizationProjectModule[],
-	updatedModules: IOrganizationProjectModule[],
+	updatedModules: IOrganizationProjectModule[]
 ): IOrganizationProjectModule[] {
 	const previousSet = new Set(previousModules.map((module) => module.id));
 	return updatedModules.filter((module) => !previousSet.has(module.id));
@@ -36,7 +36,7 @@ function getAddedModules(
  */
 function getRemovedModules(
 	previousModules: IOrganizationProjectModule[],
-	updatedModules: IOrganizationProjectModule[],
+	updatedModules: IOrganizationProjectModule[]
 ): IOrganizationProjectModule[] {
 	const updatedSet = new Set(updatedModules.map((module) => module.id));
 	return previousModules.filter((module) => !updatedSet.has(module.id));

@@ -2,7 +2,7 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -12,7 +12,7 @@ import {
 	IIssueRelationResponse,
 	IPagination,
 	IssueRelationTypeEnum,
-	ITaskLinkedIssue,
+	ITaskLinkedIssue
 } from '@plane-plugin/models';
 import {
 	createdIssueRelationTranformer,
@@ -22,7 +22,7 @@ import {
 	getIssueRelationType,
 	getTaskRelatedIssueRelation,
 	getTaskRelationQuery,
-	issueTransformer,
+	issueTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { IssuesService } from '../issues/issues.service';
@@ -32,7 +32,7 @@ export class IssueRelationsService extends ApiFetchService {
 	constructor(
 		@Inject(forwardRef(() => IssuesService))
 		private readonly _issueService: IssuesService,
-		private readonly _serverFetchService: ApiFetchService,
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -50,7 +50,7 @@ export class IssueRelationsService extends ApiFetchService {
 	async create(
 		taskToId: ID,
 		issues: ID[],
-		relation_type: IssueRelationTypeEnum,
+		relation_type: IssueRelationTypeEnum
 	): Promise<ICreatedIssueRelation[]> {
 		try {
 			// Prepare relations to create
@@ -58,7 +58,7 @@ export class IssueRelationsService extends ApiFetchService {
 				mainRelation: createIssueRelationInputTranformer(
 					relation_type,
 					taskToId,
-					issue,
+					issue
 				),
 				inverseRelation: createIssueRelationInputTranformer(
 					relation_type === IssueRelationTypeEnum.BLOCKED_BY
@@ -67,8 +67,8 @@ export class IssueRelationsService extends ApiFetchService {
 							? IssueRelationTypeEnum.BLOCKED_BY
 							: relation_type,
 					issue,
-					taskToId,
-				),
+					taskToId
+				)
 			}));
 
 			// Création des relations en parallèle
@@ -82,14 +82,14 @@ export class IssueRelationsService extends ApiFetchService {
 								path: this.path,
 								body: {
 									...mainRelation,
-									organizationId: defaultOrganizationId(),
-								},
+									organizationId: defaultOrganizationId()
+								}
 							})
 						).data;
 
 						const issueTo =
 							await this._issueService.getExternalIssue(
-								relation.taskFromId,
+								relation.taskFromId
 							);
 
 						// Create inversed relation
@@ -98,17 +98,17 @@ export class IssueRelationsService extends ApiFetchService {
 							path: this.path,
 							body: {
 								...inverseRelation,
-								organizationId: defaultOrganizationId(),
-							},
+								organizationId: defaultOrganizationId()
+							}
 						});
 
 						// Transform the main relation
 						return createdIssueRelationTranformer(
 							relation,
-							issueTo,
+							issueTo
 						);
-					},
-				),
+					}
+				)
 			);
 
 			return createdRelations;
@@ -130,7 +130,7 @@ export class IssueRelationsService extends ApiFetchService {
 			await this.apiFetch({
 				method: 'GET',
 				path: `${this.path}/${id}`,
-				query,
+				query
 			})
 		).data;
 	}
@@ -145,18 +145,18 @@ export class IssueRelationsService extends ApiFetchService {
 	 */
 	async findAllByIssueId(
 		issueId: ID,
-		withDeleted?: boolean,
+		withDeleted?: boolean
 	): Promise<ITaskLinkedIssue[]> {
 		try {
 			const query = qs.stringify(
-				findByOptionsQuery({ taskToId: issueId }, withDeleted),
+				findByOptionsQuery({ taskToId: issueId }, withDeleted)
 			);
 
 			const issueRelations: IPagination<ITaskLinkedIssue> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}`,
-					query: query,
+					query: query
 				})
 			).data;
 
@@ -179,10 +179,10 @@ export class IssueRelationsService extends ApiFetchService {
 				blocked_by: [],
 				blocking: [],
 				duplicate: [],
-				relates_to: [],
+				relates_to: []
 			};
 			const issue = await this._issueService.getExternalIssue(issueId, [
-				'linkedIssues.taskFrom',
+				'linkedIssues.taskFrom'
 			]);
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
@@ -194,7 +194,7 @@ export class IssueRelationsService extends ApiFetchService {
 				if (relation_type) {
 					if (linkedIssue.taskFrom) {
 						relatedIssues[relation_type].push(
-							issueTransformer(linkedIssue.taskFrom),
+							issueTransformer(linkedIssue.taskFrom)
 						);
 					}
 				}
@@ -231,16 +231,16 @@ export class IssueRelationsService extends ApiFetchService {
 				findByOptionsQuery({
 					taskToId: id,
 					taskFromId: related_issue,
-					action: getTaskRelatedIssueRelation(relation_type),
-				}),
+					action: getTaskRelatedIssueRelation(relation_type)
+				})
 			);
 
 			const inverseQuery = qs.stringify(
 				findByOptionsQuery({
 					taskToId: related_issue,
 					taskFromId: id,
-					action: getTaskRelatedIssueRelation(inverseRelationType),
-				}),
+					action: getTaskRelatedIssueRelation(inverseRelationType)
+				})
 			);
 
 			// Fetch both relations in parallel
@@ -248,13 +248,13 @@ export class IssueRelationsService extends ApiFetchService {
 				this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/pagination`,
-					query: mainQuery,
+					query: mainQuery
 				}),
 				this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/pagination`,
-					query: inverseQuery,
-				}),
+					query: inverseQuery
+				})
 			]);
 
 			// Get the main and inverse relation objects
@@ -273,18 +273,18 @@ export class IssueRelationsService extends ApiFetchService {
 			// Delete the main relation
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${mainRelationToDelete.id}/soft`,
+				path: `${this.path}/${mainRelationToDelete.id}/soft`
 			});
 
 			try {
 				// Attempt to delete the inverse relation
 				await this.apiFetch({
 					method: 'DELETE',
-					path: `${this.path}/${inverseRelationToDelete.id}/soft`,
+					path: `${this.path}/${inverseRelationToDelete.id}/soft`
 				});
 			} catch (inverseError) {
 				console.error(
-					'Failed to delete the inverse relation. Attempting to restore the main relation.',
+					'Failed to delete the inverse relation. Attempting to restore the main relation.'
 				);
 
 				// Rollback: recreate the main relation if the inverse deletion fails
@@ -295,13 +295,13 @@ export class IssueRelationsService extends ApiFetchService {
 						taskToId: mainRelationToDelete.taskToId,
 						taskFromId: mainRelationToDelete.taskFromId,
 						action: mainRelationToDelete.action,
-						organizationId: defaultOrganizationId(),
-					},
+						organizationId: defaultOrganizationId()
+					}
 				});
 
 				// Throw an error after rollback to indicate the process was incomplete
 				throw new BadRequestException(
-					'Failed to delete the inverse relation. Rollback performed for the main relation.',
+					'Failed to delete the inverse relation. Rollback performed for the main relation.'
 				);
 			}
 

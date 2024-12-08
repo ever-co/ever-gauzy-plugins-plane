@@ -17,7 +17,7 @@ export function statusActivityTransformer(activityLog: IActivityLog) {
 
 	// Find the updated status from the updated values.
 	const updatedStatus = updatedValues.find(
-		(value) => 'taskStatusId' in value,
+		(value) => 'taskStatusId' in value
 	);
 	const updatedEntity = updatedStatus
 		? updatedStatus['taskStatusId']
@@ -25,7 +25,7 @@ export function statusActivityTransformer(activityLog: IActivityLog) {
 
 	// Find the previous status from the previous values.
 	const previousStatus = previousValues.find(
-		(value) => 'taskStatusId' in value,
+		(value) => 'taskStatusId' in value
 	);
 	const previousEntity = previousStatus
 		? previousStatus['taskStatusId']

@@ -3,7 +3,7 @@ import {
 	ID,
 	IIssue,
 	IIssueCreateInput,
-	IIssueUpdateInput,
+	IIssueUpdateInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import { IssuesService } from '../issues.service';
@@ -13,7 +13,7 @@ import { nonGroupedIssues } from '../../../config';
 export class DraftIssuesService extends ApiFetchService {
 	constructor(
 		private readonly _issueService: IssuesService,
-		private readonly _serverFetchService: ApiFetchService,
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -31,7 +31,7 @@ export class DraftIssuesService extends ApiFetchService {
 		try {
 			return await this._issueService.create({
 				...input,
-				is_draft: this.is_draft, // Ensures the issue is marked as a draft
+				is_draft: this.is_draft // Ensures the issue is marked as a draft
 			});
 		} catch (error: any) {
 			console.log(error.response);
@@ -53,9 +53,9 @@ export class DraftIssuesService extends ApiFetchService {
 				id,
 				{
 					...input,
-					is_draft: this.is_draft,
+					is_draft: this.is_draft
 				},
-				this.is_draft,
+				this.is_draft
 			);
 		} catch (error: any) {
 			console.log(error.response);
@@ -75,7 +75,7 @@ export class DraftIssuesService extends ApiFetchService {
 				{},
 				null,
 				null,
-				true,
+				true
 			);
 
 			return nonGroupedIssues(tasks.items);
@@ -91,9 +91,9 @@ export class DraftIssuesService extends ApiFetchService {
 				id,
 				{
 					...input,
-					is_draft: false,
+					is_draft: false
 				},
-				this.is_draft,
+				this.is_draft
 			);
 		} catch (error: any) {
 			console.log(error.response);

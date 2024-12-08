@@ -5,40 +5,40 @@ import {
 	IFavorite,
 	IFavoriteCreateInput,
 	IFavoriteData,
-	IFavoriteFindInput,
+	IFavoriteFindInput
 } from '@plane-plugin/models';
 import { defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 export function mapFavoriteEntityType(
-	entityType: FavoriteEntityTypeEnum,
+	entityType: FavoriteEntityTypeEnum
 ): BaseEntityEnum {
 	const entityMapping: { [key: string]: BaseEntityEnum } = {
 		[FavoriteEntityTypeEnum.CYCLE]: BaseEntityEnum.OrganizationSprint,
 		[FavoriteEntityTypeEnum.MODULE]:
 			BaseEntityEnum.OrganizationProjectModule,
 		[FavoriteEntityTypeEnum.PROJECT]: BaseEntityEnum.OrganizationProject,
-		[FavoriteEntityTypeEnum.VIEW]: BaseEntityEnum.TaskView,
+		[FavoriteEntityTypeEnum.VIEW]: BaseEntityEnum.TaskView
 	};
 	return entityMapping[entityType];
 }
 
 export function apiFavoriteEntityToProxy(
-	entity: BaseEntityEnum,
+	entity: BaseEntityEnum
 ): FavoriteEntityTypeEnum {
 	const entityMapping: { [key: string]: FavoriteEntityTypeEnum } = {
 		[BaseEntityEnum.OrganizationSprint]: FavoriteEntityTypeEnum.CYCLE,
 		[BaseEntityEnum.OrganizationProjectModule]:
 			FavoriteEntityTypeEnum.MODULE,
 		[BaseEntityEnum.OrganizationProject]: FavoriteEntityTypeEnum.PROJECT,
-		[BaseEntityEnum.TaskView]: FavoriteEntityTypeEnum.VIEW,
+		[BaseEntityEnum.TaskView]: FavoriteEntityTypeEnum.VIEW
 	};
 	return entityMapping[entity];
 }
 
 export function favoriteTransformer(
 	favorite: IFavorite,
-	data: any,
+	data: any
 ): IFavoriteData {
 	return {
 		id: favorite.id,
@@ -48,18 +48,18 @@ export function favoriteTransformer(
 			id: data.id || favorite.entityId,
 			name: data.name,
 			project_id: data.projectId,
-			logo_props: {},
+			logo_props: {}
 		},
 		project_id: data.projectId,
-		workspace_id: defaultTestTenantId(),
+		workspace_id: defaultTestTenantId()
 	};
 }
 
 export const getFavoriteQuery = (
-	options?: IFavoriteFindInput,
+	options?: IFavoriteFindInput
 ): Record<string, any> => {
 	const query: Record<string, any> = {
-		...baseGetItemsWhereQuery(),
+		...baseGetItemsWhereQuery()
 	};
 
 	if (options?.entity) {
@@ -74,10 +74,10 @@ export const getFavoriteQuery = (
 };
 
 export function createFavoriteInputTransformer(
-	input: ICreateFavoriteInput,
+	input: ICreateFavoriteInput
 ): IFavoriteCreateInput {
 	return {
 		entity: mapFavoriteEntityType(input.entity_type),
-		entityId: input.entity_identifier,
+		entityId: input.entity_identifier
 	};
 }

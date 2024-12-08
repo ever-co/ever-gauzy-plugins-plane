@@ -4,14 +4,14 @@ import {
 	ICreateIssueLink,
 	ID,
 	IPagination,
-	IResourceLink,
+	IResourceLink
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createIssueLinkInputTransformer,
 	defaultOrganizationId,
 	getIssueLinksQuery,
-	updateIssueLinkInputTransformer,
+	updateIssueLinkInputTransformer
 } from '../../config';
 
 @Injectable()
@@ -29,14 +29,14 @@ export class IssueLinksService extends ApiFetchService {
 		try {
 			const body = {
 				...createIssueLinkInputTransformer(input, issueId),
-				organizationId: defaultOrganizationId(),
+				organizationId: defaultOrganizationId()
 			};
 
 			const link: IResourceLink = (
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body,
+					body
 				})
 			).data;
 
@@ -57,7 +57,7 @@ export class IssueLinksService extends ApiFetchService {
 	async update(
 		id: ID,
 		issueId: ID,
-		input: ICreateIssueLink,
+		input: ICreateIssueLink
 	): Promise<IResourceLink> {
 		try {
 			const existingLink = await this.findOne(id, issueId);
@@ -72,7 +72,7 @@ export class IssueLinksService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body,
+					body
 				})
 			).data;
 
@@ -117,7 +117,7 @@ export class IssueLinksService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'GET',
 					path: `${this.path}/${id}`,
-					query,
+					query
 				})
 			).data;
 
@@ -138,7 +138,7 @@ export class IssueLinksService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`,
+				path: `${this.path}/${id}`
 			})
 		).data;
 	}

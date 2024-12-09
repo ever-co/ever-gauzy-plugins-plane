@@ -13,6 +13,7 @@ import {
 	createIntakeIssueInputTransformer,
 	getIntakeIssueQuery,
 	intakeIssueTranformer,
+	screeningStatusToIntakeStatusMap,
 	updateIntakeIssueInputTransformer
 } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
@@ -117,7 +118,7 @@ export class IntakeIssuesService extends ApiFetchService {
 	 * @returns {Promise<any>} A promise that resolves to a paginated response containing the filtered intake issues.
 	 * @throws {BadRequestException} Throws an exception if the fetching or transformation process fails.
 	 */
-	async findAll(projectId: ID): Promise<any> {
+	async findAll(projectId: ID, status: string): Promise<any> {
 		try {
 			const query = qs.stringify(getIntakeIssueQuery());
 
@@ -126,22 +127,31 @@ export class IntakeIssuesService extends ApiFetchService {
 			).data;
 
 			const intakeIssues = screeningTasks.items.filter(
-				(screeninTask) => screeninTask.task.projectId === projectId
+				(screeningTask) => screeningTask.task.projectId === projectId
+			);
+
+			// Parse the status parameter into an array of numbers
+			const statusFilter = status.split(',').map(Number);
+
+			const filteredIssues = intakeIssues.filter((screeningTask) =>
+				statusFilter.includes(
+					screeningStatusToIntakeStatusMap(screeningTask.status)
+				)
 			);
 
 			return {
 				grouped_by: null,
 				sub_grouped_by: null,
-				total_count: intakeIssues.length,
+				total_count: filteredIssues.length,
 				next_cursor: '10:1:0',
 				prev_cursor: '10:-1:1',
 				next_page_results: false,
 				prev_page_results: false,
-				count: intakeIssues.length,
+				count: filteredIssues.length,
 				total_pages: 1,
-				total_results: intakeIssues.length,
+				total_results: filteredIssues.length,
 				extra_stats: null,
-				results: intakeIssueTranformer(intakeIssues)
+				results: intakeIssueTranformer(filteredIssues)
 			};
 		} catch (error) {
 			console.log(error);

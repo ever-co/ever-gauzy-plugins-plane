@@ -6,7 +6,8 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post
+	Post,
+	Query
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ID, IIntakeIssueCreateInput } from '@plane-plugin/models';
@@ -40,8 +41,11 @@ export class IntakeIssuesController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Inbox issues by project' })
 	@Get()
-	async findAll(@Param('projectId') projectId: ID) {
-		return await this._intakeIssuesService.findAll(projectId);
+	async findAll(
+		@Param('projectId') projectId: ID,
+		@Query('status') status: string
+	) {
+		return await this._intakeIssuesService.findAll(projectId, status);
 	}
 
 	/**

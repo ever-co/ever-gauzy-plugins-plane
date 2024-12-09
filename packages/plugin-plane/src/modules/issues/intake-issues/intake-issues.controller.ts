@@ -60,6 +60,12 @@ export class IntakeIssuesController {
 		return await this._intakeIssuesService.findOneByTaskId(taskId);
 	}
 
+	/**
+	 * Updates an intake issue and its associated issue data.
+	 *
+	 * @param {ID} issueId - The ID of the intake issue to be updated.
+	 * @param {IIntakeIssueCreateInput} input - The updated data for the intake issue, including optional issue details.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update Inbox issue' })
 	@Patch(':id')

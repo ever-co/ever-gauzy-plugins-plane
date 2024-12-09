@@ -87,6 +87,13 @@ export function createIntakeIssueInputTransformer(
 	};
 }
 
+/**
+ * Transforms the input data for updating an intake issue into the format expected
+ * by the screening task update API.
+ *
+ * @param {IIntakeIssueCreateInput} input - The input data for creating or updating an intake issue.
+ * @returns {Partial<IScreeningTaskUpdateInput>} The transformed input data formatted for the screening task update API.
+ */
 export function updateIntakeIssueInputTransformer(
 	input: IIntakeIssueCreateInput
 ): Partial<IScreeningTaskUpdateInput> {

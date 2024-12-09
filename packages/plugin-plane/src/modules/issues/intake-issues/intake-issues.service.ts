@@ -72,6 +72,17 @@ export class IntakeIssuesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Updates an intake issue and its associated issue data.
+	 *
+	 * This method updates the details of an intake issue, as well as the linked issue data, if provided. It retrieves the
+	 * current screening task, applies the necessary transformations, and sends an update request to the API.
+	 *
+	 * @param {ID} id - The ID of the intake issue to be updated.
+	 * @param {IIntakeIssueCreateInput} input - The updated data for the intake issue, including optional issue details.
+	 * @returns {Promise<IIntakeIssue | IIntakeIssue[]>} A promise resolving to the updated intake issue(s).
+	 * @throws {BadRequestException} Throws an exception if an error occurs during the update process.
+	 */
 	async update(
 		id: ID,
 		input: IIntakeIssueCreateInput

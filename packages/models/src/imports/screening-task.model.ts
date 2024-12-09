@@ -22,4 +22,5 @@ export enum ScreeningTaskStatusEnum {
 
 export interface IScreeningTaskCreateInput extends Omit<IScreeningTask, 'status'>, IMentionUserIds {}
 
-export interface IScreeningTaskUpdateInput extends Omit<IScreeningTask, 'task' | 'taskId'> {}
+export interface IScreeningTaskUpdateInput
+	extends Omit<IScreeningTask, 'task' | 'taskId' | 'createdAt' | 'updatedAt'> {}

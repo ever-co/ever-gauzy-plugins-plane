@@ -6,6 +6,7 @@ import {
 	IntakeIssueStatusEnum,
 	IScreeningTask,
 	IScreeningTaskCreateInput,
+	IScreeningTaskUpdateInput,
 	ScreeningTaskStatusEnum,
 	TaskRelatedIssuesRelationEnum,
 	TaskStatusEnum
@@ -86,6 +87,40 @@ export function createIntakeIssueInputTransformer(
 	};
 }
 
+export function updateIntakeIssueInputTransformer(
+	input: IIntakeIssueCreateInput
+): Partial<IScreeningTaskUpdateInput> {
+	const keyMapping: Partial<
+		Record<keyof IIntakeIssueCreateInput, keyof IScreeningTaskUpdateInput>
+	> = {
+		status: 'status',
+		snoozed_till: 'onHoldUntil'
+	};
+
+	// Include only user included fields in the final request
+	const tranformedInput: Partial<IScreeningTaskUpdateInput> = Object.entries(
+		keyMapping
+	).reduce(
+		(
+			acc: Partial<Omit<IScreeningTaskUpdateInput, 'creator'>>,
+			[intakeKey, screeningKey]
+		) => {
+			if (intakeKey in input) {
+				const value = input[intakeKey as keyof IIntakeIssueCreateInput];
+				acc[screeningKey] = value;
+			}
+
+			acc['status'] = intakeStatusToScreeningStatusMap(input.status);
+			acc['organizationId'] = defaultOrganizationId();
+
+			return acc;
+		},
+		{} as Partial<IScreeningTaskUpdateInput>
+	);
+
+	return tranformedInput;
+}
+
 /**
  * Transforms screening tasks into intake issues.
  *
@@ -98,7 +133,7 @@ export function intakeIssueTranformer(
 	const tranformIntakeIssue = (
 		screeningTask: IScreeningTask
 	): IIntakeIssue => {
-		const duplicatedTaskId = (screeningTask.task.linkedIssues ?? []).find(
+		const duplicatedTaskId = (screeningTask.task?.linkedIssues ?? []).find(
 			(linkedIssue) =>
 				linkedIssue.action === TaskRelatedIssuesRelationEnum.DUPLICATES
 		)?.id;
@@ -120,10 +155,14 @@ export function intakeIssueTranformer(
 	return tranformIntakeIssue(screeningTasks);
 }
 
-export const getIntakeIssueQuery = (): Record<string, any> => {
+export const getIntakeIssueQuery = (taskId?: ID): Record<string, any> => {
 	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery()
 	};
+
+	if (taskId) {
+		query['where[taskId]'] = taskId;
+	}
 
 	query['relations[0]'] = 'task';
 

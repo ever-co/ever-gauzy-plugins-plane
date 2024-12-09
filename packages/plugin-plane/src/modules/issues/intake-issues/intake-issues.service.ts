@@ -9,17 +9,20 @@ import {
 	IState,
 	TaskStatusEnum
 } from '@plane-plugin/models';
-import { ApiFetchService } from '../../api-fetch/api-fetch.service';
-import { StatesService } from '../../states/states.service';
 import {
 	createIntakeIssueInputTransformer,
 	getIntakeIssueQuery,
-	intakeIssueTranformer
+	intakeIssueTranformer,
+	updateIntakeIssueInputTransformer
 } from '../../../config';
+import { ApiFetchService } from '../../api-fetch/api-fetch.service';
+import { IssuesService } from '../issues.service';
+import { StatesService } from '../../states/states.service';
 
 @Injectable()
 export class IntakeIssuesService extends ApiFetchService {
 	constructor(
+		private readonly _issuesService: IssuesService,
 		private readonly _stateSerive: StatesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
@@ -68,7 +71,53 @@ export class IntakeIssuesService extends ApiFetchService {
 		}
 	}
 
-	async finAll(projectId: ID): Promise<any> {
+	async update(
+		id: ID,
+		input: IIntakeIssueCreateInput
+	): Promise<IIntakeIssue | IIntakeIssue[]> {
+		try {
+			const { issue, ...intakeInput } = input;
+			const query = qs.stringify(getIntakeIssueQuery(id));
+
+			if (issue) {
+				await this._issuesService.update(id, issue, false);
+			}
+			const screeningTask: IPagination<IScreeningTask> = (
+				await this.apiFetch({ method: 'GET', path: this.path, query })
+			).data;
+
+			const intakeIssue = screeningTask.items[0];
+			if (Object.keys(intakeInput).length > 0) {
+				const body = updateIntakeIssueInputTransformer(intakeInput);
+				const screeningIssue = (
+					await this.apiFetch({
+						method: 'PUT',
+						path: `${this.path}/${intakeIssue.id}`,
+						body: { ...screeningTask, ...body }
+					})
+				).data;
+
+				return intakeIssueTranformer(screeningIssue);
+			} else {
+				return intakeIssueTranformer(intakeIssue);
+			}
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves all intake issues associated with a specific project.
+	 *
+	 * This method fetches screening tasks, filters them based on the given project ID, and returns a paginated
+	 * response with the transformed intake issues.
+	 *
+	 * @param {ID} projectId - The ID of the project to filter the intake issues by.
+	 * @returns {Promise<any>} A promise that resolves to a paginated response containing the filtered intake issues.
+	 * @throws {BadRequestException} Throws an exception if the fetching or transformation process fails.
+	 */
+	async findAll(projectId: ID): Promise<any> {
 		try {
 			const query = qs.stringify(getIntakeIssueQuery());
 
@@ -94,6 +143,32 @@ export class IntakeIssuesService extends ApiFetchService {
 				extra_stats: null,
 				results: intakeIssueTranformer(intakeIssues)
 			};
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Retrieves a single intake issue associated with a given task ID.
+	 *
+	 * This method fetches screening tasks filtered by the provided task ID and returns the transformed intake issue.
+	 *
+	 * @param {ID} taskId - The ID of the task for which the intake issue is to be retrieved.
+	 * @returns {Promise<IIntakeIssue | IIntakeIssue[]>} A promise that resolves to the transformed intake issue(s).
+	 * @throws {BadRequestException} Throws an exception if the fetching or transformation process fails.
+	 */
+	async findOneByTaskId(taskId: ID): Promise<IIntakeIssue | IIntakeIssue[]> {
+		try {
+			const query = qs.stringify(getIntakeIssueQuery(taskId));
+
+			const screeningTask: IPagination<IScreeningTask> = (
+				await this.apiFetch({ method: 'GET', path: this.path, query })
+			).data;
+
+			const intakeIssue = screeningTask.items[0];
+
+			return intakeIssueTranformer(intakeIssue);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

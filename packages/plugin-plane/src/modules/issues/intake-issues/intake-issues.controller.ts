@@ -5,6 +5,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
+	Patch,
 	Post
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -31,10 +32,37 @@ export class IntakeIssuesController {
 		return await this._intakeIssuesService.create(input, projectId);
 	}
 
+	/**
+	 * Retrieves all intake issues associated with a specific project.
+	 *
+	 * @param {ID} projectId - The ID of the project to filter the intake issues by.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Inbox issues by project' })
 	@Get()
 	async findAll(@Param('projectId') projectId: ID) {
-		return await this._intakeIssuesService.finAll(projectId);
+		return await this._intakeIssuesService.findAll(projectId);
+	}
+
+	/**
+	 * Retrieves a single intake issue associated with a given task ID.
+	 *
+	 * @param {ID} taskId - The ID of the task for which the intake issue is to be retrieved.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Inbox issues by project' })
+	@Get(':id')
+	async findOneByTaskId(@Param('id') taskId: ID) {
+		return await this._intakeIssuesService.findOneByTaskId(taskId);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Inbox issue' })
+	@Patch(':id')
+	async update(
+		@Body() input: IIntakeIssueCreateInput,
+		@Param('id') issueId: ID
+	) {
+		return await this._intakeIssuesService.update(issueId, input);
 	}
 }

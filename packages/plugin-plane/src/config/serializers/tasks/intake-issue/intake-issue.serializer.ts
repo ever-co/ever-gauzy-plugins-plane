@@ -16,6 +16,7 @@ import {
 } from '../tasks.serializer';
 import { defaultOrganizationId } from '../../../credentials';
 import { extractEmployeeMentionIds } from '../../../utils';
+import { baseGetItemsWhereQuery } from '../../query-params.serializers';
 
 const statusMap: Record<ScreeningTaskStatusEnum, IntakeIssueStatusEnum> = {
 	[ScreeningTaskStatusEnum.ACCEPTED]: IntakeIssueStatusEnum.ACCEPTED,
@@ -59,6 +60,7 @@ export function intakeStatusToScreeningStatusMap(
 export function createIntakeIssueInputTransformer(
 	input: IIntakeIssueCreateInput,
 	status: TaskStatusEnum,
+	projectId: ID,
 	employees?: IEmployee[]
 ): IScreeningTaskCreateInput {
 	// Extract employee IDs mentioned in the issue description
@@ -73,7 +75,10 @@ export function createIntakeIssueInputTransformer(
 		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
 
 	return {
-		task: createIssueInputTransformer(input.issue, status),
+		task: createIssueInputTransformer(
+			{ ...input.issue, project_id: projectId },
+			status
+		),
 		taskId: input.issue.id ?? '1',
 		organizationId: defaultOrganizationId(),
 		mentionUserIds: mentionedUserIds ?? [],
@@ -93,14 +98,14 @@ export function intakeIssueTranformer(
 	const tranformIntakeIssue = (
 		screeningTask: IScreeningTask
 	): IIntakeIssue => {
-		const duplicatedTaskId = screeningTask.task.linkedIssues?.find(
+		const duplicatedTaskId = (screeningTask.task.linkedIssues ?? []).find(
 			(linkedIssue) =>
 				linkedIssue.action === TaskRelatedIssuesRelationEnum.DUPLICATES
-		).id;
+		)?.id;
 		return {
 			id: screeningTask.id,
 			status: screeningStatusToIntakeStatusMap(screeningTask.status),
-			duplicate_to: duplicatedTaskId,
+			duplicate_to: duplicatedTaskId ?? null,
 			snoozed_till: screeningTask.onHoldUntil ?? null,
 			source: 'IN_APP',
 			issue: issueTransformer(screeningTask.task),
@@ -114,3 +119,13 @@ export function intakeIssueTranformer(
 
 	return tranformIntakeIssue(screeningTasks);
 }
+
+export const getIntakeIssueQuery = (): Record<string, any> => {
+	const query: Record<string, any> = {
+		...baseGetItemsWhereQuery()
+	};
+
+	query['relations[0]'] = 'task';
+
+	return query;
+};

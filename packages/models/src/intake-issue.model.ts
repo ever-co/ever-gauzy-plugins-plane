@@ -9,6 +9,7 @@ export interface IIntakeIssue {
 	duplicate_issue_detail?: IIssue;
 	source?: string;
 	issue?: IIssue;
+	created_by?: ID;
 }
 
 export enum IntakeIssueStatusEnum {

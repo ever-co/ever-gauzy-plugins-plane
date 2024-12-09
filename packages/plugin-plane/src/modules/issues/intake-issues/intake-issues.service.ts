@@ -200,8 +200,6 @@ export class IntakeIssuesService extends ApiFetchService {
 
 			const intakeIssue = screeningTask.items[0];
 
-			console.log({ intakeIssue });
-
 			return intakeIssueTranformer(intakeIssue);
 		} catch (error) {
 			console.log(error);

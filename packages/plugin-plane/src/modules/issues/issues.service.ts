@@ -1214,12 +1214,21 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Create link
 			const link = await this._issueLinkService.create(input, id);
+			const task = await this.getExternalIssue(id, [
+				'tags',
+				'members.user',
+				'creator',
+				'project.members.employee.user.role',
+				'organizationSprint'
+			]);
 
 			// Link Details
 			const { actor, project } = await this.getIssueCommentDetails(
 				id,
 				projectId,
-				link.creatorId
+				link.creatorId,
+				task,
+				task.project
 			);
 
 			// Transform Link

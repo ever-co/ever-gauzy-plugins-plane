@@ -74,7 +74,7 @@ export function createIntakeIssueInputTransformer(
 
 	return {
 		task: createIssueInputTransformer(input.issue, status),
-		taskId: input.issue.id ?? '',
+		taskId: input.issue.id ?? '1',
 		organizationId: defaultOrganizationId(),
 		mentionUserIds: mentionedUserIds ?? [],
 		onHoldUntil: input.snoozed_till
@@ -93,7 +93,7 @@ export function intakeIssueTranformer(
 	const tranformIntakeIssue = (
 		screeningTask: IScreeningTask
 	): IIntakeIssue => {
-		const duplicatedTaskId = screeningTask.task.linkedIssues.find(
+		const duplicatedTaskId = screeningTask.task.linkedIssues?.find(
 			(linkedIssue) =>
 				linkedIssue.action === TaskRelatedIssuesRelationEnum.DUPLICATES
 		).id;
@@ -101,7 +101,7 @@ export function intakeIssueTranformer(
 			id: screeningTask.id,
 			status: screeningStatusToIntakeStatusMap(screeningTask.status),
 			duplicate_to: duplicatedTaskId,
-			snoozed_till: screeningTask.onHoldUntil,
+			snoozed_till: screeningTask.onHoldUntil ?? null,
 			source: 'IN_APP',
 			issue: issueTransformer(screeningTask.task),
 			created_by: screeningTask.creatorId // Adjust this to return employee ID

@@ -22,6 +22,7 @@ import { CyclesModule } from './cycles/cycles.module';
 import { ActivityModule } from './activity/activity.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module';
 
 @Module({
 	imports: [
@@ -47,7 +48,8 @@ import { SubscriptionModule } from './subscription/subscription.module';
 		CyclesModule,
 		ActivityModule,
 		DashboardModule,
-		SubscriptionModule
+		SubscriptionModule,
+		IntakeIssuesModule
 	]
 })
 export class AppModule {}

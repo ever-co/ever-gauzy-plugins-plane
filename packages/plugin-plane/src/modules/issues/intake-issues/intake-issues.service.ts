@@ -6,6 +6,7 @@ import {
 	IIntakeIssueCreateInput,
 	IPagination,
 	IScreeningTask,
+	IssueRelationTypeEnum,
 	IState,
 	TaskStatusEnum
 } from '@plane-plugin/models';
@@ -19,11 +20,13 @@ import {
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import { IssuesService } from '../issues.service';
 import { StatesService } from '../../states/states.service';
+import { IssueRelationsService } from '../../issue-relations/issue-relations.service';
 
 @Injectable()
 export class IntakeIssuesService extends ApiFetchService {
 	constructor(
 		private readonly _issuesService: IssuesService,
+		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _stateSerive: StatesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
@@ -78,7 +81,7 @@ export class IntakeIssuesService extends ApiFetchService {
 	 * This method updates the details of an intake issue, as well as the linked issue data, if provided. It retrieves the
 	 * current screening task, applies the necessary transformations, and sends an update request to the API.
 	 *
-	 * @param {ID} id - The ID of the intake issue to be updated.
+	 * @param {ID} id - The issue ID of the intake issue to be updated.
 	 * @param {IIntakeIssueCreateInput} input - The updated data for the intake issue, including optional issue details.
 	 * @returns {Promise<IIntakeIssue | IIntakeIssue[]>} A promise resolving to the updated intake issue(s).
 	 * @throws {BadRequestException} Throws an exception if an error occurs during the update process.
@@ -88,12 +91,20 @@ export class IntakeIssuesService extends ApiFetchService {
 		input: IIntakeIssueCreateInput
 	): Promise<IIntakeIssue | IIntakeIssue[]> {
 		try {
-			const { issue, ...intakeInput } = input;
+			const { issue, duplicate_to, ...intakeInput } = input;
 			const query = qs.stringify(getIntakeIssueQuery(id));
 
 			if (issue) {
 				await this._issuesService.update(id, issue, false);
 			}
+			if (duplicate_to) {
+				await this._issueRelationService.create(
+					id,
+					[duplicate_to],
+					IssueRelationTypeEnum.DUPLICATE
+				);
+			}
+
 			const screeningTask: IPagination<IScreeningTask> = (
 				await this.apiFetch({ method: 'GET', path: this.path, query })
 			).data;
@@ -188,6 +199,8 @@ export class IntakeIssuesService extends ApiFetchService {
 			).data;
 
 			const intakeIssue = screeningTask.items[0];
+
+			console.log({ intakeIssue });
 
 			return intakeIssueTranformer(intakeIssue);
 		} catch (error) {

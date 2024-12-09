@@ -37,7 +37,19 @@ export class SearchIssuesService extends ApiFetchService {
 			} = options;
 
 			const query = qs.stringify(
-				getTaskQuery(projectId, {}, null, null, false)
+				getTaskQuery(
+					projectId,
+					{},
+					[
+						'linkedIssues',
+						'parent',
+						'children',
+						'project',
+						'taskStatus'
+					],
+					null,
+					false
+				)
 			);
 
 			const issues: IPagination<ITask> = (
@@ -97,7 +109,7 @@ export class SearchIssuesService extends ApiFetchService {
 					return !issue.dueDate;
 				}
 
-				return false;
+				return true; // WARNING : Try to handle this properly
 			});
 
 			return parentableIssuesTransformer(filteredIssues);

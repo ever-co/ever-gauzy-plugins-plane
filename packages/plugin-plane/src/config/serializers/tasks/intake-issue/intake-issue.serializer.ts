@@ -140,14 +140,17 @@ export function intakeIssueTranformer(
 	const tranformIntakeIssue = (
 		screeningTask: IScreeningTask
 	): IIntakeIssue => {
-		const duplicatedTaskId = (screeningTask.task?.linkedIssues ?? []).find(
+		const duplicatedTask = (screeningTask.task?.linkedIssues ?? []).find(
 			(linkedIssue) =>
 				linkedIssue.action === TaskRelatedIssuesRelationEnum.DUPLICATES
-		)?.id;
+		);
 		return {
 			id: screeningTask.id,
 			status: screeningStatusToIntakeStatusMap(screeningTask.status),
-			duplicate_to: duplicatedTaskId ?? null,
+			duplicate_to: duplicatedTask?.taskFrom.id ?? null,
+			duplicate_issue_detail: duplicatedTask?.taskFrom
+				? issueTransformer(duplicatedTask?.taskFrom)
+				: null,
 			snoozed_till: screeningTask.onHoldUntil ?? null,
 			source: 'IN_APP',
 			issue: issueTransformer(screeningTask.task),
@@ -171,7 +174,8 @@ export const getIntakeIssueQuery = (taskId?: ID): Record<string, any> => {
 		query['where[taskId]'] = taskId;
 	}
 
-	query['relations[0]'] = 'task';
+	query['relations[0]'] = 'task.linkedIssues.taskFrom';
+	query['relations[1]'] = 'task.linkedIssues.taskTo';
 
 	return query;
 };

@@ -36,6 +36,7 @@ export interface ITask extends IBasePerTenantAndOrganizationEntityModel, IRelati
 	creator?: IUser;
 	creatorId?: ID;
 	isDraft?: boolean; // Define if task is still draft (E.g : Task description not completed yet)
+	isScreeningTask?: boolean; // Defines if the task still in discussion before to be accepted
 
 	parent?: ITask;
 	parentId?: ID; // Optional field for specifying the parent task ID

@@ -226,7 +226,8 @@ export class IssuesService extends ApiFetchService {
 					'members.user',
 					'creator',
 					'project.members.employee.user.role',
-					'organizationSprint'
+					'organizationSprint',
+					'modules'
 				],
 				isDraft
 			);
@@ -1138,7 +1139,7 @@ export class IssuesService extends ApiFetchService {
 			}
 			return await this.findIssueActivity(id, projectId);
 		} catch (error: any) {
-			console.log(error.response.data);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}

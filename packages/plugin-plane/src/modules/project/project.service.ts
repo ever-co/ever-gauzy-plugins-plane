@@ -8,6 +8,7 @@ import {
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	EmployeeSettingTypeEnum,
 	IAssignMembersToProject,
 	ICreateProjectInput,
 	ID,
@@ -22,14 +23,15 @@ import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
 	defaultEmployeeId,
-	defaultTestTenantId,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
-	getProjectsResponse
+	getProjectsResponse,
+	MEMBER_DEFAULT_VIEW_PROPS
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class ProjectService extends ApiFetchService {
@@ -37,6 +39,7 @@ export class ProjectService extends ApiFetchService {
 		@Inject(forwardRef(() => WorkspaceService))
 		private readonly _workspaceService: WorkspaceService,
 		private readonly _userFavoriteService: UserFavoritesService,
+		private readonly _employeePropertiesService: EmployeePropertiesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -386,82 +389,108 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof WorkspaceService
 	 */
 	async getProjectUserProperties(id: ID) {
-		return {
-			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
-			created_at: '2024-08-20T14:27:11.217949Z',
-			updated_at: '2024-08-23T06:33:05.401050Z',
-			deleted_at: null,
-			filters: {
-				state: null,
-				labels: null,
-				priority: null,
-				assignees: null,
-				created_by: null,
-				start_date: null,
-				subscriber: null,
-				state_group: null,
-				target_date: null
-			},
-			display_filters: {
-				type: null,
-				layout: 'kanban',
-				calendar: {
-					layout: 'month',
-					show_weekends: false
-				},
-				group_by: 'state',
-				order_by: '-created_at',
-				sub_issue: true,
-				sub_group_by: null,
-				show_empty_groups: true
-			},
-			display_properties: {
-				key: true,
-				link: true,
-				state: true,
-				labels: true,
-				assignee: true,
-				due_date: true,
-				estimate: true,
-				priority: true,
-				created_on: true,
-				start_date: true,
-				updated_on: true,
-				sub_issue_count: true,
-				attachment_count: true
-			},
-			created_by: defaultEmployeeId(),
-			updated_by: defaultEmployeeId(),
-			project: id,
-			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId()
-		};
+		try {
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+			if (!memberSetting) {
+				throw new BadRequestException('User view properties not found');
+			}
+			const { filters, display_filters, display_properties } =
+				memberSetting.data as Record<string, any>;
+
+			return {
+				id: memberSetting.id,
+				created_at: memberSetting.createdAt,
+				updated_at: memberSetting.updatedAt,
+				deleted_at: memberSetting.deletedAt,
+				filters,
+				display_filters,
+				display_properties,
+				created_by: memberSetting.employeeId,
+				updated_by: memberSetting.employeeId,
+				project: memberSetting.entityId,
+				workspace: memberSetting.tenantId,
+				user: memberSetting.employeeId
+			};
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 
 	async updateProjectUserProperties(
 		id: ID,
 		input: IUpdateUserPropertiesInput
-	) {
-		const { display_filters, display_properties, filters } = input;
-		return {
-			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
-			created_at: '2024-08-20T14:27:11.217949Z',
-			updated_at: '2024-08-23T06:33:05.401050Z',
-			deleted_at: null,
-			filters: filters
-				? filters
-				: (await this.getProjectUserProperties(id)).filters,
-			display_filters: display_filters
-				? display_filters
-				: (await this.getProjectUserProperties(id)).display_filters,
-			display_properties: display_properties
-				? display_properties
-				: (await this.getProjectUserProperties(id)).display_properties,
-			created_by: defaultEmployeeId(),
-			updated_by: defaultEmployeeId(),
-			project: id,
-			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId()
-		};
+	): Promise<any> {
+		try {
+			const { display_filters, display_properties, filters } = input;
+			let memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (memberSetting) {
+				const data: Record<string, any> = memberSetting.data as Record<
+					string,
+					any
+				>;
+				memberSetting = await this._employeePropertiesService.update(
+					memberSetting.id,
+					{
+						...memberSetting,
+						data: {
+							filters: filters ? filters : data.filters,
+							display_filters: display_filters
+								? display_filters
+								: data.display_filters,
+							display_properties: display_properties
+								? display_properties
+								: data.display_properties
+						}
+					}
+				);
+			} else {
+				memberSetting = await this._employeePropertiesService.create({
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+					data: MEMBER_DEFAULT_VIEW_PROPS,
+					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+					employee: { id: defaultEmployeeId() },
+					employeeId: defaultEmployeeId()
+				});
+			}
+			const {
+				filters: datafilters,
+				display_filters: dataDisplayFilters,
+				display_properties: dataDisplayProperties
+			} = memberSetting.data as Record<string, any>;
+
+			return {
+				id: memberSetting.id,
+				created_at: memberSetting.createdAt,
+				updated_at: memberSetting.updatedAt,
+				deleted_at: memberSetting.deletedAt,
+				filters: datafilters,
+				display_filters: dataDisplayFilters,
+				display_properties: dataDisplayProperties,
+				created_by: memberSetting.employeeId,
+				updated_by: memberSetting.employeeId,
+				project: memberSetting.entityId,
+				workspace: memberSetting.tenantId,
+				user: memberSetting.employeeId
+			};
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 }

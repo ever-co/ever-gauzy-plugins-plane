@@ -1,4 +1,4 @@
-import { ID } from './imports';
+import { BaseEntityEnum, EmployeeSettingTypeEnum, ID } from './imports';
 
 export interface IWorkspaceInfo {
 	name?: string;
@@ -85,4 +85,11 @@ export enum IssueOrderByField {
 	START_DATE = 'start_date',
 	DESC_PRIORITY = '-priority',
 	MANUAL = 'sort_order'
+}
+
+export interface IFindUserPropertiesInput {
+	employeeId: ID;
+	entityId?: ID;
+	entity?: BaseEntityEnum;
+	settingType?: EmployeeSettingTypeEnum;
 }

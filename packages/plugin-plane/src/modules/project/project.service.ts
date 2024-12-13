@@ -439,8 +439,26 @@ export class ProjectService extends ApiFetchService {
 			}
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
-			console.log(error.response);
-			throw new BadRequestException(error);
+			try {
+				// Create new settings with default properties if none exist
+				const moduleMemberSetting =
+					await this._employeePropertiesService.create({
+						entity: BaseEntityEnum.OrganizationProject,
+						entityId: id,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: MEMBER_DEFAULT_VIEW_PROPS,
+						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+						employee: { id: defaultEmployeeId() },
+						employeeId: defaultEmployeeId()
+					});
+
+				return employeeSettingSerializer(moduleMemberSetting);
+			} catch (error) {
+				console.log(error);
+				throw new BadRequestException(
+					'Failed to find or create new view properties'
+				);
+			}
 		}
 	}
 

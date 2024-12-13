@@ -334,24 +334,4 @@ export class ProjectModuleService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
-
-	// async getModuleUserProperties(id: ID) {
-	// 	try {
-	// 		const memberSetting =
-	// 			await this._employeePropertiesService.findOneByOptions({
-	// 				employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
-	// 				entity: BaseEntityEnum.OrganizationProjectModule,
-	// 				entityId: id,
-	// 				settingType: EmployeeSettingTypeEnum.TASK_VIEWS
-	// 			});
-
-	// 		if (!memberSetting) {
-	// 			throw new BadRequestException('User view properties not found');
-	// 		}
-	// 		return employeeSettingSerializer(memberSetting);
-	// 	} catch (error: any) {
-	// 		console.log(error.response);
-	// 		throw new BadRequestException(error);
-	// 	}
-	// }
 }

@@ -7,6 +7,7 @@ import { IssuesModule } from '../issues/issues.module';
 import { IssueLinksModule } from '../issue-links/issue-links.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { DraftIssuesModule } from '../issues/draft-issues/draft-issues.module';
+import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
 
 @Module({
 	imports: [
@@ -15,7 +16,8 @@ import { DraftIssuesModule } from '../issues/draft-issues/draft-issues.module';
 		IssuesModule,
 		IssueLinksModule,
 		SubscriptionModule,
-		DraftIssuesModule
+		DraftIssuesModule,
+		EmployeePropertiesModule
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

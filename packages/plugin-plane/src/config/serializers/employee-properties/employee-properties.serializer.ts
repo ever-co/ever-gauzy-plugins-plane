@@ -6,6 +6,12 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
+/**
+ * Serializes an EmployeeSetting object into a user view-friendly format.
+ *
+ * @param {IEmployeeSetting} employeeSetting - The EmployeeSetting object to serialize.
+ * @returns {IUserViewProperties} A serialized object containing user-view properties.
+ */
 export function employeeSettingSerializer(
 	employeeSetting: IEmployeeSetting
 ): IUserViewProperties {

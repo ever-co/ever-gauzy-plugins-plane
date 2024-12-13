@@ -17,6 +17,13 @@ import { getEmployeeSettingQuery } from '../../config';
 export class EmployeePropertiesService extends ApiFetchService {
 	private path = '/employee-settings';
 
+	/**
+	 * Creates a new employee setting.
+	 *
+	 * @param {IEmployeeSettingCreateInput} input - The input data for creating the employee setting.
+	 * @returns {Promise<IEmployeeSetting>} A promise that resolves to the created EmployeeSetting.
+	 * @throws {BadRequestException} Throws an error if the creation fails.
+	 */
 	async create(
 		input: IEmployeeSettingCreateInput
 	): Promise<IEmployeeSetting> {
@@ -40,6 +47,14 @@ export class EmployeePropertiesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Updates an existing employee setting.
+	 *
+	 * @param {ID} id - The unique identifier of the employee setting to update.
+	 * @param {IEmployeeSettingUpdateInput} input - The input data for updating the employee setting.
+	 * @returns {Promise<IEmployeeSetting>} A promise that resolves to the updated EmployeeSetting.
+	 * @throws {BadRequestException} Throws an error if the update fails.
+	 */
 	async update(
 		id: ID,
 		input: IEmployeeSettingUpdateInput
@@ -60,6 +75,13 @@ export class EmployeePropertiesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Finds a single employee setting based on the provided options.
+	 *
+	 * @param {IFindUserPropertiesInput} options - The search criteria for finding the employee setting.
+	 * @returns {Promise<IEmployeeSetting>} A promise that resolves to the first matching EmployeeSetting.
+	 * @throws {BadRequestException} Throws an error if the operation fails.
+	 */
 	async findOneByOptions(
 		options: IFindUserPropertiesInput
 	): Promise<IEmployeeSetting> {

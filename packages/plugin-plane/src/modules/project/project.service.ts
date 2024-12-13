@@ -409,12 +409,26 @@ export class ProjectService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Updates or creates user-specific project settings (task views).
+	 *
+	 * This method updates an existing `EmployeeSetting` if found, or creates a new one
+	 * with the provided properties. The settings include filters, display filters, and display properties.
+	 *
+	 * @param {ID} id - The identifier of the project for which view settings need to be updated.
+	 * @param {IUpdateUserPropertiesInput} input - The user properties to update.
+	 * @returns {Promise<any>} A promise that resolves to the serialized employee settings.
+	 * @throws {BadRequestException} Throws an error if the operation fails.
+	 */
 	async updateProjectUserProperties(
 		id: ID,
 		input: IUpdateUserPropertiesInput
 	): Promise<any> {
 		try {
+			// Destructure input properties for clarity
 			const { display_filters, display_properties, filters } = input;
+
+			// Find existing employee settings for the given project
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
 					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
@@ -424,6 +438,7 @@ export class ProjectService extends ApiFetchService {
 				});
 
 			if (memberSetting) {
+				// Update the existing settings with new data or fallback to existing data
 				const data: Record<string, any> = memberSetting.data as Record<
 					string,
 					any
@@ -444,6 +459,7 @@ export class ProjectService extends ApiFetchService {
 					}
 				);
 			} else {
+				// Create new settings with default properties if none exist
 				memberSetting = await this._employeePropertiesService.create({
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
@@ -454,6 +470,7 @@ export class ProjectService extends ApiFetchService {
 					employeeId: defaultEmployeeId()
 				});
 			}
+			// Serialize and return the updated/created employee setting.
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
 			console.log(error.response);

@@ -325,11 +325,44 @@ export class ProjectService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves the workspace project member's information, including personal settings and preferences.
+	 *
+	 * This method fetches project details, member information, and member-specific settings (task views).
+	 * It returns a comprehensive object combining these details.
+	 *
+	 * @param {ID} id - The identifier of the project to retrieve member details for.
+	 * @returns {Promise<any>} A promise that resolves to the combined member and project information.
+	 * @throws {BadRequestException} Throws an error if the operation fails.
+	 */
 	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
 		try {
+			// Fetch project details with the tenant relationship
 			const project = await this.getProject(id, ['tenant']);
+
+			// Retrieve current member information from the workspace
 			const memberInfos = await this._workspaceService.getMembersMe('');
 
+			// Fetch member-specific settings for the project (task views)
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			// Destructure properties from the member settings and their defaults
+			const { filters, display_filters, display_properties } =
+				memberSetting.data as Record<string, any>;
+
+			const {
+				filters: defaultFiltes,
+				display_filters: defaultDisplayFilters,
+				display_properties: defaultDisplayProperties
+			} = memberSetting.defaultData as Record<string, any>;
+
+			// Construct and return the response object
 			return {
 				id: memberInfos.id,
 				workspace: {
@@ -359,12 +392,14 @@ export class ProjectService extends ApiFetchService {
 				comment: null,
 				role: memberInfos.role,
 				view_props: {
-					filters: memberInfos.view_props.filters,
-					display_filters: memberInfos.view_props.display_filters
+					filters,
+					display_filters,
+					display_properties
 				},
 				default_props: {
-					filters: memberInfos.default_props.filters,
-					display_filters: memberInfos.default_props.display_filters
+					filters: defaultFiltes,
+					display_filters: defaultDisplayFilters,
+					display_properties: defaultDisplayProperties
 				},
 				preferences: {
 					pages: {

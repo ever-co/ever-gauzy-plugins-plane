@@ -23,6 +23,7 @@ import { ActivityModule } from './activity/activity.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module';
+import { EmployeePropertiesModule } from './employee-properties/employee-properties.module';
 
 @Module({
 	imports: [
@@ -49,7 +50,8 @@ import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module'
 		ActivityModule,
 		DashboardModule,
 		SubscriptionModule,
-		IntakeIssuesModule
+		IntakeIssuesModule,
+		EmployeePropertiesModule
 	]
 })
 export class AppModule {}

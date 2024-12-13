@@ -356,6 +356,7 @@ export class WorkspaceService extends ApiFetchService {
 				query
 			})
 		).data;
+
 		return organizationMembersTransformer(
 			organization.employees,
 			organization.tenant

@@ -1,3 +1,4 @@
+import { employeeSettingSerializer } from '../employee-properties';
 import { getTaskCounts } from '../modules';
 import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
@@ -12,13 +13,17 @@ import {
 	IUserProjectData,
 	ID,
 	IUserProjectsDataResponse,
-	IUserProfileData
+	IUserProfileData,
+	EmployeeSettingTypeEnum,
+	BaseEntityEnum,
+	IEmployeeSetting
 } from '@plane-plugin/models';
 
 const organizationRelations = [
 	'employees',
 	'employees.user',
 	'employees.user.role',
+	'employees.settings',
 	'tenant'
 ];
 
@@ -45,6 +50,23 @@ export function organizationMembersTransformer(
 	tenant: ITenant
 ): IWorkspaceUserInfo[] {
 	return members.map((member) => {
+		const memberSetting =
+			(member.settings ?? []).find(
+				(s) =>
+					s.settingType === EmployeeSettingTypeEnum.TASK_VIEWS &&
+					s.entity === BaseEntityEnum.Tenant
+			) ?? ({} as any);
+
+		const { defaultData = {} } = memberSetting as Record<string, any>;
+
+		const {
+			filters: defaultFilters,
+			display_filters: defaultDisplayFilters,
+			display_properties: defaultDisplayProperties
+		} = defaultData as Record<string, any>;
+
+		const { issue_props } = memberSetting as Record<string, any>;
+
 		return {
 			id: member.userId,
 			member: {
@@ -68,86 +90,19 @@ export function organizationMembersTransformer(
 			deleted_at: member.deletedAt,
 			role: roleTransformer(member.user.role),
 			company_role: '', // TODO: Know how it works
-			view_props: {
-				filters: {
-					state: null,
-					labels: null,
-					priority: null,
-					assignees: null,
-					created_by: null,
-					start_date: null,
-					subscriber: null,
-					state_group: null,
-					target_date: null
-				},
-				display_filters: {
-					type: null,
-					layout: 'list',
-					group_by: null,
-					order_by: '-created_at',
-					sub_issue: true,
-					show_empty_groups: true,
-					calendar_date_range: ''
-				},
-				display_properties: {
-					key: true,
-					link: true,
-					state: true,
-					labels: true,
-					assignee: true,
-					due_date: true,
-					estimate: true,
-					priority: true,
-					created_on: true,
-					start_date: true,
-					updated_on: true,
-					sub_issue_count: true,
-					attachment_count: true
-				}
-			},
+			view_props: memberSetting.data
+				? {
+						...employeeSettingSerializer(
+							memberSetting as IEmployeeSetting
+						)
+					}
+				: {},
 			default_props: {
-				filters: {
-					state: null,
-					labels: null,
-					priority: null,
-					assignees: null,
-					created_by: null,
-					start_date: null,
-					subscriber: null,
-					state_group: null,
-					target_date: null
-				},
-				display_filters: {
-					type: null,
-					layout: 'list',
-					group_by: null,
-					order_by: '-created_at',
-					sub_issue: true,
-					show_empty_groups: true,
-					calendar_date_range: ''
-				},
-				display_properties: {
-					key: true,
-					link: true,
-					state: true,
-					labels: true,
-					assignee: true,
-					due_date: true,
-					estimate: true,
-					priority: true,
-					created_on: true,
-					start_date: true,
-					updated_on: true,
-					sub_issue_count: true,
-					attachment_count: true
-				}
+				filters: defaultFilters,
+				display_filters: defaultDisplayFilters,
+				display_properties: defaultDisplayProperties
 			},
-			issue_props: {
-				created: true,
-				assigned: true,
-				all_issues: true,
-				subscribed: true
-			},
+			issue_props,
 			is_active: member.isActive
 		};
 	});

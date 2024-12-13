@@ -18,6 +18,19 @@ export interface IWorkspaceUserInfo {
 	updated_by?: ID;
 }
 
+export interface IUserViewProperties extends IViewProps {
+	id: ID;
+	created_at?: Date;
+	updated_at?: Date;
+	deleted_at?: Date;
+	created_by?: ID;
+	updated_by?: ID;
+	project?: ID;
+	module?: ID;
+	workspace?: ID;
+	user?: ID;
+}
+
 export interface IMemberInfo {
 	id?: ID;
 	first_name?: string;

@@ -25,7 +25,9 @@ import {
 	IIssueLabel,
 	IssueOrderByField,
 	IIssueCreateInput,
-	IIssueUpdateInput
+	IIssueUpdateInput,
+	EmployeeSettingTypeEnum,
+	IEmployeeSetting
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -34,6 +36,7 @@ import {
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
+	employeeSettingSerializer,
 	getStatesTransformer,
 	getTaskCounts,
 	groupIssuesByLabel,
@@ -45,6 +48,7 @@ import {
 	issueLinkTransformer,
 	issuesByPriority,
 	issueTransformer,
+	MEMBER_DEFAULT_VIEW_PROPS,
 	modulesTransformer,
 	userIssuesByPriority,
 	userWorkNonGroupedIssues,
@@ -61,6 +65,7 @@ import { ActivityService } from '../activity/activity.service';
 import { IssueLinksService } from '../issue-links/issue-links.service';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { DraftIssuesService } from '../issues/draft-issues/draft-issues.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -72,6 +77,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _subscriptionService: SubscriptionService,
 		private readonly _draftIssueService: DraftIssuesService,
+		private readonly _employeePropertiesService: EmployeePropertiesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -242,101 +248,98 @@ export class WorkspaceService extends ApiFetchService {
 	 * @memberof WorkspaceController
 	 */
 	async getMembersMe(workspace_name: string) {
+		const employeeId = defaultEmployeeId(); // TODO: Replace with connected employee
+		const tenantId = defaultTestTenantId(); // TODO: Replace with current tenant
+
 		console.log({ workspace_name });
-		return {
-			id: defaultUserId(),
-			created_at: '2024-08-13T11:47:19.039549Z',
-			updated_at: '2024-08-13T11:47:19.039558Z',
-			deleted_at: null,
-			role: 20,
-			company_role: '',
-			// draft_issue_count: 2,
-			view_props: {
-				filters: {
-					state: null,
-					labels: null,
-					priority: null,
-					assignees: null,
-					created_by: null,
-					start_date: null,
-					subscriber: null,
-					state_group: null,
-					target_date: null
+
+		// Helper function to format the result
+		const formatResult = (memberSetting: IEmployeeSetting) => {
+			const {
+				filters: defaultFilters,
+				display_filters: defaultDisplayFilters,
+				display_properties: defaultDisplayProperties
+			} = memberSetting.defaultData as Record<string, any>;
+
+			const { issue_props } = memberSetting.defaultData as Record<
+				string,
+				any
+			>;
+
+			return {
+				id: defaultUserId(),
+				created_at: '2024-08-13T11:47:19.039549Z',
+				updated_at: '2024-08-13T11:47:19.039558Z',
+				deleted_at: null,
+				role: 20,
+				company_role: '',
+				view_props: {
+					...employeeSettingSerializer(memberSetting)
 				},
-				display_filters: {
-					type: null,
-					layout: 'list',
-					group_by: null,
-					order_by: '-created_at',
-					sub_issue: true,
-					show_empty_groups: true,
-					calendar_date_range: ''
+				default_props: {
+					filters: defaultFilters,
+					display_filters: defaultDisplayFilters,
+					display_properties: defaultDisplayProperties
 				},
-				display_properties: {
-					key: true,
-					link: true,
-					state: true,
-					labels: true,
-					assignee: true,
-					due_date: true,
-					estimate: true,
-					priority: true,
-					created_on: true,
-					start_date: true,
-					updated_on: true,
-					sub_issue_count: true,
-					attachment_count: true
-				}
-			},
-			default_props: {
-				filters: {
-					state: null,
-					labels: null,
-					priority: null,
-					assignees: null,
-					created_by: null,
-					start_date: null,
-					subscriber: null,
-					state_group: null,
-					target_date: null
-				},
-				display_filters: {
-					type: null,
-					layout: 'list',
-					group_by: null,
-					order_by: '-created_at',
-					sub_issue: true,
-					show_empty_groups: true,
-					calendar_date_range: ''
-				},
-				display_properties: {
-					key: true,
-					link: true,
-					state: true,
-					labels: true,
-					assignee: true,
-					due_date: true,
-					estimate: true,
-					priority: true,
-					created_on: true,
-					start_date: true,
-					updated_on: true,
-					sub_issue_count: true,
-					attachment_count: true
-				}
-			},
-			issue_props: {
-				created: true,
-				assigned: true,
-				all_issues: true,
-				subscribed: true
-			},
-			is_active: true,
-			created_by: defaultEmployeeId(),
-			updated_by: defaultEmployeeId(),
-			workspace: defaultTestTenantId(),
-			member: defaultEmployeeId()
+				issue_props,
+				is_active: true,
+				created_by: employeeId,
+				updated_by: employeeId,
+				workspace: tenantId,
+				member: employeeId
+			};
 		};
+
+		try {
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId,
+					entity: BaseEntityEnum.Tenant,
+					entityId: tenantId,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			return formatResult(memberSetting);
+		} catch (error) {
+			console.warn(
+				'Failed to retrieve settings, creating new ones...',
+				error
+			);
+
+			try {
+				const settingViewProps = {
+					...MEMBER_DEFAULT_VIEW_PROPS,
+					issue_props: {
+						created: true,
+						assigned: true,
+						all_issues: true,
+						subscribed: true
+					}
+				};
+
+				// Create default settings if none exist
+				const memberSetting =
+					await this._employeePropertiesService.create({
+						entity: BaseEntityEnum.Tenant,
+						entityId: tenantId,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: settingViewProps,
+						defaultData: settingViewProps,
+						employee: { id: employeeId },
+						employeeId
+					});
+
+				return formatResult(memberSetting);
+			} catch (creationError) {
+				console.error(
+					'Failed to create new view properties',
+					creationError
+				);
+				throw new BadRequestException(
+					'Failed to find or create new view properties'
+				);
+			}
+		}
 	}
 
 	/**
@@ -353,6 +356,7 @@ export class WorkspaceService extends ApiFetchService {
 				query
 			})
 		).data;
+
 		return organizationMembersTransformer(
 			organization.employees,
 			organization.tenant

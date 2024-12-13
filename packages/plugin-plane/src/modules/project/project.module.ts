@@ -14,6 +14,7 @@ import { CommentsModule } from '../comments/comments.module';
 import { IssueViewModule } from '../views/view.module';
 import { CyclesModule } from '../cycles/cycles.module';
 import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module';
+import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
 
 @Module({
 	imports: [
@@ -51,7 +52,8 @@ import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module
 		IssuesModule,
 		IssueLabelsModule,
 		ProjectIdentifiersModule,
-		UserFavoritesModule
+		UserFavoritesModule,
+		EmployeePropertiesModule
 	],
 	providers: [ProjectService],
 	controllers: [ProjectController],

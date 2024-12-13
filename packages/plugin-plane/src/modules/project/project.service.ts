@@ -8,6 +8,7 @@ import {
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	EmployeeSettingTypeEnum,
 	IAssignMembersToProject,
 	ICreateProjectInput,
 	ID,
@@ -16,20 +17,23 @@ import {
 	IPagination,
 	IProject,
 	IUpdateProjectInput,
-	IUpdateUserPropertiesInput
+	IUpdateUserPropertiesInput,
+	IUserViewProperties
 } from '@plane-plugin/models';
 import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
 	defaultEmployeeId,
-	defaultTestTenantId,
+	employeeSettingSerializer,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
-	getProjectsResponse
+	getProjectsResponse,
+	MEMBER_DEFAULT_VIEW_PROPS
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class ProjectService extends ApiFetchService {
@@ -37,6 +41,7 @@ export class ProjectService extends ApiFetchService {
 		@Inject(forwardRef(() => WorkspaceService))
 		private readonly _workspaceService: WorkspaceService,
 		private readonly _userFavoriteService: UserFavoritesService,
+		private readonly _employeePropertiesService: EmployeePropertiesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -320,11 +325,44 @@ export class ProjectService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves the workspace project member's information, including personal settings and preferences.
+	 *
+	 * This method fetches project details, member information, and member-specific settings (task views).
+	 * It returns a comprehensive object combining these details.
+	 *
+	 * @param {ID} id - The identifier of the project to retrieve member details for.
+	 * @returns {Promise<any>} A promise that resolves to the combined member and project information.
+	 * @throws {BadRequestException} Throws an error if the operation fails.
+	 */
 	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
 		try {
+			// Fetch project details with the tenant relationship
 			const project = await this.getProject(id, ['tenant']);
+
+			// Retrieve current member information from the workspace
 			const memberInfos = await this._workspaceService.getMembersMe('');
 
+			// Fetch member-specific settings for the project (task views)
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			// Destructure properties from the member settings and their defaults
+			const { filters, display_filters, display_properties } =
+				memberSetting.data as Record<string, any>;
+
+			const {
+				filters: defaultFiltes,
+				display_filters: defaultDisplayFilters,
+				display_properties: defaultDisplayProperties
+			} = memberSetting.defaultData as Record<string, any>;
+
+			// Construct and return the response object
 			return {
 				id: memberInfos.id,
 				workspace: {
@@ -354,12 +392,14 @@ export class ProjectService extends ApiFetchService {
 				comment: null,
 				role: memberInfos.role,
 				view_props: {
-					filters: memberInfos.view_props.filters,
-					display_filters: memberInfos.view_props.display_filters
+					filters,
+					display_filters,
+					display_properties
 				},
 				default_props: {
-					filters: memberInfos.default_props.filters,
-					display_filters: memberInfos.default_props.display_filters
+					filters: defaultFiltes,
+					display_filters: defaultDisplayFilters,
+					display_properties: defaultDisplayProperties
 				},
 				preferences: {
 					pages: {
@@ -385,83 +425,109 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolves after getting the user properties
 	 * @memberof WorkspaceService
 	 */
-	async getProjectUserProperties(id: ID) {
-		return {
-			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
-			created_at: '2024-08-20T14:27:11.217949Z',
-			updated_at: '2024-08-23T06:33:05.401050Z',
-			deleted_at: null,
-			filters: {
-				state: null,
-				labels: null,
-				priority: null,
-				assignees: null,
-				created_by: null,
-				start_date: null,
-				subscriber: null,
-				state_group: null,
-				target_date: null
-			},
-			display_filters: {
-				type: null,
-				layout: 'kanban',
-				calendar: {
-					layout: 'month',
-					show_weekends: false
-				},
-				group_by: 'state',
-				order_by: '-created_at',
-				sub_issue: true,
-				sub_group_by: null,
-				show_empty_groups: true
-			},
-			display_properties: {
-				key: true,
-				link: true,
-				state: true,
-				labels: true,
-				assignee: true,
-				due_date: true,
-				estimate: true,
-				priority: true,
-				created_on: true,
-				start_date: true,
-				updated_on: true,
-				sub_issue_count: true,
-				attachment_count: true
-			},
-			created_by: defaultEmployeeId(),
-			updated_by: defaultEmployeeId(),
-			project: id,
-			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId()
-		};
+	async getProjectUserProperties(id: ID): Promise<IUserViewProperties> {
+		try {
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+			if (!memberSetting) {
+				throw new BadRequestException('User view properties not found');
+			}
+			return employeeSettingSerializer(memberSetting);
+		} catch (error: any) {
+			try {
+				// Create new settings with default properties if none exist
+				const moduleMemberSetting =
+					await this._employeePropertiesService.create({
+						entity: BaseEntityEnum.OrganizationProject,
+						entityId: id,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: MEMBER_DEFAULT_VIEW_PROPS,
+						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+						employee: { id: defaultEmployeeId() },
+						employeeId: defaultEmployeeId()
+					});
+
+				return employeeSettingSerializer(moduleMemberSetting);
+			} catch (error) {
+				console.log(error);
+				throw new BadRequestException(
+					'Failed to find or create new view properties'
+				);
+			}
+		}
 	}
 
+	/**
+	 * Updates or creates user-specific project settings (task views).
+	 *
+	 * This method updates an existing `EmployeeSetting` if found, or creates a new one
+	 * with the provided properties. The settings include filters, display filters, and display properties.
+	 *
+	 * @param {ID} id - The identifier of the project for which view settings need to be updated.
+	 * @param {IUpdateUserPropertiesInput} input - The user properties to update.
+	 * @returns {Promise<any>} A promise that resolves to the serialized employee settings.
+	 * @throws {BadRequestException} Throws an error if the operation fails.
+	 */
 	async updateProjectUserProperties(
 		id: ID,
 		input: IUpdateUserPropertiesInput
-	) {
-		const { display_filters, display_properties, filters } = input;
-		return {
-			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
-			created_at: '2024-08-20T14:27:11.217949Z',
-			updated_at: '2024-08-23T06:33:05.401050Z',
-			deleted_at: null,
-			filters: filters
-				? filters
-				: (await this.getProjectUserProperties(id)).filters,
-			display_filters: display_filters
-				? display_filters
-				: (await this.getProjectUserProperties(id)).display_filters,
-			display_properties: display_properties
-				? display_properties
-				: (await this.getProjectUserProperties(id)).display_properties,
-			created_by: defaultEmployeeId(),
-			updated_by: defaultEmployeeId(),
-			project: id,
-			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId()
-		};
+	): Promise<any> {
+		try {
+			// Destructure input properties for clarity
+			const { display_filters, display_properties, filters } = input;
+
+			// Find existing employee settings for the given project
+			let memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (memberSetting) {
+				// Update the existing settings with new data or fallback to existing data
+				const data: Record<string, any> = memberSetting.data as Record<
+					string,
+					any
+				>;
+				memberSetting = await this._employeePropertiesService.update(
+					memberSetting.id,
+					{
+						...memberSetting,
+						data: {
+							filters: filters ? filters : data.filters,
+							display_filters: display_filters
+								? display_filters
+								: data.display_filters,
+							display_properties: display_properties
+								? display_properties
+								: data.display_properties
+						}
+					}
+				);
+			} else {
+				// Create new settings with default properties if none exist
+				memberSetting = await this._employeePropertiesService.create({
+					entity: BaseEntityEnum.OrganizationProject,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+					data: MEMBER_DEFAULT_VIEW_PROPS,
+					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+					employee: { id: defaultEmployeeId() },
+					employeeId: defaultEmployeeId()
+				});
+			}
+			// Serialize and return the updated/created employee setting.
+			return employeeSettingSerializer(memberSetting);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 }

@@ -7,22 +7,27 @@ import {
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	EmployeeSettingTypeEnum,
 	ICreateModuleInput,
 	ID,
 	IModule,
 	IOrganizationProjectModule,
-	IPagination
+	IPagination,
+	IUpdateUserPropertiesInput,
+	IUserViewProperties
 } from '@plane-plugin/models';
 import {
 	createModuleInputTransformer,
 	defaultEmployeeId,
-	defaultTestTenantId,
+	employeeSettingSerializer,
 	getModulesQuery,
+	MEMBER_DEFAULT_VIEW_PROPS,
 	modulesTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class ProjectModuleService extends ApiFetchService {
@@ -33,7 +38,9 @@ export class ProjectModuleService extends ApiFetchService {
 		private readonly _userFavoriteService: UserFavoritesService,
 
 		@Inject(forwardRef(() => ProjectService))
-		private readonly _projectService: ProjectService
+		private readonly _projectService: ProjectService,
+
+		private readonly _employeePropertiesService: EmployeePropertiesService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -229,61 +236,102 @@ export class ProjectModuleService extends ApiFetchService {
 	/**
 	 * @description Get user modules properties
 	 * @param {ID} id - Module ID of module for whom get properties
-	 * @param {ID} projectId - Project ID of module for whom get properties
 	 * @returns A promise resolved to user properties
 	 * @memberof ProjectModuleService
 	 */
-	async getModuleUserProperties(id: ID, projectId: ID) {
-		return {
-			id: '8777de06-fab5-4888-8a8d-d860f91eba2d',
-			created_at: '2024-08-20T14:27:11.217949Z',
-			updated_at: '2024-08-23T06:33:05.401050Z',
-			deleted_at: null,
-			filters: {
-				state: null,
-				labels: null,
-				priority: null,
-				assignees: null,
-				created_by: null,
-				start_date: null,
-				subscriber: null,
-				state_group: null,
-				target_date: null
-			},
-			display_filters: {
-				type: null,
-				layout: 'kanban',
-				calendar: {
-					layout: 'month',
-					show_weekends: false
-				},
-				group_by: 'state',
-				order_by: '-created_at',
-				sub_issue: true,
-				sub_group_by: null,
-				show_empty_groups: true
-			},
-			display_properties: {
-				key: true,
-				link: true,
-				state: true,
-				labels: true,
-				assignee: true,
-				due_date: true,
-				estimate: true,
-				priority: true,
-				created_on: true,
-				start_date: true,
-				updated_on: true,
-				sub_issue_count: true,
-				attachment_count: true
-			},
-			created_by: defaultEmployeeId(),
-			updated_by: defaultEmployeeId(),
-			project: projectId,
-			module: id,
-			workspace: defaultTestTenantId(),
-			user: defaultEmployeeId()
-		};
+	async getModuleUserProperties(id: ID) {
+		try {
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProjectModule,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (!memberSetting) {
+				throw new BadRequestException('User view properties not found');
+			}
+			return employeeSettingSerializer(memberSetting);
+		} catch (error: any) {
+			try {
+				// Create new settings with default properties if none exist
+				const moduleMemberSetting =
+					await this._employeePropertiesService.create({
+						entity: BaseEntityEnum.OrganizationProjectModule,
+						entityId: id,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: MEMBER_DEFAULT_VIEW_PROPS,
+						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+						employee: { id: defaultEmployeeId() },
+						employeeId: defaultEmployeeId()
+					});
+
+				return employeeSettingSerializer(moduleMemberSetting);
+			} catch (error) {
+				console.log(error);
+				throw new BadRequestException(
+					'Failed to find or create new view properties'
+				);
+			}
+		}
+	}
+
+	async updateModuleUserProperties(
+		id: ID,
+		input: IUpdateUserPropertiesInput
+	): Promise<IUserViewProperties> {
+		try {
+			// Destructure input properties for clarity
+			const { display_filters, display_properties, filters } = input;
+
+			// Find existing employee settings for the given project module
+			let memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationProjectModule,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (memberSetting) {
+				// Update the existing settings with new data or fallback to existing data
+				const data: Record<string, any> = memberSetting.data as Record<
+					string,
+					any
+				>;
+				memberSetting = await this._employeePropertiesService.update(
+					memberSetting.id,
+					{
+						...memberSetting,
+						data: {
+							filters: filters ? filters : data.filters,
+							display_filters: display_filters
+								? display_filters
+								: data.display_filters,
+							display_properties: display_properties
+								? display_properties
+								: data.display_properties
+						}
+					}
+				);
+			} else {
+				// Create new settings with default properties if none exist
+				memberSetting = await this._employeePropertiesService.create({
+					entity: BaseEntityEnum.OrganizationProjectModule,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+					data: MEMBER_DEFAULT_VIEW_PROPS,
+					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+					employee: { id: defaultEmployeeId() },
+					employeeId: defaultEmployeeId()
+				});
+			}
+			// Serialize and return the updated/created employee setting.
+			return employeeSettingSerializer(memberSetting);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
+		}
 	}
 }

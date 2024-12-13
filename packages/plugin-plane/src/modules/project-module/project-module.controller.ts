@@ -68,21 +68,21 @@ export class ProjectModuleController {
 	/**
 	 * @description Get user modules properties
 	 * @param {ID} id - Module ID of module for whom get properties
-	 * @param {ID} projectId - Project ID of module for whom get properties
 	 * @returns A promise resolved to user properties
 	 * @memberof ProjectModuleService
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Project Podules User properties' })
 	@Get(':id/user-properties')
-	async getModuleUserProperties(
-		@Param('id') id: ID,
-		@Param('projectId') projectId: ID
-	) {
-		return this._projectModuleService.getModuleUserProperties(
-			id,
-			projectId
-		);
+	async getModuleUserProperties(@Param('id') id: ID) {
+		return this._projectModuleService.getModuleUserProperties(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Project Podules User properties' })
+	@Patch(':id/user-properties')
+	async updateModuleUserProperties(@Param('id') id: ID, @Body() input: any) {
+		return this._projectModuleService.updateModuleUserProperties(id, input);
 	}
 
 	/**

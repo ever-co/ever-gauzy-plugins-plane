@@ -519,6 +519,8 @@ export function createIssueInputTransformer(
 	const members = issue?.assignee_ids
 		? issue?.assignee_ids?.map((id) => ({ id }) as IEmployee)
 		: [];
+
+	// TODO : Include mention here
 	return {
 		title: issue?.name,
 		description: issue?.description_html,
@@ -566,6 +568,8 @@ export function updateIssueInputTransformer(
 		state_id: 'taskStatusId',
 		module_ids: 'modules'
 	};
+
+	// TODO : Include mention here
 
 	// Include only user provided flelds in the final request
 	const transformedInput: ITaskUpdateInput = Object.entries(

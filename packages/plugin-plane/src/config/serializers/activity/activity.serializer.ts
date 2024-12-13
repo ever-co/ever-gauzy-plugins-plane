@@ -134,7 +134,7 @@ const transformIssueActivityLog = (
 			const oldValue: any = previousValues[index][field];
 			const newValue: any =
 				activityField === 'cycles'
-					? sprint.name
+					? sprint?.name
 					: updatedValues[index][field];
 
 			const updatedCycleId = updatedValues.find(

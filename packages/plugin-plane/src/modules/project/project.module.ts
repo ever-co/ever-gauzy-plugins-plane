@@ -13,6 +13,7 @@ import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
 import { CommentsModule } from '../comments/comments.module';
 import { IssueViewModule } from '../views/view.module';
 import { CyclesModule } from '../cycles/cycles.module';
+import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module';
 
 @Module({
 	imports: [
@@ -25,6 +26,10 @@ import { CyclesModule } from '../cycles/cycles.module';
 					{ path: '/:projectId/issues', module: IssuesModule },
 					{ path: '/:projectId/views', module: IssueViewModule },
 					{ path: '/:projectId/cycles', module: CyclesModule },
+					{
+						path: '/:projectId/inbox-issues',
+						module: IntakeIssuesModule
+					},
 					{
 						path: '/:projectId/search-issues',
 						module: SearchIssuesModule

@@ -111,6 +111,8 @@ export class IssueRelationsService extends ApiFetchService {
 				)
 			);
 
+			console.log({ createdRelations });
+
 			return createdRelations;
 		} catch (error) {
 			console.log(error);
@@ -189,16 +191,22 @@ export class IssueRelationsService extends ApiFetchService {
 			}
 			const linkedIssues = issue.linkedIssues;
 
-			linkedIssues.forEach((linkedIssue) => {
-				const relation_type = getIssueRelationType(linkedIssue.action);
-				if (relation_type) {
-					if (linkedIssue.taskFrom) {
-						relatedIssues[relation_type].push(
-							issueTransformer(linkedIssue.taskFrom)
-						);
+			linkedIssues
+				.filter(
+					(relatedIssue) => !relatedIssue.taskFrom.isScreeningTask
+				)
+				.forEach((linkedIssue) => {
+					const relation_type = getIssueRelationType(
+						linkedIssue.action
+					);
+					if (relation_type) {
+						if (linkedIssue.taskFrom) {
+							relatedIssues[relation_type].push(
+								issueTransformer(linkedIssue.taskFrom)
+							);
+						}
 					}
-				}
-			});
+				});
 
 			return relatedIssues;
 		} catch (error) {

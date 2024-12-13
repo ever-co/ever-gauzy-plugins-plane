@@ -17,12 +17,14 @@ import {
 	IPagination,
 	IProject,
 	IUpdateProjectInput,
-	IUpdateUserPropertiesInput
+	IUpdateUserPropertiesInput,
+	IUserViewProperties
 } from '@plane-plugin/models';
 import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
 	defaultEmployeeId,
+	employeeSettingSerializer,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
 	getProjectsResponse,
@@ -388,7 +390,7 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolves after getting the user properties
 	 * @memberof WorkspaceService
 	 */
-	async getProjectUserProperties(id: ID) {
+	async getProjectUserProperties(id: ID): Promise<IUserViewProperties> {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
@@ -400,23 +402,7 @@ export class ProjectService extends ApiFetchService {
 			if (!memberSetting) {
 				throw new BadRequestException('User view properties not found');
 			}
-			const { filters, display_filters, display_properties } =
-				memberSetting.data as Record<string, any>;
-
-			return {
-				id: memberSetting.id,
-				created_at: memberSetting.createdAt,
-				updated_at: memberSetting.updatedAt,
-				deleted_at: memberSetting.deletedAt,
-				filters,
-				display_filters,
-				display_properties,
-				created_by: memberSetting.employeeId,
-				updated_by: memberSetting.employeeId,
-				project: memberSetting.entityId,
-				workspace: memberSetting.tenantId,
-				user: memberSetting.employeeId
-			};
+			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);
@@ -468,26 +454,7 @@ export class ProjectService extends ApiFetchService {
 					employeeId: defaultEmployeeId()
 				});
 			}
-			const {
-				filters: datafilters,
-				display_filters: dataDisplayFilters,
-				display_properties: dataDisplayProperties
-			} = memberSetting.data as Record<string, any>;
-
-			return {
-				id: memberSetting.id,
-				created_at: memberSetting.createdAt,
-				updated_at: memberSetting.updatedAt,
-				deleted_at: memberSetting.deletedAt,
-				filters: datafilters,
-				display_filters: dataDisplayFilters,
-				display_properties: dataDisplayProperties,
-				created_by: memberSetting.employeeId,
-				updated_by: memberSetting.employeeId,
-				project: memberSetting.entityId,
-				workspace: memberSetting.tenantId,
-				user: memberSetting.employeeId
-			};
+			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error);

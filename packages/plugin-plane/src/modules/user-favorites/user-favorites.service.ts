@@ -38,6 +38,7 @@ export class UserFavoritesService extends ApiFetchService {
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 		private readonly _issueViewService: IssueViewService,
+		@Inject(forwardRef(() => CyclesService))
 		private readonly _cycleService: CyclesService
 	) {
 		super(_serverFetchService['_httpService']);

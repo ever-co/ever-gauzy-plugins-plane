@@ -8,12 +8,18 @@ import { IssueLinksModule } from '../issue-links/issue-links.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { DraftIssuesModule } from '../issues/draft-issues/draft-issues.module';
 import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
+import { CyclesModule } from '../cycles/cycles.module';
+import { ProjectModuleModule } from '../project-module/project-module.module';
+import { IssueViewModule } from '../views/view.module';
 
 @Module({
 	imports: [
 		RouterModule.register([{ path: '/', module: WorkspaceModule }]),
 		forwardRef(() => ProjectModule),
 		IssuesModule,
+		CyclesModule,
+		ProjectModuleModule,
+		IssueViewModule,
 		IssueLinksModule,
 		SubscriptionModule,
 		DraftIssuesModule,

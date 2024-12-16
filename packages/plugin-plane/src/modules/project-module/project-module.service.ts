@@ -97,7 +97,7 @@ export class ProjectModuleService extends ApiFetchService {
 	 * @returns A promise that resolves after getting modules
 	 * @memberof ProjectModuleService
 	 */
-	async getAllModulesByProject(projectId: ID) {
+	async getAllModulesByProject(projectId?: ID) {
 		try {
 			// Build the query string once
 			const query = qs.stringify(getModulesQuery(projectId));

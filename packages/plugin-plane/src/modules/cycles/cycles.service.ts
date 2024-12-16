@@ -30,7 +30,6 @@ import {
 	updateCycleInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { ProjectService } from '../project/project.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 import { IssuesService } from '../issues/issues.service';
 import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
@@ -45,9 +44,6 @@ export class CyclesService extends ApiFetchService {
 
 		@Inject(forwardRef(() => UserFavoritesService))
 		private readonly _userFavoriteService: UserFavoritesService,
-
-		@Inject(forwardRef(() => ProjectService))
-		private readonly _projectService: ProjectService,
 
 		private readonly _employeePropertiesService: EmployeePropertiesService
 	) {

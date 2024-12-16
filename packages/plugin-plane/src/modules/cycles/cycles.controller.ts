@@ -132,10 +132,17 @@ export class CyclesController {
 	}
 
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'Get Cycle Issues' })
+	@ApiOperation({ summary: 'Get Cycle User properties' })
 	@Get(':id/user-properties')
 	async findCycleUserProperties(@Param('id') id: ID): Promise<any> {
 		return this._cycleService.findCycleUserProperties(id);
+	}
+
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Update Cycle User properties' })
+	@Patch(':id/user-properties')
+	async updateModuleUserProperties(@Param('id') id: ID, @Body() input: any) {
+		return this._cycleService.updateCycleUserProperties(id, input);
 	}
 
 	/** Deletes a specific cycle (sprint) by its ID.

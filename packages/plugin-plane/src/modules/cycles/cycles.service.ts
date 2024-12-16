@@ -14,7 +14,9 @@ import {
 	ICycleIssuesResponse,
 	ID,
 	IOrganizationSprint,
-	IPagination
+	IPagination,
+	IUpdateUserPropertiesInput,
+	IUserViewProperties
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
@@ -397,6 +399,64 @@ export class CyclesService extends ApiFetchService {
 					'Failed to find or create new view properties'
 				);
 			}
+		}
+	}
+
+	async updateCycleUserProperties(
+		id: ID,
+		input: IUpdateUserPropertiesInput
+	): Promise<IUserViewProperties> {
+		try {
+			// Destructure input properties
+			const { display_filters, display_properties, filters } = input;
+
+			// Find existing employee settings for the given cycle
+			let memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with cycle
+					entity: BaseEntityEnum.OrganizationSprint,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (memberSetting) {
+				// Update the existings with new data or fallback to existing data
+				const data: Record<string, any> = memberSetting.data as Record<
+					string,
+					any
+				>;
+
+				memberSetting = await this._employeePropertiesService.update(
+					memberSetting.id,
+					{
+						...memberSetting,
+						data: {
+							filters: filters ?? data.filters,
+							display_filters:
+								display_filters ?? data.display_filters,
+							display_properties:
+								display_properties ?? data.display_properties
+						}
+					}
+				);
+			} else {
+				// Create new setting with default properties if none exist
+				memberSetting = await this._employeePropertiesService.create({
+					entity: BaseEntityEnum.OrganizationSprint,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+					data: MEMBER_DEFAULT_VIEW_PROPS,
+					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+					employee: { id: defaultEmployeeId() },
+					employeeId: defaultEmployeeId()
+				});
+			}
+
+			// Serialize and return the updated/created employee setting
+			return employeeSettingSerializer(memberSetting);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
 		}
 	}
 }

@@ -363,8 +363,19 @@ export class CyclesService extends ApiFetchService {
 		});
 	}
 
-	async findCycleUserProperties(id: ID) {
+	/**
+	 * Finds or creates cycle user properties for a specific cycle (sprint).
+	 *
+	 * If the user's settings for the given cycle are not found, it will attempt
+	 * to create a new one with default properties.
+	 *
+	 * @param {ID} id - The identifier of the cycle (sprint).
+	 * @returns {Promise<any>} Serialized user setting for the cycle.
+	 * @throws {BadRequestException} Throws if the operation fails.
+	 */
+	async findCycleUserProperties(id: ID): Promise<any> {
 		try {
+			// Attempt to find existing user properties for the cycle
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
 					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
@@ -377,6 +388,7 @@ export class CyclesService extends ApiFetchService {
 				throw new BadRequestException('User view properties not found');
 			}
 
+			// If found, return the serialized settings
 			return employeeSettingSerializer(memberSetting);
 		} catch (error) {
 			try {
@@ -402,6 +414,17 @@ export class CyclesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Updates or creates cycle user properties for a specific cycle (sprint).
+	 *
+	 * If the user's settings for the given cycle already exist, they will be updated.
+	 * Otherwise, new settings will be created with default properties.
+	 *
+	 * @param {ID} id - The identifier of the cycle (sprint).
+	 * @param {IUpdateUserPropertiesInput} input - The updated properties input.
+	 * @returns {Promise<IUserViewProperties>} The updated or newly created user properties.
+	 * @throws {BadRequestException} Throws if the operation fails.
+	 */
 	async updateCycleUserProperties(
 		id: ID,
 		input: IUpdateUserPropertiesInput

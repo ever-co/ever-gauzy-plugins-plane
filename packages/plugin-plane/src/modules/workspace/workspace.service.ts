@@ -1179,28 +1179,36 @@ export class WorkspaceService extends ApiFetchService {
 	| GLOBAL SEARCH
 	|--------------------------------------------------------------------------
 	*/
-	async findGlobalEntities(
+
+	/**
+	 * Finds global entities based on search criteria across various domains.
+	 *
+	 * @param {IGlabalEntitiesFindInput} options - Search options, including project ID and search term.
+	 * @returns {Promise<IGlobalEntitiesResponse>} A response containing filtered results across multiple entities.
+	 * @throws {BadRequestException} Throws if the operation fails.
+	 */
+	async findGlobalEntitiesBySearch(
 		options: IGlabalEntitiesFindInput
 	): Promise<IGlobalEntitiesResponse> {
 		try {
-			// Retrieve projects
+			// Retrieve and serialize projects
 			const projects = await this._projectService.getExternalProjects([]);
 			const serializedProjects = getProjectsResponse(projects);
 
-			//  Retrieve tasks
+			// Retrieve and serialize tasks (issues)
 			const issues = await this._issueService.findAllExternal(
 				options.project_id ? { projectId: options.project_id } : {},
-				[]
+				['project', 'tenant']
 			);
 			const serializedIssues = issues.items.map((task) =>
 				issueTransformer(task)
 			);
 
-			// Retrieve cycles
+			// Retrieve and serialize cycles
 			const cycles = await this._cycleService.findAll(options.project_id);
 			const serializedCycles = Array.isArray(cycles) ? cycles : [cycles];
 
-			// Retrieve Project Modules
+			// Retrieve and serialize project modules
 			const modules =
 				await this._projectModuleService.getAllModulesByProject(
 					options.project_id
@@ -1209,23 +1217,38 @@ export class WorkspaceService extends ApiFetchService {
 				? modules
 				: [modules];
 
-			// Retrieve views
+			// Retrieve and serialize views
 			const views = await this._issueViewService.findAll(
 				options.project_id
 			);
 			const serializedViews = Array.isArray(views) ? views : [views];
 
+			const searchTerm = options.search.toLowerCase();
+
 			return {
 				results: {
-					workspace: [],
-					project: serializedProjects,
-					issue: serializedIssues,
-					cycle: serializedCycles,
-					module: serializedModules,
-					issue_view: serializedViews,
-					page: []
+					workspace: [], // TODO : Integrate workspaces APIs
+					project: this.filterByName(searchTerm, serializedProjects),
+					issue: this.filterByName(searchTerm, serializedIssues),
+					cycle: this.filterByName(searchTerm, serializedCycles),
+					module: this.filterByName(searchTerm, serializedModules),
+					issue_view: this.filterByName(searchTerm, serializedViews),
+					page: [] // Placeholder for future integration
 				}
 			};
-		} catch (error) {}
+		} catch (error: any) {
+			console.log(error.respoonse);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	private filterByName(
+		searchTerm: string,
+		entities: any[],
+		key: string = 'name'
+	) {
+		return entities.filter((entity) =>
+			entity[key]?.toLowerCase().includes(searchTerm.toLowerCase())
+		);
 	}
 }

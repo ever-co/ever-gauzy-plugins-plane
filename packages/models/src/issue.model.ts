@@ -20,6 +20,7 @@ export interface IIssue {
 	target_date?: Date;
 	sequence_id?: number;
 	project_id?: ID;
+	project__identifier?: string;
 	parent_id?: ID;
 	parent?: {
 		id?: ID;
@@ -51,6 +52,7 @@ export interface IIssue {
 	issue_link?: IIssueLink[];
 	sub_issue_ids?: ID[];
 	issue_attachment?: [];
+	workspace__slug?: string;
 }
 
 export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}

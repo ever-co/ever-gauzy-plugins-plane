@@ -1,5 +1,4 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
 import { CyclesService } from './cycles.service';
 import { CyclesController } from './cycles.controller';
 import { ProjectModule } from '../project/project.module';
@@ -8,9 +7,8 @@ import { EmployeePropertiesModule } from '../employee-properties/employee-proper
 
 @Module({
 	imports: [
-		IssuesModule,
-		forwardRef(() => UserFavoritesModule),
 		forwardRef(() => ProjectModule),
+		IssuesModule,
 		EmployeePropertiesModule
 	],
 	providers: [CyclesService],

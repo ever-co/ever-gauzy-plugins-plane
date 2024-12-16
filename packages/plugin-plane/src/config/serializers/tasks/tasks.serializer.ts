@@ -85,6 +85,9 @@ export function issueTransformer(
 		sequence_id: issue?.number,
 		project_id: issue?.projectId,
 		parent_id: issue?.parentId,
+		project__identifier:
+			issue?.project?.code ||
+			issue?.project?.name?.slice(0, 4).toUpperCase(),
 		parent: {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
@@ -111,7 +114,8 @@ export function issueTransformer(
 		issue_reactions: reactions || [],
 		issue_relation: issueRelationTransformer(issue?.linkedIssues) || [],
 		issue_link: links || [],
-		cycle: issue?.organizationSprint
+		cycle: issue?.organizationSprint,
+		workspace__slug: issue?.tenant?.name?.toLocaleLowerCase()
 	};
 }
 

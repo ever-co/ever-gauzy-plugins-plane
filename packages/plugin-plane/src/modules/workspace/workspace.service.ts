@@ -27,7 +27,9 @@ import {
 	IIssueCreateInput,
 	IIssueUpdateInput,
 	EmployeeSettingTypeEnum,
-	IEmployeeSetting
+	IEmployeeSetting,
+	IGlobalEntitiesResponse,
+	IGlabalEntitiesFindInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -37,6 +39,7 @@ import {
 	defaultTestTenantId,
 	defaultUserId,
 	employeeSettingSerializer,
+	getProjectsResponse,
 	getStatesTransformer,
 	getTaskCounts,
 	groupIssuesByLabel,
@@ -66,6 +69,9 @@ import { IssueLinksService } from '../issue-links/issue-links.service';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { DraftIssuesService } from '../issues/draft-issues/draft-issues.service';
 import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
+import { CyclesService } from '../cycles/cycles.service';
+import { ProjectModuleService } from '../project-module/project-module.service';
+import { IssueViewService } from '../views/view.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -73,6 +79,9 @@ export class WorkspaceService extends ApiFetchService {
 		@Inject(forwardRef(() => ProjectService))
 		private readonly _projectService: ProjectService,
 		private readonly _issueService: IssuesService,
+		private readonly _cycleService: CyclesService,
+		private readonly _projectModuleService: ProjectModuleService,
+		private readonly _issueViewService: IssueViewService,
 		private readonly _activityService: ActivityService,
 		private readonly _issueLinkService: IssueLinksService,
 		private readonly _subscriptionService: SubscriptionService,
@@ -1163,5 +1172,83 @@ export class WorkspaceService extends ApiFetchService {
 
 	async draftToIssue(id: ID, input: IIssueUpdateInput): Promise<IIssue> {
 		return await this._draftIssueService.dratfToIssue(id, input);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| GLOBAL SEARCH
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Finds global entities based on search criteria across various domains.
+	 *
+	 * @param {IGlabalEntitiesFindInput} options - Search options, including project ID and search term.
+	 * @returns {Promise<IGlobalEntitiesResponse>} A response containing filtered results across multiple entities.
+	 * @throws {BadRequestException} Throws if the operation fails.
+	 */
+	async findGlobalEntitiesBySearch(
+		options: IGlabalEntitiesFindInput
+	): Promise<IGlobalEntitiesResponse> {
+		try {
+			// Retrieve and serialize projects
+			const projects = await this._projectService.getExternalProjects([]);
+			const serializedProjects = getProjectsResponse(projects);
+
+			// Retrieve and serialize tasks (issues)
+			const issues = await this._issueService.findAllExternal(
+				options.project_id ? { projectId: options.project_id } : {},
+				['project', 'tenant']
+			);
+			const serializedIssues = issues.items.map((task) =>
+				issueTransformer(task)
+			);
+
+			// Retrieve and serialize cycles
+			const cycles = await this._cycleService.findAll(options.project_id);
+			const serializedCycles = Array.isArray(cycles) ? cycles : [cycles];
+
+			// Retrieve and serialize project modules
+			const modules =
+				await this._projectModuleService.getAllModulesByProject(
+					options.project_id
+				);
+			const serializedModules = Array.isArray(modules)
+				? modules
+				: [modules];
+
+			// Retrieve and serialize views
+			const views = await this._issueViewService.findAll(
+				options.project_id
+			);
+			const serializedViews = Array.isArray(views) ? views : [views];
+
+			const searchTerm = options.search.toLowerCase();
+
+			return {
+				results: {
+					workspace: [], // TODO : Integrate workspaces APIs
+					project: this.filterByName(searchTerm, serializedProjects),
+					issue: this.filterByName(searchTerm, serializedIssues),
+					cycle: this.filterByName(searchTerm, serializedCycles),
+					module: this.filterByName(searchTerm, serializedModules),
+					issue_view: this.filterByName(searchTerm, serializedViews),
+					page: [] // Placeholder for future integration
+				}
+			};
+		} catch (error: any) {
+			console.log(error.respoonse);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	private filterByName(
+		searchTerm: string,
+		entities: any[],
+		key: string = 'name'
+	) {
+		return entities.filter((entity) =>
+			entity[key]?.toLowerCase().includes(searchTerm.toLowerCase())
+		);
 	}
 }

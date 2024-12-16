@@ -9,7 +9,6 @@ import { ProjectService } from './project.service';
 import { ProjectController } from './project.controller';
 import { SearchIssuesModule } from '../issues/search-issues/search-issues.module';
 import { ProjectIdentifiersModule } from './project-identifiers/project-identifiers.module';
-import { UserFavoritesModule } from '../user-favorites/user-favorites.module';
 import { CommentsModule } from '../comments/comments.module';
 import { IssueViewModule } from '../views/view.module';
 import { CyclesModule } from '../cycles/cycles.module';
@@ -52,7 +51,6 @@ import { EmployeePropertiesModule } from '../employee-properties/employee-proper
 		IssuesModule,
 		IssueLabelsModule,
 		ProjectIdentifiersModule,
-		UserFavoritesModule,
 		EmployeePropertiesModule
 	],
 	providers: [ProjectService],

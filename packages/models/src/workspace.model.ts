@@ -1,4 +1,10 @@
 import { ID } from './imports';
+import { IWorkspaceInfo } from './base.model';
+import { IProject } from './project.model';
+import { IIssue } from './issue.model';
+import { ICycle } from './cycle.model';
+import { IModule } from './module.model';
+import { IView } from './view.model';
 
 export interface IRecentCollaborator {
 	active_issue_count: number;
@@ -75,4 +81,22 @@ export interface IUserProfileData {
 	date_joined?: Date;
 	user_timezone?: string;
 	display_name?: string;
+}
+
+export interface IGlabalEntitiesFindInput {
+	project_id?: ID;
+	search?: string;
+	workspace_search?: boolean;
+}
+
+export interface IGlobalEntitiesResponse {
+	results: {
+		workspace: IWorkspaceInfo[];
+		project: IProject[];
+		issue: IIssue[];
+		cycle: ICycle[];
+		module: IModule[];
+		issue_view: IView[];
+		page: any[];
+	};
 }

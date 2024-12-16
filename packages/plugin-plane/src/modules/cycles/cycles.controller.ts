@@ -131,6 +131,13 @@ export class CyclesController {
 		return this._cycleService.findCycleIssues(id, projectId);
 	}
 
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Cycle Issues' })
+	@Get(':id/user-properties')
+	async findCycleUserProperties(@Param('id') id: ID): Promise<any> {
+		return this._cycleService.findCycleUserProperties(id);
+	}
+
 	/** Deletes a specific cycle (sprint) by its ID.
 	 *
 	 * @param {ID} id - The unique identifier of the cycle to delete.

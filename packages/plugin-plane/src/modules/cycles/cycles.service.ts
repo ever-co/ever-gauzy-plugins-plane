@@ -5,9 +5,11 @@ import {
 	Injectable,
 	NotFoundException
 } from '@nestjs/common';
+import moment from 'moment';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	EmployeeSettingTypeEnum,
 	ICycle,
 	ICycleIssuesResponse,
 	ID,
@@ -18,15 +20,18 @@ import {
 	createCycleInputTransformer,
 	cycleIssueTransformer,
 	cycleTransformer,
+	defaultEmployeeId,
+	employeeSettingSerializer,
 	getSprintsQuery,
 	issueTransformer,
+	MEMBER_DEFAULT_VIEW_PROPS,
 	updateCycleInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
-import moment from 'moment';
 import { IssuesService } from '../issues/issues.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class CyclesService extends ApiFetchService {
@@ -40,7 +45,9 @@ export class CyclesService extends ApiFetchService {
 		private readonly _userFavoriteService: UserFavoritesService,
 
 		@Inject(forwardRef(() => ProjectService))
-		private readonly _projectService: ProjectService
+		private readonly _projectService: ProjectService,
+
+		private readonly _employeePropertiesService: EmployeePropertiesService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -352,5 +359,44 @@ export class CyclesService extends ApiFetchService {
 
 			return isOverlap;
 		});
+	}
+
+	async findCycleUserProperties(id: ID) {
+		try {
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationSprint,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (!memberSetting) {
+				throw new BadRequestException('User view properties not found');
+			}
+
+			return employeeSettingSerializer(memberSetting);
+		} catch (error) {
+			try {
+				// Create new setting with default properties if none exist for cycle.
+				const cycleMemberSetting =
+					await this._employeePropertiesService.create({
+						entity: BaseEntityEnum.OrganizationSprint,
+						entityId: id,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: MEMBER_DEFAULT_VIEW_PROPS,
+						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+						employee: { id: defaultEmployeeId() },
+						employeeId: defaultEmployeeId()
+					});
+
+				return employeeSettingSerializer(cycleMemberSetting);
+			} catch (error) {
+				console.log(error);
+				throw new BadRequestException(
+					'Failed to find or create new view properties'
+				);
+			}
+		}
 	}
 }

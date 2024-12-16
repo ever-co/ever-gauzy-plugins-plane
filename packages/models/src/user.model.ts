@@ -27,6 +27,7 @@ export interface IUserViewProperties extends IViewProps {
 	updated_by?: ID;
 	project?: ID;
 	module?: ID;
+	cycle?: ID;
 	workspace?: ID;
 	user?: ID;
 }

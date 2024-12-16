@@ -36,6 +36,10 @@ export function employeeSettingSerializer(
 			employeeSetting.entity === BaseEntityEnum.OrganizationProjectModule
 				? employeeSetting.entityId
 				: null,
+		cycle:
+			employeeSetting.entity === BaseEntityEnum.OrganizationSprint
+				? employeeSetting.entityId
+				: null,
 		workspace: employeeSetting.tenantId,
 		user: employeeSetting.employeeId
 	};

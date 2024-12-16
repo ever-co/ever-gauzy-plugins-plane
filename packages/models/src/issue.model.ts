@@ -59,6 +59,7 @@ export type IIssueUpdateInput = IIssue;
 
 export interface IIssueFindInput {
 	module?: ID;
+	cycle?: ID;
 	group_by?: IssueGroupBy;
 	order_by?: IssueOrderByField;
 	sub_issue?: boolean;

@@ -5,28 +5,35 @@ import {
 	Injectable,
 	NotFoundException
 } from '@nestjs/common';
+import moment from 'moment';
 import qs from 'qs';
 import {
 	BaseEntityEnum,
+	EmployeeSettingTypeEnum,
 	ICycle,
 	ICycleIssuesResponse,
 	ID,
 	IOrganizationSprint,
-	IPagination
+	IPagination,
+	IUpdateUserPropertiesInput,
+	IUserViewProperties
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
 	cycleIssueTransformer,
 	cycleTransformer,
+	defaultEmployeeId,
+	employeeSettingSerializer,
 	getSprintsQuery,
 	issueTransformer,
+	MEMBER_DEFAULT_VIEW_PROPS,
 	updateCycleInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import { UserFavoritesService } from '../user-favorites/user-favorites.service';
-import moment from 'moment';
 import { IssuesService } from '../issues/issues.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class CyclesService extends ApiFetchService {
@@ -40,7 +47,9 @@ export class CyclesService extends ApiFetchService {
 		private readonly _userFavoriteService: UserFavoritesService,
 
 		@Inject(forwardRef(() => ProjectService))
-		private readonly _projectService: ProjectService
+		private readonly _projectService: ProjectService,
+
+		private readonly _employeePropertiesService: EmployeePropertiesService
 	) {
 		super(_serverFetchService['_httpService']);
 	}
@@ -352,5 +361,125 @@ export class CyclesService extends ApiFetchService {
 
 			return isOverlap;
 		});
+	}
+
+	/**
+	 * Finds or creates cycle user properties for a specific cycle (sprint).
+	 *
+	 * If the user's settings for the given cycle are not found, it will attempt
+	 * to create a new one with default properties.
+	 *
+	 * @param {ID} id - The identifier of the cycle (sprint).
+	 * @returns {Promise<any>} Serialized user setting for the cycle.
+	 * @throws {BadRequestException} Throws if the operation fails.
+	 */
+	async findCycleUserProperties(id: ID): Promise<any> {
+		try {
+			// Attempt to find existing user properties for the cycle
+			const memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					entity: BaseEntityEnum.OrganizationSprint,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (!memberSetting) {
+				throw new BadRequestException('User view properties not found');
+			}
+
+			// If found, return the serialized settings
+			return employeeSettingSerializer(memberSetting);
+		} catch (error) {
+			try {
+				// Create new setting with default properties if none exist for cycle.
+				const cycleMemberSetting =
+					await this._employeePropertiesService.create({
+						entity: BaseEntityEnum.OrganizationSprint,
+						entityId: id,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: MEMBER_DEFAULT_VIEW_PROPS,
+						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+						employee: { id: defaultEmployeeId() },
+						employeeId: defaultEmployeeId()
+					});
+
+				return employeeSettingSerializer(cycleMemberSetting);
+			} catch (error) {
+				console.log(error);
+				throw new BadRequestException(
+					'Failed to find or create new view properties'
+				);
+			}
+		}
+	}
+
+	/**
+	 * Updates or creates cycle user properties for a specific cycle (sprint).
+	 *
+	 * If the user's settings for the given cycle already exist, they will be updated.
+	 * Otherwise, new settings will be created with default properties.
+	 *
+	 * @param {ID} id - The identifier of the cycle (sprint).
+	 * @param {IUpdateUserPropertiesInput} input - The updated properties input.
+	 * @returns {Promise<IUserViewProperties>} The updated or newly created user properties.
+	 * @throws {BadRequestException} Throws if the operation fails.
+	 */
+	async updateCycleUserProperties(
+		id: ID,
+		input: IUpdateUserPropertiesInput
+	): Promise<IUserViewProperties> {
+		try {
+			// Destructure input properties
+			const { display_filters, display_properties, filters } = input;
+
+			// Find existing employee settings for the given cycle
+			let memberSetting =
+				await this._employeePropertiesService.findOneByOptions({
+					employeeId: defaultEmployeeId(), // TODO: Change this with cycle
+					entity: BaseEntityEnum.OrganizationSprint,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+				});
+
+			if (memberSetting) {
+				// Update the existings with new data or fallback to existing data
+				const data: Record<string, any> = memberSetting.data as Record<
+					string,
+					any
+				>;
+
+				memberSetting = await this._employeePropertiesService.update(
+					memberSetting.id,
+					{
+						...memberSetting,
+						data: {
+							filters: filters ?? data.filters,
+							display_filters:
+								display_filters ?? data.display_filters,
+							display_properties:
+								display_properties ?? data.display_properties
+						}
+					}
+				);
+			} else {
+				// Create new setting with default properties if none exist
+				memberSetting = await this._employeePropertiesService.create({
+					entity: BaseEntityEnum.OrganizationSprint,
+					entityId: id,
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+					data: MEMBER_DEFAULT_VIEW_PROPS,
+					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
+					employee: { id: defaultEmployeeId() },
+					employeeId: defaultEmployeeId()
+				});
+			}
+
+			// Serialize and return the updated/created employee setting
+			return employeeSettingSerializer(memberSetting);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
 	}
 }

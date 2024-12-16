@@ -456,6 +456,10 @@ export const getTaskQuery = (
 		query['where[modules][0]'] = options.module;
 	}
 
+	if (options?.cycle) {
+		query['where[organizationSprintId]'] = options.cycle;
+	}
+
 	if (options?.creatorId) {
 		query['where[creatorId]'] = options.creatorId;
 	}

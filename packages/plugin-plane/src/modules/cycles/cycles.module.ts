@@ -4,12 +4,14 @@ import { CyclesService } from './cycles.service';
 import { CyclesController } from './cycles.controller';
 import { ProjectModule } from '../project/project.module';
 import { IssuesModule } from '../issues/issues.module';
+import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
 
 @Module({
 	imports: [
 		IssuesModule,
 		forwardRef(() => UserFavoritesModule),
-		forwardRef(() => ProjectModule)
+		forwardRef(() => ProjectModule),
+		EmployeePropertiesModule
 	],
 	providers: [CyclesService],
 	controllers: [CyclesController],

@@ -948,6 +948,14 @@ export class WorkspaceService extends ApiFetchService {
 					relations,
 					order_by
 				);
+			} else {
+				assignedIssues = (
+					await this._issueService.findAllExternal(
+						{},
+						relations,
+						order_by
+					)
+				).items.filter((task) => task.projectId);
 			}
 
 			const issuesWithLinks = await Promise.all(

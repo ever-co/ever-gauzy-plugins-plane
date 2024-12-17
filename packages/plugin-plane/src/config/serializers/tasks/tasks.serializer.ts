@@ -252,9 +252,9 @@ export function groupIssuesByStateGroup(
 ) {
 	return groupIssues(
 		issuesWithLinks,
-		(issue) => stateGroup(issue.taskStatus), // Détermine le groupe par état
+		(issue) => stateGroup(issue.taskStatus), // Define the group by state
 		'state__group',
-		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Valeurs spécifiques pour l'accumulateur initial
+		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Specific values for initial accumulator.
 	);
 }
 
@@ -263,7 +263,7 @@ export function groupIssuesByPriority(
 ) {
 	return groupIssues(
 		issuesWithLinks,
-		(issue) => issue.priority || 'none', // Détermine le groupe par priorité
+		(issue) => issue.priority || 'none', // Define the group by priority
 		'priority'
 	);
 }
@@ -273,7 +273,7 @@ export function groupIssuesByProjectId(
 ) {
 	return groupIssues(
 		issuesWithLinks,
-		(issue) => issue.projectId || 'none', // Détermine le groupe par ID de projet
+		(issue) => issue.projectId || 'none', // Define the group by project Id
 		'project_id'
 	);
 }

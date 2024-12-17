@@ -27,9 +27,10 @@ import { UserFavoritesService } from '../user-favorites/user-favorites.service';
 @Injectable()
 export class IssueViewService extends ApiFetchService {
 	constructor(
-		private readonly _serverFetchService: ApiFetchService,
 		@Inject(forwardRef(() => UserFavoritesService))
-		private readonly _userFavoriteService: UserFavoritesService
+		private readonly _userFavoriteService: UserFavoritesService,
+
+		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
 	}

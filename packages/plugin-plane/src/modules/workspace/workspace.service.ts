@@ -39,6 +39,7 @@ import {
 	defaultTestTenantId,
 	defaultUserId,
 	employeeSettingSerializer,
+	extractWorkspaceViewIdFromReferer,
 	getProjectsResponse,
 	getStatesTransformer,
 	getTaskCounts,
@@ -1250,5 +1251,30 @@ export class WorkspaceService extends ApiFetchService {
 		return entities.filter((entity) =>
 			entity[key]?.toLowerCase().includes(searchTerm.toLowerCase())
 		);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| VIEWS
+	|--------------------------------------------------------------------------
+	*/
+	async findViewIssues(options: IIssueFindInput, referer: string) {
+		try {
+			// Extract the view ID from the referer if it exists
+			const viewId = extractWorkspaceViewIdFromReferer(referer);
+
+			if (!viewId) {
+				return this.findUserGroupedIssueAssigned(options);
+			}
+
+			return this._issueService.getAllIssuesByProject(
+				null,
+				options,
+				referer
+			);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
 	}
 }

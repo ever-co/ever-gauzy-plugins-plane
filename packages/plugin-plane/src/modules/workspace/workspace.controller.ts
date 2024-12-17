@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	Get,
+	Headers,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -303,5 +304,26 @@ export class WorkspaceController {
 		@Query() options: IGlabalEntitiesFindInput
 	) {
 		return await this._workspaceService.findGlobalEntitiesBySearch(options);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| VIEWS
+	|--------------------------------------------------------------------------
+	*/
+	/**
+	 * @description - Find workspace issues by view type.
+	 * @param {IIssueFindInput} options - query that define the filter options.
+	 * @param {string} referer - Request referer to determine view ID.
+	 * @returns - A promise that resolves when entities are found
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find Workspace view issues' })
+	@Get('issues')
+	async findViewIssues(
+		@Query() options: IIssueFindInput,
+		@Headers('referer') referer: string
+	) {
+		return await this._workspaceService.findViewIssues(options, referer);
 	}
 }

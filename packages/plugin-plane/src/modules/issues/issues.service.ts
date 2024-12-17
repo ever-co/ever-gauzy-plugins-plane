@@ -42,6 +42,7 @@ import {
 	createIssueInputTransformer,
 	defaultUserId,
 	extractViewIdFromReferer,
+	extractWorkspaceViewIdFromReferer,
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
@@ -459,13 +460,15 @@ export class IssuesService extends ApiFetchService {
 	 * @throws {BadRequestException} If there is an error during the API fetch or data processing.
 	 */
 	async getAllIssuesByProject(
-		projectId: ID,
+		projectId?: ID,
 		options?: IIssueFindInput,
 		referer?: string
 	): Promise<any> {
 		try {
 			// Extract the view ID from the referer if it exists
-			const viewId = extractViewIdFromReferer(referer);
+			const viewId =
+				extractViewIdFromReferer(referer) ??
+				extractWorkspaceViewIdFromReferer(referer);
 
 			// Destructure options for group_by and module if provided
 			const { group_by, module } = options;

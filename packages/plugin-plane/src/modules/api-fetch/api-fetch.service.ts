@@ -24,7 +24,8 @@ export class ApiFetchService {
 
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
-			Accept: 'application/json'
+			Accept: 'application/json',
+			Origin: 'http://localhost:3300'
 		};
 
 		if (bearer_token) {

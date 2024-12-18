@@ -13,23 +13,26 @@ export class AuthService {
 	async checkExistingUser(
 		input: IEmailInput & Partial<IPasswordInput>
 	): Promise<ICheckUserExist> {
-		console.log(input);
-		// try {
-		// 	const user = await this._serverFetchService.apiFetch({
-		// 		method: 'POST',
-		// 		path: '/auth/login',
-		// 		body: { email: input.email, password: 'admine' },
-		// 	});
+		try {
+			const user = await this._serverFetchService.apiFetch({
+				method: 'POST',
+				path: '/auth/validate-by-email',
+				body: { email: input.email }
+			});
 
-		// 	console.log(user.data);
+			console.log(user.data);
 
-		// 	if (!user.data) {
-		// 		return { existing: false, status: CheckUserExist.MAGIC_CODE };
-		// 	}
-		return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
-		// } catch (error) {
-		// 	return { existing: false, status: CheckUserExist.MAGIC_CODE };
-		// }
+			if (!user.data) {
+				return {
+					existing: false,
+					status: CheckUserExistEnum.MAGIC_CODE
+				};
+			}
+			return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
+		} catch (error) {
+			console.log(error);
+			return { existing: false, status: CheckUserExistEnum.MAGIC_CODE };
+		}
 	}
 
 	async getCsrfToken(): Promise<{ csrf_token: string }> {

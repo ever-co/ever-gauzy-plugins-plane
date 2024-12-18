@@ -39,6 +39,7 @@ import {
 	defaultTestTenantId,
 	defaultUserId,
 	employeeSettingSerializer,
+	extractWorkspaceViewIdFromReferer,
 	getProjectsResponse,
 	getStatesTransformer,
 	getTaskCounts,
@@ -947,6 +948,14 @@ export class WorkspaceService extends ApiFetchService {
 					relations,
 					order_by
 				);
+			} else {
+				assignedIssues = (
+					await this._issueService.findAllExternal(
+						{},
+						relations,
+						order_by
+					)
+				).items.filter((task) => task.projectId);
 			}
 
 			const issuesWithLinks = await Promise.all(
@@ -1250,5 +1259,30 @@ export class WorkspaceService extends ApiFetchService {
 		return entities.filter((entity) =>
 			entity[key]?.toLowerCase().includes(searchTerm.toLowerCase())
 		);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| VIEWS
+	|--------------------------------------------------------------------------
+	*/
+	async findViewIssues(options: IIssueFindInput, referer: string) {
+		try {
+			// Extract the view ID from the referer if it exists
+			const viewId = extractWorkspaceViewIdFromReferer(referer);
+
+			if (!viewId) {
+				return this.findUserGroupedIssueAssigned(options);
+			}
+
+			return this._issueService.getAllIssuesByProject(
+				null,
+				options,
+				referer
+			);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
 	}
 }

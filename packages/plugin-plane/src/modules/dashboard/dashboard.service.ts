@@ -8,9 +8,17 @@ import {
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { getDashboardQuery } from '../../config/serializers/dashboard';
+import { WidgetService } from './widget.service';
 
 @Injectable()
 export class DashboardService extends ApiFetchService {
+	constructor(
+		private readonly _widgetService: WidgetService,
+		private readonly _serverFetchService: ApiFetchService
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	private path = '/dashboard';
 
 	/**
@@ -37,21 +45,21 @@ export class DashboardService extends ApiFetchService {
 		}
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------/
-	 */
-
 	/**
 	 * Updates a specific dashboard widget's settings.
 	 *
-	 * @param {ID} [widgetId] - The unique identifier of the widget to update
+	 * @param {ID} [id] - The unique identifier of the widget to update
 	 * @param {any} [input] - The input data containing widget settings to update
 	 * @returns A promise that resolves to a success message
 	 */
-	async updateDashboardWidget(widgetId?: ID, input?: any): Promise<any> {
-		console.log({ widgetId, input });
-		return { message: 'successfully updated' };
+	async updateDashboardWidget(id?: ID, input?: any): Promise<any> {
+		try {
+			await this._widgetService.update(id, { options: input.filters });
+			return { message: 'successfully updated' };
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
 	}
 
 	/**

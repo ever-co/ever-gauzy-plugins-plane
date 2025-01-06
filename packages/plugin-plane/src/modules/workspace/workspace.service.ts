@@ -34,13 +34,14 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	cycleTransformer,
+	dashboardTransformer,
+	DEFAULT_DASHBOARD_WIDGETS,
 	defaultEmployeeId,
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
 	employeeSettingSerializer,
 	extractWorkspaceViewIdFromReferer,
-	getDashboardQuery,
 	getProjectsResponse,
 	getStatesTransformer,
 	getTaskCounts,
@@ -58,7 +59,8 @@ import {
 	userIssuesByPriority,
 	userWorkNonGroupedIssues,
 	userWorkProjectsTransformer,
-	widgetTargetDateTransformer
+	widgetTargetDateTransformer,
+	widgetTransformer
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -74,6 +76,8 @@ import { EmployeePropertiesService } from '../employee-properties/employee-prope
 import { CyclesService } from '../cycles/cycles.service';
 import { ProjectModuleService } from '../project-module/project-module.service';
 import { IssueViewService } from '../views/view.service';
+import { DashboardService } from '../dashboard/dashboard.service';
+import { WidgetService } from '../dashboard/widget.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -89,6 +93,8 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _subscriptionService: SubscriptionService,
 		private readonly _draftIssueService: DraftIssuesService,
 		private readonly _employeePropertiesService: EmployeePropertiesService,
+		private readonly _dashboardService: DashboardService,
+		private readonly _widgetService: WidgetService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -99,93 +105,56 @@ export class WorkspaceService extends ApiFetchService {
      *--------------------------------------------------------------/
 	/**
 	 * @description - Get dashboard widgets for given workspace
-	 * @param {string} workspace_name - slug for workspace name
 	 * @param {string} dashboard_type - query that define which widget filter should be fetched
 	 * @returns - A promise that resolves when dashboard widgets are fetched
 	 * @memberof WorkspaceService
 	 */
 	async getDashboard(dashboard_type: string) {
-		console.log({ dashboard_type });
 		try {
-			const query = qs.stringify(getDashboardQuery(dashboard_type));
+			let externalDashboard =
+				await this._dashboardService.findDashboardByIdentifier(
+					dashboard_type
+				);
+
+			if (!externalDashboard) {
+				externalDashboard = await this._dashboardService.create({
+					name: 'home',
+					identifier: 'home',
+					description: 'Default home dashboard for plane',
+					organizationId: defaultOrganizationId()
+				});
+			}
+
+			let transformedWidgets = widgetTransformer(
+				externalDashboard.widgets
+			);
+
+			if (externalDashboard.widgets.length === 0) {
+				const widgets = DEFAULT_DASHBOARD_WIDGETS;
+				try {
+					transformedWidgets = (
+						await Promise.all(
+							widgets.map(async (widget) => {
+								return await this._widgetService.create({
+									name: widget.key,
+									isVisible: widget.is_visible,
+									options: widget.widget_filters,
+									dashboardId: externalDashboard.id,
+									organizationId:
+										externalDashboard.organizationId
+								});
+							})
+						)
+					).flat();
+				} catch (error) {}
+			}
+
+			// If found, return the serialized dashboard
+			return {
+				dashboard: dashboardTransformer(externalDashboard),
+				widgets: transformedWidgets
+			};
 		} catch (error) {}
-		return {
-			dashboard: {
-				id: '9495b115-1faa-4677-9051-0206353a21d4',
-				created_at: '2024-06-25T12:24:39.030331Z',
-				updated_at: '2024-06-25T12:24:39.030345Z',
-				deleted_at: null,
-				name: '',
-				description_html: '<p></p>',
-				identifier: null,
-				is_default: true,
-				type_identifier: 'home',
-				logo_props: {},
-				created_by: defaultEmployeeId(),
-				updated_by: defaultEmployeeId(),
-				owned_by: defaultEmployeeId()
-			},
-			widgets: [
-				{
-					id: '2aeac7af-6040-488c-8f5c-6ebac65ca4b7',
-					key: 'recent_collaborators',
-					is_visible: true,
-					widget_filters: {}
-				},
-				{
-					id: '59f310e4-0473-4fb9-ad2d-d709edcc44e2',
-					key: 'recent_projects',
-					is_visible: true,
-					widget_filters: {}
-				},
-				{
-					id: '6bbda6d1-73cc-4e95-82e2-6f4677cc4993',
-					key: 'recent_activity',
-					is_visible: true,
-					widget_filters: {}
-				},
-				{
-					id: '99748079-63ff-413a-95e2-3d1a706512dd',
-					key: 'issues_by_priority',
-					is_visible: true,
-					widget_filters: {
-						duration: 'none'
-					}
-				},
-				{
-					id: '15eebb02-7be0-472d-a621-5a886e39f10e',
-					key: 'issues_by_state_groups',
-					is_visible: true,
-					widget_filters: {
-						duration: 'none'
-					}
-				},
-				{
-					id: 'b07deb33-9e8d-42aa-9515-134c26e5d7df',
-					key: 'created_issues',
-					is_visible: true,
-					widget_filters: {
-						tab: 'pending',
-						duration: 'none'
-					}
-				},
-				{
-					id: 'fd3307a4-11e3-4013-ab65-d1f9bcfcaad4',
-					key: 'assigned_issues',
-					is_visible: true,
-					widget_filters: {
-						tab: 'pending',
-						duration: 'none'
-					}
-				},
-				{
-					id: 'b2c401a3-ce8a-42e5-853f-55302b0b5502',
-					key: 'overview_stats',
-					is_visible: true,
-					widget_filters: {}
-				}
-			]
-		};
 	}
 
 	/**

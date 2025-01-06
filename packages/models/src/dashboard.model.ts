@@ -14,11 +14,12 @@ export interface IHomeDashboard {
 	created_by?: ID;
 	updated_by?: ID;
 	owned_by?: ID;
+	widgets?: IWidget[];
 }
 
 export interface IWidget {
 	id?: ID;
 	key?: string;
-	is_visible: boolean;
-	widget_filters: any;
+	is_visible?: boolean;
+	widget_filters?: any;
 }

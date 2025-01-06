@@ -1,12 +1,41 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { ID, IDashboard, IPagination } from '@plane-plugin/models';
+import {
+	ID,
+	IDashboard,
+	IDashboardCreateInput,
+	IPagination
+} from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { getDashboardQuery } from '../../config/serializers/dashboard';
 
 @Injectable()
 export class DashboardService extends ApiFetchService {
 	private path = '/dashboard';
+
+	/**
+	 * Creates a new dashboard.
+	 *
+	 * @param {IDashboardCreateInput} input - The input data for creating a dashboard
+	 * @returns {Promise<IDashboard>} A promise that resolves to the created dashboard
+	 * @throws {BadRequestException} Throws if dashboard creation fails
+	 */
+	async create(input: IDashboardCreateInput): Promise<IDashboard> {
+		try {
+			const dashboard = (
+				await this.apiFetch({
+					method: 'POST',
+					path: this.path,
+					body: input
+				})
+			).data;
+
+			return dashboard;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
 
 	/**--------------------------------------------------------------
 	 * This function handlers should be updated after implementing authentication

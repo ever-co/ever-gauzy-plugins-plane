@@ -11,6 +11,7 @@ import { EmployeePropertiesModule } from '../employee-properties/employee-proper
 import { CyclesModule } from '../cycles/cycles.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
 import { IssueViewModule } from '../views/view.module';
+import { DashboardModule } from '../dashboard/dashboard.module';
 
 @Module({
 	imports: [
@@ -23,7 +24,8 @@ import { IssueViewModule } from '../views/view.module';
 		IssueLinksModule,
 		SubscriptionModule,
 		DraftIssuesModule,
-		EmployeePropertiesModule
+		EmployeePropertiesModule,
+		DashboardModule
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

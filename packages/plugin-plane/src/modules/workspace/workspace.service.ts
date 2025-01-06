@@ -157,7 +157,10 @@ export class WorkspaceService extends ApiFetchService {
 				dashboard: dashboardTransformer(externalDashboard),
 				widgets: transformedWidgets
 			};
-		} catch (error) {}
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
 	}
 
 	/**

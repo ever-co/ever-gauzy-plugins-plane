@@ -1,3 +1,5 @@
+import { IWidget } from '@plane-plugin/models';
+
 export const CLIENT_BASE_URL =
 	process.env.CLIENT_BASE_URL ?? 'http://localhost';
 
@@ -50,3 +52,56 @@ export const MEMBER_DEFAULT_VIEW_PROPS = {
 		attachment_count: true
 	}
 };
+
+export const DEFAULT_DASHBOARD_WIDGETS: IWidget[] = [
+	{
+		key: 'recent_collaborators',
+		is_visible: true,
+		widget_filters: {}
+	},
+	{
+		key: 'recent_projects',
+		is_visible: true,
+		widget_filters: {}
+	},
+	{
+		key: 'recent_activity',
+		is_visible: true,
+		widget_filters: {}
+	},
+	{
+		key: 'issues_by_priority',
+		is_visible: true,
+		widget_filters: {
+			duration: 'none'
+		}
+	},
+	{
+		key: 'issues_by_state_groups',
+		is_visible: true,
+		widget_filters: {
+			duration: 'none'
+		}
+	},
+	{
+		key: 'created_issues',
+		is_visible: true,
+		widget_filters: {
+			tab: 'pending',
+			duration: 'none'
+		}
+	},
+	{
+		key: 'assigned_issues',
+		is_visible: true,
+		widget_filters: {
+			tab: 'pending',
+			duration: 'none'
+		}
+	},
+	{
+		key: 'overview_stats',
+		is_visible: true,
+		widget_filters: {}
+	}
+];

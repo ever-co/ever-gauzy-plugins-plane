@@ -9,6 +9,7 @@ export * from './base.model';
 export * from './activity.model';
 export * from './comment.model';
 export * from './cycle.model';
+export * from './dashboard.model';
 export * from './favorite.model';
 export * from './intake-issue.model';
 export * from './issue.model';

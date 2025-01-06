@@ -25,6 +25,8 @@ export * from './country.model';
 export * from './currency.model';
 export * from './custom-smtp.model';
 export * from './date-picker.model';
+export * from './dashboard-widget.model';
+export * from './dashboard.model';
 export * from './deal.model';
 export * from './email-reset.model';
 export * from './email-template.model';

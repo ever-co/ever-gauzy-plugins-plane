@@ -40,6 +40,7 @@ import {
 	defaultUserId,
 	employeeSettingSerializer,
 	extractWorkspaceViewIdFromReferer,
+	getDashboardQuery,
 	getProjectsResponse,
 	getStatesTransformer,
 	getTaskCounts,
@@ -103,8 +104,11 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns - A promise that resolves when dashboard widgets are fetched
 	 * @memberof WorkspaceService
 	 */
-	async getDashboard(workspace_name: string, dashboard_type: string) {
-		console.log({ workspace_name, dashboard_type });
+	async getDashboard(dashboard_type: string) {
+		console.log({ dashboard_type });
+		try {
+			const query = qs.stringify(getDashboardQuery(dashboard_type));
+		} catch (error) {}
 		return {
 			dashboard: {
 				id: '9495b115-1faa-4677-9051-0206353a21d4',

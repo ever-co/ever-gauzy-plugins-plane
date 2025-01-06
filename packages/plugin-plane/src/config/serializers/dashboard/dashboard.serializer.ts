@@ -4,6 +4,7 @@ import {
 	IHomeDashboard,
 	IWidget
 } from '@plane-plugin/models';
+import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 /**
  * Transforms an external Dashboard entity into a Plane Home Dashboard format
@@ -53,4 +54,26 @@ export function widgetTransformer(
 	}
 
 	return transformWidget(widgets);
+}
+
+/**
+ * Generates a query object for retrieving dashboards with optional type filtering
+ *
+ * @param {string} [dashboard_type] - Optional dashboard type identifier to filter by
+ * @returns {Record<string, string>} Query parameters as key-value pairs
+ */
+
+export function getDashboardQuery(
+	dashboard_type?: string
+): Record<string, string> {
+	// Tenant and Organization based query
+	const query: Record<string, string> = {
+		...baseGetItemsWhereQuery()
+	};
+
+	if (!dashboard_type) {
+		query['where[identifier]'] = dashboard_type;
+	}
+
+	return query;
 }

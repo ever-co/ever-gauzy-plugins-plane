@@ -39,7 +39,6 @@ export class WorkspaceController {
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
-	 * @param {string} workspace_name - slug for workspace name
 	 * @param {string} dashboard_type - query that define which widget filter should be fetched
 	 * @returns - A promise that resolves when dashboard widgets are fetched
 	 * @memberof WorkspaceController
@@ -47,14 +46,8 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get dashboard widgets' })
 	@Get('dashboard')
-	async getDashboard(
-		@Param('worspace_name') workspace_name: string,
-		@Query('dashboard_type') dashboard_type: string
-	) {
-		return await this._workspaceService.getDashboard(
-			workspace_name,
-			dashboard_type
-		);
+	async getDashboard(@Query('dashboard_type') dashboard_type: string) {
+		return await this._workspaceService.getDashboard(dashboard_type);
 	}
 
 	@HttpCode(HttpStatus.OK)

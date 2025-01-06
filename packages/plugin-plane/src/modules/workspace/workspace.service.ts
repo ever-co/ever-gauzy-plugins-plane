@@ -146,7 +146,10 @@ export class WorkspaceService extends ApiFetchService {
 							})
 						)
 					).flat();
-				} catch (error) {}
+				} catch (error: any) {
+					console.log(error.response);
+					throw new BadRequestException(error.response);
+				}
 			}
 
 			// If found, return the serialized dashboard

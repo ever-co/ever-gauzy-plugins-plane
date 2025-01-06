@@ -1,6 +1,7 @@
 export * from './activity';
 export * from './comments';
 export * from './cycles';
+export * from './dashboard';
 export * from './employee-properties';
 export * from './issue-link';
 export * from './modules';

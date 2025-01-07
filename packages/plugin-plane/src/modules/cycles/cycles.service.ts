@@ -169,7 +169,7 @@ export class CyclesService extends ApiFetchService {
 			// Return the transformed sprints
 			return cycleTransformer(sprints.items, favoriteIds);
 		} catch (error: any) {
-			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -527,8 +527,6 @@ export class CyclesService extends ApiFetchService {
 			]);
 
 			const tasks = retrieveCycleTotalTasks(sprint);
-
-			console.log(tasks.map((i) => i));
 
 			const {
 				backlogIssues,

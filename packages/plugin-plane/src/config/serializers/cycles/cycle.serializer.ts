@@ -210,9 +210,7 @@ export function cycleTransformer(
 		const isFavorite = favoriteIds?.includes(sprint.id);
 		const status = sprintStatusToCycleStatus(sprint.status);
 		const { completedIssues } = getTaskCounts(
-			sprint.toSprintTaskHistories?.length > 0
-				? sprint.toSprintTaskHistories
-				: sprint.tasks
+			retrieveCycleTotalTasks(sprint)
 		);
 
 		return {
@@ -331,19 +329,19 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
  */
 export function retrieveCycleTotalTasks(sprint: IOrganizationSprint): ITask[] {
 	// Get the current sprint tasks from the sprint's toSprintTaskHistories
-	const currentTasks = sprint.toSprintTaskHistories
+	const currentTasks = (sprint.toSprintTaskHistories ?? [])
 		.filter((history) => history?.task) // Ensure task exists
 		.map((history) => history.task); // Transform tasks
 
 	// Get the previous sprint tasks from the sprint's fromSprintTaskHistories
-	const previousTasks = sprint.fromSprintTaskHistories
+	const previousTasks = (sprint.fromSprintTaskHistories ?? [])
 		.filter((history) => history?.task) // Ensure task exists
 		.map((history) => history.task); // Transform tasks
 
 	// Combine both current and previous tasks, ensuring uniqueness based on task ID
 	return Array.from(
 		new Set(
-			[...currentTasks, ...previousTasks, ...sprint.tasks].map(
+			[...currentTasks, ...previousTasks, ...(sprint.tasks ?? [])].map(
 				(task) => task.id
 			)
 		)

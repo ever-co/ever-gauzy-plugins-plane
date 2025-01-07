@@ -378,26 +378,7 @@ export function retrieveCycleTotalTasks(sprint: IOrganizationSprint): ITask[] {
 export function cycleAnalyticsData(
 	sprint: IOrganizationSprint
 ): ICycleAnalytics {
-	// Get all unique issues
-	const currentTasks = sprint.toSprintTaskHistories
-		.filter((history) => history?.task)
-		.map((history) => history.task);
-
-	const previousTasks = sprint.fromSprintTaskHistories
-		.filter((history) => history?.task)
-		.map((history) => history.task);
-
-	const issues = Array.from(
-		new Set(
-			[...currentTasks, ...previousTasks, ...sprint.tasks].map(
-				(task) => task.id
-			)
-		)
-	).map(
-		(taskId) =>
-			currentTasks.find((task) => task.id === taskId) ||
-			previousTasks.find((task) => task.id === taskId)
-	);
+	const tasks = retrieveCycleTotalTasks(sprint);
 
 	// Initialize stats for unassigned tasks
 	const unassignedStats = {
@@ -434,7 +415,7 @@ export function cycleAnalyticsData(
 
 	// Process labels
 	const labelMap = new Map();
-	issues.forEach((issue) => {
+	tasks.forEach((issue) => {
 		issue?.tags?.forEach((label) => {
 			if (!labelMap.has(label.id)) {
 				labelMap.set(label.id, {
@@ -450,7 +431,7 @@ export function cycleAnalyticsData(
 	});
 
 	// Calculate statistics
-	issues.forEach((task) => {
+	tasks.forEach((task) => {
 		const isCompleted =
 			task?.taskStatus.name === TaskStatusEnum.COMPLETED ||
 			task?.taskStatus.name === TaskStatusEnum.DONE;
@@ -503,7 +484,7 @@ export function cycleAnalyticsData(
 
 		while (current.isSameOrBefore(end)) {
 			const dateStr = current.format('YYYY-MM-DD');
-			const remainingTasks = issues.filter(
+			const remainingTasks = tasks.filter(
 				(task) =>
 					(task?.taskStatus.name !== TaskStatusEnum.COMPLETED &&
 						task?.taskStatus.name !== TaskStatusEnum.DONE) ||

@@ -86,7 +86,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Return the transformed module, including the managerId if lead is found
 			return modulesTransformer(projectModule, []);
 		} catch (error: any) {
-			console.log(error);
+			console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}

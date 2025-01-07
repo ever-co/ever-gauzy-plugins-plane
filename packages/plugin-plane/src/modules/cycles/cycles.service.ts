@@ -20,7 +20,9 @@ import {
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
+	cycleAnalyticsData,
 	cycleIssueTransformer,
+	cycleRelations,
 	cycleTransformer,
 	defaultEmployeeId,
 	employeeSettingSerializer,
@@ -475,6 +477,39 @@ export class CyclesService extends ApiFetchService {
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
 			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Retrieves analytics data for a specific cycle within a project.
+	 *
+	 * This function fetches the cycle/sprint data along with its associated tasks and task histories.
+	 * It analyzes tasks to provide statistics about task completion, assignments, and labels.
+	 *
+	 * @param {ID} cycleId - The ID of the cycle to analyze
+	 * @param {ID} projectId - The ID of the project containing the cycle
+	 * @returns {Promise<any>} A promise that resolves to the cycle analytics data including:
+	 *   - Task completion statistics
+	 *   - Assignment distribution
+	 *   - Label distribution
+	 * @throws {BadRequestException} If there is an error fetching or processing the data
+	 */
+	async findCycleAnalytics(cycleId: ID, projectId: ID): Promise<any> {
+		try {
+			const sprint = await this.getExternalSprint(cycleId, projectId, [
+				...cycleRelations,
+				'tasks.tags',
+				'tasks.taskStatus',
+				'toSprintTaskHistories.task.tags',
+				'toSprintTaskHistories.task.taskStatus',
+				'fromSprintTaskHistories.task.tags',
+				'fromSprintTaskHistories.task.taskStatus'
+			]);
+
+			return cycleAnalyticsData(sprint);
+		} catch (error: any) {
+			console.log(error);
 			throw new BadRequestException(error.response);
 		}
 	}

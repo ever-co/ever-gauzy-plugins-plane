@@ -47,3 +47,23 @@ export interface ICycleIssuesResponse {
 	extra_stats?: any;
 	results: IIssue[];
 }
+
+export interface ICycleAnalytics {
+	assignees: {
+		display_name?: string;
+		assignee_id?: ID;
+		avatar_url?: string;
+		total_issues?: number;
+		completed_issues?: number;
+		pending_issues?: number;
+	}[];
+	labels: {
+		label_name?: string;
+		color?: string;
+		label_id?: ID;
+		total_issues?: number;
+		completed_issues?: number;
+		pending_issues?: number;
+	}[];
+	completion_chart: Record<string, number>;
+}

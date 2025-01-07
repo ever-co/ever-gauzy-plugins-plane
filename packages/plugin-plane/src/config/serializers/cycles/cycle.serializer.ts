@@ -1,13 +1,15 @@
 import {
 	CycleStatusEnum,
 	ICycle,
+	ICycleAnalytics,
 	ICycleIssuesResponse,
 	ID,
 	IIssue,
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
 	IOrganizationSprintUpdateInput,
-	OrganizationSprintStatusEnum
+	OrganizationSprintStatusEnum,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import moment from 'moment';
 import { defaultEmployeeId, defaultOrganizationId } from '../../credentials';
@@ -229,7 +231,7 @@ export function cycleTransformer(
 					: sprint.tasks?.length,
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
-			owned_by_id: sprint.members?.find((member) => member.roleId).id,
+			owned_by_id: sprint.members?.find((member) => member.roleId)?.id,
 			created_by: defaultEmployeeId(), // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
 			workspace_id: sprint.tenantId,
@@ -248,7 +250,7 @@ export function cycleTransformer(
 	return transformCycle(sprints);
 }
 
-const cycleRelations = [
+export const cycleRelations = [
 	'project',
 	'toSprintTaskHistories',
 	'toSprintTaskHistories.task',
@@ -308,5 +310,170 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 		total_results: issues.length,
 		extra_stats: null,
 		results: issues
+	};
+}
+
+/**
+ * Transforms sprint/cycle data into analytics format, calculating statistics about tasks, assignees, and labels.
+ *
+ * This function processes a sprint's tasks and their histories to generate comprehensive analytics including:
+ * - Task distribution across assignees (including unassigned tasks)
+ * - Task distribution across labels (including unlabeled tasks)
+ * - Task completion status over time
+ *
+ * @param {IOrganizationSprint} sprint - The sprint/cycle to analyze, containing:
+ *   - tasks: Current tasks in the sprint
+ *   - toSprintTaskHistories: History of tasks added to the sprint
+ *   - fromSprintTaskHistories: History of tasks removed from the sprint
+ *   - members: Sprint team members with their roles
+ * @returns {ICycleAnalytics} Analytics data containing:
+ *   - assignees: Array of assignee statistics including total, completed and pending issues per assignee
+ *   - labels: Array of label statistics including total, completed and pending issues per label
+ *   - completion_chart: Daily snapshot of remaining incomplete tasks through sprint duration
+ */
+
+export function cycleAnalyticsData(
+	sprint: IOrganizationSprint
+): ICycleAnalytics {
+	// Get all unique issues
+	const currentTasks = sprint.toSprintTaskHistories
+		.filter((history) => history?.task)
+		.map((history) => history.task);
+
+	const previousTasks = sprint.fromSprintTaskHistories
+		.filter((history) => history?.task)
+		.map((history) => history.task);
+
+	const issues = Array.from(
+		new Set(
+			[...currentTasks, ...previousTasks, ...sprint.tasks].map(
+				(task) => task.id
+			)
+		)
+	).map(
+		(taskId) =>
+			currentTasks.find((task) => task.id === taskId) ||
+			previousTasks.find((task) => task.id === taskId)
+	);
+
+	// Initialize stats for unassigned tasks
+	const unassignedStats = {
+		display_name: null,
+		assignee_id: null,
+		avatar_url: null,
+		total_issues: 0,
+		completed_issues: 0,
+		pending_issues: 0
+	};
+
+	// Initialize stats for unlabeled tasks
+	const unlabeledStats = {
+		label_name: null,
+		color: null,
+		label_id: null,
+		total_issues: 0,
+		completed_issues: 0,
+		pending_issues: 0
+	};
+
+	// Process assignees
+	const assigneeMap = new Map();
+	sprint.members.forEach((member) => {
+		assigneeMap.set(member.employeeId, {
+			display_name: member.employee?.fullName || member.employee?.name,
+			assignee_id: member.employeeId,
+			avatar_url: member.employee?.user?.imageUrl || '',
+			total_issues: 0,
+			completed_issues: 0,
+			pending_issues: 0
+		});
+	});
+
+	// Process labels
+	const labelMap = new Map();
+	issues.forEach((issue) => {
+		issue?.tags?.forEach((label) => {
+			if (!labelMap.has(label.id)) {
+				labelMap.set(label.id, {
+					label_name: label.name,
+					color: label.color,
+					label_id: label.id,
+					total_issues: 0,
+					completed_issues: 0,
+					pending_issues: 0
+				});
+			}
+		});
+	});
+
+	// Calculate statistics
+	issues.forEach((task) => {
+		const isCompleted =
+			task?.taskStatus.name === TaskStatusEnum.COMPLETED ||
+			task?.taskStatus.name === TaskStatusEnum.DONE;
+
+		// Handle unassigned tasks
+		if (!task?.members?.length) {
+			unassignedStats.total_issues++;
+			isCompleted
+				? unassignedStats.completed_issues++
+				: unassignedStats.pending_issues++;
+		}
+
+		// Handle tasks without tags
+		if (!task?.tags?.length) {
+			unlabeledStats.total_issues++;
+			isCompleted
+				? unlabeledStats.completed_issues++
+				: unlabeledStats.pending_issues++;
+		}
+
+		// Update assignee stats
+		task?.members?.forEach((assigneeId) => {
+			const assignee = assigneeMap.get(assigneeId);
+			if (assignee) {
+				assignee.total_issues++;
+				isCompleted
+					? assignee.completed_issues++
+					: assignee.pending_issues++;
+			}
+		});
+
+		// Update label stats
+		task?.tags?.forEach((label) => {
+			const labelStats = labelMap.get(label.id);
+			if (labelStats) {
+				labelStats.total_issues++;
+				isCompleted
+					? labelStats.completed_issues++
+					: labelStats.pending_issues++;
+			}
+		});
+	});
+
+	// Generate completion chart
+	const completionChart: Record<string, number> = {};
+	if (sprint.startDate && sprint.endDate) {
+		const start = moment(sprint.startDate);
+		const end = moment(sprint.endDate);
+		const current = start.clone();
+
+		while (current.isSameOrBefore(end)) {
+			const dateStr = current.format('YYYY-MM-DD');
+			const remainingTasks = issues.filter(
+				(task) =>
+					(task?.taskStatus.name !== TaskStatusEnum.COMPLETED &&
+						task?.taskStatus.name !== TaskStatusEnum.DONE) ||
+					moment(task.resolvedAt).isAfter(current)
+			).length;
+			completionChart[dateStr] = remainingTasks;
+			current.add(1, 'day');
+		}
+	}
+
+	return {
+		assignees: [...assigneeMap.values(), unassignedStats],
+		labels: [...labelMap.values(), unlabeledStats],
+		completion_chart: completionChart
 	};
 }

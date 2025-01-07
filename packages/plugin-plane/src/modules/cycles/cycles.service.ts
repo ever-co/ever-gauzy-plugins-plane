@@ -11,7 +11,9 @@ import {
 	BaseEntityEnum,
 	EmployeeSettingTypeEnum,
 	ICycle,
+	ICycleAnalytics,
 	ICycleIssuesResponse,
+	ICycleProgress,
 	ID,
 	IOrganizationSprint,
 	IPagination,
@@ -27,8 +29,10 @@ import {
 	defaultEmployeeId,
 	employeeSettingSerializer,
 	getSprintsQuery,
+	getTaskCounts,
 	issueTransformer,
 	MEMBER_DEFAULT_VIEW_PROPS,
+	retrieveCycleTotalTasks,
 	updateCycleInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -165,7 +169,7 @@ export class CyclesService extends ApiFetchService {
 			// Return the transformed sprints
 			return cycleTransformer(sprints.items, favoriteIds);
 		} catch (error: any) {
-			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -251,28 +255,10 @@ export class CyclesService extends ApiFetchService {
 				throw new NotFoundException('Cycle not found.');
 			}
 
-			// Get the current sprint tasks from the cycle's toSprintTaskHistories
-			const currentTasks = cycle.toSprintTaskHistories
-				.filter((history) => history?.task) // Ensure task exists
-				.map((history) => issueTransformer(history.task)); // Transform tasks
-
-			// Get the previous sprint tasks from the cycle's fromSprintTaskHistories
-			const previousTasks = cycle.fromSprintTaskHistories
-				.filter((history) => history?.task) // Ensure task exists
-				.map((history) => issueTransformer(history.task)); // Transform tasks
-
 			// Combine both current and previous tasks, ensuring uniqueness based on task ID
-			const allIssues = Array.from(
-				new Set(
-					[...currentTasks, ...previousTasks].map((task) => task.id)
-				)
-			).map((taskId) => {
-				// Find the task from either the current or previous tasks list
-				return (
-					currentTasks.find((task) => task.id === taskId) ||
-					previousTasks.find((task) => task.id === taskId)
-				);
-			});
+			const allIssues = retrieveCycleTotalTasks(cycle).map((task) =>
+				issueTransformer(task)
+			);
 
 			// Transform and return the combined tasks
 			return cycleIssueTransformer(allIssues);
@@ -495,7 +481,10 @@ export class CyclesService extends ApiFetchService {
 	 *   - Label distribution
 	 * @throws {BadRequestException} If there is an error fetching or processing the data
 	 */
-	async findCycleAnalytics(cycleId: ID, projectId: ID): Promise<any> {
+	async findCycleAnalytics(
+		cycleId: ID,
+		projectId: ID
+	): Promise<ICycleAnalytics> {
 		try {
 			const sprint = await this.getExternalSprint(cycleId, projectId, [
 				...cycleRelations,
@@ -511,6 +500,58 @@ export class CyclesService extends ApiFetchService {
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Retrieves the progress of a specific cycle within a project, including task counts
+	 * and estimation points for various statuses (e.g., backlog, started, completed).
+	 *
+	 * @param {ID} cycleId - The unique identifier of the cycle to retrieve progress for.
+	 * @param {ID} projectId - The unique identifier of the project the cycle belongs to.
+	 * @returns {Promise<ICycleProgress>} - A promise that resolves to an object containing
+	 *   detailed cycle progress, including task counts and estimation points.
+	 *
+	 * @throws {BadRequestException} - Throws an exception if the external sprint cannot
+	 *   be retrieved or any error occurs during the process.
+	 */
+	async getCycleProgress(
+		cycleId: ID,
+		projectId: ID
+	): Promise<ICycleProgress> {
+		try {
+			const sprint = await this.getExternalSprint(cycleId, projectId, [
+				'tasks.taskStatus',
+				'toSprintTaskHistories.task.taskStatus',
+				'fromSprintTaskHistories.task.taskStatus'
+			]);
+
+			const tasks = retrieveCycleTotalTasks(sprint);
+
+			const {
+				backlogIssues,
+				startedIssues,
+				completedIssues,
+				unstartedIssues
+			} = getTaskCounts(tasks);
+
+			return {
+				backlog_estimate_points: 0,
+				unstarted_estimate_points: 0,
+				started_estimate_points: 0,
+				cancelled_estimate_points: 0,
+				completed_estimate_points: 0,
+				total_estimate_points: 0.0,
+				backlog_issues: backlogIssues,
+				total_issues: tasks.length,
+				completed_issues: completedIssues,
+				cancelled_issues: 0,
+				started_issues: startedIssues,
+				unstarted_issues: unstartedIssues
+			};
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 }

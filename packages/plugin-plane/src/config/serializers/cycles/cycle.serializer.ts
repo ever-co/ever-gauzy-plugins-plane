@@ -8,6 +8,7 @@ import {
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
 	IOrganizationSprintUpdateInput,
+	ITask,
 	OrganizationSprintStatusEnum,
 	TaskStatusEnum
 } from '@plane-plugin/models';
@@ -209,9 +210,7 @@ export function cycleTransformer(
 		const isFavorite = favoriteIds?.includes(sprint.id);
 		const status = sprintStatusToCycleStatus(sprint.status);
 		const { completedIssues } = getTaskCounts(
-			sprint.toSprintTaskHistories?.length > 0
-				? sprint.toSprintTaskHistories
-				: sprint.tasks
+			retrieveCycleTotalTasks(sprint)
 		);
 
 		return {
@@ -314,6 +313,48 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 }
 
 /**
+ * Retrieves the total list of unique tasks associated with a given sprint,
+ * including tasks from the current sprint, previous sprint histories, and
+ * the sprint's directly associated tasks.
+ *
+ * @param {IOrganizationSprint} sprint - The sprint object containing task histories and tasks.
+ * @returns {ITask[]} - An array of unique tasks associated with the sprint.
+ *
+ * @remarks
+ * - The function extracts tasks from the `toSprintTaskHistories` (current sprint tasks),
+ *   `fromSprintTaskHistories` (previous sprint tasks), and `tasks` (directly associated tasks).
+ * - Tasks are deduplicated based on their `id` property to ensure uniqueness.
+ * - If a task exists in multiple sources, the task from `currentTasks` is prioritized
+ *   over `previousTasks`.
+ */
+export function retrieveCycleTotalTasks(sprint: IOrganizationSprint): ITask[] {
+	// Get the current sprint tasks from the sprint's toSprintTaskHistories
+	const currentTasks = (sprint.toSprintTaskHistories ?? [])
+		.filter((history) => history?.task) // Ensure task exists
+		.map((history) => history.task); // Transform tasks
+
+	// Get the previous sprint tasks from the sprint's fromSprintTaskHistories
+	const previousTasks = (sprint.fromSprintTaskHistories ?? [])
+		.filter((history) => history?.task) // Ensure task exists
+		.map((history) => history.task); // Transform tasks
+
+	// Combine both current and previous tasks, ensuring uniqueness based on task ID
+	return Array.from(
+		new Set(
+			[...currentTasks, ...previousTasks, ...(sprint.tasks ?? [])].map(
+				(task) => task.id
+			)
+		)
+	).map((taskId) => {
+		// Find the task from either the current or previous tasks list
+		return (
+			currentTasks.find((task) => task.id === taskId) ||
+			previousTasks.find((task) => task.id === taskId)
+		);
+	});
+}
+
+/**
  * Transforms sprint/cycle data into analytics format, calculating statistics about tasks, assignees, and labels.
  *
  * This function processes a sprint's tasks and their histories to generate comprehensive analytics including:
@@ -335,26 +376,7 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 export function cycleAnalyticsData(
 	sprint: IOrganizationSprint
 ): ICycleAnalytics {
-	// Get all unique issues
-	const currentTasks = sprint.toSprintTaskHistories
-		.filter((history) => history?.task)
-		.map((history) => history.task);
-
-	const previousTasks = sprint.fromSprintTaskHistories
-		.filter((history) => history?.task)
-		.map((history) => history.task);
-
-	const issues = Array.from(
-		new Set(
-			[...currentTasks, ...previousTasks, ...sprint.tasks].map(
-				(task) => task.id
-			)
-		)
-	).map(
-		(taskId) =>
-			currentTasks.find((task) => task.id === taskId) ||
-			previousTasks.find((task) => task.id === taskId)
-	);
+	const tasks = retrieveCycleTotalTasks(sprint);
 
 	// Initialize stats for unassigned tasks
 	const unassignedStats = {
@@ -391,7 +413,7 @@ export function cycleAnalyticsData(
 
 	// Process labels
 	const labelMap = new Map();
-	issues.forEach((issue) => {
+	tasks.forEach((issue) => {
 		issue?.tags?.forEach((label) => {
 			if (!labelMap.has(label.id)) {
 				labelMap.set(label.id, {
@@ -407,7 +429,7 @@ export function cycleAnalyticsData(
 	});
 
 	// Calculate statistics
-	issues.forEach((task) => {
+	tasks.forEach((task) => {
 		const isCompleted =
 			task?.taskStatus.name === TaskStatusEnum.COMPLETED ||
 			task?.taskStatus.name === TaskStatusEnum.DONE;
@@ -460,7 +482,7 @@ export function cycleAnalyticsData(
 
 		while (current.isSameOrBefore(end)) {
 			const dateStr = current.format('YYYY-MM-DD');
-			const remainingTasks = issues.filter(
+			const remainingTasks = tasks.filter(
 				(task) =>
 					(task?.taskStatus.name !== TaskStatusEnum.COMPLETED &&
 						task?.taskStatus.name !== TaskStatusEnum.DONE) ||

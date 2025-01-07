@@ -503,14 +503,32 @@ export class CyclesService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves the progress of a specific cycle within a project, including task counts
+	 * and estimation points for various statuses (e.g., backlog, started, completed).
+	 *
+	 * @param {ID} cycleId - The unique identifier of the cycle to retrieve progress for.
+	 * @param {ID} projectId - The unique identifier of the project the cycle belongs to.
+	 * @returns {Promise<ICycleProgress>} - A promise that resolves to an object containing
+	 *   detailed cycle progress, including task counts and estimation points.
+	 *
+	 * @throws {BadRequestException} - Throws an exception if the external sprint cannot
+	 *   be retrieved or any error occurs during the process.
+	 */
 	async getCycleProgress(
 		cycleId: ID,
 		projectId: ID
 	): Promise<ICycleProgress> {
 		try {
-			const sprint = await this.getExternalSprint(cycleId, projectId);
+			const sprint = await this.getExternalSprint(cycleId, projectId, [
+				'tasks.taskStatus',
+				'toSprintTaskHistories.task.taskStatus',
+				'fromSprintTaskHistories.task.taskStatus'
+			]);
 
 			const tasks = retrieveCycleTotalTasks(sprint);
+
+			console.log(tasks.map((i) => i));
 
 			const {
 				backlogIssues,
@@ -534,7 +552,7 @@ export class CyclesService extends ApiFetchService {
 				unstarted_issues: unstartedIssues
 			};
 		} catch (error: any) {
-			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}

@@ -17,34 +17,34 @@ import { deslugify } from '../../utils';
 export function getTaskCounts(tasks: ITask[]) {
 	const completedIssues = tasks?.filter(
 		(task) =>
-			task.status?.toLocaleLowerCase() ===
+			task?.status?.toLocaleLowerCase() ===
 				TaskStatusEnum.DONE.toLocaleLowerCase() ||
-			task.status?.toLocaleLowerCase() ===
+			task?.status?.toLocaleLowerCase() ===
 				TaskStatusEnum.COMPLETED.toLocaleLowerCase()
 	).length;
 
 	const startedIssues = tasks?.filter(
 		(task) =>
-			task.status ===
+			task?.status ===
 				deslugify(TaskStatusEnum.IN_PROGRESS.toLocaleLowerCase()) ||
-			task.status ===
+			task?.status ===
 				deslugify(
 					TaskStatusEnum.READY_FOR_REVIEW.toLocaleLowerCase()
 				) ||
-			task.status ===
+			task?.status ===
 				deslugify(TaskStatusEnum.IN_REVIEW.toLocaleLowerCase()) ||
-			task.status === TaskStatusEnum.BLOCKED.toLocaleLowerCase()
+			task?.status === TaskStatusEnum.BLOCKED.toLocaleLowerCase()
 	).length;
 
 	const unstartedIssues = tasks?.filter(
 		(task) =>
-			task.status?.toLocaleLowerCase() ===
+			task?.status?.toLocaleLowerCase() ===
 			TaskStatusEnum.OPEN.toLocaleLowerCase()
 	).length;
 
 	const backlogIssues = tasks?.filter(
 		(task) =>
-			task.status?.toLocaleLowerCase() ===
+			task?.status?.toLocaleLowerCase() ===
 			TaskStatusEnum.BACKLOG.toLocaleLowerCase()
 	).length;
 

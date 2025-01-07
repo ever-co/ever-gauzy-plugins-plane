@@ -14,6 +14,7 @@ import {
 	ICycle,
 	ICycleAnalytics,
 	ICycleIssuesResponse,
+	ICycleProgress,
 	ID
 } from '@plane-plugin/models';
 import { CyclesService } from './cycles.service';
@@ -136,6 +137,16 @@ export class CyclesController {
 		return this._cycleService.findCycleIssues(id, projectId);
 	}
 
+	/**
+	 * Retrieves analytics data for a specific cycle within a project.
+	 *
+	 * This function fetches the cycle/sprint data along with its associated tasks and task histories.
+	 * It analyzes tasks to provide statistics about task completion, assignments, and labels.
+	 *
+	 * @param {ID} id - The ID of the cycle to analyze
+	 * @param {ID} projectId - The ID of the project containing the cycle
+	 * @returns {Promise<any>} A promise that resolves to the cycle analytics data.
+	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Cycle Issues' })
 	@Get(':id/analytics')
@@ -144,6 +155,25 @@ export class CyclesController {
 		@Param('projectId') projectId: ID
 	): Promise<ICycleAnalytics> {
 		return this._cycleService.findCycleAnalytics(id, projectId);
+	}
+
+	/**
+	 * Retrieves the progress of a specific cycle within a project, including task counts
+	 * and estimation points for various statuses (e.g., backlog, started, completed).
+	 *
+	 * @param {ID} id - The unique identifier of the cycle to retrieve progress for.
+	 * @param {ID} projectId - The unique identifier of the project the cycle belongs to.
+	 * @returns {Promise<ICycleProgress>} - A promise that resolves to an object containing
+	 *   detailed cycle progress, including task counts and estimation points.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Cycle Issues' })
+	@Get(':id/progress')
+	async getCycleProgress(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	): Promise<ICycleProgress> {
+		return this._cycleService.getCycleProgress(id, projectId);
 	}
 
 	@HttpCode(HttpStatus.OK)

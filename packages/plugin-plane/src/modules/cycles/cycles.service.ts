@@ -11,7 +11,9 @@ import {
 	BaseEntityEnum,
 	EmployeeSettingTypeEnum,
 	ICycle,
+	ICycleAnalytics,
 	ICycleIssuesResponse,
+	ICycleProgress,
 	ID,
 	IOrganizationSprint,
 	IPagination,
@@ -27,6 +29,7 @@ import {
 	defaultEmployeeId,
 	employeeSettingSerializer,
 	getSprintsQuery,
+	getTaskCounts,
 	issueTransformer,
 	MEMBER_DEFAULT_VIEW_PROPS,
 	updateCycleInputTransformer
@@ -495,7 +498,10 @@ export class CyclesService extends ApiFetchService {
 	 *   - Label distribution
 	 * @throws {BadRequestException} If there is an error fetching or processing the data
 	 */
-	async findCycleAnalytics(cycleId: ID, projectId: ID): Promise<any> {
+	async findCycleAnalytics(
+		cycleId: ID,
+		projectId: ID
+	): Promise<ICycleAnalytics> {
 		try {
 			const sprint = await this.getExternalSprint(cycleId, projectId, [
 				...cycleRelations,
@@ -511,6 +517,65 @@ export class CyclesService extends ApiFetchService {
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	async getCycleProgress(
+		cycleId: ID,
+		projectId: ID
+	): Promise<ICycleProgress> {
+		try {
+			const sprint = await this.getExternalSprint(cycleId, projectId);
+
+			// Get the current sprint tasks from the cycle's toSprintTaskHistories
+			const currentTasks = sprint.toSprintTaskHistories
+				.filter((history) => history?.task) // Ensure task exists
+				.map((history) => history.task); // Transform tasks
+
+			// Get the previous sprint tasks from the sprint's fromSprintTaskHistories
+			const previousTasks = sprint.fromSprintTaskHistories
+				.filter((history) => history?.task) // Ensure task exists
+				.map((history) => history.task); // Transform tasks
+
+			// Combine both current and previous tasks, ensuring uniqueness based on task ID
+			const allIssues = Array.from(
+				new Set(
+					[...currentTasks, ...previousTasks, ...sprint.tasks].map(
+						(task) => task.id
+					)
+				)
+			).map((taskId) => {
+				// Find the task from either the current or previous tasks list
+				return (
+					currentTasks.find((task) => task.id === taskId) ||
+					previousTasks.find((task) => task.id === taskId)
+				);
+			});
+
+			const {
+				backlogIssues,
+				startedIssues,
+				completedIssues,
+				unstartedIssues
+			} = getTaskCounts(allIssues);
+
+			return {
+				backlog_estimate_points: 0,
+				unstarted_estimate_points: 0,
+				started_estimate_points: 0,
+				cancelled_estimate_points: 0,
+				completed_estimate_points: 0,
+				total_estimate_points: 0.0,
+				backlog_issues: backlogIssues,
+				total_issues: allIssues.length,
+				completed_issues: completedIssues,
+				cancelled_issues: 0,
+				started_issues: startedIssues,
+				unstarted_issues: unstartedIssues
+			};
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error);
 		}
 	}
 }

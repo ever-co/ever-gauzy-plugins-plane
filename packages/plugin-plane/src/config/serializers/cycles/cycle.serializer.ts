@@ -8,6 +8,7 @@ import {
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
 	IOrganizationSprintUpdateInput,
+	ITask,
 	OrganizationSprintStatusEnum,
 	TaskStatusEnum
 } from '@plane-plugin/models';
@@ -311,6 +312,48 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 		extra_stats: null,
 		results: issues
 	};
+}
+
+/**
+ * Retrieves the total list of unique tasks associated with a given sprint,
+ * including tasks from the current sprint, previous sprint histories, and
+ * the sprint's directly associated tasks.
+ *
+ * @param {IOrganizationSprint} sprint - The sprint object containing task histories and tasks.
+ * @returns {ITask[]} - An array of unique tasks associated with the sprint.
+ *
+ * @remarks
+ * - The function extracts tasks from the `toSprintTaskHistories` (current sprint tasks),
+ *   `fromSprintTaskHistories` (previous sprint tasks), and `tasks` (directly associated tasks).
+ * - Tasks are deduplicated based on their `id` property to ensure uniqueness.
+ * - If a task exists in multiple sources, the task from `currentTasks` is prioritized
+ *   over `previousTasks`.
+ */
+export function retrieveCycleTotalTasks(sprint: IOrganizationSprint): ITask[] {
+	// Get the current sprint tasks from the sprint's toSprintTaskHistories
+	const currentTasks = sprint.toSprintTaskHistories
+		.filter((history) => history?.task) // Ensure task exists
+		.map((history) => history.task); // Transform tasks
+
+	// Get the previous sprint tasks from the sprint's fromSprintTaskHistories
+	const previousTasks = sprint.fromSprintTaskHistories
+		.filter((history) => history?.task) // Ensure task exists
+		.map((history) => history.task); // Transform tasks
+
+	// Combine both current and previous tasks, ensuring uniqueness based on task ID
+	return Array.from(
+		new Set(
+			[...currentTasks, ...previousTasks, ...sprint.tasks].map(
+				(task) => task.id
+			)
+		)
+	).map((taskId) => {
+		// Find the task from either the current or previous tasks list
+		return (
+			currentTasks.find((task) => task.id === taskId) ||
+			previousTasks.find((task) => task.id === taskId)
+		);
+	});
 }
 
 /**

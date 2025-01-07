@@ -10,7 +10,12 @@ import {
 	Patch,
 	Post
 } from '@nestjs/common';
-import { ICycle, ICycleIssuesResponse, ID } from '@plane-plugin/models';
+import {
+	ICycle,
+	ICycleAnalytics,
+	ICycleIssuesResponse,
+	ID
+} from '@plane-plugin/models';
 import { CyclesService } from './cycles.service';
 import { CycleDTO } from './dto';
 
@@ -137,7 +142,7 @@ export class CyclesController {
 	async findCycleAnalytics(
 		@Param('id') id: ID,
 		@Param('projectId') projectId: ID
-	): Promise<ICycleIssuesResponse> {
+	): Promise<ICycleAnalytics> {
 		return this._cycleService.findCycleAnalytics(id, projectId);
 	}
 

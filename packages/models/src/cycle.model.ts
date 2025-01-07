@@ -67,3 +67,18 @@ export interface ICycleAnalytics {
 	}[];
 	completion_chart: Record<string, number>;
 }
+
+export interface ICycleProgress {
+	backlog_estimate_points: number;
+	unstarted_estimate_points: number;
+	started_estimate_points: number;
+	cancelled_estimate_points: number;
+	completed_estimate_points: number;
+	total_estimate_points: number;
+	backlog_issues: number;
+	total_issues: number;
+	completed_issues: number;
+	cancelled_issues: number;
+	started_issues: number;
+	unstarted_issues: number;
+}

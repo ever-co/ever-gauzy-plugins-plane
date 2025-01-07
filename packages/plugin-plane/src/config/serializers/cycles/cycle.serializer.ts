@@ -7,7 +7,9 @@ import {
 	IOrganizationSprint,
 	IOrganizationSprintCreateInput,
 	IOrganizationSprintUpdateInput,
-	OrganizationSprintStatusEnum
+	ITask,
+	OrganizationSprintStatusEnum,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import moment from 'moment';
 import { defaultEmployeeId, defaultOrganizationId } from '../../credentials';
@@ -229,7 +231,7 @@ export function cycleTransformer(
 					: sprint.tasks?.length,
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
-			owned_by_id: sprint.members?.find((member) => member.roleId).id,
+			owned_by_id: sprint.members?.find((member) => member.roleId)?.id,
 			created_by: defaultEmployeeId(), // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
 			workspace_id: sprint.tenantId,
@@ -248,7 +250,7 @@ export function cycleTransformer(
 	return transformCycle(sprints);
 }
 
-const cycleRelations = [
+export const cycleRelations = [
 	'project',
 	'toSprintTaskHistories',
 	'toSprintTaskHistories.task',
@@ -309,4 +311,42 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 		extra_stats: null,
 		results: issues
 	};
+}
+
+/**
+ * Generates a chart showing the number of incomplete tasks over time for a cycle/sprint.
+ *
+ * For each day between the start and end dates, calculates how many tasks were still incomplete
+ * on that day. A task is considered incomplete if:
+ * - Its status is not 'Completed' or 'Done', or
+ * - Its resolvedAt date is after the current day being calculated
+ *
+ * @param {Date} startDate - The start date of the cycle/sprint
+ * @param {Date} endDate - The end date of the cycle/sprint
+ * @param {ITask[]} issues - Array of tasks/issues to analyze
+ * @returns {Record<string, number>} An object mapping dates (YYYY-MM-DD) to number of incomplete tasks
+ */
+
+export function generateCompletionChart(
+	startDate: Date,
+	endDate: Date,
+	issues: ITask[]
+): Record<string, number> {
+	const chart: Record<string, number> = {};
+	const start = moment(startDate);
+	const end = moment(endDate);
+	const current = start.clone();
+
+	while (current.isSameOrBefore(end)) {
+		const dateStr = current.format('YYYY-MM-DD');
+		chart[dateStr] = issues.filter(
+			(task) =>
+				![TaskStatusEnum.COMPLETED, TaskStatusEnum.DONE].includes(
+					task?.taskStatus.name as TaskStatusEnum
+				) || moment(task.resolvedAt).isAfter(current)
+		).length;
+		current.add(1, 'day');
+	}
+
+	return chart;
 }

@@ -132,6 +132,16 @@ export class CyclesController {
 	}
 
 	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Cycle Issues' })
+	@Get(':id/analytics')
+	async findCycleAnalytics(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	): Promise<ICycleIssuesResponse> {
+		return this._cycleService.findCycleAnalytics(id, projectId);
+	}
+
+	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get Cycle User properties' })
 	@Get(':id/user-properties')
 	async findCycleUserProperties(@Param('id') id: ID): Promise<any> {

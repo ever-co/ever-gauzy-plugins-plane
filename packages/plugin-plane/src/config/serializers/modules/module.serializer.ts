@@ -213,7 +213,7 @@ export function createModuleInputTransformer(
 		startDate: module.start_date,
 		endDate: module.target_date,
 		memberIds: (module.member_ids ?? []).map((id) => id),
-		managerIds: [managerId],
+		managerIds: managerId ? [managerId] : [],
 		projectId: module.project_id,
 		tenantId: defaultTestTenantId(),
 		organizationId: defaultOrganizationId()

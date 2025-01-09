@@ -508,7 +508,7 @@ export class IssuesService extends ApiFetchService {
 			}
 
 			// Filter tasks by state criteria
-			if (priority) {
+			if (state) {
 				const states = issueFilterSplitter(state);
 				issues = filterIssuesByStatusIds(issues, states);
 			}

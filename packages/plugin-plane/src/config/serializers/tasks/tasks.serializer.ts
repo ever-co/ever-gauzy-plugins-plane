@@ -460,7 +460,7 @@ export const getTaskQuery = (
 		query['where[modules][0]'] = options.module;
 	}
 
-	if (options?.cycle) {
+	if (options?.cycle && !options.cycle.includes(',')) {
 		query['where[organizationSprintId]'] = options.cycle;
 	}
 
@@ -541,6 +541,22 @@ export function filterIssuesByAssigneeIds(
 		return taskAssigneess.some((assignee) =>
 			assigneeIds.includes(assignee.id)
 		);
+	});
+}
+
+/**
+ * Filters an array of tasks based on their cycle IDs.
+ *
+ * @param {ITask[]} tasks - The array of tasks to filter.
+ * @param {string[]} cycleIds - The list of cycle IDs to include in the filtered result.
+ * @returns {ITask[]} An array of tasks that have a `organizationSprintId` matching one of the specified `cycleIds`.
+ */
+export function filterIssuesByCyclesIds(
+	tasks: ITask[],
+	cycleIds: ID[]
+): ITask[] {
+	return tasks.filter((task) => {
+		return cycleIds.includes(task.organizationSprintId);
 	});
 }
 

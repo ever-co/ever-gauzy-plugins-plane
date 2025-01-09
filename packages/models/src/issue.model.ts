@@ -68,7 +68,7 @@ export interface IIssueFindInput {
 	creatorId?: ID;
 	created_by?: ID;
 	assignees?: ID;
-	priotity?: string;
+	priority?: string;
 	subscriber?: ID;
 	module_ids?: ID[];
 }

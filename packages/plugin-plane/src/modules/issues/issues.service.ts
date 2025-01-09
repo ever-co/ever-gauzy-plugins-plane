@@ -44,6 +44,7 @@ import {
 	extractViewIdFromReferer,
 	extractWorkspaceViewIdFromReferer,
 	filterIssuesByAssigneeIds,
+	filterIssuesByCyclesIds,
 	filterIssuesByPriorityNames,
 	filterIssuesByStatusIds,
 	getFilteredByDatesTaskQuery,
@@ -475,7 +476,8 @@ export class IssuesService extends ApiFetchService {
 				extractWorkspaceViewIdFromReferer(referer);
 
 			// Destructure options for group_by and module if provided
-			const { assignees, group_by, module, priority, state } = options;
+			const { assignees, cycle, group_by, module, priority, state } =
+				options;
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
@@ -518,6 +520,12 @@ export class IssuesService extends ApiFetchService {
 			if (assignees) {
 				const members = issueFilterSplitter(assignees);
 				issues = filterIssuesByAssigneeIds(issues, members);
+			}
+
+			// Filter tasks by cycle criteria
+			if (cycle && cycle.includes(',')) {
+				const cycles = issueFilterSplitter(cycle);
+				issues = filterIssuesByCyclesIds(issues, cycles);
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default

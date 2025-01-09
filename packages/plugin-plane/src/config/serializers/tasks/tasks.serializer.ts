@@ -518,10 +518,29 @@ export function filterIssuesByPriorityNames(
  */
 export function filterIssuesByStatusIds(
 	tasks: ITask[],
-	statusIds: string[]
+	statusIds: ID[]
 ): ITask[] {
 	return tasks.filter((task) => {
 		return statusIds.includes(task.taskStatusId);
+	});
+}
+
+/**
+ * Filters an array of tasks based on the IDs of assigned members.
+ *
+ * @param {ITask[]} tasks - The array of tasks to filter.
+ * @param {ID[]} assigneeIds - The list of assignee IDs to include in the filtered result.
+ * @returns {ITask[]} An array of tasks where at least one member's ID matches one of the specified `assigneeIds`.
+ */
+export function filterIssuesByAssigneeIds(
+	tasks: ITask[],
+	assigneeIds: ID[]
+): ITask[] {
+	return tasks.filter((task) => {
+		const taskAssigneess = task.members ?? [];
+		return taskAssigneess.some((assignee) =>
+			assigneeIds.includes(assignee.id)
+		);
 	});
 }
 

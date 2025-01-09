@@ -67,7 +67,7 @@ export interface IIssueFindInput {
 	sub_issue?: boolean;
 	creatorId?: ID;
 	created_by?: ID;
-	assignees?: ID;
+	assignees?: string;
 	priority?: string;
 	state?: string;
 	subscriber?: ID;

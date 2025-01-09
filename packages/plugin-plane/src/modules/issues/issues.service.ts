@@ -44,6 +44,7 @@ import {
 	extractViewIdFromReferer,
 	extractWorkspaceViewIdFromReferer,
 	filterIssuesByPriorityNames,
+	filterIssuesByStatusIds,
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
@@ -473,7 +474,7 @@ export class IssuesService extends ApiFetchService {
 				extractWorkspaceViewIdFromReferer(referer);
 
 			// Destructure options for group_by and module if provided
-			const { group_by, module, priority } = options;
+			const { group_by, module, priority, state } = options;
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
@@ -500,10 +501,16 @@ export class IssuesService extends ApiFetchService {
 			// Extract the issues from the API response
 			let issues = tasks.items;
 
-			// Filter tasks by criteria
+			// Filter tasks by priority criteria
 			if (priority) {
 				const priorities = issueFilterSplitter(priority);
 				issues = filterIssuesByPriorityNames(issues, priorities);
+			}
+
+			// Filter tasks by state criteria
+			if (state) {
+				const states = issueFilterSplitter(state);
+				issues = filterIssuesByStatusIds(issues, states);
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default

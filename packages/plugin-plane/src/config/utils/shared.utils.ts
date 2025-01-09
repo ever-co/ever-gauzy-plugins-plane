@@ -81,3 +81,17 @@ export function extractEmployeeMentionIds(commentHtml: string): ID[] {
 		return [];
 	}
 }
+
+/**
+ * Splits a string into an array of substrings based on a specified separator.
+ *
+ * @param {string} criteria - The string to be split.
+ * @param {string} [separator=','] - The character or pattern to use as the separator (default is a comma).
+ * @returns {string[]} An array of substrings obtained by splitting the input string.
+ */
+export function issueFilterSplitter(
+	criteria: string,
+	separator = ','
+): string[] {
+	return criteria.split(separator);
+}

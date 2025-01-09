@@ -492,9 +492,26 @@ export const getTaskQuery = (
 	return query;
 };
 
-export const getFilteredByDatesTaskQuery = (
+/**
+ * Filters a list of tasks to include only those with specified priority names.
+ *
+ * @param {ITask[]} tasks - The list of tasks to filter.
+ * @param {string[]} priorities - The priority names to include in the result.
+ * @returns {ITask[]} A filtered array of tasks matching the specified priorities.
+ */
+export function filterIssuesByPriorityNames(
+	tasks: ITask[],
+	priorities: string[]
+): ITask[] {
+	return tasks.filter((task) => {
+		const taskPriority = task.priority ?? 'none';
+		return priorities.includes(taskPriority);
+	});
+}
+
+export function getFilteredByDatesTaskQuery(
 	options: ITaskDateFilterInput
-): Record<string, any> => {
+): Record<string, any> {
 	// Base queries
 	const query: Record<string, any> = {
 		organizationId: defaultOrganizationId(),
@@ -515,7 +532,7 @@ export const getFilteredByDatesTaskQuery = (
 	}
 
 	return query;
-};
+}
 
 export function createIssueInputTransformer(
 	issue: IIssueCreateInput,

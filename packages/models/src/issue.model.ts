@@ -69,6 +69,7 @@ export interface IIssueFindInput {
 	created_by?: ID;
 	assignees?: ID;
 	priority?: string;
+	state?: string;
 	subscriber?: ID;
 	module_ids?: ID[];
 }

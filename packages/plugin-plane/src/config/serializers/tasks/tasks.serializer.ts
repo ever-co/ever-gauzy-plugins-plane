@@ -509,6 +509,22 @@ export function filterIssuesByPriorityNames(
 	});
 }
 
+/**
+ * Filters an array of tasks based on their status IDs.
+ *
+ * @param {ITask[]} tasks - The array of tasks to filter.
+ * @param {string[]} statusIds - The list of status IDs to include in the filtered result.
+ * @returns {ITask[]} An array of tasks that have a `taskStatusId` matching one of the specified `statusIds`.
+ */
+export function filterIssuesByStatusIds(
+	tasks: ITask[],
+	statusIds: string[]
+): ITask[] {
+	return tasks.filter((task) => {
+		return statusIds.includes(task.taskStatusId);
+	});
+}
+
 export function getFilteredByDatesTaskQuery(
 	options: ITaskDateFilterInput
 ): Record<string, any> {

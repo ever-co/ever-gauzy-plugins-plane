@@ -45,6 +45,7 @@ import {
 	extractWorkspaceViewIdFromReferer,
 	filterIssuesByAssigneeIds,
 	filterIssuesByCyclesIds,
+	filterIssuesByModuleIds,
 	filterIssuesByPriorityNames,
 	filterIssuesByStatusIds,
 	getFilteredByDatesTaskQuery,
@@ -486,7 +487,7 @@ export class IssuesService extends ApiFetchService {
 
 			let path = '';
 			// If a module is specified, modify the path accordingly
-			if (module) {
+			if (module && !module.includes(',')) {
 				path = 'module';
 			}
 
@@ -526,6 +527,12 @@ export class IssuesService extends ApiFetchService {
 			if (cycle && cycle.includes(',')) {
 				const cycles = issueFilterSplitter(cycle);
 				issues = filterIssuesByCyclesIds(issues, cycles);
+			}
+
+			// Filter tasks by modules criteria
+			if (module && module.includes(',')) {
+				const modules = issueFilterSplitter(module);
+				issues = filterIssuesByModuleIds(issues, modules);
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default

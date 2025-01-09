@@ -455,7 +455,7 @@ export const getTaskQuery = (
 		query['where[projectId]'] = projectId;
 	}
 
-	if (options?.module) {
+	if (options?.module && !options.module.includes(',')) {
 		query['join[alias]'] = 'task';
 		query['where[modules][0]'] = options.module;
 	}
@@ -557,6 +557,23 @@ export function filterIssuesByCyclesIds(
 ): ITask[] {
 	return tasks.filter((task) => {
 		return cycleIds.includes(task.organizationSprintId);
+	});
+}
+
+/**
+ * Filters an array of tasks based on the IDs of modules.
+ *
+ * @param {ITask[]} tasks - The array of tasks to filter.
+ * @param {ID[]} moduleIds - The list of module IDs to include in the filtered result.
+ * @returns {ITask[]} An array of tasks where at least one module's ID matches one of the specified `moduleIds`.
+ */
+export function filterIssuesByModuleIds(
+	tasks: ITask[],
+	moduleIds: ID[]
+): ITask[] {
+	return tasks.filter((task) => {
+		const taskModules = task.modules ?? [];
+		return taskModules.some((module) => moduleIds.includes(module.id));
 	});
 }
 

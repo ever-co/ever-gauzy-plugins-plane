@@ -504,7 +504,8 @@ export function filterIssuesByPriorityNames(
 	priorities: string[]
 ): ITask[] {
 	return tasks.filter((task) => {
-		return priorities.includes(task.priority);
+		const taskPriority = task.priority ?? 'none';
+		return priorities.includes(taskPriority);
 	});
 }
 

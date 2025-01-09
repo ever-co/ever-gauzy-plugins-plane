@@ -503,7 +503,6 @@ export class IssuesService extends ApiFetchService {
 			// Filter tasks by criteria
 			if (priority) {
 				const priorities = issueFilterSplitter(priority);
-				console.log({ priorities });
 				issues = filterIssuesByPriorityNames(issues, priorities);
 			}
 

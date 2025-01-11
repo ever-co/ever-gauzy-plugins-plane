@@ -501,7 +501,7 @@ export class IssuesService extends ApiFetchService {
 			// Extract the issues from the API response
 			let issues = tasks.items;
 
-			// Optionsl filter tasks by priority criteria
+			// Optional filter tasks by priority criteria
 			if (priority) {
 				const priorities = issueFilterSplitter(priority);
 				issues = filterIssuesByPriorityNames(issues, priorities);

@@ -43,11 +43,7 @@ import {
 	defaultUserId,
 	extractViewIdFromReferer,
 	extractWorkspaceViewIdFromReferer,
-	filterIssuesByAssigneeIds,
-	filterIssuesByCyclesIds,
-	filterIssuesByModuleIds,
 	filterIssuesByPriorityNames,
-	filterIssuesByStatusIds,
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
@@ -511,29 +507,29 @@ export class IssuesService extends ApiFetchService {
 				issues = filterIssuesByPriorityNames(issues, priorities);
 			}
 
-			// Filter tasks by state criteria
-			if (state) {
-				const states = issueFilterSplitter(state);
-				issues = filterIssuesByStatusIds(issues, states);
-			}
+			// // Filter tasks by state criteria
+			// if (state) {
+			// 	const states = issueFilterSplitter(state);
+			// 	issues = filterIssuesByStatusIds(issues, states);
+			// }
 
-			// Filter tasks by assignees criteria
-			if (assignees) {
-				const members = issueFilterSplitter(assignees);
-				issues = filterIssuesByAssigneeIds(issues, members);
-			}
+			// // Filter tasks by assignees criteria
+			// if (assignees) {
+			// 	const members = issueFilterSplitter(assignees);
+			// 	issues = filterIssuesByAssigneeIds(issues, members);
+			// }
 
-			// Filter tasks by cycle criteria
-			if (cycle && cycle.includes(',')) {
-				const cycles = issueFilterSplitter(cycle);
-				issues = filterIssuesByCyclesIds(issues, cycles);
-			}
+			// // Filter tasks by cycle criteria
+			// if (cycle && cycle.includes(',')) {
+			// 	const cycles = issueFilterSplitter(cycle);
+			// 	issues = filterIssuesByCyclesIds(issues, cycles);
+			// }
 
-			// Filter tasks by modules criteria
-			if (module && module.includes(',')) {
-				const modules = issueFilterSplitter(module);
-				issues = filterIssuesByModuleIds(issues, modules);
-			}
+			// // Filter tasks by modules criteria
+			// if (module && module.includes(',')) {
+			// 	const modules = issueFilterSplitter(module);
+			// 	issues = filterIssuesByModuleIds(issues, modules);
+			// }
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default
 			switch (group_by) {

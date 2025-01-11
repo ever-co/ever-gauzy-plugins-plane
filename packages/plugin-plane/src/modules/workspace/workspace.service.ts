@@ -50,6 +50,7 @@ import {
 	groupIssuesByProjectId,
 	groupIssuesByStateGroup,
 	issueActivityLogTransformer,
+	issueFilterSplitter,
 	issueLabelsTransformer,
 	issueLinkTransformer,
 	issuesByPriority,
@@ -909,7 +910,7 @@ export class WorkspaceService extends ApiFetchService {
 			if (assignees) {
 				assignedIssues =
 					await this._issueService.findExternalByEmployee(
-						assignees,
+						issueFilterSplitter(assignees)[0],
 						relations,
 						order_by
 					);

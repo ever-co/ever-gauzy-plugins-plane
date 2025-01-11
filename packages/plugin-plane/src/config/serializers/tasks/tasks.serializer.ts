@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {
 	ICompletedIssuesDistribution,
 	ID,
@@ -598,6 +599,60 @@ export function filterIssuesByActiveType(
 		activeStatuses.includes(task?.status?.toLocaleLowerCase() ?? '')
 	);
 }
+
+/**
+ * Filters tasks based on specified date criteria.
+ *
+ * @param tasks - The list of tasks to filter.
+ * @param criteria - A string representing the filter criteria, e.g.,
+ * "2_weeks;after;fromnow,2025-01-14;after,2025-01-24;before".
+ * The criteria can include relative dates (`fromnow`) and absolute date ranges (`after` and `before`).
+ * @returns - A list of tasks matching the criteria.
+ */
+export const filterTasksByCriteria = (
+	tasks: ITask[],
+	dateField: 'startDate' | 'dueDate',
+	criteria: string
+): ITask[] => {
+	// Split the criteria string into individual filters
+	const filters = criteria.split(',');
+
+	// Array to store filtering conditions
+	const conditions: ((task: ITask) => boolean)[] = [];
+
+	filters.forEach((filter) => {
+		// Parse each filter into its components: amount, unit, and condition
+		const [amount, unit, condition] = filter.split(';');
+
+		if (condition === 'fromnow') {
+			// Handles relative dates (e.g., "2_weeks;after;fromnow")
+			const date = moment().add(
+				parseInt(amount, 10),
+				unit as moment.unitOfTime.DurationConstructor
+			);
+			if (unit && amount) {
+				// Add a condition to include tasks starting on or after the calculated date
+				conditions.push((task) =>
+					moment(task[dateField]).isSameOrAfter(date)
+				);
+			}
+		} else if (condition === 'after') {
+			// Handles tasks starting after a specific date (e.g., "2025-01-14;after")
+			const date = moment(amount);
+			conditions.push((task) => moment(task[dateField]).isAfter(date));
+		} else if (condition === 'before') {
+			// Handles tasks starting before a specific date (e.g., "2025-01-24;before")
+			const date = moment(amount);
+			conditions.push((task) => moment(task[dateField]).isBefore(date));
+		}
+	});
+
+	// Filter tasks based on the combined conditions
+	return tasks.filter((task) =>
+		// A task is included if it satisfies at least one condition
+		conditions.some((condition) => condition(task))
+	);
+};
 
 export function getFilteredByDatesTaskQuery(
 	options: ITaskDateFilterInput

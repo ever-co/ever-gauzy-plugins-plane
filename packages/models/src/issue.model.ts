@@ -70,9 +70,15 @@ export interface IIssueFindInput {
 	assignees?: string;
 	priority?: string;
 	state?: string;
+	type?: IssueFindByTypeEnum;
 	subscriber?: string;
 	labels?: string;
 	module_ids?: ID[];
+}
+
+export enum IssueFindByTypeEnum {
+	ACTIVE = 'active',
+	BACKLOG = 'backlog'
 }
 
 export enum IssueGroupBy {

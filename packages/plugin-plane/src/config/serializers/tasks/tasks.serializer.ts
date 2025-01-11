@@ -10,6 +10,7 @@ import {
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
 	IReactionData,
+	IssueFindByTypeEnum,
 	IssueOrderByField,
 	ITag,
 	ITask,
@@ -24,6 +25,7 @@ import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
 import {
+	deslugify,
 	issueFilterSplitter,
 	orderByDirection,
 	orderByFieldTransformer
@@ -564,6 +566,37 @@ export function filterIssuesByPriorityNames(
 		const taskPriority = task.priority ?? 'none';
 		return priorities.includes(taskPriority);
 	});
+}
+
+/**
+ * Filters tasks based on the specified issue type.
+ *
+ * @param {ITask[]} tasks - The list of tasks to filter.
+ * @param {IssueFindByTypeEnum} type - The issue type to filter by (e.g., BACKLOG, ACTIVE).
+ * @returns {ITask[]} The filtered list of tasks matching the issue type.
+ */
+export function filterIssuesByActiveType(
+	tasks: ITask[],
+	type: IssueFindByTypeEnum
+): ITask[] {
+	const statusFilters: Record<IssueFindByTypeEnum, string[]> = {
+		[IssueFindByTypeEnum.BACKLOG]: [
+			TaskStatusEnum.BACKLOG.toLocaleLowerCase()
+		],
+		[IssueFindByTypeEnum.ACTIVE]: [
+			deslugify(TaskStatusEnum.IN_PROGRESS).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.READY_FOR_REVIEW).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.IN_REVIEW).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.BLOCKED).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.OPEN).toLocaleLowerCase()
+		]
+	};
+
+	const activeStatuses = statusFilters[type];
+
+	return tasks.filter((task) =>
+		activeStatuses.includes(task?.status?.toLocaleLowerCase() ?? '')
+	);
 }
 
 export function getFilteredByDatesTaskQuery(

@@ -71,6 +71,8 @@ export interface IIssueFindInput {
 	priority?: string;
 	state?: string;
 	type?: IssueFindByTypeEnum;
+	start_date?: string;
+	target_date?: string;
 	subscriber?: string;
 	labels?: string;
 	module_ids?: ID[];

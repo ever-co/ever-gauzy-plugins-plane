@@ -609,11 +609,11 @@ export function filterIssuesByActiveType(
  * The criteria can include relative dates (`fromnow`) and absolute date ranges (`after` and `before`).
  * @returns - A list of tasks matching the criteria.
  */
-export const filterTasksByCriteria = (
+export function filterTasksByDateCriteria(
 	tasks: ITask[],
 	dateField: 'startDate' | 'dueDate',
 	criteria: string
-): ITask[] => {
+): ITask[] {
 	// Split the criteria string into individual filters
 	const filters = criteria.split(',');
 
@@ -621,15 +621,30 @@ export const filterTasksByCriteria = (
 	const conditions: ((task: ITask) => boolean)[] = [];
 
 	filters.forEach((filter) => {
-		// Parse each filter into its components: amount, unit, and condition
-		const [amount, unit, condition] = filter.split(';');
+		// Split the filter into its components
+		const parts = filter.split(';');
+		let amount: any, unit: any, condition: string;
 
+		if (parts.length === 3) {
+			// Case where we have a relative filter (e.g., "2_weeks;after;fromnow")
+			[amount, unit, condition] = parts;
+		} else if (parts.length === 2) {
+			// Case where we have a specific date filter (e.g., "2025-01-14;after")
+			[amount, condition] = parts;
+		} else {
+			// Invalid filter format (you can throw an error or handle this case)
+			return;
+		}
+
+		// Handling the different conditions
 		if (condition === 'fromnow') {
 			// Handles relative dates (e.g., "2_weeks;after;fromnow")
-			const date = moment().add(
-				parseInt(amount, 10),
-				unit as moment.unitOfTime.DurationConstructor
-			);
+			const date = moment()
+				.add(
+					parseInt(amount, 10),
+					unit as moment.unitOfTime.DurationConstructor
+				)
+				.startOf('day'); // Ensuring the date comparison is from the start of the day
 			if (unit && amount) {
 				// Add a condition to include tasks starting on or after the calculated date
 				conditions.push((task) =>
@@ -638,11 +653,11 @@ export const filterTasksByCriteria = (
 			}
 		} else if (condition === 'after') {
 			// Handles tasks starting after a specific date (e.g., "2025-01-14;after")
-			const date = moment(amount);
+			const date = moment(amount).startOf('day'); // Start of the day for accurate comparison
 			conditions.push((task) => moment(task[dateField]).isAfter(date));
 		} else if (condition === 'before') {
 			// Handles tasks starting before a specific date (e.g., "2025-01-24;before")
-			const date = moment(amount);
+			const date = moment(amount).startOf('day'); // Start of the day for accurate comparison
 			conditions.push((task) => moment(task[dateField]).isBefore(date));
 		}
 	});
@@ -652,7 +667,7 @@ export const filterTasksByCriteria = (
 		// A task is included if it satisfies at least one condition
 		conditions.some((condition) => condition(task))
 	);
-};
+}
 
 export function getFilteredByDatesTaskQuery(
 	options: ITaskDateFilterInput

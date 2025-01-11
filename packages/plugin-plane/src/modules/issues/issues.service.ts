@@ -45,6 +45,7 @@ import {
 	extractWorkspaceViewIdFromReferer,
 	filterIssuesByActiveType,
 	filterIssuesByPriorityNames,
+	filterTasksByDateCriteria,
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
@@ -475,7 +476,14 @@ export class IssuesService extends ApiFetchService {
 				extractWorkspaceViewIdFromReferer(referer);
 
 			// Destructure options for group_by and module if provided
-			const { group_by, module, priority, type } = options;
+			const {
+				group_by,
+				module,
+				priority,
+				start_date,
+				target_date,
+				type
+			} = options;
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
@@ -511,6 +519,24 @@ export class IssuesService extends ApiFetchService {
 			// Optional filter tasks by type (Active or Backlog)
 			if (type) {
 				issues = filterIssuesByActiveType(issues, type);
+			}
+
+			// Optional filter tasks by start_date string
+			if (start_date) {
+				issues = filterTasksByDateCriteria(
+					issues,
+					'startDate',
+					start_date
+				);
+			}
+
+			// Optional filter tasks by start_date string
+			if (target_date) {
+				issues = filterTasksByDateCriteria(
+					issues,
+					'dueDate',
+					target_date
+				);
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default

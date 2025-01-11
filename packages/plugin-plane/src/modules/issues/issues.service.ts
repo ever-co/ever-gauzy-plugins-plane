@@ -105,7 +105,7 @@ export class IssuesService extends ApiFetchService {
 		isDraft?: boolean
 	): Promise<ITask> {
 		const query = qs.stringify(
-			getTaskQuery(null, null, relations, null, isDraft)
+			getTaskQuery(null, {}, relations, null, isDraft)
 		);
 		return (
 			await this.apiFetch({
@@ -165,7 +165,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Build query for task retrieval
 			const query = qs.stringify(
-				getTaskQuery(null, null, relations, orderByField, false)
+				getTaskQuery(null, {}, relations, orderByField, false)
 			);
 
 			// Fetch tasks for the authenticated employee
@@ -396,6 +396,7 @@ export class IssuesService extends ApiFetchService {
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
 			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}

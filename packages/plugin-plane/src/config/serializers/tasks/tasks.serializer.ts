@@ -23,7 +23,11 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
-import { orderByDirection, orderByFieldTransformer } from '../../utils';
+import {
+	issueFilterSplitter,
+	orderByDirection,
+	orderByFieldTransformer
+} from '../../utils';
 
 /**
  * Extracts the IDs of the assignees from a given issue.
@@ -451,20 +455,73 @@ export const getTaskQuery = (
 		...baseGetItemsWhereQuery()
 	};
 
+	const { assignees, created_by, creatorId, cycle, labels, module, state } =
+		options;
+
 	if (projectId) {
 		query['where[projectId]'] = projectId;
 	}
 
-	if (options?.module && !options.module.includes(',')) {
-		query['join[alias]'] = 'task';
-		query['where[modules][0]'] = options.module;
+	if (assignees && assignees.includes(',')) {
+		const members = issueFilterSplitter(assignees);
+		members.forEach((memberId, i) => {
+			query[`filters[members][${i}]`] = memberId;
+		});
 	}
 
-	if (options?.cycle && !options.cycle.includes(',')) {
-		query['where[organizationSprintId]'] = options.cycle;
+	if (created_by) {
+		if (!created_by.includes(',')) {
+			query['where[creatorId]'] = created_by;
+		} else {
+			const creators = issueFilterSplitter(created_by);
+			creators.forEach((creator, i) => {
+				query[`filters[creators][${i}]`] = creator;
+			});
+		}
 	}
 
-	if (options?.creatorId) {
+	if (module) {
+		if (!module.includes(',')) {
+			query['join[alias]'] = 'task';
+			query['where[modules][0]'] = options.module;
+		} else {
+			const modules = issueFilterSplitter(module);
+			modules.forEach((mod, i) => {
+				query[`filters[modules][${i}]`] = mod;
+			});
+		}
+	}
+
+	if (cycle) {
+		if (!cycle.includes(',')) {
+			query['where[organizationSprintId]'] = cycle;
+		} else {
+			const sprints = issueFilterSplitter(cycle);
+			sprints.forEach((sprint, i) => {
+				query[`filters[sprints][${i}]`] = sprint;
+			});
+		}
+	}
+
+	if (labels) {
+		const tags = issueFilterSplitter(labels);
+		tags.forEach((tag, i) => {
+			query[`filters[tags][${i}]`] = tag;
+		});
+	}
+
+	if (state) {
+		if (!state.includes(',')) {
+			query['where[taskStatusId]'] = state;
+		} else {
+			const statusIds = issueFilterSplitter(state);
+			statusIds.forEach((statusId, i) => {
+				query[`filters[statusIds][${i}]`] = statusId;
+			});
+		}
+	}
+
+	if (creatorId) {
 		query['where[creatorId]'] = options.creatorId;
 	}
 
@@ -506,74 +563,6 @@ export function filterIssuesByPriorityNames(
 	return tasks.filter((task) => {
 		const taskPriority = task.priority ?? 'none';
 		return priorities.includes(taskPriority);
-	});
-}
-
-/**
- * Filters an array of tasks based on their status IDs.
- *
- * @param {ITask[]} tasks - The array of tasks to filter.
- * @param {string[]} statusIds - The list of status IDs to include in the filtered result.
- * @returns {ITask[]} An array of tasks that have a `taskStatusId` matching one of the specified `statusIds`.
- */
-export function filterIssuesByStatusIds(
-	tasks: ITask[],
-	statusIds: ID[]
-): ITask[] {
-	return tasks.filter((task) => {
-		return statusIds.includes(task.taskStatusId);
-	});
-}
-
-/**
- * Filters an array of tasks based on the IDs of assigned members.
- *
- * @param {ITask[]} tasks - The array of tasks to filter.
- * @param {ID[]} assigneeIds - The list of assignee IDs to include in the filtered result.
- * @returns {ITask[]} An array of tasks where at least one member's ID matches one of the specified `assigneeIds`.
- */
-export function filterIssuesByAssigneeIds(
-	tasks: ITask[],
-	assigneeIds: ID[]
-): ITask[] {
-	return tasks.filter((task) => {
-		const taskAssigneess = task.members ?? [];
-		return taskAssigneess.some((assignee) =>
-			assigneeIds.includes(assignee.id)
-		);
-	});
-}
-
-/**
- * Filters an array of tasks based on their cycle IDs.
- *
- * @param {ITask[]} tasks - The array of tasks to filter.
- * @param {string[]} cycleIds - The list of cycle IDs to include in the filtered result.
- * @returns {ITask[]} An array of tasks that have a `organizationSprintId` matching one of the specified `cycleIds`.
- */
-export function filterIssuesByCyclesIds(
-	tasks: ITask[],
-	cycleIds: ID[]
-): ITask[] {
-	return tasks.filter((task) => {
-		return cycleIds.includes(task.organizationSprintId);
-	});
-}
-
-/**
- * Filters an array of tasks based on the IDs of modules.
- *
- * @param {ITask[]} tasks - The array of tasks to filter.
- * @param {ID[]} moduleIds - The list of module IDs to include in the filtered result.
- * @returns {ITask[]} An array of tasks where at least one module's ID matches one of the specified `moduleIds`.
- */
-export function filterIssuesByModuleIds(
-	tasks: ITask[],
-	moduleIds: ID[]
-): ITask[] {
-	return tasks.filter((task) => {
-		const taskModules = task.modules ?? [];
-		return taskModules.some((module) => moduleIds.includes(module.id));
 	});
 }
 

@@ -60,17 +60,18 @@ export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 export type IIssueUpdateInput = IIssue;
 
 export interface IIssueFindInput {
-	module?: ID;
-	cycle?: ID;
+	module?: string;
+	cycle?: string;
 	group_by?: IssueGroupBy;
 	order_by?: IssueOrderByField;
 	sub_issue?: boolean;
 	creatorId?: ID;
-	created_by?: ID;
+	created_by?: string;
 	assignees?: string;
 	priority?: string;
 	state?: string;
-	subscriber?: ID;
+	subscriber?: string;
+	labels?: string;
 	module_ids?: ID[];
 }
 

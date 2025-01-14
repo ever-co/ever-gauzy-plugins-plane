@@ -100,3 +100,11 @@ export interface IGlobalEntitiesResponse {
 		page: any[];
 	};
 }
+
+export interface IEntitySearchFindInput {
+	count?: number;
+	query_type?: string;
+	query?: any;
+	project_id?: ID;
+	issue_id?: ID;
+}

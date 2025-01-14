@@ -29,7 +29,8 @@ import {
 	EmployeeSettingTypeEnum,
 	IEmployeeSetting,
 	IGlobalEntitiesResponse,
-	IGlabalEntitiesFindInput
+	IGlabalEntitiesFindInput,
+	IEntitySearchFindInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -1231,6 +1232,13 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Filters entities based on a search term in a specified key.
+	 * @param searchTerm The term to search for.
+	 * @param entities The array of entities to filter.
+	 * @param key The key in each entity object where the search will be performed. Default is 'name'.
+	 * @returns Filtered array of entities.
+	 */
 	private filterByName(
 		searchTerm: string,
 		entities: any[],
@@ -1241,11 +1249,63 @@ export class WorkspaceService extends ApiFetchService {
 		);
 	}
 
+	/**
+	 * Performs an entity search based on the provided options.
+	 *
+	 * Currently, this function supports the `user_mention` query type, which retrieves
+	 * project members and maps their details into a simplified format for user mentions.
+	 *
+	 * @param {IEntitySearchFindInput} options - The search options containing `project_id`
+	 * and `query_type`.
+	 * @returns {Promise<any>} A promise resolving to an object containing the user mention details.
+	 * @throws {BadRequestException} Throws a BadRequestException if an error occurs during the process.
+	 */
+	async entitySearch(options: IEntitySearchFindInput): Promise<any> {
+		try {
+			const { project_id, query_type } = options;
+
+			if (query_type === 'user_mention') {
+				const project = await this._projectService.getProject(
+					project_id,
+					['members.employee.user']
+				);
+				const members = project.members;
+
+				return {
+					user_mention: members.map((member) => ({
+						member__display_name: member.member__display_name,
+						member__id: member.member_id,
+						member__avatar_url: member.member__avatar
+					}))
+				};
+			}
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
 	/*
 	|--------------------------------------------------------------------------
 	| VIEWS
 	|--------------------------------------------------------------------------
 	*/
+
+	/**
+	 * Retrieves issues based on the provided options and the referer.
+	 *
+	 * If a `viewId` can be extracted from the referer, the function retrieves all issues
+	 * associated with a specific project using the `_issueService`. If no `viewId` is found,
+	 * the function fetches issues grouped by user assignment.
+	 *
+	 * @async
+	 * @param {IIssueFindInput} options - The search options for filtering issues.
+	 * @param {string} referer - The referer URL, used to extract a workspace view ID.
+	 * @returns A promise resolving to the issues, either grouped by user
+	 * assignment or retrieved by project.
+	 * @throws {BadRequestException} Throws a BadRequestException if an error occurs during
+	 * the process.
+	 */
 	async findViewIssues(options: IIssueFindInput, referer: string) {
 		try {
 			// Extract the view ID from the referer if it exists

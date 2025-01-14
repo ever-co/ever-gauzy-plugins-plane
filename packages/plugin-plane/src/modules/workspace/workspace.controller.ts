@@ -17,6 +17,7 @@ import {
 	DashboardWigetQueryEnum,
 	ICycle,
 	ID,
+	IEntitySearchFindInput,
 	IGlabalEntitiesFindInput,
 	IIssue,
 	IIssueFindInput,
@@ -297,6 +298,20 @@ export class WorkspaceController {
 		@Query() options: IGlabalEntitiesFindInput
 	) {
 		return await this._workspaceService.findGlobalEntitiesBySearch(options);
+	}
+
+	/**
+	 * Performs an entity search based on the provided options.
+	 *
+	 * @param {IEntitySearchFindInput} options - The search options containing `project_id`
+	 * and `query_type`.
+	 * @returns {Promise<any>} A promise resolving to an object containing the user mention details.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Entity search' })
+	@Get('entity-search')
+	async entitySearch(@Query() options: IEntitySearchFindInput) {
+		return await this._workspaceService.entitySearch(options);
 	}
 
 	/*

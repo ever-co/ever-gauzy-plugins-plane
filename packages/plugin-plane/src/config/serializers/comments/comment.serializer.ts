@@ -87,7 +87,7 @@ export function createCommentInputTransformer(
 	const mentionedEmployeeIds = extractEmployeeMentionIds(commentHtml);
 
 	// Map employee IDs to user IDs
-	const mentionedUserIds = employees
+	const mentionUserIds = employees
 		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
 		.map((employee) => employee.userId) // Map to corresponding user IDs
 		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
@@ -97,7 +97,7 @@ export function createCommentInputTransformer(
 		entityId,
 		comment: commentHtml,
 		actorType: ActorTypeEnum.User,
-		mentionIds: mentionedUserIds ?? [] // Default to an empty array if no employees are provided
+		mentionUserIds: mentionUserIds ?? [] // Default to an empty array if no employees are provided
 	};
 }
 

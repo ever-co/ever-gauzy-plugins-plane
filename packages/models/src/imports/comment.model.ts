@@ -26,7 +26,7 @@ export interface ICommentCreateInput extends IBasePerEntityType {
 	members?: IEmployee[];
 	teams?: IOrganizationTeam[];
 	actorType?: ActorTypeEnum;
-	mentionIds?: ID[];
+	mentionUserIds?: ID[];
 }
 
 export interface ICommentUpdateInput extends Partial<Omit<IComment, 'entity' | 'entityId' | 'creatorId' | 'creator'>> {

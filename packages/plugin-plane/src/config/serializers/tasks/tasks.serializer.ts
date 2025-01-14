@@ -27,6 +27,7 @@ import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
 import {
 	deslugify,
+	extractEmployeeMentionIds,
 	issueFilterSplitter,
 	orderByDirection,
 	orderByFieldTransformer
@@ -696,7 +697,8 @@ export function getFilteredByDatesTaskQuery(
 
 export function createIssueInputTransformer(
 	issue: IIssueCreateInput,
-	status: TaskStatusEnum
+	status: TaskStatusEnum,
+	employees: IEmployee[]
 ): ITaskCreateInput {
 	const tags = issue?.label_ids
 		? issue?.label_ids?.map((id) => ({ id }) as ITag)
@@ -705,7 +707,17 @@ export function createIssueInputTransformer(
 		? issue?.assignee_ids?.map((id) => ({ id }) as IEmployee)
 		: [];
 
-	// TODO : Include mention here
+	// Extract employee IDs mentioned in the issue description
+	const mentionedEmployeeIds = extractEmployeeMentionIds(
+		issue?.description_html
+	);
+
+	// Map employee IDs to user IDs
+	const mentionUserIds = employees
+		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
+		.map((employee) => employee.userId) // Map to corresponding user IDs
+		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
+
 	return {
 		title: issue?.name,
 		description: issue?.description_html,
@@ -725,7 +737,8 @@ export function createIssueInputTransformer(
 		modules:
 			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule
-			) || []
+			) || [],
+		mentionUserIds: mentionUserIds ?? []
 	};
 }
 

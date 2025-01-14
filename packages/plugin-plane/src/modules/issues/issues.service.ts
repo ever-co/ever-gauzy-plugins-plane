@@ -73,6 +73,7 @@ import { IssueLinksService } from '../issue-links/issue-links.service';
 import { ActivityService } from '../activity/activity.service';
 import { IssueLabelsService } from './issue-labels/issue-labels.service';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { MentionService } from '../mention/mention.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -87,6 +88,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _activityService: ActivityService,
 		private readonly _subscriptionService: SubscriptionService,
+		private readonly _mentionService: MentionService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -485,6 +487,7 @@ export class IssuesService extends ApiFetchService {
 			// Destructure options for group_by and module if provided
 			const {
 				group_by,
+				mentions,
 				module,
 				priority,
 				start_date,
@@ -544,6 +547,28 @@ export class IssuesService extends ApiFetchService {
 					'dueDate',
 					target_date
 				);
+			}
+
+			if (mentions) {
+				const mentionIds = issueFilterSplitter(mentions);
+				try {
+					const mentionedUsers = await this._mentionService.findAll({
+						// entity: BaseEntityEnum.Task
+					});
+					const mentionedUserIds = mentionedUsers.map(
+						(mention) => mention.mentionedUserId
+					);
+
+					// Filtrage des issues
+					issues = issues.filter((issue) =>
+						issue.members.some((member) => {
+							return (
+								mentionIds.includes(member.id) &&
+								mentionedUserIds.includes(member.userId)
+							);
+						})
+					);
+				} catch (error) {}
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default

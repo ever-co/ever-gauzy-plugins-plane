@@ -6,7 +6,7 @@ import { getMentionsQuery } from '../../config';
 
 @Injectable()
 export class MentionService extends ApiFetchService {
-	private path = '/mention';
+	private path = '/mentions';
 
 	async findAll(options: Partial<IMentionFindInput>): Promise<IMention[]> {
 		try {

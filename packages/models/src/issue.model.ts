@@ -74,6 +74,7 @@ export interface IIssueFindInput {
 	start_date?: string;
 	target_date?: string;
 	subscriber?: string;
+	mentions?: string;
 	labels?: string;
 	module_ids?: ID[];
 }

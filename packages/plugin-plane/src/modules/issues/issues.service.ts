@@ -285,9 +285,16 @@ export class IssuesService extends ApiFetchService {
 				state = await this._stateSerive.getOne(input.state_id);
 			}
 
+			// Find project
+			const project = await this._projectService.getExternalProject(
+				input.project_id,
+				['members.employee.user']
+			);
+
 			const body = createIssueInputTransformer(
 				input,
-				state.name as TaskStatusEnum
+				state.name as TaskStatusEnum,
+				project.members.map((member) => member.employee)
 			);
 
 			const issue: ITask = (

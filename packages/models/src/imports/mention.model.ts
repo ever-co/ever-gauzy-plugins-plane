@@ -15,3 +15,6 @@ export interface IMentionCreateInput extends Omit<IMention, 'mentionBy'> {}
 export interface IMentionUserIds {
 	mentionUserIds?: ID[];
 }
+
+export interface IMentionFindInput
+	extends Pick<IMention, 'entity' | 'entityId' | 'parentEntityId' | 'parentEntityType'> {}

@@ -4,6 +4,7 @@ export * from './cycles';
 export * from './dashboard';
 export * from './employee-properties';
 export * from './issue-link';
+export * from './mention';
 export * from './modules';
 export * from './projects';
 export * from './query-params.serializers';

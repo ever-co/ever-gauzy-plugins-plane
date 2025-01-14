@@ -24,6 +24,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from './employee-properties/employee-properties.module';
+import { MentionModule } from './mention/mention.module';
 
 @Module({
 	imports: [
@@ -51,7 +52,8 @@ import { EmployeePropertiesModule } from './employee-properties/employee-propert
 		DashboardModule,
 		SubscriptionModule,
 		IntakeIssuesModule,
-		EmployeePropertiesModule
+		EmployeePropertiesModule,
+		MentionModule
 	]
 })
 export class AppModule {}

@@ -50,6 +50,7 @@ import {
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByAssignee,
+	groupIssuesByCreatorId,
 	groupIssuesByCycleId,
 	groupIssuesByLabel,
 	groupIssuesByModule,
@@ -632,6 +633,16 @@ export class IssuesService extends ApiFetchService {
 					return groupIssuesByLabel(issuesWithLinks); // Group issues by their labels
 				case IssueGroupBy.ASSIGNEE_ID:
 					return groupIssuesByAssignee(issuesWithLinks); // Group issues by their assignees
+				case IssueGroupBy.CREATED_BY:
+					const project =
+						await this._projectService.getExternalProject(
+							projectId,
+							['members.employee']
+						);
+					return groupIssuesByCreatorId(
+						issuesWithLinks,
+						project.members.map((member) => member.employee)
+					); // Group issues by their creator
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}

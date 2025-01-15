@@ -91,6 +91,7 @@ export enum IssueGroupBy {
 	PRIORITY = 'priority',
 	PROJECT_ID = 'project_id',
 	CYCLE_ID = 'cycle_id',
+	MODULE_ID = 'issue_module__module_id',
 	LABEL_ID = 'labels__id'
 }
 

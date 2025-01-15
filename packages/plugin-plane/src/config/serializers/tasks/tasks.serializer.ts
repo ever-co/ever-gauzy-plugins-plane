@@ -424,6 +424,69 @@ export function groupIssuesByLabel(
 }
 
 /**
+ * Groups issues by assignee (member) and returns a result object with the grouped issues and related stats.
+ * If an issue has no assignees, it is grouped under a default member with the ID 'None'.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} Grouped issues by assignee with statistics like total results and pagination info.
+ */
+export function groupIssuesByAssignee(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+): Record<string, any> {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Extract the assignees (members) from the issue, defaulting to "None" if none exist
+			const members = issue.members?.length
+				? issue.members
+				: [{ id: 'None', name: 'None', color: null }];
+
+			// Iterate over each member to group the issue accordingly
+			members.forEach((member) => {
+				// Initialize the member group if it doesn't exist
+				if (!acc.results[member.id]) {
+					acc.results[member.id] = {
+						results: [],
+						total_results: 0
+					};
+				}
+
+				// Transform the issue and its links
+				const transformedIssue = issueTransformer(
+					issue,
+					[],
+					issueLinks
+				);
+
+				// Add the transformed issue to the current member group
+				acc.results[member.id].results.push(transformedIssue);
+				acc.results[member.id].total_results++;
+			});
+
+			// Increment the global total results counter
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		// Initial accumulator object
+		{
+			grouped_by: 'labels__id',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {}
+		}
+	);
+}
+
+/**
  * Groups a list of issues by their modules and returns an object containing the grouped issues and other related stats.
  * If an issue does not have any modules, it will be grouped under a default module with the ID 'None'.
  *

@@ -96,6 +96,8 @@ export enum IssueGroupBy {
 	TARGET_DATE = 'target_date'
 }
 
+export type IssueManyToManyGroupCriteria = 'tags' | 'members' | 'modules';
+
 export enum IssueActivityTypeEnum {
 	COMMENT = 'issue-comment',
 	PROPERTY = 'issue-property'

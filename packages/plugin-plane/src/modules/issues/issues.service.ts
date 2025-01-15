@@ -49,6 +49,7 @@ import {
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
+	groupIssuesByPriority,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
 	issueActivityLogTransformer,
@@ -597,11 +598,28 @@ export class IssuesService extends ApiFetchService {
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default
+			const issuesWithLinks = await Promise.all(
+				issues.map(async (issue) => {
+					const issueLinks = await this._issueLinkService.findAll(
+						issue.id
+					);
+
+					const transformedIssueLinks =
+						issueLinkTransformer(issueLinks);
+
+					return {
+						issue,
+						issueLinks: transformedIssueLinks
+					};
+				})
+			);
 			switch (group_by) {
 				case IssueGroupBy.STATE:
 					return groupIssuesByStateId(issues); // Group issues by their state
 				case IssueGroupBy.TARGET_DATE:
 					return groupIssuesByTargetDate(issues); // Group issues by their target date
+				case IssueGroupBy.PRIORITY:
+					return groupIssuesByPriority(issuesWithLinks);
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}

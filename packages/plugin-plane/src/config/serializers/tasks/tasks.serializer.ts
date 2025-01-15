@@ -166,7 +166,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 export function groupIssuesByStateId(issues: ITask[]) {
 	return issues.reduce(
 		(acc, item) => {
-			const stateId = item.taskStatusId;
+			const stateId = item.taskStatusId || 'none';
 
 			if (!acc.results[stateId]) {
 				acc.results[stateId] = {

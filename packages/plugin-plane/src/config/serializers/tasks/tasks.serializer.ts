@@ -424,6 +424,69 @@ export function groupIssuesByLabel(
 }
 
 /**
+ * Groups a list of issues by their modules and returns an object containing the grouped issues and other related stats.
+ * If an issue does not have any modules, it will be grouped under a default module with the ID 'None'.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - An array of objects where each object contains an issue (`ITask`) and its associated links.
+ * @returns {Record<string, any>} The result object with grouped issues by module, along with other statistics like total results, page information, and more.
+ */
+export function groupIssuesByModule(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+): Record<string, any> {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Extract the modules from the issue, defaulting to "None" if none exist
+			const modules = issue.modules?.length
+				? issue.modules
+				: [{ id: 'None', name: 'None' }];
+
+			// Iterate over each module to group the issue accordingly
+			modules.forEach((module) => {
+				// Initialize the module group if it doesn't exist
+				if (!acc.results[module.id]) {
+					acc.results[module.id] = {
+						results: [],
+						total_results: 0
+					};
+				}
+
+				// Transform the issue and its links
+				const transformedIssue = issueTransformer(
+					issue,
+					[],
+					issueLinks
+				);
+
+				// Add the transformed issue to the current module group
+				acc.results[module.id].results.push(transformedIssue);
+				acc.results[module.id].total_results++;
+			});
+
+			// Increment the global total results counter
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+			return acc;
+		},
+		// Initial accumulator object
+		{
+			grouped_by: 'issue_module__module_id',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {}
+		}
+	);
+}
+
+/**
  * @description - Group Issue by Target Date for Calendar Layout display
  * @param {ITask[]} issues - Tasks to be trasnformed and grouped
  * @returns Tranformed and grouped by target date Issues

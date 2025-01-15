@@ -50,6 +50,7 @@ import {
 	getTaskDistribution,
 	getTaskQuery,
 	groupIssuesByCycleId,
+	groupIssuesByModule,
 	groupIssuesByPriority,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
@@ -623,6 +624,8 @@ export class IssuesService extends ApiFetchService {
 					return groupIssuesByPriority(issuesWithLinks); // Group issues by their priority
 				case IssueGroupBy.CYCLE_ID:
 					return groupIssuesByCycleId(issuesWithLinks); // Group issues by their cycle
+				case IssueGroupBy.MODULE_ID:
+					return groupIssuesByModule(issuesWithLinks); // Group issues by their modules
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}

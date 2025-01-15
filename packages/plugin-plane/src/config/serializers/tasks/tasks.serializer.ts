@@ -12,6 +12,7 @@ import {
 	IOrganizationProjectModule,
 	IReactionData,
 	IssueFindByTypeEnum,
+	IssueManyToManyGroupCriteria,
 	IssueOrderByField,
 	ITag,
 	ITask,
@@ -262,9 +263,100 @@ function groupIssues(
 	);
 }
 
+/**
+ * Groups issues by a specified many-to-many criteria (e.g., tags, members, or modules) and returns a result object with the grouped issues and statistics.
+ * If no values are found for the selected criteria, it groups the issues under a default value ('None').
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @param {IssueManyToManyGroupCriteria} criteria - The criteria by which to group the issues (e.g., 'tags', 'members', 'modules').
+ * @returns {Record<string, any>} The result object containing grouped issues and related statistics like total results and pagination info.
+ */
+export function groupIssuesByManyToManyCriteria(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	criteria: IssueManyToManyGroupCriteria
+): Record<string, any> {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Extract the values according to the chosed criteria
+			let groupItems: any;
+			switch (criteria) {
+				case 'tags':
+					groupItems = issue.tags?.length
+						? issue.tags
+						: [{ id: 'None', name: 'None', color: null }];
+					break;
+				case 'members':
+					groupItems = issue.members?.length
+						? issue.members
+						: [{ id: 'None', name: 'None', color: null }];
+					break;
+				case 'modules':
+					groupItems = issue.modules?.length
+						? issue.modules
+						: [{ id: 'None', name: 'None' }];
+					break;
+				default:
+					groupItems = [];
+			}
+
+			// Group according to each element of criteria
+			groupItems.forEach((item: any) => {
+				// Initialize the group if not exist
+				if (!acc.results[item.id]) {
+					acc.results[item.id] = { results: [], total_results: 0 };
+				}
+
+				// Transform the issue with its links
+				const transformedIssue = issueTransformer(
+					issue,
+					[],
+					issueLinks
+				);
+
+				// Add the transformed issue to the current group
+				acc.results[item.id].results.push(transformedIssue);
+				acc.results[item.id].total_results++;
+			});
+
+			// Increment global counters
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+
+			return acc;
+		},
+		{
+			grouped_by:
+				criteria === 'tags'
+					? 'labels__id'
+					: criteria === 'members'
+						? 'assignee__id'
+						: 'issue_module__module_id',
+			sub_grouped_by: null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {}
+		}
+	);
+}
+
+/**
+ * Groups issues by their state group and returns a result object with the grouped issues and related statistics.
+ * The state group is determined by the task status of each issue.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} The result object containing grouped issues and statistics like total results and pagination info.
+ */
 export function groupIssuesByStateGroup(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => stateGroup(issue.taskStatus), // Define the group by state
@@ -370,57 +462,20 @@ export function userWorkNonGroupedIssues(
 export function groupIssuesByLabel(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ) {
-	return issuesWithLinks.reduce(
-		(acc, { issue, issueLinks }) => {
-			// Extract the labels (tags) from the issue, defaulting to "None" if none exist
-			const tags = issue.tags?.length
-				? issue.tags
-				: [{ id: 'None', name: 'None', color: null }];
+	return groupIssuesByManyToManyCriteria(issuesWithLinks, 'tags');
+}
 
-			// Iterate over each tag to group the issue accordingly
-			tags.forEach((tag) => {
-				// Initialize the tag group if it doesn't exist
-				if (!acc.results[tag.id]) {
-					acc.results[tag.id] = {
-						results: [],
-						total_results: 0
-					};
-				}
-
-				// Transform the issue and its links
-				const transformedIssue = issueTransformer(
-					issue,
-					[],
-					issueLinks
-				);
-
-				// Add the transformed issue to the current tag group
-				acc.results[tag.id].results.push(transformedIssue);
-				acc.results[tag.id].total_results++;
-			});
-
-			// Increment the global total results counter
-			acc.total_results++;
-			acc.total_count++;
-			acc.count++;
-			return acc;
-		},
-		// Initial accumulator object
-		{
-			grouped_by: 'labels__id',
-			sub_grouped_by: null,
-			total_count: 0,
-			next_cursor: null,
-			prev_cursor: null,
-			next_page_results: false,
-			prev_page_results: false,
-			count: 0,
-			total_pages: 1,
-			total_results: 0,
-			extra_stats: null,
-			results: {}
-		}
-	);
+/**
+ * Groups issues by assignee (member) and returns a result object with the grouped issues and related stats.
+ * If an issue has no assignees, it is grouped under a default member with the ID 'None'.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} Grouped issues by assignee with statistics like total results and pagination info.
+ */
+export function groupIssuesByAssignee(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+): Record<string, any> {
+	return groupIssuesByManyToManyCriteria(issuesWithLinks, 'members');
 }
 
 /**
@@ -433,57 +488,7 @@ export function groupIssuesByLabel(
 export function groupIssuesByModule(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
 ): Record<string, any> {
-	return issuesWithLinks.reduce(
-		(acc, { issue, issueLinks }) => {
-			// Extract the modules from the issue, defaulting to "None" if none exist
-			const modules = issue.modules?.length
-				? issue.modules
-				: [{ id: 'None', name: 'None' }];
-
-			// Iterate over each module to group the issue accordingly
-			modules.forEach((module) => {
-				// Initialize the module group if it doesn't exist
-				if (!acc.results[module.id]) {
-					acc.results[module.id] = {
-						results: [],
-						total_results: 0
-					};
-				}
-
-				// Transform the issue and its links
-				const transformedIssue = issueTransformer(
-					issue,
-					[],
-					issueLinks
-				);
-
-				// Add the transformed issue to the current module group
-				acc.results[module.id].results.push(transformedIssue);
-				acc.results[module.id].total_results++;
-			});
-
-			// Increment the global total results counter
-			acc.total_results++;
-			acc.total_count++;
-			acc.count++;
-			return acc;
-		},
-		// Initial accumulator object
-		{
-			grouped_by: 'issue_module__module_id',
-			sub_grouped_by: null,
-			total_count: 0,
-			next_cursor: null,
-			prev_cursor: null,
-			next_page_results: false,
-			prev_page_results: false,
-			count: 0,
-			total_pages: 1,
-			total_results: 0,
-			extra_stats: null,
-			results: {}
-		}
-	);
+	return groupIssuesByManyToManyCriteria(issuesWithLinks, 'modules');
 }
 
 /**

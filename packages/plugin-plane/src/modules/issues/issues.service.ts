@@ -49,7 +49,9 @@ import {
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
+	groupIssuesByAssignee,
 	groupIssuesByCycleId,
+	groupIssuesByLabel,
 	groupIssuesByModule,
 	groupIssuesByPriority,
 	groupIssuesByStateId,
@@ -626,6 +628,10 @@ export class IssuesService extends ApiFetchService {
 					return groupIssuesByCycleId(issuesWithLinks); // Group issues by their cycle
 				case IssueGroupBy.MODULE_ID:
 					return groupIssuesByModule(issuesWithLinks); // Group issues by their modules
+				case IssueGroupBy.LABEL_ID:
+					return groupIssuesByLabel(issuesWithLinks); // Group issues by their labels
+				case IssueGroupBy.ASSIGNEE_ID:
+					return groupIssuesByAssignee(issuesWithLinks); // Group issues by their assignees
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}

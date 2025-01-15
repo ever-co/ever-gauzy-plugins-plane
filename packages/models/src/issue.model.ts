@@ -85,15 +85,18 @@ export enum IssueFindByTypeEnum {
 }
 
 export enum IssueGroupBy {
-	STATE = 'state_id',
-	TARGET_DATE = 'target_date',
-	STATE_GROUP = 'state__group',
+	ASSIGNEE_ID = 'assignees__id',
+	CYCLE_ID = 'cycle_id',
+	LABEL_ID = 'labels__id',
+	MODULE_ID = 'issue_module__module_id',
 	PRIORITY = 'priority',
 	PROJECT_ID = 'project_id',
-	CYCLE_ID = 'cycle_id',
-	MODULE_ID = 'issue_module__module_id',
-	LABEL_ID = 'labels__id'
+	STATE = 'state_id',
+	STATE_GROUP = 'state__group',
+	TARGET_DATE = 'target_date'
 }
+
+export type IssueManyToManyGroupCriteria = 'tags' | 'members' | 'modules';
 
 export enum IssueActivityTypeEnum {
 	COMMENT = 'issue-comment',

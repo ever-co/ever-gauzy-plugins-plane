@@ -551,24 +551,49 @@ export class IssuesService extends ApiFetchService {
 
 			if (mentions) {
 				const mentionIds = issueFilterSplitter(mentions);
+
 				try {
-					const mentionedUsers = await this._mentionService.findAll({
-						// entity: BaseEntityEnum.Task
-					});
-					const mentionedUserIds = mentionedUsers.map(
-						(mention) => mention.mentionedUserId
-					);
+					const [taskParentMentionedUsers, taskMentionedUsers] =
+						await Promise.all([
+							this._mentionService.findAll({
+								parentEntityType: BaseEntityEnum.Task
+							}),
+							this._mentionService.findAll({
+								entity: BaseEntityEnum.Task
+							})
+						]);
+
+					const taskIds = new Set([
+						...taskMentionedUsers.map(
+							(mention) => mention.entityId
+						),
+						...taskParentMentionedUsers.map(
+							(mention) => mention.parentEntityId
+						)
+					]);
+
+					const mentionedUserIds = new Set([
+						...taskMentionedUsers.map(
+							(mention) => mention.mentionedUserId
+						),
+						...taskParentMentionedUsers.map(
+							(mention) => mention.mentionedUserId
+						)
+					]);
 
 					// Filtrage des issues
-					issues = issues.filter((issue) =>
-						issue.members.some((member) => {
-							return (
-								mentionIds.includes(member.id) &&
-								mentionedUserIds.includes(member.userId)
-							);
-						})
+					issues = issues.filter(
+						(task) =>
+							taskIds.has(task.id) &&
+							task.members.some(
+								(member) =>
+									mentionIds.includes(member.id) &&
+									mentionedUserIds.has(member.userId)
+							)
 					);
-				} catch (error) {}
+				} catch (error) {
+					console.error('Error filtering issues:', error);
+				}
 			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default

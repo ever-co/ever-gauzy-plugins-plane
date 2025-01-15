@@ -90,6 +90,7 @@ export enum IssueGroupBy {
 	STATE_GROUP = 'state__group',
 	PRIORITY = 'priority',
 	PROJECT_ID = 'project_id',
+	CYCLE_ID = 'cycle_id',
 	LABEL_ID = 'labels__id'
 }
 

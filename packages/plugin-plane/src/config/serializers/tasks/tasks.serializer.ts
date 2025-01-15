@@ -200,23 +200,30 @@ export function groupIssuesByStateId(issues: ITask[]) {
 }
 
 /**
- * Groups issues by given group and associates their links.
+ * Groups issues based on a specified key and transforms them into a grouped structure.
  *
- * @param {Array<{ issue: ITask; issueLinks: any }>} issuesWithLinks - Array of issues and their associated links.
- * @returns A structured object grouping issues certain group, with counts and metadata.
+ * This function processes a list of issues along with their associated links, groups them
+ * by a key derived from the provided `groupByKey` function, and transforms them into a
+ * structured output with metadata.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @param {(issue: ITask) string} groupByKey - Function to determine the grouping key for each issue.
+ * @param {string} groupedByLabel - Label describing the grouping criteria.
+ * @param {Partial<Record<string, any>>} [initialAccumulator={}] - Optional initial accumulator object to be merged with the default accumulator.
+ * @returns {Record<string, any>} An object containing grouped issues, metadata, and statistics.
  */
 function groupIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 	groupByKey: (issue: ITask) => string,
 	groupedByLabel: string,
 	initialAccumulator: Partial<Record<string, any>> = {}
-) {
+): Record<string, any> {
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
-			// Détermine le groupe en utilisant groupByKey
+			// Determine the group using the groupByKey function
 			const group = groupByKey(issue) || 'none';
 
-			// Initialise le groupe si nécessaire
+			// Initialize the group if it does not exist
 			if (!acc.results[group]) {
 				acc.results[group] = {
 					results: [],
@@ -224,14 +231,14 @@ function groupIssues(
 				};
 			}
 
-			// Transforme la tâche et ses liens
+			// Transform the issue and its associated links
 			const transformedIssue = issueTransformer(issue, [], issueLinks);
 
-			// Ajoute l'élément transformé au groupe
+			// Add the transformed issue to the appropriate group
 			acc.results[group].results.push(transformedIssue);
 			acc.results[group].total_results++;
 
-			// Met à jour les compteurs globaux
+			// Update global counters
 			acc.total_results++;
 			acc.total_count++;
 			acc.count++;
@@ -266,9 +273,18 @@ export function groupIssuesByStateGroup(
 	);
 }
 
+/**
+ * Groups issues by their state group and applies an initial accumulator with specific values.
+ *
+ * This function utilizes `groupIssues` to categorize issues based on their state group,
+ * determined by the `stateGroup` function applied to the `taskStatus` property of each issue.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing grouped issues by state group, metadata, and statistics.
+ */
 export function groupIssuesByPriority(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.priority || 'none', // Define the group by priority
@@ -276,9 +292,18 @@ export function groupIssuesByPriority(
 	);
 }
 
+/**
+ * Groups issues by their associated project ID.
+ *
+ * This function uses `groupIssues` to organize issues based on their `projectId`.
+ * If an issue does not have a `projectId`, it is grouped under the key `'none'`.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing grouped issues by project ID, metadata, and statistics.
+ */
 export function groupIssuesByProjectId(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.projectId || 'none', // Define the group by project Id
@@ -286,9 +311,37 @@ export function groupIssuesByProjectId(
 	);
 }
 
+/**
+ * Groups issues by their associated sprint (cycle) ID.
+ *
+ * This function uses `groupIssues` to organize issues based on their `organizationSprintId`.
+ * If an issue does not have an `organizationSprintId`, it is grouped under the key `'None'`.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing grouped issues by sprint (cycle) ID, metadata, and statistics.
+ */
+export function groupIssuesByCycleId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+): Record<string, any> {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.organizationSprintId || 'None', // Define the group by sprint Id
+		'cycle_id'
+	);
+}
+
+/**
+ * Returns a flat list of issues without any grouping, including their transformed data and metadata.
+ *
+ * This function provides a response structure where issues are not grouped but transformed
+ * for presentation or processing. It includes metadata about the total count, pagination, and more.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing ungrouped issues, metadata, and statistics.
+ */
 export function userWorkNonGroupedIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+): Record<string, any> {
 	return {
 		grouped_by: null,
 		sub_grouped_by: null,

@@ -423,6 +423,30 @@ export function groupIssuesByCycleId(
 }
 
 /**
+ * Groups issues by their creator's user ID. If no matching member is found, issues are grouped under 'None'.
+ * The creator is determined by matching the `creatorId` with the `userId` of the members in the issue.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} The result object containing grouped issues by creator's user ID.
+ */
+export function groupIssuesByCreatorId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	employees: IEmployee[]
+): Record<string, any> {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => {
+			const member = employees.find(
+				(member) => member.userId === issue.creatorId
+			);
+			return member?.id || 'None';
+		},
+
+		'created_by'
+	);
+}
+
+/**
  * Returns a flat list of issues without any grouping, including their transformed data and metadata.
  *
  * This function provides a response structure where issues are not grouped but transformed

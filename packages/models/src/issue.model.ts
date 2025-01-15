@@ -86,6 +86,7 @@ export enum IssueFindByTypeEnum {
 
 export enum IssueGroupBy {
 	ASSIGNEE_ID = 'assignees__id',
+	CREATED_BY = 'created_by',
 	CYCLE_ID = 'cycle_id',
 	LABEL_ID = 'labels__id',
 	MODULE_ID = 'issue_module__module_id',

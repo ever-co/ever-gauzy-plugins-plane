@@ -18,7 +18,7 @@ import {
 	TaskStatusEnum,
 	IUserStatsResponse,
 	IUserProjectsDataResponse,
-	IssueGroupBy,
+	IssueGroupByEnum,
 	IIssueFindInput,
 	IModule,
 	ICycle,
@@ -955,19 +955,19 @@ export class WorkspaceService extends ApiFetchService {
 				})
 			);
 
-			if (group_by === IssueGroupBy.STATE_GROUP) {
+			if (group_by === IssueGroupByEnum.STATE_GROUP) {
 				return groupIssuesByStateGroup(issuesWithLinks);
 			}
 
-			if (group_by === IssueGroupBy.PRIORITY) {
+			if (group_by === IssueGroupByEnum.PRIORITY) {
 				return groupIssuesByPriority(issuesWithLinks);
 			}
 
-			if (group_by === IssueGroupBy.PROJECT_ID) {
+			if (group_by === IssueGroupByEnum.PROJECT_ID) {
 				return groupIssuesByProjectId(issuesWithLinks);
 			}
 
-			if (group_by === IssueGroupBy.LABEL_ID) {
+			if (group_by === IssueGroupByEnum.LABEL_ID) {
 				return groupIssuesByLabel(issuesWithLinks);
 			}
 

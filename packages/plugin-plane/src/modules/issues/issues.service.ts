@@ -28,7 +28,7 @@ import {
 	IReaction,
 	IReactionData,
 	IssueActivityTypeEnum,
-	IssueGroupBy,
+	IssueGroupByEnum,
 	IssueOrderByField,
 	IState,
 	ISubIssueResponse,
@@ -493,6 +493,7 @@ export class IssuesService extends ApiFetchService {
 			// Destructure options for group_by and module if provided
 			const {
 				group_by,
+				sub_group_by,
 				mentions,
 				module,
 				priority,
@@ -618,30 +619,44 @@ export class IssuesService extends ApiFetchService {
 					};
 				})
 			);
+
+			const project = await this._projectService.getExternalProject(
+				projectId,
+				['members.employee']
+			);
+			const employees = project.members.map((member) => member.employee);
 			switch (group_by) {
-				case IssueGroupBy.STATE:
-					return groupIssuesByStateId(issues); // Group issues by their state
-				case IssueGroupBy.TARGET_DATE:
+				case IssueGroupByEnum.STATE:
+					return groupIssuesByStateId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their state
+				case IssueGroupByEnum.TARGET_DATE:
 					return groupIssuesByTargetDate(issues); // Group issues by their target date
-				case IssueGroupBy.PRIORITY:
-					return groupIssuesByPriority(issuesWithLinks); // Group issues by their priority
-				case IssueGroupBy.CYCLE_ID:
-					return groupIssuesByCycleId(issuesWithLinks); // Group issues by their cycle
-				case IssueGroupBy.MODULE_ID:
+				case IssueGroupByEnum.PRIORITY:
+					return groupIssuesByPriority(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their priority
+				case IssueGroupByEnum.CYCLE_ID:
+					return groupIssuesByCycleId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their cycle
+				case IssueGroupByEnum.MODULE_ID:
 					return groupIssuesByModule(issuesWithLinks); // Group issues by their modules
-				case IssueGroupBy.LABEL_ID:
+				case IssueGroupByEnum.LABEL_ID:
 					return groupIssuesByLabel(issuesWithLinks); // Group issues by their labels
-				case IssueGroupBy.ASSIGNEE_ID:
+				case IssueGroupByEnum.ASSIGNEE_ID:
 					return groupIssuesByAssignee(issuesWithLinks); // Group issues by their assignees
-				case IssueGroupBy.CREATED_BY:
-					const project =
-						await this._projectService.getExternalProject(
-							projectId,
-							['members.employee']
-						);
+				case IssueGroupByEnum.CREATED_BY:
 					return groupIssuesByCreatorId(
 						issuesWithLinks,
-						project.members.map((member) => member.employee)
+						sub_group_by,
+						employees
 					); // Group issues by their creator
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified

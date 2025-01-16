@@ -493,6 +493,7 @@ export class IssuesService extends ApiFetchService {
 			// Destructure options for group_by and module if provided
 			const {
 				group_by,
+				sub_group_by,
 				mentions,
 				module,
 				priority,
@@ -620,7 +621,7 @@ export class IssuesService extends ApiFetchService {
 			);
 			switch (group_by) {
 				case IssueGroupByEnum.STATE:
-					return groupIssuesByStateId(issues); // Group issues by their state
+					return groupIssuesByStateId(issuesWithLinks, sub_group_by); // Group issues by their state
 				case IssueGroupByEnum.TARGET_DATE:
 					return groupIssuesByTargetDate(issues); // Group issues by their target date
 				case IssueGroupByEnum.PRIORITY:

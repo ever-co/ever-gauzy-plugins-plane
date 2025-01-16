@@ -12,6 +12,7 @@ import {
 	IOrganizationProjectModule,
 	IReactionData,
 	IssueFindByTypeEnum,
+	IssueGroupByEnum,
 	IssueManyToManyGroupCriteria,
 	IssueOrderByField,
 	ITag,
@@ -159,45 +160,36 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 	}));
 }
 
-/**
- * @description - Group issues by state ID for Kanban and list Layouts
- * @param {ITask[]} issues - Tasks to be trasnformed and grouped
- * @returns Tranformed and grouped by state Issues
- */
-export function groupIssuesByStateId(issues: ITask[]) {
-	return issues.reduce(
-		(acc, item) => {
-			const stateId = item.taskStatusId || 'none';
-
-			if (!acc.results[stateId]) {
-				acc.results[stateId] = {
-					results: [],
-					total_results: 0
-				};
-			}
-			const issue = issueTransformer(item);
-
-			acc.results[stateId].results.push(issue);
-			acc.results[stateId].total_results++;
-
-			acc.total_results++;
-			return acc;
-		},
-		{
-			grouped_by: 'state_id',
-			sub_grouped_by: null,
-			total_count: issues.length,
-			next_cursor: '30:1:0',
-			prev_cursor: '30:-1:1',
-			next_page_results: false,
-			prev_page_results: false,
-			count: issues.length,
-			total_pages: 1,
-			total_results: issues.length,
-			extra_stats: null,
-			results: {}
-		}
-	);
+export function getGroupKeyForCriteria(
+	issue: ITask,
+	criteria: IssueGroupByEnum,
+	employees?: IEmployee[]
+): string {
+	switch (criteria) {
+		case IssueGroupByEnum.ASSIGNEE_ID:
+			return issue.members?.length ? issue.members[0].id : 'None';
+		case IssueGroupByEnum.CREATED_BY:
+			const creator = employees?.find(
+				(emp) => emp.userId === issue.creatorId
+			);
+			return creator?.id || 'None';
+		case IssueGroupByEnum.CYCLE_ID:
+			return issue.organizationSprintId || 'None';
+		case IssueGroupByEnum.LABEL_ID:
+			return issue.tags?.length ? issue.tags[0].id : 'None';
+		case IssueGroupByEnum.MODULE_ID:
+			return issue.modules?.length ? issue.modules[0].id : 'None';
+		case IssueGroupByEnum.PRIORITY:
+			return issue.priority || 'none';
+		case IssueGroupByEnum.PROJECT_ID:
+			return issue.projectId || 'none';
+		case IssueGroupByEnum.STATE:
+			return issue.taskStatusId || 'none';
+		case IssueGroupByEnum.STATE_GROUP:
+			return issue.taskStatus ? stateGroup(issue.taskStatus) : 'none';
+		default:
+			return 'none';
+	}
 }
 
 /**
@@ -217,37 +209,92 @@ function groupIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 	groupByKey: (issue: ITask) => string,
 	groupedByLabel: string,
+	subGroupByKey?: (issue: ITask) => string,
+	subGroupByKeyLabel?: string,
 	initialAccumulator: Partial<Record<string, any>> = {}
 ): Record<string, any> {
+	const addToGroup = (
+		group: any,
+		issue: ITask,
+		issueLinks: any,
+		subGroup?: string
+	) => {
+		const transformedIssue = issueTransformer(issue, [], issueLinks);
+
+		if (subGroup) {
+			// Initialize subgroup if not present
+			if (!group[subGroup]) {
+				group[subGroup] = { results: [], total_results: 0 };
+			}
+			group[subGroup].results.push(transformedIssue);
+			group[subGroup].total_results++;
+		} else {
+			// Initialize group results if not present
+			if (!group.results) {
+				group.results = [];
+				group.total_results = 0;
+			}
+			group.results.push(transformedIssue);
+			group.total_results++;
+		}
+	};
+
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
-			// Determine the group using the groupByKey function
 			const group = groupByKey(issue) || 'none';
 
-			// Initialize the group if it does not exist
+			// Initialize the group if not present
 			if (!acc.results[group]) {
-				acc.results[group] = {
-					results: [],
-					total_results: 0
-				};
+				acc.results[group] = subGroupByKeyLabel
+					? { results: {}, total_results: 0 }
+					: { results: [], total_results: 0 };
 			}
 
-			// Transform the issue and its associated links
-			const transformedIssue = issueTransformer(issue, [], issueLinks);
+			if (subGroupByKeyLabel) {
+				// Handle subgrouping
+				const subGroup = subGroupByKey?.(issue) || 'none';
 
-			// Add the transformed issue to the appropriate group
-			acc.results[group].results.push(transformedIssue);
-			acc.results[group].total_results++;
+				// Ensure subgroup results are initialized
+				if (!acc.results[group].results[subGroup]) {
+					acc.results[group].results[subGroup] = {
+						results: [],
+						total_results: 0
+					};
+				}
+
+				addToGroup(
+					acc.results[group].results,
+					issue,
+					issueLinks,
+					subGroup
+				);
+			} else {
+				// Handle direct grouping without subgroups
+				addToGroup(acc.results[group], issue, issueLinks);
+			}
+
+			// Recalculate total_results for the group, considering subgroups if applicable
+			if (subGroupByKeyLabel) {
+				acc.results[group].total_results = Object.values(
+					acc.results[group].results
+				).reduce(
+					(total: number, subGroup: any) =>
+						total + (subGroup?.total_results || 0),
+					0
+				);
+			}
 
 			// Update global counters
 			acc.total_results++;
 			acc.total_count++;
 			acc.count++;
+
 			return acc;
 		},
 		{
+			// Initialize accumulator
 			grouped_by: groupedByLabel,
-			sub_grouped_by: null,
+			sub_grouped_by: subGroupByKeyLabel || null,
 			total_count: 0,
 			next_cursor: null,
 			prev_cursor: null,
@@ -348,6 +395,24 @@ export function groupIssuesByManyToManyCriteria(
 }
 
 /**
+ * @description - Group issues by state ID for Kanban and list Layouts
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Tasks to be trasnformed and grouped
+ * @returns Tranformed and grouped by state Issues
+ */
+export function groupIssuesByStateId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.taskStatusId, // Define the group by state ID
+		'state_id',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby),
+		subGroupby
+	);
+}
+
+/**
  * Groups issues by their state group and returns a result object with the grouped issues and related statistics.
  * The state group is determined by the task status of each issue.
  *
@@ -355,12 +420,15 @@ export function groupIssuesByManyToManyCriteria(
  * @returns {Record<string, any>} The result object containing grouped issues and statistics like total results and pagination info.
  */
 export function groupIssuesByStateGroup(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => stateGroup(issue.taskStatus), // Define the group by state
 		'state__group',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby),
+		subGroupby,
 		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Specific values for initial accumulator.
 	);
 }

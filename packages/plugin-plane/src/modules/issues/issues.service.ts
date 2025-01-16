@@ -619,15 +619,33 @@ export class IssuesService extends ApiFetchService {
 					};
 				})
 			);
+
+			const project = await this._projectService.getExternalProject(
+				projectId,
+				['members.employee']
+			);
+			const employees = project.members.map((member) => member.employee);
 			switch (group_by) {
 				case IssueGroupByEnum.STATE:
-					return groupIssuesByStateId(issuesWithLinks, sub_group_by); // Group issues by their state
+					return groupIssuesByStateId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their state
 				case IssueGroupByEnum.TARGET_DATE:
 					return groupIssuesByTargetDate(issues); // Group issues by their target date
 				case IssueGroupByEnum.PRIORITY:
-					return groupIssuesByPriority(issuesWithLinks); // Group issues by their priority
+					return groupIssuesByPriority(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their priority
 				case IssueGroupByEnum.CYCLE_ID:
-					return groupIssuesByCycleId(issuesWithLinks); // Group issues by their cycle
+					return groupIssuesByCycleId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their cycle
 				case IssueGroupByEnum.MODULE_ID:
 					return groupIssuesByModule(issuesWithLinks); // Group issues by their modules
 				case IssueGroupByEnum.LABEL_ID:
@@ -635,14 +653,10 @@ export class IssuesService extends ApiFetchService {
 				case IssueGroupByEnum.ASSIGNEE_ID:
 					return groupIssuesByAssignee(issuesWithLinks); // Group issues by their assignees
 				case IssueGroupByEnum.CREATED_BY:
-					const project =
-						await this._projectService.getExternalProject(
-							projectId,
-							['members.employee']
-						);
 					return groupIssuesByCreatorId(
 						issuesWithLinks,
-						project.members.map((member) => member.employee)
+						sub_group_by,
+						employees
 					); // Group issues by their creator
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified

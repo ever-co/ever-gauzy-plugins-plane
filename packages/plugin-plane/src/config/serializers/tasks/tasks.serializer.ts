@@ -172,6 +172,7 @@ export function getGroupKeyForCriteria(
 			const creator = employees?.find(
 				(emp) => emp.userId === issue.creatorId
 			);
+			console.log(creator?.id);
 			return creator?.id || 'None';
 		case IssueGroupByEnum.CYCLE_ID:
 			return issue.organizationSprintId || 'None';
@@ -401,13 +402,14 @@ export function groupIssuesByManyToManyCriteria(
  */
 export function groupIssuesByStateId(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
-	subGroupby?: IssueGroupByEnum
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ) {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.taskStatusId, // Define the group by state ID
 		'state_id',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
 		subGroupby
 	);
 }
@@ -421,13 +423,14 @@ export function groupIssuesByStateId(
  */
 export function groupIssuesByStateGroup(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
-	subGroupby?: IssueGroupByEnum
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => stateGroup(issue.taskStatus), // Define the group by state
 		'state__group',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
 		subGroupby,
 		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Specific values for initial accumulator.
 	);
@@ -443,12 +446,16 @@ export function groupIssuesByStateGroup(
  * @returns {Record<string, any>} An object containing grouped issues by state group, metadata, and statistics.
  */
 export function groupIssuesByPriority(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.priority || 'none', // Define the group by priority
-		'priority'
+		'priority',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 
@@ -462,12 +469,16 @@ export function groupIssuesByPriority(
  * @returns {Record<string, any>} An object containing grouped issues by project ID, metadata, and statistics.
  */
 export function groupIssuesByProjectId(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.projectId || 'none', // Define the group by project Id
-		'project_id'
+		'project_id',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 
@@ -481,12 +492,16 @@ export function groupIssuesByProjectId(
  * @returns {Record<string, any>} An object containing grouped issues by sprint (cycle) ID, metadata, and statistics.
  */
 export function groupIssuesByCycleId(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.organizationSprintId || 'None', // Define the group by sprint Id
-		'cycle_id'
+		'cycle_id',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 
@@ -499,7 +514,8 @@ export function groupIssuesByCycleId(
  */
 export function groupIssuesByCreatorId(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
-	employees: IEmployee[]
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
@@ -509,8 +525,9 @@ export function groupIssuesByCreatorId(
 			);
 			return member?.id || 'None';
 		},
-
-		'created_by'
+		'created_by',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 

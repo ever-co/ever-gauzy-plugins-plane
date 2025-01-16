@@ -62,7 +62,8 @@ export type IIssueUpdateInput = IIssue;
 export interface IIssueFindInput {
 	module?: string;
 	cycle?: string;
-	group_by?: IssueGroupBy;
+	group_by?: IssueGroupByEnum;
+	sub_group_by?: IssueGroupByEnum;
 	order_by?: IssueOrderByField;
 	sub_issue?: boolean;
 	creatorId?: ID;
@@ -84,7 +85,7 @@ export enum IssueFindByTypeEnum {
 	BACKLOG = 'backlog'
 }
 
-export enum IssueGroupBy {
+export enum IssueGroupByEnum {
 	ASSIGNEE_ID = 'assignees__id',
 	CREATED_BY = 'created_by',
 	CYCLE_ID = 'cycle_id',

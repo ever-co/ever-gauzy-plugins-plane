@@ -28,7 +28,7 @@ import {
 	IReaction,
 	IReactionData,
 	IssueActivityTypeEnum,
-	IssueGroupBy,
+	IssueGroupByEnum,
 	IssueOrderByField,
 	IState,
 	ISubIssueResponse,
@@ -619,21 +619,21 @@ export class IssuesService extends ApiFetchService {
 				})
 			);
 			switch (group_by) {
-				case IssueGroupBy.STATE:
+				case IssueGroupByEnum.STATE:
 					return groupIssuesByStateId(issues); // Group issues by their state
-				case IssueGroupBy.TARGET_DATE:
+				case IssueGroupByEnum.TARGET_DATE:
 					return groupIssuesByTargetDate(issues); // Group issues by their target date
-				case IssueGroupBy.PRIORITY:
+				case IssueGroupByEnum.PRIORITY:
 					return groupIssuesByPriority(issuesWithLinks); // Group issues by their priority
-				case IssueGroupBy.CYCLE_ID:
+				case IssueGroupByEnum.CYCLE_ID:
 					return groupIssuesByCycleId(issuesWithLinks); // Group issues by their cycle
-				case IssueGroupBy.MODULE_ID:
+				case IssueGroupByEnum.MODULE_ID:
 					return groupIssuesByModule(issuesWithLinks); // Group issues by their modules
-				case IssueGroupBy.LABEL_ID:
+				case IssueGroupByEnum.LABEL_ID:
 					return groupIssuesByLabel(issuesWithLinks); // Group issues by their labels
-				case IssueGroupBy.ASSIGNEE_ID:
+				case IssueGroupByEnum.ASSIGNEE_ID:
 					return groupIssuesByAssignee(issuesWithLinks); // Group issues by their assignees
-				case IssueGroupBy.CREATED_BY:
+				case IssueGroupByEnum.CREATED_BY:
 					const project =
 						await this._projectService.getExternalProject(
 							projectId,

@@ -647,11 +647,23 @@ export class IssuesService extends ApiFetchService {
 						employees
 					); // Group issues by their cycle
 				case IssueGroupByEnum.MODULE_ID:
-					return groupIssuesByModule(issuesWithLinks); // Group issues by their modules
+					return groupIssuesByModule(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their modules
 				case IssueGroupByEnum.LABEL_ID:
-					return groupIssuesByLabel(issuesWithLinks); // Group issues by their labels
+					return groupIssuesByLabel(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their labels
 				case IssueGroupByEnum.ASSIGNEE_ID:
-					return groupIssuesByAssignee(issuesWithLinks); // Group issues by their assignees
+					return groupIssuesByAssignee(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their assignees
 				case IssueGroupByEnum.CREATED_BY:
 					return groupIssuesByCreatorId(
 						issuesWithLinks,

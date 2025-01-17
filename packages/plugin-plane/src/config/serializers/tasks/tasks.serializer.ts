@@ -317,7 +317,9 @@ function groupIssues(
  */
 export function groupIssuesByManyToManyCriteria(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
-	criteria: IssueManyToManyGroupCriteria
+	criteria: IssueManyToManyGroupCriteria,
+	subGroupByKey?: (issue: ITask) => string | string[],
+	subGroupByKeyLabel?: string
 ): Record<string, any> {
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
@@ -347,7 +349,9 @@ export function groupIssuesByManyToManyCriteria(
 			groupItems.forEach((item: any) => {
 				// Initialize the group if not exist
 				if (!acc.results[item.id]) {
-					acc.results[item.id] = { results: [], total_results: 0 };
+					acc.results[item.id] = subGroupByKeyLabel
+						? { results: {}, total_results: 0 }
+						: { results: [], total_results: 0 };
 				}
 
 				// Transform the issue with its links
@@ -357,9 +361,42 @@ export function groupIssuesByManyToManyCriteria(
 					issueLinks
 				);
 
-				// Add the transformed issue to the current group
-				acc.results[item.id].results.push(transformedIssue);
-				acc.results[item.id].total_results++;
+				if (subGroupByKeyLabel) {
+					// Handle subgroups
+					const subGroups = subGroupByKey?.(issue) || ['none'];
+					const subGroupArray = Array.isArray(subGroups)
+						? subGroups
+						: [subGroups]; // Normalize to an array
+
+					subGroupArray.forEach((subGroup) => {
+						// Initialize subgroup if not present
+						if (!acc.results[item.id].results[subGroup]) {
+							acc.results[item.id].results[subGroup] = {
+								results: [],
+								total_results: 0
+							};
+						}
+
+						// Add the transformed issue to the subgroup
+						acc.results[item.id].results[subGroup].results.push(
+							transformedIssue
+						);
+						acc.results[item.id].results[subGroup].total_results++;
+					});
+
+					// Update total_results for the main group
+					acc.results[item.id].total_results = Object.values(
+						acc.results[item.id].results
+					).reduce(
+						(total: number, subGroup: any) =>
+							total + (subGroup?.total_results || 0),
+						0
+					);
+				} else {
+					// Add the transformed issue directly to the group
+					acc.results[item.id].results.push(transformedIssue);
+					acc.results[item.id].total_results++;
+				}
 			});
 
 			// Increment global counters
@@ -376,7 +413,7 @@ export function groupIssuesByManyToManyCriteria(
 					: criteria === 'members'
 						? 'assignee__id'
 						: 'issue_module__module_id',
-			sub_grouped_by: null,
+			sub_grouped_by: subGroupByKeyLabel || null,
 			total_count: 0,
 			next_cursor: null,
 			prev_cursor: null,
@@ -565,9 +602,16 @@ export function userWorkNonGroupedIssues(
  * @returns The grouped issues by label.
  */
 export function groupIssuesByLabel(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ) {
-	return groupIssuesByManyToManyCriteria(issuesWithLinks, 'tags');
+	return groupIssuesByManyToManyCriteria(
+		issuesWithLinks,
+		'tags',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
 }
 
 /**
@@ -578,9 +622,16 @@ export function groupIssuesByLabel(
  * @returns {Record<string, any>} Grouped issues by assignee with statistics like total results and pagination info.
  */
 export function groupIssuesByAssignee(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
-	return groupIssuesByManyToManyCriteria(issuesWithLinks, 'members');
+	return groupIssuesByManyToManyCriteria(
+		issuesWithLinks,
+		'members',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
 }
 
 /**
@@ -591,9 +642,16 @@ export function groupIssuesByAssignee(
  * @returns {Record<string, any>} The result object with grouped issues by module, along with other statistics like total results, page information, and more.
  */
 export function groupIssuesByModule(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ): Record<string, any> {
-	return groupIssuesByManyToManyCriteria(issuesWithLinks, 'modules');
+	return groupIssuesByManyToManyCriteria(
+		issuesWithLinks,
+		'modules',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
 }
 
 /**

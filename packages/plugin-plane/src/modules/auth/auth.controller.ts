@@ -29,10 +29,10 @@ export class AuthController {
 		return await this._authService.getCsrfToken();
 	}
 
-	@HttpCode(HttpStatus.FOUND)
+	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Sign in' })
 	@Post('sign-in')
 	async signin() {
-		return;
+		return { message: 'ok' };
 	}
 }

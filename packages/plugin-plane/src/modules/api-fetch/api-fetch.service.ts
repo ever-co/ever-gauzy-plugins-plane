@@ -12,8 +12,16 @@ import {
 export class ApiFetchService {
 	constructor(private readonly _httpService: HttpService) {}
 	async apiFetch(configs: IServerFetchInputs) {
-		const { method, path, body, bearer_token, query, tenantId, init } =
-			configs;
+		const {
+			method,
+			path,
+			body,
+			bearer_token,
+			query,
+			customHeaders,
+			tenantId,
+			init
+		} = configs;
 
 		const apiUrl = EXTERNAL_BASE_API_URL();
 		let endPoint = apiUrl + path;
@@ -24,8 +32,7 @@ export class ApiFetchService {
 
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
-			Accept: 'application/json',
-			Origin: 'http://localhost:3300'
+			Accept: 'application/json'
 		};
 
 		if (bearer_token) {
@@ -51,7 +58,8 @@ export class ApiFetchService {
 					this._httpService.get(endPoint, {
 						...(init || {}),
 						headers: {
-							...headers
+							...headers,
+							...customHeaders
 						}
 					})
 				);
@@ -61,7 +69,8 @@ export class ApiFetchService {
 					this._httpService.post(endPoint, body, {
 						...(init || {}),
 						headers: {
-							...headers
+							...headers,
+							...customHeaders
 						}
 					})
 				);
@@ -71,7 +80,8 @@ export class ApiFetchService {
 					this._httpService.put(endPoint, body, {
 						...(init || {}),
 						headers: {
-							...headers
+							...headers,
+							...customHeaders
 						}
 					})
 				);
@@ -81,7 +91,8 @@ export class ApiFetchService {
 					this._httpService.delete(endPoint, {
 						...(init || {}),
 						headers: {
-							...headers
+							...headers,
+							...customHeaders
 						}
 					})
 				);

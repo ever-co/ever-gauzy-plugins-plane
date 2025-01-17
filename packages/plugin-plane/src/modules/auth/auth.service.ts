@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common';
 import {
 	CheckUserExistEnum,
 	ICheckUserExist,
+	IEmailCheckResponse,
 	IEmailInput,
 	IPasswordInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
+import { apiSecretKeys } from '../../config';
 
 @Injectable()
 export class AuthService {
@@ -14,23 +16,29 @@ export class AuthService {
 		input: IEmailInput & Partial<IPasswordInput>
 	): Promise<ICheckUserExist> {
 		try {
-			const user = await this._serverFetchService.apiFetch({
-				method: 'POST',
-				path: '/auth/validate-by-email',
-				body: { email: input.email }
-			});
+			const { API_KEY, API_SECRET } = apiSecretKeys();
 
-			console.log(user.data);
+			const isExists: IEmailCheckResponse = (
+				await this._serverFetchService.apiFetch({
+					method: 'POST',
+					path: '/auth/email-check',
+					body: { email: input.email },
+					customHeaders: {
+						'X-APP-ID': API_KEY,
+						'X-API-KEY': API_SECRET
+					}
+				})
+			).data;
 
-			if (!user.data) {
+			if (!isExists.exists) {
 				return {
 					existing: false,
 					status: CheckUserExistEnum.MAGIC_CODE
 				};
 			}
 			return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response.data);
 			return { existing: false, status: CheckUserExistEnum.MAGIC_CODE };
 		}
 	}

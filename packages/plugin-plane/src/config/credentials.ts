@@ -1,5 +1,10 @@
 import { EXTERNAL_API_MODE } from './constants';
 
+export const apiSecretKeys = () => ({
+	API_KEY: process.env.API_KEY,
+	API_SECRET: process.env.API_SECRET
+});
+
 export const defaultTestToken = () =>
 	EXTERNAL_API_MODE() === 'develop'
 		? process.env.LOCAL_TOKEN

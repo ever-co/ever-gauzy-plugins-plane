@@ -78,7 +78,8 @@ export function createIntakeIssueInputTransformer(
 	return {
 		task: createIssueInputTransformer(
 			{ ...input.issue, project_id: projectId },
-			status
+			status,
+			employees
 		),
 		taskId: input.issue.id ?? '1',
 		organizationId: defaultOrganizationId(),

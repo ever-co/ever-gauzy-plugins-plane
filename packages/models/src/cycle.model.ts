@@ -47,3 +47,38 @@ export interface ICycleIssuesResponse {
 	extra_stats?: any;
 	results: IIssue[];
 }
+
+export interface ICycleAnalytics {
+	assignees: {
+		display_name?: string;
+		assignee_id?: ID;
+		avatar_url?: string;
+		total_issues?: number;
+		completed_issues?: number;
+		pending_issues?: number;
+	}[];
+	labels: {
+		label_name?: string;
+		color?: string;
+		label_id?: ID;
+		total_issues?: number;
+		completed_issues?: number;
+		pending_issues?: number;
+	}[];
+	completion_chart: Record<string, number>;
+}
+
+export interface ICycleProgress {
+	backlog_estimate_points: number;
+	unstarted_estimate_points: number;
+	started_estimate_points: number;
+	cancelled_estimate_points: number;
+	completed_estimate_points: number;
+	total_estimate_points: number;
+	backlog_issues: number;
+	total_issues: number;
+	completed_issues: number;
+	cancelled_issues: number;
+	started_issues: number;
+	unstarted_issues: number;
+}

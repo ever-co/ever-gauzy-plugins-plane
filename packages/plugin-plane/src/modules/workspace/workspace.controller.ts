@@ -17,6 +17,7 @@ import {
 	DashboardWigetQueryEnum,
 	ICycle,
 	ID,
+	IEntitySearchFindInput,
 	IGlabalEntitiesFindInput,
 	IIssue,
 	IIssueFindInput,
@@ -39,7 +40,6 @@ export class WorkspaceController {
 
 	/**
 	 * @description - Get dashboard widgets for given workspace
-	 * @param {string} workspace_name - slug for workspace name
 	 * @param {string} dashboard_type - query that define which widget filter should be fetched
 	 * @returns - A promise that resolves when dashboard widgets are fetched
 	 * @memberof WorkspaceController
@@ -47,14 +47,8 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get dashboard widgets' })
 	@Get('dashboard')
-	async getDashboard(
-		@Param('worspace_name') workspace_name: string,
-		@Query('dashboard_type') dashboard_type: string
-	) {
-		return await this._workspaceService.getDashboard(
-			workspace_name,
-			dashboard_type
-		);
+	async getDashboard(@Query('dashboard_type') dashboard_type: string) {
+		return await this._workspaceService.getDashboard(dashboard_type);
 	}
 
 	@HttpCode(HttpStatus.OK)
@@ -304,6 +298,20 @@ export class WorkspaceController {
 		@Query() options: IGlabalEntitiesFindInput
 	) {
 		return await this._workspaceService.findGlobalEntitiesBySearch(options);
+	}
+
+	/**
+	 * Performs an entity search based on the provided options.
+	 *
+	 * @param {IEntitySearchFindInput} options - The search options containing `project_id`
+	 * and `query_type`.
+	 * @returns {Promise<any>} A promise resolving to an object containing the user mention details.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Entity search' })
+	@Get('entity-search')
+	async entitySearch(@Query() options: IEntitySearchFindInput) {
+		return await this._workspaceService.entitySearch(options);
 	}
 
 	/*

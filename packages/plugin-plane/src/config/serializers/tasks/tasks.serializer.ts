@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {
 	ICompletedIssuesDistribution,
 	ID,
@@ -10,6 +11,9 @@ import {
 	IIssueUpdateInput,
 	IOrganizationProjectModule,
 	IReactionData,
+	IssueFindByTypeEnum,
+	IssueGroupByEnum,
+	IssueManyToManyGroupCriteria,
 	IssueOrderByField,
 	ITag,
 	ITask,
@@ -23,7 +27,13 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
-import { orderByDirection, orderByFieldTransformer } from '../../utils';
+import {
+	deslugify,
+	extractEmployeeMentionIds,
+	issueFilterSplitter,
+	orderByDirection,
+	orderByFieldTransformer
+} from '../../utils';
 
 /**
  * Extracts the IDs of the assignees from a given issue.
@@ -150,88 +160,138 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 	}));
 }
 
-/**
- * @description - Group issues by state ID for Kanban and list Layouts
- * @param {ITask[]} issues - Tasks to be trasnformed and grouped
- * @returns Tranformed and grouped by state Issues
- */
-export function groupIssuesByStateId(issues: ITask[]) {
-	return issues.reduce(
-		(acc, item) => {
-			const stateId = item.taskStatusId;
-
-			if (!acc.results[stateId]) {
-				acc.results[stateId] = {
-					results: [],
-					total_results: 0
-				};
-			}
-			const issue = issueTransformer(item);
-
-			acc.results[stateId].results.push(issue);
-			acc.results[stateId].total_results++;
-
-			acc.total_results++;
-			return acc;
-		},
-		{
-			grouped_by: 'state_id',
-			sub_grouped_by: null,
-			total_count: issues.length,
-			next_cursor: '30:1:0',
-			prev_cursor: '30:-1:1',
-			next_page_results: false,
-			prev_page_results: false,
-			count: issues.length,
-			total_pages: 1,
-			total_results: issues.length,
-			extra_stats: null,
-			results: {}
-		}
-	);
+export function getGroupKeyForCriteria(
+	issue: ITask,
+	criteria: IssueGroupByEnum,
+	employees?: IEmployee[]
+): string | string[] {
+	switch (criteria) {
+		case IssueGroupByEnum.ASSIGNEE_ID:
+			return issue.members?.map((member) => member.id) || ['None'];
+		case IssueGroupByEnum.CREATED_BY:
+			const creator = employees?.find(
+				(emp) => emp.userId === issue.creatorId
+			);
+			return creator ? creator.id : 'None';
+		case IssueGroupByEnum.CYCLE_ID:
+			return issue.organizationSprintId || 'None';
+		case IssueGroupByEnum.LABEL_ID:
+			return issue.tags?.map((tag) => tag.id) || ['None'];
+		case IssueGroupByEnum.MODULE_ID:
+			return issue.modules?.map((module) => module.id) || ['None'];
+		case IssueGroupByEnum.PRIORITY:
+			return issue.priority || 'none';
+		case IssueGroupByEnum.PROJECT_ID:
+			return issue.projectId || 'none';
+		case IssueGroupByEnum.STATE:
+			return issue.taskStatusId || 'none';
+		case IssueGroupByEnum.STATE_GROUP:
+			return issue.taskStatus ? stateGroup(issue.taskStatus) : 'none';
+		default:
+			return 'none';
+	}
 }
 
 /**
- * Groups issues by given group and associates their links.
+ * Groups issues based on a specified key and transforms them into a grouped structure.
  *
- * @param {Array<{ issue: ITask; issueLinks: any }>} issuesWithLinks - Array of issues and their associated links.
- * @returns A structured object grouping issues certain group, with counts and metadata.
+ * This function processes a list of issues along with their associated links, groups them
+ * by a key derived from the provided `groupByKey` function, and transforms them into a
+ * structured output with metadata.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @param {(issue: ITask) string} groupByKey - Function to determine the grouping key for each issue.
+ * @param {string} groupedByLabel - Label describing the grouping criteria.
+ * @param {Partial<Record<string, any>>} [initialAccumulator={}] - Optional initial accumulator object to be merged with the default accumulator.
+ * @returns {Record<string, any>} An object containing grouped issues, metadata, and statistics.
  */
 function groupIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 	groupByKey: (issue: ITask) => string,
 	groupedByLabel: string,
+	subGroupByKey?: (issue: ITask) => string | string[],
+	subGroupByKeyLabel?: string,
 	initialAccumulator: Partial<Record<string, any>> = {}
-) {
+): Record<string, any> {
+	const addToGroup = (
+		group: any,
+		issue: ITask,
+		issueLinks: any,
+		subGroup?: string
+	) => {
+		const transformedIssue = issueTransformer(issue, [], issueLinks);
+
+		if (subGroup) {
+			// Initialize subgroup if not present
+			if (!group[subGroup]) {
+				group[subGroup] = { results: [], total_results: 0 };
+			}
+			group[subGroup].results.push(transformedIssue);
+			group[subGroup].total_results++;
+		} else {
+			// Initialize group results if not present
+			if (!group.results) {
+				group.results = [];
+				group.total_results = 0;
+			}
+			group.results.push(transformedIssue);
+			group.total_results++;
+		}
+	};
+
 	return issuesWithLinks.reduce(
 		(acc, { issue, issueLinks }) => {
-			// Détermine le groupe en utilisant groupByKey
 			const group = groupByKey(issue) || 'none';
 
-			// Initialise le groupe si nécessaire
+			// Initialize the group if not present
 			if (!acc.results[group]) {
-				acc.results[group] = {
-					results: [],
-					total_results: 0
-				};
+				acc.results[group] = subGroupByKeyLabel
+					? { results: {}, total_results: 0 }
+					: { results: [], total_results: 0 };
 			}
 
-			// Transforme la tâche et ses liens
-			const transformedIssue = issueTransformer(issue, [], issueLinks);
+			if (subGroupByKeyLabel) {
+				// Handle subgrouping
+				const subGroups = subGroupByKey?.(issue) || ['none'];
+				const subGroupArray = Array.isArray(subGroups)
+					? subGroups
+					: [subGroups]; // Normalize to an array
 
-			// Ajoute l'élément transformé au groupe
-			acc.results[group].results.push(transformedIssue);
-			acc.results[group].total_results++;
+				subGroupArray.forEach((subGroup) => {
+					addToGroup(
+						acc.results[group].results,
+						issue,
+						issueLinks,
+						subGroup
+					);
+				});
+			} else {
+				// Handle direct grouping without subgroups
+				addToGroup(acc.results[group], issue, issueLinks);
+			}
 
-			// Met à jour les compteurs globaux
+			// Recalculate total_results for the group, considering subgroups if applicable
+			if (subGroupByKeyLabel) {
+				acc.results[group].total_results = Object.values(
+					acc.results[group].results
+				).reduce(
+					(total: number, subGroup: any) =>
+						total + (subGroup?.total_results || 0),
+					0
+				);
+			}
+
+			// Update global counters
 			acc.total_results++;
 			acc.total_count++;
 			acc.count++;
+
 			return acc;
 		},
 		{
+			// Initialize accumulator
 			grouped_by: groupedByLabel,
-			sub_grouped_by: null,
+			sub_grouped_by: subGroupByKeyLabel || null,
 			total_count: 0,
 			next_cursor: null,
 			prev_cursor: null,
@@ -247,40 +307,275 @@ function groupIssues(
 	);
 }
 
-export function groupIssuesByStateGroup(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+/**
+ * Groups issues by a specified many-to-many criteria (e.g., tags, members, or modules) and returns a result object with the grouped issues and statistics.
+ * If no values are found for the selected criteria, it groups the issues under a default value ('None').
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @param {IssueManyToManyGroupCriteria} criteria - The criteria by which to group the issues (e.g., 'tags', 'members', 'modules').
+ * @returns {Record<string, any>} The result object containing grouped issues and related statistics like total results and pagination info.
+ */
+export function groupIssuesByManyToManyCriteria(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	criteria: IssueManyToManyGroupCriteria,
+	subGroupByKey?: (issue: ITask) => string | string[],
+	subGroupByKeyLabel?: string
+): Record<string, any> {
+	return issuesWithLinks.reduce(
+		(acc, { issue, issueLinks }) => {
+			// Extract the values according to the chosed criteria
+			let groupItems: any;
+			switch (criteria) {
+				case 'tags':
+					groupItems = issue.tags?.length
+						? issue.tags
+						: [{ id: 'None', name: 'None', color: null }];
+					break;
+				case 'members':
+					groupItems = issue.members?.length
+						? issue.members
+						: [{ id: 'None', name: 'None', color: null }];
+					break;
+				case 'modules':
+					groupItems = issue.modules?.length
+						? issue.modules
+						: [{ id: 'None', name: 'None' }];
+					break;
+				default:
+					groupItems = [];
+			}
+
+			// Group according to each element of criteria
+			groupItems.forEach((item: any) => {
+				// Initialize the group if not exist
+				if (!acc.results[item.id]) {
+					acc.results[item.id] = subGroupByKeyLabel
+						? { results: {}, total_results: 0 }
+						: { results: [], total_results: 0 };
+				}
+
+				// Transform the issue with its links
+				const transformedIssue = issueTransformer(
+					issue,
+					[],
+					issueLinks
+				);
+
+				if (subGroupByKeyLabel) {
+					// Handle subgroups
+					const subGroups = subGroupByKey?.(issue) || ['none'];
+					const subGroupArray = Array.isArray(subGroups)
+						? subGroups
+						: [subGroups]; // Normalize to an array
+
+					subGroupArray.forEach((subGroup) => {
+						// Initialize subgroup if not present
+						if (!acc.results[item.id].results[subGroup]) {
+							acc.results[item.id].results[subGroup] = {
+								results: [],
+								total_results: 0
+							};
+						}
+
+						// Add the transformed issue to the subgroup
+						acc.results[item.id].results[subGroup].results.push(
+							transformedIssue
+						);
+						acc.results[item.id].results[subGroup].total_results++;
+					});
+
+					// Update total_results for the main group
+					acc.results[item.id].total_results = Object.values(
+						acc.results[item.id].results
+					).reduce(
+						(total: number, subGroup: any) =>
+							total + (subGroup?.total_results || 0),
+						0
+					);
+				} else {
+					// Add the transformed issue directly to the group
+					acc.results[item.id].results.push(transformedIssue);
+					acc.results[item.id].total_results++;
+				}
+			});
+
+			// Increment global counters
+			acc.total_results++;
+			acc.total_count++;
+			acc.count++;
+
+			return acc;
+		},
+		{
+			grouped_by:
+				criteria === 'tags'
+					? 'labels__id'
+					: criteria === 'members'
+						? 'assignee__id'
+						: 'issue_module__module_id',
+			sub_grouped_by: subGroupByKeyLabel || null,
+			total_count: 0,
+			next_cursor: null,
+			prev_cursor: null,
+			next_page_results: false,
+			prev_page_results: false,
+			count: 0,
+			total_pages: 1,
+			total_results: 0,
+			extra_stats: null,
+			results: {}
+		}
+	);
+}
+
+/**
+ * @description - Group issues by state ID for Kanban and list Layouts
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Tasks to be trasnformed and grouped
+ * @returns Tranformed and grouped by state Issues
+ */
+export function groupIssuesByStateId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.taskStatusId, // Define the group by state ID
+		'state_id',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
+}
+
+/**
+ * Groups issues by their state group and returns a result object with the grouped issues and related statistics.
+ * The state group is determined by the task status of each issue.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} The result object containing grouped issues and statistics like total results and pagination info.
+ */
+export function groupIssuesByStateGroup(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => stateGroup(issue.taskStatus), // Define the group by state
 		'state__group',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby,
 		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Specific values for initial accumulator.
 	);
 }
 
+/**
+ * Groups issues by their state group and applies an initial accumulator with specific values.
+ *
+ * This function utilizes `groupIssues` to categorize issues based on their state group,
+ * determined by the `stateGroup` function applied to the `taskStatus` property of each issue.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing grouped issues by state group, metadata, and statistics.
+ */
 export function groupIssuesByPriority(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.priority || 'none', // Define the group by priority
-		'priority'
+		'priority',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 
+/**
+ * Groups issues by their associated project ID.
+ *
+ * This function uses `groupIssues` to organize issues based on their `projectId`.
+ * If an issue does not have a `projectId`, it is grouped under the key `'none'`.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing grouped issues by project ID, metadata, and statistics.
+ */
 export function groupIssuesByProjectId(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => issue.projectId || 'none', // Define the group by project Id
-		'project_id'
+		'project_id',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 
+/**
+ * Groups issues by their associated sprint (cycle) ID.
+ *
+ * This function uses `groupIssues` to organize issues based on their `organizationSprintId`.
+ * If an issue does not have an `organizationSprintId`, it is grouped under the key `'None'`.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing grouped issues by sprint (cycle) ID, metadata, and statistics.
+ */
+export function groupIssuesByCycleId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.organizationSprintId || 'None', // Define the group by sprint Id
+		'cycle_id',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
+}
+
+/**
+ * Groups issues by their creator's user ID. If no matching member is found, issues are grouped under 'None'.
+ * The creator is determined by matching the `creatorId` with the `userId` of the members in the issue.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} The result object containing grouped issues by creator's user ID.
+ */
+export function groupIssuesByCreatorId(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => {
+			const member = employees.find(
+				(member) => member.userId === issue.creatorId
+			);
+			return member?.id || 'None';
+		},
+		'created_by',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
+}
+
+/**
+ * Returns a flat list of issues without any grouping, including their transformed data and metadata.
+ *
+ * This function provides a response structure where issues are not grouped but transformed
+ * for presentation or processing. It includes metadata about the total count, pagination, and more.
+ *
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Array of objects containing issues and their associated links.
+ * @returns {Record<string, any>} An object containing ungrouped issues, metadata, and statistics.
+ */
 export function userWorkNonGroupedIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[]
-) {
+): Record<string, any> {
 	return {
 		grouped_by: null,
 		sub_grouped_by: null,
@@ -307,58 +602,55 @@ export function userWorkNonGroupedIssues(
  * @returns The grouped issues by label.
  */
 export function groupIssuesByLabel(
-	issuesWithLinks: { issue: ITask; issueLinks: any }[]
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
 ) {
-	return issuesWithLinks.reduce(
-		(acc, { issue, issueLinks }) => {
-			// Extract the labels (tags) from the issue, defaulting to "None" if none exist
-			const tags = issue.tags?.length
-				? issue.tags
-				: [{ id: 'None', name: 'None', color: null }];
+	return groupIssuesByManyToManyCriteria(
+		issuesWithLinks,
+		'tags',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
+}
 
-			// Iterate over each tag to group the issue accordingly
-			tags.forEach((tag) => {
-				// Initialize the tag group if it doesn't exist
-				if (!acc.results[tag.id]) {
-					acc.results[tag.id] = {
-						results: [],
-						total_results: 0
-					};
-				}
+/**
+ * Groups issues by assignee (member) and returns a result object with the grouped issues and related stats.
+ * If an issue has no assignees, it is grouped under a default member with the ID 'None'.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Array of issues with their associated links.
+ * @returns {Record<string, any>} Grouped issues by assignee with statistics like total results and pagination info.
+ */
+export function groupIssuesByAssignee(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
+	return groupIssuesByManyToManyCriteria(
+		issuesWithLinks,
+		'members',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
+	);
+}
 
-				// Transform the issue and its links
-				const transformedIssue = issueTransformer(
-					issue,
-					[],
-					issueLinks
-				);
-
-				// Add the transformed issue to the current tag group
-				acc.results[tag.id].results.push(transformedIssue);
-				acc.results[tag.id].total_results++;
-			});
-
-			// Increment the global total results counter
-			acc.total_results++;
-			acc.total_count++;
-			acc.count++;
-			return acc;
-		},
-		// Initial accumulator object
-		{
-			grouped_by: 'labels__id',
-			sub_grouped_by: null,
-			total_count: 0,
-			next_cursor: null,
-			prev_cursor: null,
-			next_page_results: false,
-			prev_page_results: false,
-			count: 0,
-			total_pages: 1,
-			total_results: 0,
-			extra_stats: null,
-			results: {}
-		}
+/**
+ * Groups a list of issues by their modules and returns an object containing the grouped issues and other related stats.
+ * If an issue does not have any modules, it will be grouped under a default module with the ID 'None'.
+ *
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - An array of objects where each object contains an issue (`ITask`) and its associated links.
+ * @returns {Record<string, any>} The result object with grouped issues by module, along with other statistics like total results, page information, and more.
+ */
+export function groupIssuesByModule(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+): Record<string, any> {
+	return groupIssuesByManyToManyCriteria(
+		issuesWithLinks,
+		'modules',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		subGroupby
 	);
 }
 
@@ -451,20 +743,73 @@ export const getTaskQuery = (
 		...baseGetItemsWhereQuery()
 	};
 
+	const { assignees, created_by, creatorId, cycle, labels, module, state } =
+		options;
+
 	if (projectId) {
 		query['where[projectId]'] = projectId;
 	}
 
-	if (options?.module) {
-		query['join[alias]'] = 'task';
-		query['where[modules][0]'] = options.module;
+	if (assignees && assignees.includes(',')) {
+		const members = issueFilterSplitter(assignees);
+		members.forEach((memberId, i) => {
+			query[`filters[members][${i}]`] = memberId;
+		});
 	}
 
-	if (options?.cycle) {
-		query['where[organizationSprintId]'] = options.cycle;
+	if (created_by) {
+		if (!created_by.includes(',')) {
+			query['where[creatorId]'] = created_by;
+		} else {
+			const creators = issueFilterSplitter(created_by);
+			creators.forEach((creator, i) => {
+				query[`filters[creators][${i}]`] = creator;
+			});
+		}
 	}
 
-	if (options?.creatorId) {
+	if (module) {
+		if (!module.includes(',')) {
+			query['join[alias]'] = 'task';
+			query['where[modules][0]'] = options.module;
+		} else {
+			const modules = issueFilterSplitter(module);
+			modules.forEach((mod, i) => {
+				query[`filters[modules][${i}]`] = mod;
+			});
+		}
+	}
+
+	if (cycle) {
+		if (!cycle.includes(',')) {
+			query['where[organizationSprintId]'] = cycle;
+		} else {
+			const sprints = issueFilterSplitter(cycle);
+			sprints.forEach((sprint, i) => {
+				query[`filters[sprints][${i}]`] = sprint;
+			});
+		}
+	}
+
+	if (labels) {
+		const tags = issueFilterSplitter(labels);
+		tags.forEach((tag, i) => {
+			query[`filters[tags][${i}]`] = tag;
+		});
+	}
+
+	if (state) {
+		if (!state.includes(',')) {
+			query['where[taskStatusId]'] = state;
+		} else {
+			const statusIds = issueFilterSplitter(state);
+			statusIds.forEach((statusId, i) => {
+				query[`filters[statusIds][${i}]`] = statusId;
+			});
+		}
+	}
+
+	if (creatorId) {
 		query['where[creatorId]'] = options.creatorId;
 	}
 
@@ -492,9 +837,126 @@ export const getTaskQuery = (
 	return query;
 };
 
-export const getFilteredByDatesTaskQuery = (
+/**
+ * Filters a list of tasks to include only those with specified priority names.
+ *
+ * @param {ITask[]} tasks - The list of tasks to filter.
+ * @param {string[]} priorities - The priority names to include in the result.
+ * @returns {ITask[]} A filtered array of tasks matching the specified priorities.
+ */
+export function filterIssuesByPriorityNames(
+	tasks: ITask[],
+	priorities: string[]
+): ITask[] {
+	return tasks.filter((task) => {
+		const taskPriority = task.priority ?? 'none';
+		return priorities.includes(taskPriority);
+	});
+}
+
+/**
+ * Filters tasks based on the specified issue type.
+ *
+ * @param {ITask[]} tasks - The list of tasks to filter.
+ * @param {IssueFindByTypeEnum} type - The issue type to filter by (e.g., BACKLOG, ACTIVE).
+ * @returns {ITask[]} The filtered list of tasks matching the issue type.
+ */
+export function filterIssuesByActiveType(
+	tasks: ITask[],
+	type: IssueFindByTypeEnum
+): ITask[] {
+	const statusFilters: Record<IssueFindByTypeEnum, string[]> = {
+		[IssueFindByTypeEnum.BACKLOG]: [
+			TaskStatusEnum.BACKLOG.toLocaleLowerCase()
+		],
+		[IssueFindByTypeEnum.ACTIVE]: [
+			deslugify(TaskStatusEnum.IN_PROGRESS).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.READY_FOR_REVIEW).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.IN_REVIEW).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.BLOCKED).toLocaleLowerCase(),
+			deslugify(TaskStatusEnum.OPEN).toLocaleLowerCase()
+		]
+	};
+
+	const activeStatuses = statusFilters[type];
+
+	return tasks.filter((task) =>
+		activeStatuses.includes(task?.status?.toLocaleLowerCase() ?? '')
+	);
+}
+
+/**
+ * Filters tasks based on specified date criteria.
+ *
+ * @param tasks - The list of tasks to filter.
+ * @param criteria - A string representing the filter criteria, e.g.,
+ * "2_weeks;after;fromnow,2025-01-14;after,2025-01-24;before".
+ * The criteria can include relative dates (`fromnow`) and absolute date ranges (`after` and `before`).
+ * @returns - A list of tasks matching the criteria.
+ */
+export function filterTasksByDateCriteria(
+	tasks: ITask[],
+	dateField: 'startDate' | 'dueDate',
+	criteria: string
+): ITask[] {
+	// Split the criteria string into individual filters
+	const filters = criteria.split(',');
+
+	// Array to store filtering conditions
+	const conditions: ((task: ITask) => boolean)[] = [];
+
+	filters.forEach((filter) => {
+		// Split the filter into its components
+		const parts = filter.split(';');
+		let amount: any, unit: any, condition: string;
+
+		if (parts.length === 3) {
+			// Case where we have a relative filter (e.g., "2_weeks;after;fromnow")
+			[amount, unit, condition] = parts;
+		} else if (parts.length === 2) {
+			// Case where we have a specific date filter (e.g., "2025-01-14;after")
+			[amount, condition] = parts;
+		} else {
+			// Invalid filter format (you can throw an error or handle this case)
+			return;
+		}
+
+		// Handling the different conditions
+		if (condition === 'fromnow') {
+			// Handles relative dates (e.g., "2_weeks;after;fromnow")
+			const date = moment()
+				.add(
+					parseInt(amount, 10),
+					unit as moment.unitOfTime.DurationConstructor
+				)
+				.startOf('day'); // Ensuring the date comparison is from the start of the day
+			if (unit && amount) {
+				// Add a condition to include tasks starting on or after the calculated date
+				conditions.push((task) =>
+					moment(task[dateField]).isSameOrAfter(date)
+				);
+			}
+		} else if (condition === 'after') {
+			// Handles tasks starting after a specific date (e.g., "2025-01-14;after")
+			const date = moment(amount).startOf('day'); // Start of the day for accurate comparison
+			conditions.push((task) => moment(task[dateField]).isAfter(date));
+		} else if (condition === 'before') {
+			// Handles tasks starting before a specific date (e.g., "2025-01-24;before")
+			const date = moment(amount).startOf('day'); // Start of the day for accurate comparison
+			conditions.push((task) => moment(task[dateField]).isBefore(date));
+		}
+	});
+
+	// Filter tasks based on the combined conditions
+	return tasks.filter((task) =>
+		// A task is included if it satisfies at least one condition
+		conditions.some((condition) => condition(task))
+	);
+}
+
+export function getFilteredByDatesTaskQuery(
 	options: ITaskDateFilterInput
-): Record<string, any> => {
+): Record<string, any> {
 	// Base queries
 	const query: Record<string, any> = {
 		organizationId: defaultOrganizationId(),
@@ -515,11 +977,12 @@ export const getFilteredByDatesTaskQuery = (
 	}
 
 	return query;
-};
+}
 
 export function createIssueInputTransformer(
 	issue: IIssueCreateInput,
-	status: TaskStatusEnum
+	status: TaskStatusEnum,
+	employees: IEmployee[]
 ): ITaskCreateInput {
 	const tags = issue?.label_ids
 		? issue?.label_ids?.map((id) => ({ id }) as ITag)
@@ -528,7 +991,17 @@ export function createIssueInputTransformer(
 		? issue?.assignee_ids?.map((id) => ({ id }) as IEmployee)
 		: [];
 
-	// TODO : Include mention here
+	// Extract employee IDs mentioned in the issue description
+	const mentionedEmployeeIds = extractEmployeeMentionIds(
+		issue?.description_html
+	);
+
+	// Map employee IDs to user IDs
+	const mentionUserIds = employees
+		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
+		.map((employee) => employee.userId) // Map to corresponding user IDs
+		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
+
 	return {
 		title: issue?.name,
 		description: issue?.description_html,
@@ -548,7 +1021,8 @@ export function createIssueInputTransformer(
 		modules:
 			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule
-			) || []
+			) || [],
+		mentionUserIds: mentionUserIds ?? []
 	};
 }
 

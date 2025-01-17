@@ -28,7 +28,7 @@ import {
 	IReaction,
 	IReactionData,
 	IssueActivityTypeEnum,
-	IssueGroupBy,
+	IssueGroupByEnum,
 	IssueOrderByField,
 	IState,
 	ISubIssueResponse,
@@ -43,13 +43,23 @@ import {
 	defaultUserId,
 	extractViewIdFromReferer,
 	extractWorkspaceViewIdFromReferer,
+	filterIssuesByActiveType,
+	filterIssuesByPriorityNames,
+	filterTasksByDateCriteria,
 	getFilteredByDatesTaskQuery,
 	getTaskDistribution,
 	getTaskQuery,
+	groupIssuesByAssignee,
+	groupIssuesByCreatorId,
+	groupIssuesByCycleId,
+	groupIssuesByLabel,
+	groupIssuesByModule,
+	groupIssuesByPriority,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
 	issueActivityLogTransformer,
 	issueCommentTrasnsformer,
+	issueFilterSplitter,
 	issueLinksActivities,
 	issueLinkTransformer,
 	issueRelationActivities,
@@ -69,6 +79,7 @@ import { IssueLinksService } from '../issue-links/issue-links.service';
 import { ActivityService } from '../activity/activity.service';
 import { IssueLabelsService } from './issue-labels/issue-labels.service';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { MentionService } from '../mention/mention.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -83,6 +94,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _issueRelationService: IssueRelationsService,
 		private readonly _activityService: ActivityService,
 		private readonly _subscriptionService: SubscriptionService,
+		private readonly _mentionService: MentionService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -102,7 +114,7 @@ export class IssuesService extends ApiFetchService {
 		isDraft?: boolean
 	): Promise<ITask> {
 		const query = qs.stringify(
-			getTaskQuery(null, null, relations, null, isDraft)
+			getTaskQuery(null, {}, relations, null, isDraft)
 		);
 		return (
 			await this.apiFetch({
@@ -162,7 +174,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Build query for task retrieval
 			const query = qs.stringify(
-				getTaskQuery(null, null, relations, orderByField, false)
+				getTaskQuery(null, {}, relations, orderByField, false)
 			);
 
 			// Fetch tasks for the authenticated employee
@@ -281,9 +293,16 @@ export class IssuesService extends ApiFetchService {
 				state = await this._stateSerive.getOne(input.state_id);
 			}
 
+			// Find project
+			const project = await this._projectService.getExternalProject(
+				input.project_id,
+				['members.employee.user']
+			);
+
 			const body = createIssueInputTransformer(
 				input,
-				state.name as TaskStatusEnum
+				state.name as TaskStatusEnum,
+				project.members.map((member) => member.employee)
 			);
 
 			const issue: ITask = (
@@ -393,6 +412,7 @@ export class IssuesService extends ApiFetchService {
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
 			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -471,7 +491,16 @@ export class IssuesService extends ApiFetchService {
 				extractWorkspaceViewIdFromReferer(referer);
 
 			// Destructure options for group_by and module if provided
-			const { group_by, module } = options;
+			const {
+				group_by,
+				sub_group_by,
+				mentions,
+				module,
+				priority,
+				start_date,
+				target_date,
+				type
+			} = options;
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
@@ -480,7 +509,7 @@ export class IssuesService extends ApiFetchService {
 
 			let path = '';
 			// If a module is specified, modify the path accordingly
-			if (module) {
+			if (module && !module.includes(',')) {
 				path = 'module';
 			}
 
@@ -496,14 +525,151 @@ export class IssuesService extends ApiFetchService {
 			).data;
 
 			// Extract the issues from the API response
-			const issues = tasks.items;
+			let issues = tasks.items;
+
+			// Optional filter tasks by priority criteria
+			if (priority) {
+				const priorities = issueFilterSplitter(priority);
+				issues = filterIssuesByPriorityNames(issues, priorities);
+			}
+
+			// Optional filter tasks by type (Active or Backlog)
+			if (type) {
+				issues = filterIssuesByActiveType(issues, type);
+			}
+
+			// Optional filter tasks by start_date string
+			if (start_date) {
+				issues = filterTasksByDateCriteria(
+					issues,
+					'startDate',
+					start_date
+				);
+			}
+
+			// Optional filter tasks by start_date string
+			if (target_date) {
+				issues = filterTasksByDateCriteria(
+					issues,
+					'dueDate',
+					target_date
+				);
+			}
+
+			if (mentions) {
+				const mentionIds = issueFilterSplitter(mentions);
+
+				try {
+					const [taskParentMentionedUsers, taskMentionedUsers] =
+						await Promise.all([
+							this._mentionService.findAll({
+								parentEntityType: BaseEntityEnum.Task
+							}),
+							this._mentionService.findAll({
+								entity: BaseEntityEnum.Task
+							})
+						]);
+
+					const taskIds = new Set([
+						...taskMentionedUsers.map(
+							(mention) => mention.entityId
+						),
+						...taskParentMentionedUsers.map(
+							(mention) => mention.parentEntityId
+						)
+					]);
+
+					const mentionedUserIds = new Set([
+						...taskMentionedUsers.map(
+							(mention) => mention.mentionedUserId
+						),
+						...taskParentMentionedUsers.map(
+							(mention) => mention.mentionedUserId
+						)
+					]);
+
+					// Filtrage des issues
+					issues = issues.filter(
+						(task) =>
+							taskIds.has(task.id) &&
+							task.members.some(
+								(member) =>
+									mentionIds.includes(member.id) &&
+									mentionedUserIds.has(member.userId)
+							)
+					);
+				} catch (error) {
+					console.error('Error filtering issues:', error);
+				}
+			}
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default
+			const issuesWithLinks = await Promise.all(
+				issues.map(async (issue) => {
+					const issueLinks = await this._issueLinkService.findAll(
+						issue.id
+					);
+
+					const transformedIssueLinks =
+						issueLinkTransformer(issueLinks);
+
+					return {
+						issue,
+						issueLinks: transformedIssueLinks
+					};
+				})
+			);
+
+			const project = await this._projectService.getExternalProject(
+				projectId,
+				['members.employee']
+			);
+			const employees = project.members.map((member) => member.employee);
 			switch (group_by) {
-				case IssueGroupBy.STATE:
-					return groupIssuesByStateId(issues); // Group issues by their state
-				case IssueGroupBy.TARGET_DATE:
+				case IssueGroupByEnum.STATE:
+					return groupIssuesByStateId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their state
+				case IssueGroupByEnum.TARGET_DATE:
 					return groupIssuesByTargetDate(issues); // Group issues by their target date
+				case IssueGroupByEnum.PRIORITY:
+					return groupIssuesByPriority(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their priority
+				case IssueGroupByEnum.CYCLE_ID:
+					return groupIssuesByCycleId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their cycle
+				case IssueGroupByEnum.MODULE_ID:
+					return groupIssuesByModule(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their modules
+				case IssueGroupByEnum.LABEL_ID:
+					return groupIssuesByLabel(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their labels
+				case IssueGroupByEnum.ASSIGNEE_ID:
+					return groupIssuesByAssignee(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their assignees
+				case IssueGroupByEnum.CREATED_BY:
+					return groupIssuesByCreatorId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their creator
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}

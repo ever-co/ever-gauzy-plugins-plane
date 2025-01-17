@@ -72,6 +72,7 @@ export enum ActorTypeEnum {
 
 export enum BaseEntityEnum {
 	Candidate = 'Candidate',
+	Comment = 'Comment',
 	Contact = 'Contact',
 	Currency = 'Currency',
 	Employee = 'Employee',

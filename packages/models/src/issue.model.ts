@@ -60,27 +60,45 @@ export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 export type IIssueUpdateInput = IIssue;
 
 export interface IIssueFindInput {
-	module?: ID;
-	cycle?: ID;
-	group_by?: IssueGroupBy;
+	module?: string;
+	cycle?: string;
+	group_by?: IssueGroupByEnum;
+	sub_group_by?: IssueGroupByEnum;
 	order_by?: IssueOrderByField;
 	sub_issue?: boolean;
 	creatorId?: ID;
-	created_by?: ID;
-	assignees?: ID;
-	priotity?: string;
-	subscriber?: ID;
+	created_by?: string;
+	assignees?: string;
+	priority?: string;
+	state?: string;
+	type?: IssueFindByTypeEnum;
+	start_date?: string;
+	target_date?: string;
+	subscriber?: string;
+	mentions?: string;
+	labels?: string;
 	module_ids?: ID[];
 }
 
-export enum IssueGroupBy {
-	STATE = 'state_id',
-	TARGET_DATE = 'target_date',
-	STATE_GROUP = 'state__group',
+export enum IssueFindByTypeEnum {
+	ACTIVE = 'active',
+	BACKLOG = 'backlog'
+}
+
+export enum IssueGroupByEnum {
+	ASSIGNEE_ID = 'assignees__id',
+	CREATED_BY = 'created_by',
+	CYCLE_ID = 'cycle_id',
+	LABEL_ID = 'labels__id',
+	MODULE_ID = 'issue_module__module_id',
 	PRIORITY = 'priority',
 	PROJECT_ID = 'project_id',
-	LABEL_ID = 'labels__id'
+	STATE = 'state_id',
+	STATE_GROUP = 'state__group',
+	TARGET_DATE = 'target_date'
 }
+
+export type IssueManyToManyGroupCriteria = 'tags' | 'members' | 'modules';
 
 export enum IssueActivityTypeEnum {
 	COMMENT = 'issue-comment',

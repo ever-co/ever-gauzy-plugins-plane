@@ -111,8 +111,6 @@ export class IssueRelationsService extends ApiFetchService {
 				)
 			);
 
-			console.log({ createdRelations });
-
 			return createdRelations;
 		} catch (error) {
 			console.log(error);

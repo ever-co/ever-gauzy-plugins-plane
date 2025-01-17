@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { DashboardService } from './dashboard.service';
 import { DashboardController } from './dashboard.controller';
-import { RouterModule } from '@nestjs/core';
+import { WidgetService } from './widget.service';
 
 @Module({
 	imports: [
@@ -9,7 +10,8 @@ import { RouterModule } from '@nestjs/core';
 			{ path: '/api/dashboard', module: DashboardModule }
 		])
 	],
-	providers: [DashboardService],
-	controllers: [DashboardController]
+	providers: [DashboardService, WidgetService],
+	controllers: [DashboardController],
+	exports: [DashboardService, WidgetService]
 })
 export class DashboardModule {}

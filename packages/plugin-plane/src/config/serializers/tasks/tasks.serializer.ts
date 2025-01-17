@@ -164,22 +164,21 @@ export function getGroupKeyForCriteria(
 	issue: ITask,
 	criteria: IssueGroupByEnum,
 	employees?: IEmployee[]
-): string {
+): string | string[] {
 	switch (criteria) {
 		case IssueGroupByEnum.ASSIGNEE_ID:
-			return issue.members?.length ? issue.members[0].id : 'None';
+			return issue.members?.map((member) => member.id) || ['None'];
 		case IssueGroupByEnum.CREATED_BY:
 			const creator = employees?.find(
 				(emp) => emp.userId === issue.creatorId
 			);
-			console.log(creator?.id);
-			return creator?.id || 'None';
+			return creator ? creator.id : 'None';
 		case IssueGroupByEnum.CYCLE_ID:
 			return issue.organizationSprintId || 'None';
 		case IssueGroupByEnum.LABEL_ID:
-			return issue.tags?.length ? issue.tags[0].id : 'None';
+			return issue.tags?.map((tag) => tag.id) || ['None'];
 		case IssueGroupByEnum.MODULE_ID:
-			return issue.modules?.length ? issue.modules[0].id : 'None';
+			return issue.modules?.map((module) => module.id) || ['None'];
 		case IssueGroupByEnum.PRIORITY:
 			return issue.priority || 'none';
 		case IssueGroupByEnum.PROJECT_ID:
@@ -210,7 +209,7 @@ function groupIssues(
 	issuesWithLinks: { issue: ITask; issueLinks: any }[],
 	groupByKey: (issue: ITask) => string,
 	groupedByLabel: string,
-	subGroupByKey?: (issue: ITask) => string,
+	subGroupByKey?: (issue: ITask) => string | string[],
 	subGroupByKeyLabel?: string,
 	initialAccumulator: Partial<Record<string, any>> = {}
 ): Record<string, any> {
@@ -253,22 +252,19 @@ function groupIssues(
 
 			if (subGroupByKeyLabel) {
 				// Handle subgrouping
-				const subGroup = subGroupByKey?.(issue) || 'none';
+				const subGroups = subGroupByKey?.(issue) || ['none'];
+				const subGroupArray = Array.isArray(subGroups)
+					? subGroups
+					: [subGroups]; // Normalize to an array
 
-				// Ensure subgroup results are initialized
-				if (!acc.results[group].results[subGroup]) {
-					acc.results[group].results[subGroup] = {
-						results: [],
-						total_results: 0
-					};
-				}
-
-				addToGroup(
-					acc.results[group].results,
-					issue,
-					issueLinks,
-					subGroup
-				);
+				subGroupArray.forEach((subGroup) => {
+					addToGroup(
+						acc.results[group].results,
+						issue,
+						issueLinks,
+						subGroup
+					);
+				});
 			} else {
 				// Handle direct grouping without subgroups
 				addToGroup(acc.results[group], issue, issueLinks);

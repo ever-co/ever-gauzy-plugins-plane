@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { CheckExistUserDTO } from '../user/dto';
 import { Request, Response } from 'express';
 import { IUserLoginInput } from '@plane-plugin/models';
+import { EXTERNAL_API_MODE } from '../../config';
 
 @ApiTags('Authentication routes')
 @Controller()
@@ -60,6 +61,12 @@ export class AuthController {
 		try {
 			const result = await this._authService.signIn(data);
 			if (result.user) {
+				// Send token cookies and tenant credential
+				res.cookie('auth-proxy-plane-token', result.token, {
+					httpOnly: true, // Make sure the cookie is not inaccessible from client side
+					secure: EXTERNAL_API_MODE() === 'production', // Allow only HTTPS if run production
+					sameSite: 'strict'
+				});
 				return res.redirect(
 					`http://localhost/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? 'no-workspace'}`
 				);

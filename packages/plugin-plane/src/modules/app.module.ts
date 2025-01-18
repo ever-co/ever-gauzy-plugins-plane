@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
-import { InstancesModule } from './instances/instances.module';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
+import { InstancesModule } from './instances/instances.module';
 import { AuthModule } from './auth/auth.module';
 import { ApiFetchModule } from './api-fetch/api-fetch.module';
 import { UserModule } from './user/user.module';
@@ -56,4 +57,8 @@ import { MentionModule } from './mention/mention.module';
 		MentionModule
 	]
 })
-export class AppModule {}
+export class AppModule {
+	configure(consumer: MiddlewareConsumer) {
+		consumer.apply(cookieParser()).forRoutes('*'); // Applique cookie-parser à toutes les routes
+	}
+}

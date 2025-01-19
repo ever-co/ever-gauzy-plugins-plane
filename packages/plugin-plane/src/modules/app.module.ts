@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { InstancesModule } from './instances/instances.module';
@@ -26,6 +26,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from './employee-properties/employee-properties.module';
 import { MentionModule } from './mention/mention.module';
+import { TokenMiddleware } from './api-fetch/token.middleware';
 
 @Module({
 	imports: [
@@ -57,8 +58,8 @@ import { MentionModule } from './mention/mention.module';
 		MentionModule
 	]
 })
-export class AppModule {
+export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
-		consumer.apply(cookieParser()).forRoutes('*'); // Applique cookie-parser à toutes les routes
+		consumer.apply(cookieParser(), TokenMiddleware).forRoutes('*');
 	}
 }

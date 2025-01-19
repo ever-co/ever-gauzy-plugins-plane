@@ -5,13 +5,12 @@ import {
 	HttpCode,
 	HttpStatus,
 	Post,
-	Req,
 	Res
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CheckExistUserDTO } from '../user/dto';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { IUserLoginInput } from '@plane-plugin/models';
 import { EXTERNAL_API_MODE } from '../../config';
 
@@ -23,28 +22,8 @@ export class AuthController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Check email' })
 	@Post('email-check')
-	async checkExistingUser(
-		@Body() input: CheckExistUserDTO,
-		@Res() res: Response,
-		@Req() req: Request
-	) {
-		const authToken = req.cookies['auth-gauzy-proxy-plane'];
-		console.log(`Le token d'authentification est : ${authToken}`);
-
-		// Définir la cookie
-		// res.cookie(
-		// 	'auth-gauzy-proxy-plane',
-		// 	'auth_token_for_api_key_and_api_secret-now-1',
-		// 	{
-		// 		httpOnly: true, // La cookie est inaccessible depuis JavaScript côté client
-		// 		secure: false, // Utiliser uniquement sur des connexions HTTPS
-		// 		sameSite: 'strict', // Empêche les cookies d'être envoyés dans des requêtes intersites
-		// 		maxAge: 1000 * 60 * 60 * 24 // Durée de validité: 1 jour (en millisecondes)
-		// 	}
-		// );
-
-		const result = await this._authService.checkExistingUser(input);
-		return res.status(200).json(result);
+	async checkExistingUser(@Body() input: CheckExistUserDTO) {
+		return await this._authService.checkExistingUser(input);
 	}
 
 	@HttpCode(HttpStatus.OK)
@@ -61,6 +40,7 @@ export class AuthController {
 		try {
 			const result = await this._authService.signIn(data);
 			if (result.user) {
+				console.log(result.user);
 				// Send token cookies and tenant credential
 				res.cookie('auth-proxy-plane-token', result.token, {
 					httpOnly: true, // Make sure the cookie is not inaccessible from client side

@@ -40,7 +40,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	createIssueInputTransformer,
-	defaultUserId,
+	currentUserId,
 	extractViewIdFromReferer,
 	extractWorkspaceViewIdFromReferer,
 	filterIssuesByActiveType,
@@ -263,7 +263,7 @@ export class IssuesService extends ApiFetchService {
 			const subscriptions = await this._subscriptionService.findAll({
 				entity: BaseEntityEnum.Task,
 				entityId: issue.id,
-				userId: defaultUserId()
+				userId: currentUserId()
 			}); // TODO : Adjust this to use current connected user;
 			const isSubscribed = subscriptions && subscriptions.length > 0;
 
@@ -1555,7 +1555,7 @@ export class IssuesService extends ApiFetchService {
 		return await this._subscriptionService.unsubscribe({
 			entity: BaseEntityEnum.Task,
 			entityId: issueId,
-			userId: defaultUserId()
+			userId: currentUserId()
 		}); // TODO : Make sure we pass correct userId
 	}
 }

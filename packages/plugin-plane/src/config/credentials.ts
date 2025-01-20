@@ -1,5 +1,8 @@
 import { EXTERNAL_API_MODE } from './constants';
-import { getCurrentEmployeeId } from '../modules/api-fetch/token.helper';
+import {
+	getCurrentEmployeeId,
+	getCurrentUserId
+} from '../modules/api-fetch/token.helper';
 
 export const apiSecretKeys = () => ({
 	API_KEY: process.env.API_KEY,
@@ -30,7 +33,6 @@ export const currentEmployeeIdId = () => {
 	return getCurrentEmployeeId();
 };
 
-export const defaultUserId = () =>
-	EXTERNAL_API_MODE() === 'develop'
-		? process.env.LOCAL_USER_ID
-		: process.env.EXTERNAL_USER_ID;
+export const currentUserId = () => {
+	return getCurrentUserId();
+};

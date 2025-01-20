@@ -40,7 +40,7 @@ import {
 	DEFAULT_DASHBOARD_WIDGETS,
 	defaultOrganizationId,
 	defaultTestTenantId,
-	defaultUserId,
+	currentUserId,
 	employeeSettingSerializer,
 	extractWorkspaceViewIdFromReferer,
 	getProjectsResponse,
@@ -258,7 +258,7 @@ export class WorkspaceService extends ApiFetchService {
 			>;
 
 			return {
-				id: defaultUserId(),
+				id: currentUserId(),
 				created_at: '2024-08-13T11:47:19.039549Z',
 				updated_at: '2024-08-13T11:47:19.039558Z',
 				deleted_at: null,
@@ -458,7 +458,7 @@ export class WorkspaceService extends ApiFetchService {
 		target_date?: string,
 		issue_type?: DashboardIssueTypeEnum
 	) {
-		const userId = defaultUserId(); // TODO: Replace with the correct authenticated user
+		const userId = currentUserId(); // TODO: Replace with the correct authenticated user
 		return this.getIssues(userId, 'creatorId', target_date, issue_type);
 	}
 
@@ -595,7 +595,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				creatorId: defaultUserId() || employeeId // Use authenticated user ID
+				creatorId: currentUserId() || employeeId // Use authenticated user ID
 			});
 
 			const issueActivities = await Promise.all(
@@ -871,7 +871,7 @@ export class WorkspaceService extends ApiFetchService {
 		employeeId: ID
 	): Promise<IUserProjectsDataResponse> {
 		try {
-			const userId = defaultUserId(); // TODO : Change this with real connected user ID
+			const userId = currentUserId(); // TODO : Change this with real connected user ID
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
@@ -916,9 +916,11 @@ export class WorkspaceService extends ApiFetchService {
 						order_by
 					);
 			} else if (created_by) {
+				console.log(currentUserId());
+				console.log(currentEmployeeIdId());
 				const createdTasks = await this._issueService.findAllExternal(
 					{
-						creatorId: defaultUserId() // TODO : Change here with current autheticated user.
+						creatorId: currentUserId() // TODO : Change here with current autheticated user.
 					},
 					relations,
 					order_by
@@ -940,7 +942,7 @@ export class WorkspaceService extends ApiFetchService {
 			}
 
 			const issuesWithLinks = await Promise.all(
-				assignedIssues.map(async (issue) => {
+				(assignedIssues ?? []).map(async (issue) => {
 					const issueLinks = await this._issueLinkService.findAll(
 						issue.id
 					);
@@ -990,7 +992,7 @@ export class WorkspaceService extends ApiFetchService {
 
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
-			userId: defaultUserId()
+			userId: currentUserId()
 		}); // TODO : Make sure we pass correct userId
 		const subscribedTaskIds = subscriptions.map(
 			(subscription) => subscription.entityId

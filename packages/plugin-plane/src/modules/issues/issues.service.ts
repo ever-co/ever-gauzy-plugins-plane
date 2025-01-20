@@ -264,7 +264,7 @@ export class IssuesService extends ApiFetchService {
 				entity: BaseEntityEnum.Task,
 				entityId: issue.id,
 				userId: currentUserId()
-			}); // TODO : Adjust this to use current connected user;
+			});
 			const isSubscribed = subscriptions && subscriptions.length > 0;
 
 			// Find issue links
@@ -1540,7 +1540,7 @@ export class IssuesService extends ApiFetchService {
 		issueId: ID,
 		projectId: ID
 	): Promise<ISubscriber | ISubscriber[]> {
-		const subscription = await this._subscriptionService.create(issueId); // TODO : Make sure we pass correct userId
+		const subscription = await this._subscriptionService.create(issueId);
 		return subscriptionTransformer(subscription, projectId);
 	}
 
@@ -1556,6 +1556,6 @@ export class IssuesService extends ApiFetchService {
 			entity: BaseEntityEnum.Task,
 			entityId: issueId,
 			userId: currentUserId()
-		}); // TODO : Make sure we pass correct userId
+		});
 	}
 }

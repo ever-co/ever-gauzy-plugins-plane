@@ -98,7 +98,7 @@ export class UserService {
 
 	async findProjectRoles(): Promise<{ [key: string]: number }> {
 		try {
-			const employeeId = currentEmployeeId(); // TODO : Ensure that will be changed with authenticated employee
+			const employeeId = currentEmployeeId();
 			const employeeProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,

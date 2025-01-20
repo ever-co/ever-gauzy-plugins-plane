@@ -346,7 +346,7 @@ export class ProjectService extends ApiFetchService {
 			// Fetch member-specific settings for the project (task views)
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -429,7 +429,7 @@ export class ProjectService extends ApiFetchService {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -484,7 +484,7 @@ export class ProjectService extends ApiFetchService {
 			// Find existing employee settings for the given project
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS

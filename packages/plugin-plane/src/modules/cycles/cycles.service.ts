@@ -362,7 +362,7 @@ export class CyclesService extends ApiFetchService {
 			// Attempt to find existing user properties for the cycle
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationSprint,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -420,7 +420,7 @@ export class CyclesService extends ApiFetchService {
 			// Find existing employee settings for the given cycle
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(), // TODO: Change this with cycle
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationSprint,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS

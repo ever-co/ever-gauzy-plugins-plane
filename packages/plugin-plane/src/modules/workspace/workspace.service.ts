@@ -341,7 +341,7 @@ export class WorkspaceService extends ApiFetchService {
 		const organization: IOrganization = (
 			await this.apiFetch({
 				method: 'GET',
-				path: `/organization/${getCurrentOrganizationSlug()}`, // TODO : Get this organization ID from request
+				path: `/organization/${getCurrentOrganizationSlug()}`,
 				query
 			})
 		).data;
@@ -443,7 +443,7 @@ export class WorkspaceService extends ApiFetchService {
 		issue_type?: DashboardIssueTypeEnum,
 		employee?: ID
 	) {
-		const employeeId = employee || currentEmployeeId(); // TODO: Replace with the correct authenticated employee ID
+		const employeeId = employee || currentEmployeeId();
 		return this.getIssues(
 			employeeId,
 			'employeeId',
@@ -456,7 +456,7 @@ export class WorkspaceService extends ApiFetchService {
 		target_date?: string,
 		issue_type?: DashboardIssueTypeEnum
 	) {
-		const userId = currentUserId(); // TODO: Replace with the correct authenticated user
+		const userId = currentUserId();
 		return this.getIssues(userId, 'creatorId', target_date, issue_type);
 	}
 
@@ -477,7 +477,7 @@ export class WorkspaceService extends ApiFetchService {
 				await this._issueService.findExternalByEmployee(
 					currentEmployeeId(),
 					['taskStatus']
-				); // TODO: Adjust this to use correct authenticated employee;
+				);
 
 			if (target_date) {
 				const { dueDateFrom, dueDateTo } =
@@ -487,7 +487,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: currentEmployeeId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeId()
 				});
 			}
 
@@ -531,7 +531,7 @@ export class WorkspaceService extends ApiFetchService {
 				await this._issueService.findExternalByEmployee(
 					currentEmployeeId(),
 					['taskStatus']
-				); // TODO: Adjust this to use correct authenticated employee;
+				);
 
 			if (target_date) {
 				const { dueDateFrom, dueDateTo } =
@@ -541,7 +541,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: currentEmployeeId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeId()
 				});
 			}
 
@@ -593,7 +593,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				creatorId: currentUserId() || employeeId // Use authenticated user ID
+				creatorId: currentUserId() || employeeId
 			});
 
 			const issueActivities = await Promise.all(
@@ -869,7 +869,7 @@ export class WorkspaceService extends ApiFetchService {
 		employeeId: ID
 	): Promise<IUserProjectsDataResponse> {
 		try {
-			const userId = currentUserId(); // TODO : Change this with real connected user ID
+			const userId = currentUserId();
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
@@ -989,7 +989,7 @@ export class WorkspaceService extends ApiFetchService {
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
 			userId: currentUserId()
-		}); // TODO : Make sure we pass correct userId
+		});
 		const subscribedTaskIds = subscriptions.map(
 			(subscription) => subscription.entityId
 		);

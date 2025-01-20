@@ -66,8 +66,11 @@ export class AuthController {
 
 				return res.redirect(`http://localhost${normalizedPath}`);
 			}
+			const nextPathParam = data.next_path
+				? `&next_path=${encodeURIComponent(data.next_path)}`
+				: '';
 			return res.redirect(
-				`http://localhost/?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}`
+				`http://localhost/?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
 			);
 		} catch (error) {
 			console.log(error);

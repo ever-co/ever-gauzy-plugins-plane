@@ -39,3 +39,15 @@ export function getCurrentUserId(): string | null {
 	const decoded = decodeToken(token);
 	return decoded?.id || null;
 }
+
+/**
+ * Get the current tenant ID from the token
+ * @returns The tenant ID from the token
+ */
+export function getCurrentTenantId(): string {
+	const token = ApiFetchService.getToken();
+	if (!token) return '';
+
+	const decoded = decodeToken(token);
+	return decoded?.tenantId || '';
+}

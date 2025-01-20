@@ -34,12 +34,11 @@ import {
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
-	currentEmployeeIdId,
+	currentEmployeeId,
 	cycleTransformer,
 	dashboardTransformer,
 	DEFAULT_DASHBOARD_WIDGETS,
 	defaultOrganizationId,
-	defaultTestTenantId,
 	currentUserId,
 	employeeSettingSerializer,
 	extractWorkspaceViewIdFromReferer,
@@ -62,7 +61,8 @@ import {
 	userWorkNonGroupedIssues,
 	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
-	widgetTransformer
+	widgetTransformer,
+	currentTenantId
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -239,8 +239,8 @@ export class WorkspaceService extends ApiFetchService {
 	 * @memberof WorkspaceController
 	 */
 	async getMembersMe(workspace_name: string) {
-		const employeeId = currentEmployeeIdId(); // TODO: Replace with connected employee
-		const tenantId = defaultTestTenantId(); // TODO: Replace with current tenant
+		const employeeId = currentEmployeeId(); // TODO: Replace with connected employee
+		const tenantId = currentTenantId();
 
 		console.log({ workspace_name });
 
@@ -445,7 +445,7 @@ export class WorkspaceService extends ApiFetchService {
 		issue_type?: DashboardIssueTypeEnum,
 		employee?: ID
 	) {
-		const employeeId = employee || currentEmployeeIdId(); // TODO: Replace with the correct authenticated employee ID
+		const employeeId = employee || currentEmployeeId(); // TODO: Replace with the correct authenticated employee ID
 		return this.getIssues(
 			employeeId,
 			'employeeId',
@@ -477,7 +477,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
-					currentEmployeeIdId(),
+					currentEmployeeId(),
 					['taskStatus']
 				); // TODO: Adjust this to use correct authenticated employee;
 
@@ -489,7 +489,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: currentEmployeeIdId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeId() // TODO: Adjust this to use correct authenticated employee
 				});
 			}
 
@@ -531,7 +531,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
-					currentEmployeeIdId(),
+					currentEmployeeId(),
 					['taskStatus']
 				); // TODO: Adjust this to use correct authenticated employee;
 
@@ -543,7 +543,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: currentEmployeeIdId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeId() // TODO: Adjust this to use correct authenticated employee
 				});
 			}
 

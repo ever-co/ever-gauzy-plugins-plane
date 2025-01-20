@@ -10,7 +10,7 @@ import {
 	ProjectModuleStatusEnum,
 	TaskStatusEnum
 } from '@plane-plugin/models';
-import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { defaultOrganizationId, currentTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { deslugify } from '../../utils';
 
@@ -215,7 +215,7 @@ export function createModuleInputTransformer(
 		memberIds: (module.member_ids ?? []).map((id) => id),
 		managerIds: managerId ? [managerId] : [],
 		projectId: module.project_id,
-		tenantId: defaultTestTenantId(),
+		tenantId: currentTenantId(),
 		organizationId: defaultOrganizationId()
 	};
 }

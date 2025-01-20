@@ -9,9 +9,9 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import {
-	currentEmployeeIdId,
-	defaultOrganizationId,
-	defaultTestTenantId
+	currentEmployeeId,
+	currentTenantId,
+	defaultOrganizationId
 } from '../../credentials';
 import { roleTransformer } from '../workspace-organization';
 
@@ -86,8 +86,8 @@ export function getProjectsResponse(
 				in_use: 'emoji'
 			},
 			archived_at: project?.archivedAt,
-			created_by: currentEmployeeIdId(), // To add for external API
-			updated_by: currentEmployeeIdId(), // To add for external API
+			created_by: currentEmployeeId(), // To add for external API
+			updated_by: currentEmployeeId(), // To add for external API
 			workspace: project?.tenantId,
 			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
@@ -124,7 +124,7 @@ export function createProjectInputTransformer(
 		defaultAssigneeId: input.default_assignee,
 		memberIds,
 		managerIds,
-		tenantId: defaultTestTenantId(),
+		tenantId: currentTenantId(),
 		organizationId: defaultOrganizationId()
 	};
 }
@@ -178,7 +178,7 @@ export const findEmployeeProjectsQuery = (
 ): Record<string, string> => {
 	const query = {
 		organizationId: defaultOrganizationId(),
-		tenantId: defaultTestTenantId()
+		tenantId: currentTenantId()
 	};
 
 	// Add relations to the baseQuery

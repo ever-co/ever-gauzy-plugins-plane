@@ -23,7 +23,7 @@ import {
 import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
-	currentEmployeeIdId,
+	currentEmployeeId,
 	employeeSettingSerializer,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
@@ -346,7 +346,7 @@ export class ProjectService extends ApiFetchService {
 			// Fetch member-specific settings for the project (task views)
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeIdId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -429,7 +429,7 @@ export class ProjectService extends ApiFetchService {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeIdId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -448,8 +448,8 @@ export class ProjectService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: currentEmployeeIdId() },
-						employeeId: currentEmployeeIdId()
+						employee: { id: currentEmployeeId() },
+						employeeId: currentEmployeeId()
 					});
 
 				return employeeSettingSerializer(moduleMemberSetting);
@@ -484,7 +484,7 @@ export class ProjectService extends ApiFetchService {
 			// Find existing employee settings for the given project
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeIdId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(), // TODO: Change this with connected employee
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -519,8 +519,8 @@ export class ProjectService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeIdId() },
-					employeeId: currentEmployeeIdId()
+					employee: { id: currentEmployeeId() },
+					employeeId: currentEmployeeId()
 				});
 			}
 			// Serialize and return the updated/created employee setting.

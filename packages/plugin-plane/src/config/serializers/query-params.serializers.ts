@@ -1,6 +1,6 @@
-import { defaultOrganizationId, defaultTestTenantId } from '../credentials';
+import { defaultOrganizationId, currentTenantId } from '../credentials';
 
-export const baseGetItemsWhereQuery = (): Record<string, string> => ({
+export const baseGetItemsWhereQuery = () => ({
 	'where[organizationId]': defaultOrganizationId(),
-	'where[tenantId]': defaultTestTenantId()
+	'where[tenantId]': currentTenantId()
 });

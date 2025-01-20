@@ -2,7 +2,8 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@plane-plugin/models';
-import { defaultTestTenantId, EXTERNAL_BASE_API_URL } from '../../config';
+import { EXTERNAL_BASE_API_URL } from '../../config';
+import { getCurrentTenantId } from './token.helper';
 
 @Injectable()
 export class ApiFetchService {
@@ -38,7 +39,7 @@ export class ApiFetchService {
 		if (tenantId) {
 			headers['Tenant-Id'] = tenantId;
 		} else {
-			headers['Tenant-Id'] = defaultTestTenantId();
+			headers['Tenant-Id'] = getCurrentTenantId();
 		}
 
 		const datas: { body?: string } = {};

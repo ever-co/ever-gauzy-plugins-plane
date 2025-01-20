@@ -11,7 +11,7 @@ import {
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import {
 	defaultOrganizationId,
-	defaultTestTenantId,
+	currentTenantId,
 	getLabelsQuery,
 	issueLabelsTransformer
 } from '../../../config';
@@ -65,7 +65,7 @@ export class IssueLabelsService extends ApiFetchService {
 					body: {
 						...input,
 						organizationId: defaultOrganizationId(),
-						tenantId: defaultTestTenantId()
+						tenantId: currentTenantId()
 					}
 				})
 			).data;

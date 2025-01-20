@@ -4,6 +4,7 @@ import {
 	getCurrentTenantId,
 	getCurrentUserId
 } from '../modules/api-fetch/token.helper';
+import { WorkspaceContextService } from '../modules/workspace/workspace-context.service';
 
 export const apiSecretKeys = () => ({
 	API_KEY: process.env.API_KEY,
@@ -13,6 +14,10 @@ export const apiSecretKeys = () => ({
 
 export const currentTenantId = () => {
 	return getCurrentTenantId();
+};
+
+export const getCurrentOrganizationSlug = () => {
+	return WorkspaceContextService.getCurrentWorkspaceSlug();
 };
 
 export const defaultOrganizationId = () =>

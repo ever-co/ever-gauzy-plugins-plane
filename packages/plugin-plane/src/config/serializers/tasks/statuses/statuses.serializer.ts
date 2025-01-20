@@ -6,7 +6,10 @@ import {
 	ITaskStatusCreateInput,
 	TaskStatusEnum
 } from '@plane-plugin/models';
-import { defaultOrganizationId, currentTenantId } from '../../../credentials';
+import {
+	currentTenantId,
+	getCurrentOrganizationSlug
+} from '../../../credentials';
 
 function capitalizeWords(word: string) {
 	return word
@@ -83,13 +86,13 @@ export function createStateInputTransformer(
 		template,
 		projectId: input.project_id,
 		tenantId: currentTenantId(),
-		organizationId: defaultOrganizationId()
+		organizationId: getCurrentOrganizationSlug()
 	};
 }
 
 export const getStatesQuery = (id?: ID): Record<string, string> => {
 	const query = {
-		organizationId: defaultOrganizationId(),
+		organizationId: getCurrentOrganizationSlug(),
 		tenantId: currentTenantId()
 	};
 

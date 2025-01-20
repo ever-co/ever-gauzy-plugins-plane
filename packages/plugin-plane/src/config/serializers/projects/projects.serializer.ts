@@ -11,7 +11,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import {
 	currentEmployeeId,
 	currentTenantId,
-	defaultOrganizationId
+	getCurrentOrganizationSlug
 } from '../../credentials';
 import { roleTransformer } from '../workspace-organization';
 
@@ -125,7 +125,7 @@ export function createProjectInputTransformer(
 		memberIds,
 		managerIds,
 		tenantId: currentTenantId(),
-		organizationId: defaultOrganizationId()
+		organizationId: getCurrentOrganizationSlug()
 	};
 }
 
@@ -177,7 +177,7 @@ export const findEmployeeProjectsQuery = (
 	relations?: string[]
 ): Record<string, string> => {
 	const query = {
-		organizationId: defaultOrganizationId(),
+		organizationId: getCurrentOrganizationSlug(),
 		tenantId: currentTenantId()
 	};
 

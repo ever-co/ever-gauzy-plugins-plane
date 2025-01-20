@@ -27,6 +27,7 @@ import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module'
 import { EmployeePropertiesModule } from './employee-properties/employee-properties.module';
 import { MentionModule } from './mention/mention.module';
 import { TokenMiddleware } from './api-fetch/token.middleware';
+import { WorkspaceMiddleware } from './workspace/workspace.middleware';
 
 @Module({
 	imports: [
@@ -60,6 +61,6 @@ import { TokenMiddleware } from './api-fetch/token.middleware';
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
-		consumer.apply(cookieParser(), TokenMiddleware).forRoutes('*');
+		consumer.apply(cookieParser(), TokenMiddleware, WorkspaceMiddleware).forRoutes('*');
 	}
 }

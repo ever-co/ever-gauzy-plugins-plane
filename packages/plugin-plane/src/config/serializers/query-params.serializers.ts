@@ -1,6 +1,6 @@
-import { defaultOrganizationId, currentTenantId } from '../credentials';
+import { currentTenantId, getCurrentOrganizationSlug } from '../credentials';
 
 export const baseGetItemsWhereQuery = () => ({
-	'where[organizationId]': defaultOrganizationId(),
+	'where[organizationId]': getCurrentOrganizationSlug(),
 	'where[tenantId]': currentTenantId()
 });

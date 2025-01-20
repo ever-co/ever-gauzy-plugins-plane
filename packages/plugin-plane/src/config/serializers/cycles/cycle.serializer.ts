@@ -13,7 +13,10 @@ import {
 	TaskStatusEnum
 } from '@plane-plugin/models';
 import moment from 'moment';
-import { currentEmployeeId, defaultOrganizationId } from '../../credentials';
+import {
+	currentEmployeeId,
+	getCurrentOrganizationSlug
+} from '../../credentials';
 import { getTaskCounts } from '../modules';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
@@ -152,7 +155,7 @@ export function createCycleInputTransformer(
 		status,
 		length,
 		projectId: project_id,
-		organizationId: defaultOrganizationId(),
+		organizationId: getCurrentOrganizationSlug(),
 		managerIds: [currentEmployeeId()], // TODO : Change this and retrive it from authorization Request Header or Body Request
 		memberIds: [currentEmployeeId()] // TODO : Change this and get it from Request
 	};

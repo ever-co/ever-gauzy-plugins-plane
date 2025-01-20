@@ -25,7 +25,7 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
-import { defaultOrganizationId, currentTenantId } from '../../credentials';
+import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
 import {
 	deslugify,
@@ -961,7 +961,7 @@ export function getFilteredByDatesTaskQuery(
 ): Record<string, any> {
 	// Base queries
 	const query: Record<string, any> = {
-		organizationId: defaultOrganizationId(),
+		organizationId: getCurrentOrganizationSlug(),
 		tenantId: currentTenantId()
 	};
 
@@ -1019,7 +1019,7 @@ export function createIssueInputTransformer(
 		parentId: issue?.parent_id,
 		taskStatusId: issue?.state_id?.length > 0 ? issue?.state_id : null,
 		tenantId: currentTenantId(),
-		organizationId: defaultOrganizationId(),
+		organizationId: getCurrentOrganizationSlug(),
 		modules:
 			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule
@@ -1077,7 +1077,7 @@ export function updateIssueInputTransformer(
 						? new Date()
 						: null;
 			}
-			acc['organizationId'] = defaultOrganizationId();
+			acc['organizationId'] = getCurrentOrganizationSlug();
 
 			if (issue.module_ids || issue.modules) {
 				acc['modules'] = modules

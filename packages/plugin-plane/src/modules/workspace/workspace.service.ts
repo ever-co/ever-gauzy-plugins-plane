@@ -38,7 +38,7 @@ import {
 	cycleTransformer,
 	dashboardTransformer,
 	DEFAULT_DASHBOARD_WIDGETS,
-	defaultOrganizationId,
+	getCurrentOrganizationSlug,
 	currentUserId,
 	employeeSettingSerializer,
 	extractWorkspaceViewIdFromReferer,
@@ -123,7 +123,7 @@ export class WorkspaceService extends ApiFetchService {
 					name: 'home',
 					identifier: 'home',
 					description: 'Default home dashboard for plane',
-					organizationId: defaultOrganizationId()
+					organizationId: getCurrentOrganizationSlug()
 				});
 			}
 
@@ -238,11 +238,9 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns - A promise that resolves after getting member informations
 	 * @memberof WorkspaceController
 	 */
-	async getMembersMe(workspace_name: string) {
-		const employeeId = currentEmployeeId(); // TODO: Replace with connected employee
+	async getMembersMe() {
+		const employeeId = currentEmployeeId();
 		const tenantId = currentTenantId();
-
-		console.log({ workspace_name });
 
 		// Helper function to format the result
 		const formatResult = (memberSetting: IEmployeeSetting) => {
@@ -343,7 +341,7 @@ export class WorkspaceService extends ApiFetchService {
 		const organization: IOrganization = (
 			await this.apiFetch({
 				method: 'GET',
-				path: `/organization/${defaultOrganizationId()}`, // TODO : Get this organization ID from request
+				path: `/organization/${getCurrentOrganizationSlug()}`, // TODO : Get this organization ID from request
 				query
 			})
 		).data;

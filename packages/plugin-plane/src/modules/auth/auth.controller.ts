@@ -58,7 +58,7 @@ export class AuthController {
 				const redirectPath =
 					data.next_path ||
 					queryNextPath ||
-					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? 'no-workspace'}`;
+					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
 
 				const normalizedPath = redirectPath.startsWith('/')
 					? redirectPath

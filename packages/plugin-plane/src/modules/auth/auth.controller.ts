@@ -5,6 +5,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	Post,
+	Query,
 	Res
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -40,7 +41,11 @@ export class AuthController {
 	@ApiOperation({ summary: 'Sign in' })
 	@Post('sign-in')
 	@Public()
-	async signIn(@Res() res: Response, @Body() data: IUserLoginInput) {
+	async signIn(
+		@Res() res: Response,
+		@Body() data: IUserLoginInput & { next_path?: string },
+		@Query('next_path') queryNextPath?: string
+	) {
 		try {
 			const result = await this._authService.signIn(data);
 			if (result.user) {
@@ -49,9 +54,17 @@ export class AuthController {
 					secure: EXTERNAL_API_MODE() === 'production',
 					sameSite: 'strict'
 				});
-				return res.redirect(
-					`http://localhost/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? 'no-workspace'}`
-				);
+
+				const redirectPath =
+					data.next_path ||
+					queryNextPath ||
+					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? 'no-workspace'}`;
+
+				const normalizedPath = redirectPath.startsWith('/')
+					? redirectPath
+					: `/${redirectPath}`;
+
+				return res.redirect(`http://localhost${normalizedPath}`);
 			}
 			return res.redirect(
 				`http://localhost/?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}`

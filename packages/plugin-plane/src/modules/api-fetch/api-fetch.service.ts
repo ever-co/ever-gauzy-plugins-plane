@@ -14,6 +14,10 @@ export class ApiFetchService {
 		ApiFetchService.token = token;
 	}
 
+	static getToken(): string {
+		return ApiFetchService.token;
+	}
+
 	async apiFetch(configs: IServerFetchInputs) {
 		const { method, path, body, query, customHeaders, tenantId, init } =
 			configs;

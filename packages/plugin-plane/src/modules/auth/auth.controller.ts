@@ -40,7 +40,6 @@ export class AuthController {
 		try {
 			const result = await this._authService.signIn(data);
 			if (result.user) {
-				console.log(result.user);
 				// Send token cookies and tenant credential
 				res.cookie('auth-proxy-plane-token', result.token, {
 					httpOnly: true, // Make sure the cookie is not inaccessible from client side

@@ -34,10 +34,10 @@ import {
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
+	currentEmployeeIdId,
 	cycleTransformer,
 	dashboardTransformer,
 	DEFAULT_DASHBOARD_WIDGETS,
-	defaultEmployeeId,
 	defaultOrganizationId,
 	defaultTestTenantId,
 	defaultUserId,
@@ -239,7 +239,7 @@ export class WorkspaceService extends ApiFetchService {
 	 * @memberof WorkspaceController
 	 */
 	async getMembersMe(workspace_name: string) {
-		const employeeId = defaultEmployeeId(); // TODO: Replace with connected employee
+		const employeeId = currentEmployeeIdId(); // TODO: Replace with connected employee
 		const tenantId = defaultTestTenantId(); // TODO: Replace with current tenant
 
 		console.log({ workspace_name });
@@ -445,7 +445,7 @@ export class WorkspaceService extends ApiFetchService {
 		issue_type?: DashboardIssueTypeEnum,
 		employee?: ID
 	) {
-		const employeeId = employee || defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
+		const employeeId = employee || currentEmployeeIdId(); // TODO: Replace with the correct authenticated employee ID
 		return this.getIssues(
 			employeeId,
 			'employeeId',
@@ -477,7 +477,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
-					defaultEmployeeId(),
+					currentEmployeeIdId(),
 					['taskStatus']
 				); // TODO: Adjust this to use correct authenticated employee;
 
@@ -489,7 +489,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: defaultEmployeeId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeIdId() // TODO: Adjust this to use correct authenticated employee
 				});
 			}
 
@@ -531,7 +531,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
-					defaultEmployeeId(),
+					currentEmployeeIdId(),
 					['taskStatus']
 				); // TODO: Adjust this to use correct authenticated employee;
 
@@ -543,7 +543,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: defaultEmployeeId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeIdId() // TODO: Adjust this to use correct authenticated employee
 				});
 			}
 

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
-	defaultEmployeeId,
+	currentEmployeeIdId,
 	defaultTestTenantId,
 	roleTransformer
 } from '../../config';
@@ -12,7 +12,7 @@ export class UserService {
 
 	async getMe() {
 		return {
-			id: defaultEmployeeId(),
+			id: currentEmployeeIdId(),
 			avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
 			cover_image: null,
 			date_joined: '2024-06-25T12:23:12.642525Z',
@@ -51,13 +51,13 @@ export class UserService {
 			billing_address: null,
 			has_billing_address: false,
 			company_name: '',
-			user: defaultEmployeeId()
+			user: currentEmployeeIdId()
 		};
 	}
 
 	async getMySettings() {
 		return {
-			id: defaultEmployeeId(),
+			id: currentEmployeeIdId(),
 			email: 'salva.cardano1@gmail.com',
 			workspace: {
 				last_workspace_id: defaultTestTenantId(),
@@ -74,7 +74,7 @@ export class UserService {
 			{
 				id: defaultTestTenantId(),
 				owner: {
-					id: defaultEmployeeId(),
+					id: currentEmployeeIdId(),
 					first_name: 'Salva',
 					last_name: 'Cardano',
 					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
@@ -88,17 +88,17 @@ export class UserService {
 				deleted_at: null,
 				name: 'Cardano',
 				logo: null,
-				slug: 'cardano',
+				slug: '44edf92f-27a3-479b-8d9a-34acf6765d5b',
 				organization_size: '11-50',
-				created_by: defaultEmployeeId(),
-				updated_by: defaultEmployeeId()
+				created_by: currentEmployeeIdId(),
+				updated_by: currentEmployeeIdId()
 			}
 		];
 	}
 
 	async findProjectRoles(): Promise<{ [key: string]: number }> {
 		try {
-			const employeeId = defaultEmployeeId(); // TODO : Ensure that will be changed with authenticated employee
+			const employeeId = currentEmployeeIdId(); // TODO : Ensure that will be changed with authenticated employee
 			const employeeProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,

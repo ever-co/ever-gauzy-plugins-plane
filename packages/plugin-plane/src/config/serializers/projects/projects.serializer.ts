@@ -9,7 +9,7 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import {
-	defaultEmployeeId,
+	currentEmployeeIdId,
 	defaultOrganizationId,
 	defaultTestTenantId
 } from '../../credentials';
@@ -86,8 +86,8 @@ export function getProjectsResponse(
 				in_use: 'emoji'
 			},
 			archived_at: project?.archivedAt,
-			created_by: defaultEmployeeId(), // To add for external API
-			updated_by: defaultEmployeeId(), // To add for external API
+			created_by: currentEmployeeIdId(), // To add for external API
+			updated_by: currentEmployeeIdId(), // To add for external API
 			workspace: project?.tenantId,
 			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null

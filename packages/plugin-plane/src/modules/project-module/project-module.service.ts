@@ -18,7 +18,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	createModuleInputTransformer,
-	defaultEmployeeId,
+	currentEmployeeIdId,
 	employeeSettingSerializer,
 	getModulesQuery,
 	MEMBER_DEFAULT_VIEW_PROPS,
@@ -243,7 +243,7 @@ export class ProjectModuleService extends ApiFetchService {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeIdId(), // TODO: Change this with connected employee
 					entity: BaseEntityEnum.OrganizationProjectModule,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -263,8 +263,8 @@ export class ProjectModuleService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: defaultEmployeeId() },
-						employeeId: defaultEmployeeId()
+						employee: { id: currentEmployeeIdId() },
+						employeeId: currentEmployeeIdId()
 					});
 
 				return employeeSettingSerializer(moduleMemberSetting);
@@ -288,7 +288,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Find existing employee settings for the given project module
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeIdId(), // TODO: Change this with connected employee
 					entity: BaseEntityEnum.OrganizationProjectModule,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -323,8 +323,8 @@ export class ProjectModuleService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: defaultEmployeeId() },
-					employeeId: defaultEmployeeId()
+					employee: { id: currentEmployeeIdId() },
+					employeeId: currentEmployeeIdId()
 				});
 			}
 			// Serialize and return the updated/created employee setting.

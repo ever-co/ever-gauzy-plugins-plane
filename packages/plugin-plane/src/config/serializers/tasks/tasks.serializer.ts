@@ -831,7 +831,9 @@ export const getTaskQuery = (
 	if (orderByField) {
 		const orderField = orderByFieldTransformer(orderByField);
 		const orderDirection = orderByDirection(orderByField);
-		query['order'] = { [orderField]: orderDirection };
+		if (orderField.length > 0) {
+			query['order'] = { [orderField]: orderDirection };
+		}
 	}
 
 	return query;

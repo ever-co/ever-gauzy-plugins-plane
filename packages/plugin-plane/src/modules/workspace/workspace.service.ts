@@ -916,11 +916,9 @@ export class WorkspaceService extends ApiFetchService {
 						order_by
 					);
 			} else if (created_by) {
-				console.log(currentUserId());
-				console.log(currentEmployeeIdId());
 				const createdTasks = await this._issueService.findAllExternal(
 					{
-						creatorId: currentUserId() // TODO : Change here with current autheticated user.
+						creatorId: currentUserId()
 					},
 					relations,
 					order_by

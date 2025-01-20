@@ -1,4 +1,3 @@
-import { EXTERNAL_API_MODE } from './constants';
 import {
 	getCurrentEmployeeId,
 	getCurrentTenantId,
@@ -20,16 +19,6 @@ export const getCurrentOrganizationSlug = () => {
 	return WorkspaceContextService.getCurrentWorkspaceSlug();
 };
 
-export const defaultOrganizationId = () =>
-	EXTERNAL_API_MODE() === 'develop'
-		? process.env.LOCAL_ORGANIZATION_ID
-		: process.env.EXTERNAL_ORGANIZATION_ID;
-
-export const defaultProjectId = () =>
-	EXTERNAL_API_MODE() === 'develop'
-		? process.env.LOCAL_PROJECT_ID
-		: process.env.EXTERNAL_PROJECT_ID;
-
 export const currentEmployeeId = () => {
 	return getCurrentEmployeeId();
 };
@@ -37,8 +26,3 @@ export const currentEmployeeId = () => {
 export const currentUserId = () => {
 	return getCurrentUserId();
 };
-
-export const defaultTestToken = () =>
-	EXTERNAL_API_MODE() === 'develop'
-		? process.env.LOCAL_TOKEN
-		: process.env.EXTERNAL_TOKEN;

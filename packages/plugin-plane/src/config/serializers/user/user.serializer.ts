@@ -9,6 +9,7 @@ import {
 } from '@plane-plugin/models';
 import { currentTenantId, currentUserId } from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
+import { roleTransformer } from '../workspace-organization';
 
 /**
  * Generates query parameters for fetching user organizations
@@ -30,6 +31,11 @@ export function getUserOrganizationsQueryParams(
 	}
 	return query;
 }
+
+export const getUserMeQueryParams = {
+	includeEmployee: true,
+	'[relations][0]': 'tenant'
+};
 
 /**
  * Transforms organization data into a standardized format with owner and member details
@@ -144,6 +150,20 @@ export function updateUserProfileInputTranformer(
 	};
 }
 
+export function userSettingsTranformer(user: IUser) {
+	return {
+		id: user.employee.id,
+		email: user.email,
+		workspace: {
+			last_workspace_id: user.lastOrganizationId,
+			last_workspace_slug: user.lastOrganizationId,
+			fallback_workspace_id: user.defaultOrganizationId,
+			fallback_workspace_slug: user.defaultOrganizationId,
+			invites: user.invites
+		}
+	};
+}
+
 /**
  * Serializes member properties with default settings and employee data
  * @param memberSetting - Employee settings containing default data and organization info
@@ -164,10 +184,10 @@ export function memberPropertiesSerializer(
 
 	return {
 		id: currentUserId(),
-		created_at: '2024-08-13T11:47:19.039549Z',
-		updated_at: '2024-08-13T11:47:19.039558Z',
-		deleted_at: null,
-		role: 20,
+		created_at: memberSetting.createdAt,
+		updated_at: memberSetting.updatedAt,
+		deleted_at: memberSetting.deletedAt,
+		role: roleTransformer(memberSetting.employee.user.role),
 		company_role: '',
 		view_props: {
 			...employeeSettingSerializer(memberSetting)
@@ -182,6 +202,19 @@ export function memberPropertiesSerializer(
 		created_by: employeeId,
 		updated_by: employeeId,
 		workspace: memberSetting?.organizationId,
+		user_info: {
+			id: memberSetting.employeeId,
+			first_name: memberSetting?.employee.user.firstName,
+			last_name: memberSetting?.employee.user.lastName,
+			avatar: memberSetting?.employee.user.imageUrl,
+			is_bot: false,
+			display_name: memberSetting?.employee.user.fullName
+		},
+		workspace_info: {
+			id: memberSetting?.organizationId,
+			slug: memberSetting?.organizationId,
+			name: memberSetting?.organization.name
+		},
 		member: employeeId
 	};
 }

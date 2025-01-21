@@ -136,7 +136,6 @@ export function issueTransformer(
  *   Each `issue` should contain properties such as `id`, `title`, `startDate`, `dueDate`, `taskStatus`, etc.
  * @returns An array of transformed issue objects, each containing a subset of the original issue's properties.
  *   The returned objects include properties like `id`, `name`, `start_date`, `target_date`, `sequence_id`, and `project` details.
- *   Additionally, the `workspace__slug` is statically set to "cardano", and the `state__group` is derived from the issue's task status.
  *   Some properties, such as `project__identifier` and `state__color`, are extracted from related objects.
  *   The `type_id` is set to a static value.
  */
@@ -152,7 +151,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 			issue.project.code ||
 			issue.project.name.slice(0, 4).toLocaleUpperCase(),
 		project_id: issue.projectId,
-		workspace__slug: 'cardano', // TODO : Make this as dynamic as possible
+		workspace__slug: getCurrentOrganizationSlug(),
 		state__name: issue.taskStatus?.name,
 		state__group: stateGroup(issue.taskStatus),
 		state__color: issue.taskStatus?.color,

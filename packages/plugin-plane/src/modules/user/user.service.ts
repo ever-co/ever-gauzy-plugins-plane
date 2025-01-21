@@ -8,14 +8,15 @@ import {
 } from '@plane-plugin/models';
 import {
 	currentEmployeeId,
-	currentTenantId,
 	currentUserId,
+	getUserMeQueryParams,
 	getUserOrganizationsQueryParams,
 	organizationsTranformer,
 	roleTransformer,
 	updateUserProfileInputTranformer,
 	userMeTransformer,
-	userProfileTransformer
+	userProfileTransformer,
+	userSettingsTranformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -60,10 +61,7 @@ export class UserService extends ApiFetchService {
 	 */
 	async getMyProfile() {
 		try {
-			const query = qs.stringify({
-				includeEmployee: true,
-				'[relations][0]': 'tenant'
-			});
+			const query = qs.stringify(getUserMeQueryParams);
 
 			const user: IUser = (
 				await this.apiFetch({
@@ -117,17 +115,21 @@ export class UserService extends ApiFetchService {
 	}
 
 	async getMySettings() {
-		return {
-			id: currentEmployeeId(),
-			email: 'salva.cardano1@gmail.com',
-			workspace: {
-				last_workspace_id: currentTenantId(),
-				last_workspace_slug: 'cardano',
-				fallback_workspace_id: currentTenantId(),
-				fallback_workspace_slug: 'cardano',
-				invites: 0
-			}
-		};
+		try {
+			const query = qs.stringify(getUserMeQueryParams);
+			const user: IUser = (
+				await this.apiFetch({
+					path: '/user/me',
+					method: 'GET',
+					query
+				})
+			).data;
+
+			return userSettingsTranformer(user);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**

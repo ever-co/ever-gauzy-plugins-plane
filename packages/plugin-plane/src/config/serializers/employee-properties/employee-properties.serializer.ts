@@ -68,7 +68,8 @@ export const getEmployeeSettingQuery = (
 		query['where[settingType]'] = settingType;
 	}
 
-	query['relations[0]'] = 'employee';
+	query['relations[0]'] = 'employee.user.role';
+	query['relations[1]'] = 'organization';
 
 	return query;
 };

@@ -365,11 +365,7 @@ export class ProjectService extends ApiFetchService {
 			// Construct and return the response object
 			return {
 				id: memberInfos.id,
-				workspace: {
-					name: 'Cardano',
-					slug: 'cardano',
-					id: project.workspace
-				},
+				workspace: memberInfos.workspace_info,
 				project: {
 					id: project.id,
 					identifier: project.identifier,
@@ -378,14 +374,7 @@ export class ProjectService extends ApiFetchService {
 					logo_props: project.logo_props,
 					desciption: project.description
 				},
-				member: {
-					id: memberInfos.member,
-					first_name: 'Salva',
-					last_name: 'Cardano',
-					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
-					is_bot: false,
-					display_name: 'salva.cardano1'
-				},
+				member: memberInfos.user_info,
 				created_at: memberInfos.created_at,
 				updated_at: memberInfos.updated_at,
 				deleted_at: memberInfos.deleted_at,

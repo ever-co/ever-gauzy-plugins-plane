@@ -1,14 +1,27 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import qs from 'qs';
+import {
+	IPagination,
+	IUserOrganization,
+	RolesEnum
+} from '@plane-plugin/models';
 import {
 	currentEmployeeId,
 	currentTenantId,
+	getUserOrganizationsQueryParams,
 	roleTransformer
 } from '../../config';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 
 @Injectable()
-export class UserService {
-	constructor(private readonly _projectService: ProjectService) {}
+export class UserService extends ApiFetchService {
+	constructor(
+		private readonly _projectService: ProjectService,
+		private readonly _serverFetchService: ApiFetchService
+	) {
+		super(_serverFetchService['_httpService']);
+	}
 
 	async getMe() {
 		return {
@@ -70,30 +83,65 @@ export class UserService {
 	}
 
 	async getMyWorkspaces() {
-		return [
-			{
-				id: currentTenantId(),
-				owner: {
-					id: currentEmployeeId(),
-					first_name: 'Salva',
-					last_name: 'Cardano',
-					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
-					is_bot: false,
-					display_name: 'salva.cardano1'
-				},
-				total_members: 1,
-				total_issues: 2,
-				created_at: '2024-08-13T11:47:19.032854Z',
-				updated_at: '2024-08-13T11:47:19.032867Z',
-				deleted_at: null,
-				name: 'Cardano',
-				logo: null,
-				slug: '44edf92f-27a3-479b-8d9a-34acf6765d5b',
-				organization_size: '11-50',
-				created_by: currentEmployeeId(),
-				updated_by: currentEmployeeId()
-			}
-		];
+		try {
+			const query = qs.stringify(
+				getUserOrganizationsQueryParams([
+					'organization.employees.user.role'
+				])
+			);
+
+			const userOrganizations: IPagination<IUserOrganization> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: '/user-organization',
+					query
+				})
+			).data;
+
+			const organizations = userOrganizations.items.map(
+				(userOrg) => userOrg.organization
+			);
+
+			console.log({ organizations });
+
+			return organizations.map((organization) => {
+				const owner = organization.employees.find((employee) => {
+					const employeeRole = employee.user.role.name;
+					return (
+						employeeRole === RolesEnum.SUPER_ADMIN ||
+						employeeRole === RolesEnum.ADMIN ||
+						employeeRole === RolesEnum.MANAGER
+					);
+				});
+
+				return {
+					id: organization.id,
+					owner: {
+						id: owner?.id,
+						first_name: owner?.user.firstName,
+						last_name: owner?.user.lastName,
+						avatar: owner?.user.imageUrl,
+						is_bot: false,
+						display_name: owner?.user.fullName
+					},
+					total_members: organization.employees.length,
+					// total_issues: organization.ta.length,
+					created_at: organization.createdAt,
+					updated_at: organization.updatedAt,
+					deleted_at: organization.deletedAt,
+					name: organization.name,
+					logo: organization.imageUrl,
+					slug: organization.id,
+					organization_size:
+						organization.minimumProjectSize || '11-50'
+					// created_by: organization.createdBy,
+					// updated_by: organization.updatedBy
+				};
+			});
+		} catch (error: any) {
+			console.log(error);
+			return [];
+		}
 	}
 
 	async findProjectRoles(): Promise<{ [key: string]: number }> {

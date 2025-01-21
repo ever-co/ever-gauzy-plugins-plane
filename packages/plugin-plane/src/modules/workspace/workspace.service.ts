@@ -149,7 +149,7 @@ export class WorkspaceService extends ApiFetchService {
 						)
 					).flat();
 				} catch (error: any) {
-					console.log(error.response);
+					// console.log(error.response);
 					throw new BadRequestException(error.response);
 				}
 			}
@@ -160,7 +160,7 @@ export class WorkspaceService extends ApiFetchService {
 				widgets: transformedWidgets
 			};
 		} catch (error: any) {
-			console.log(error.response);
+			// console.log(error.response);
 			throw new BadRequestException(error.response);
 		}
 	}

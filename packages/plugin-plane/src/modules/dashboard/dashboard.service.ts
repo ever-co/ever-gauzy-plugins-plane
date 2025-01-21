@@ -85,7 +85,7 @@ export class DashboardService extends ApiFetchService {
 
 			return dashboard.items[0];
 		} catch (error: any) {
-			console.log(error.response);
+			// console.log(error.response);
 			throw new BadRequestException(error);
 		}
 	}

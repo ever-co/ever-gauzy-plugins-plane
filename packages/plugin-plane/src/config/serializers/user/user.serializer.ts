@@ -3,6 +3,8 @@ import {
 	IEmployeeSetting,
 	IOrganization,
 	IUser,
+	IUserCreateInput,
+	IUserProfile,
 	RolesEnum
 } from '@plane-plugin/models';
 import { currentTenantId, currentUserId } from '../../credentials';
@@ -70,6 +72,11 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 	});
 }
 
+/**
+ * Transforms user data into a format suitable for /user/me endpoint response
+ * @param user - User entity with employee relationship
+ * @returns Transformed user data with basic profile information
+ */
 export function userMeTransformer(user: IUser) {
 	return {
 		id: user.employee.id,
@@ -87,6 +94,46 @@ export function userMeTransformer(user: IUser) {
 		username: user.username,
 		is_password_autoset: false,
 		last_login_medium: 'email'
+	};
+}
+
+/**
+ * Transforms user data into an extended profile format with preferences and settings
+ * @param user - User entity with employee relationship
+ * @returns Transformed user profile with theme, onboarding, and billing information
+ */
+export function userProfileTransformer(user: IUser): IUserProfile {
+	return {
+		id: user.id,
+		created_at: user.createdAt,
+		updated_at: user.updatedAt,
+		theme: {},
+		is_tour_completed: true,
+		onboarding_step: {
+			workspace_join: true,
+			profile_complete: true,
+			workspace_create: true,
+			workspace_invite: true
+		},
+		use_case: 'Engineering',
+		role: 'Individual contributor',
+		is_onboarded: true,
+		last_workspace_id: user.lastOrganizationId,
+		billing_address_country: 'INDIA',
+		billing_address: null,
+		has_billing_address: false,
+		company_name: user.tenant.name,
+		user: user.employee.id
+	};
+}
+
+export function updateUserProfileInputTranformer(
+	input: IUserProfile
+): IUserCreateInput {
+	return {
+		firstName: input.first_name,
+		lastName: input.last_name,
+		lastOrganizationId: input.last_workspace_id
 	};
 }
 

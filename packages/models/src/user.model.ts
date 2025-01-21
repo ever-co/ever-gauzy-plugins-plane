@@ -59,3 +59,28 @@ export enum CheckUserExistEnum {
 	MAGIC_CODE = 'MAGIC_CODE',
 	CREDENTIALS = 'CREDENTIAL'
 }
+
+export interface IUserProfile {
+	id?: ID;
+	first_name?: string;
+	last_name?: string;
+	created_at?: Date;
+	updated_at?: Date;
+	theme?: {};
+	is_tour_completed?: boolean;
+	onboarding_step?: {
+		workspace_join?: boolean;
+		profile_complete?: boolean;
+		workspace_create?: boolean;
+		workspace_invite?: boolean;
+	};
+	use_case?: string;
+	role?: string;
+	is_onboarded?: boolean;
+	last_workspace_id?: ID;
+	billing_address_country?: string;
+	billing_address?: null;
+	has_billing_address?: boolean;
+	company_name?: string;
+	user?: ID;
+}

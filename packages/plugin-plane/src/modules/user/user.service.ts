@@ -1,13 +1,21 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { IPagination, IUser, IUserOrganization } from '@plane-plugin/models';
+import {
+	IPagination,
+	IUser,
+	IUserOrganization,
+	IUserProfile
+} from '@plane-plugin/models';
 import {
 	currentEmployeeId,
 	currentTenantId,
+	currentUserId,
 	getUserOrganizationsQueryParams,
 	organizationsTranformer,
 	roleTransformer,
-	userMeTransformer
+	updateUserProfileInputTranformer,
+	userMeTransformer,
+	userProfileTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -42,29 +50,39 @@ export class UserService extends ApiFetchService {
 
 	async getMyProfile() {
 		try {
-		} catch (error) {}
-		return {
-			id: '4a6ee87a-7368-4625-8a52-5405e3078890',
-			created_at: '2024-06-25T12:23:12.733949Z',
-			updated_at: '2024-08-13T11:48:29.360720Z',
-			theme: {},
-			is_tour_completed: true,
-			onboarding_step: {
-				workspace_join: true,
-				profile_complete: true,
-				workspace_create: true,
-				workspace_invite: true
-			},
-			use_case: 'Engineering',
-			role: 'Individual contributor',
-			is_onboarded: true,
-			last_workspace_id: currentTenantId(),
-			billing_address_country: 'INDIA',
-			billing_address: null,
-			has_billing_address: false,
-			company_name: '',
-			user: currentEmployeeId()
-		};
+			const query = qs.stringify({
+				includeEmployee: true,
+				'[relations][0]': 'tenant'
+			});
+
+			const user: IUser = (
+				await this.apiFetch({
+					path: '/user/me',
+					method: 'GET',
+					query
+				})
+			).data;
+
+			return userProfileTransformer(user);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async updateUserProfile(input: IUserProfile) {
+		try {
+			await this.apiFetch({
+				path: `/user/${currentUserId()}`,
+				method: 'PUT',
+				body: updateUserProfileInputTranformer(input)
+			});
+
+			return await this.getMyProfile();
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 
 	async getMySettings() {

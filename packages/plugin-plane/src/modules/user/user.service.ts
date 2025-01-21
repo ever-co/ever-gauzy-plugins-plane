@@ -29,6 +29,11 @@ export class UserService extends ApiFetchService {
 		super(_serverFetchService['_httpService']);
 	}
 
+	/**
+	 * Retrieves basic information about the currently authenticated user
+	 * @returns Transformed user data with basic profile details
+	 * @throws {BadRequestException} If the API request fails
+	 */
 	async getMe() {
 		try {
 			const query = qs.stringify({ includeEmployee: true });
@@ -48,6 +53,11 @@ export class UserService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves detailed profile information about the currently authenticated user
+	 * @returns Extended user profile including theme, onboarding, and organization details
+	 * @throws {BadRequestException} If the API request fails
+	 */
 	async getMyProfile() {
 		try {
 			const query = qs.stringify({
@@ -70,6 +80,12 @@ export class UserService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Updates the current user's profile information
+	 * @param input - Profile data to update
+	 * @returns Updated user profile after successful modification
+	 * @throws {BadRequestException} If the API request fails
+	 */
 	async updateUserProfile(input: IUserProfile) {
 		try {
 			await this.apiFetch({

@@ -127,6 +127,11 @@ export function userProfileTransformer(user: IUser): IUserProfile {
 	};
 }
 
+/**
+ * Transforms user profile update data into the format expected by the API
+ * @param input - User profile data with snake_case properties
+ * @returns Transformed input with camelCase properties for API consumption
+ */
 export function updateUserProfileInputTranformer(
 	input: IUserProfile
 ): IUserCreateInput {

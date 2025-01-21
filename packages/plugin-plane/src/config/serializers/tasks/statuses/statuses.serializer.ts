@@ -61,7 +61,7 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 		return {
 			id: status.id,
 			project_id: status.projectId,
-			workspace_id: status.tenantId,
+			workspace_id: status.organizationId,
 			name: capitalizeWords(
 				status.name.replace('-', ' ')
 			) as TaskStatusEnum,

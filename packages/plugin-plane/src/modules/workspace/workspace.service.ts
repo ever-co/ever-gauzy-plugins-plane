@@ -27,7 +27,6 @@ import {
 	IIssueCreateInput,
 	IIssueUpdateInput,
 	EmployeeSettingTypeEnum,
-	IEmployeeSetting,
 	IGlobalEntitiesResponse,
 	IGlabalEntitiesFindInput,
 	IEntitySearchFindInput
@@ -40,7 +39,6 @@ import {
 	DEFAULT_DASHBOARD_WIDGETS,
 	getCurrentOrganizationSlug,
 	currentUserId,
-	employeeSettingSerializer,
 	extractWorkspaceViewIdFromReferer,
 	getProjectsResponse,
 	getStatesTransformer,
@@ -62,7 +60,8 @@ import {
 	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
 	widgetTransformer,
-	currentTenantId
+	currentTenantId,
+	memberPropertiesSerializer
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -234,50 +233,12 @@ export class WorkspaceService extends ApiFetchService {
 	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Get member (from connected user) info for a workspace
-	 * @param {string} workspace_name - slug for workspace name
 	 * @returns - A promise that resolves after getting member informations
 	 * @memberof WorkspaceController
 	 */
 	async getMembersMe() {
 		const employeeId = currentEmployeeId();
 		const tenantId = currentTenantId();
-
-		// Helper function to format the result
-		const formatResult = (memberSetting: IEmployeeSetting) => {
-			const {
-				filters: defaultFilters,
-				display_filters: defaultDisplayFilters,
-				display_properties: defaultDisplayProperties
-			} = memberSetting.defaultData as Record<string, any>;
-
-			const { issue_props } = memberSetting.defaultData as Record<
-				string,
-				any
-			>;
-
-			return {
-				id: currentUserId(),
-				created_at: '2024-08-13T11:47:19.039549Z',
-				updated_at: '2024-08-13T11:47:19.039558Z',
-				deleted_at: null,
-				role: 20,
-				company_role: '',
-				view_props: {
-					...employeeSettingSerializer(memberSetting)
-				},
-				default_props: {
-					filters: defaultFilters,
-					display_filters: defaultDisplayFilters,
-					display_properties: defaultDisplayProperties
-				},
-				issue_props,
-				is_active: true,
-				created_by: employeeId,
-				updated_by: employeeId,
-				workspace: tenantId,
-				member: employeeId
-			};
-		};
 
 		try {
 			const memberSetting =
@@ -288,7 +249,7 @@ export class WorkspaceService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
 				});
 
-			return formatResult(memberSetting);
+			return memberPropertiesSerializer(memberSetting, employeeId);
 		} catch (error) {
 			console.warn(
 				'Failed to retrieve settings, creating new ones...',
@@ -318,7 +279,7 @@ export class WorkspaceService extends ApiFetchService {
 						employeeId
 					});
 
-				return formatResult(memberSetting);
+				return memberPropertiesSerializer(memberSetting, employeeId);
 			} catch (creationError) {
 				console.error(
 					'Failed to create new view properties',
@@ -346,10 +307,7 @@ export class WorkspaceService extends ApiFetchService {
 			})
 		).data;
 
-		return organizationMembersTransformer(
-			organization.employees,
-			organization.tenant
-		);
+		return organizationMembersTransformer(organization);
 	}
 
 	/**

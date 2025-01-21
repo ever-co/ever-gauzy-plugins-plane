@@ -55,7 +55,7 @@ export function subscriptionTransformer(
 		created_by: subscription.userId,
 		updated_by: null,
 		project: projectId,
-		workspace: subscription.tenantId,
+		workspace: subscription.organizationId,
 		issue: subscription.entityId,
 		subscriber: subscription.userId
 	});

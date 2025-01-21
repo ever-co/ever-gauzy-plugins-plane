@@ -88,7 +88,7 @@ export function getProjectsResponse(
 			archived_at: project?.archivedAt,
 			created_by: currentEmployeeId(), // To add for external API
 			updated_by: currentEmployeeId(), // To add for external API
-			workspace: project?.tenantId,
+			workspace: project?.organizationId,
 			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
 			estimate: null, // To add for external API

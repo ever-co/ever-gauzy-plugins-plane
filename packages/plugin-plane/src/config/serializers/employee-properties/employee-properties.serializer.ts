@@ -40,7 +40,7 @@ export function employeeSettingSerializer(
 			employeeSetting.entity === BaseEntityEnum.OrganizationSprint
 				? employeeSetting.entityId
 				: null,
-		workspace: employeeSetting.tenantId,
+		workspace: employeeSetting.organizationId,
 		user: employeeSetting.employeeId
 	};
 }

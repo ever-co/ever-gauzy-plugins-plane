@@ -236,7 +236,7 @@ export function cycleTransformer(
 			owned_by_id: sprint.members?.find((member) => member.roleId)?.id,
 			created_by: currentEmployeeId(), // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
-			workspace_id: sprint.tenantId,
+			workspace_id: sprint.organizationId,
 			view_props: {},
 			logo_props: {},
 			assignee_ids: sprint.members?.map((member) => member.employeeId),

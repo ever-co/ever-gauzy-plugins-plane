@@ -103,7 +103,7 @@ export function modulesTransformer(
 			member_ids: projectModule?.members?.map(
 				(member) => member.employeeId
 			),
-			workspace_id: projectModule?.tenantId,
+			workspace_id: projectModule?.organizationId,
 			...(projectModule ? moduleDetailsAdapter(projectModule) : {})
 		};
 	};

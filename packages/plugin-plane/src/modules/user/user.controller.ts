@@ -56,4 +56,11 @@ export class UserController {
 	async updateProfile(@Body() input: IUserProfile) {
 		return this._userService.updateUserProfile(input);
 	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update my infos' })
+	@Patch('me')
+	async updateMe(@Body() input: IUserProfile) {
+		return this._userService.updateUserInfo(input);
+	}
 }

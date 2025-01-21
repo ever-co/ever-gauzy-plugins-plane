@@ -101,6 +101,21 @@ export class UserService extends ApiFetchService {
 		}
 	}
 
+	async updateUserInfo(input: IUserProfile) {
+		try {
+			await this.apiFetch({
+				path: `/user/${currentUserId()}`,
+				method: 'PUT',
+				body: updateUserProfileInputTranformer(input)
+			});
+
+			return this.getMe();
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
 	async getMySettings() {
 		return {
 			id: currentEmployeeId(),

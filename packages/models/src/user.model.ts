@@ -64,6 +64,9 @@ export interface IUserProfile {
 	id?: ID;
 	first_name?: string;
 	last_name?: string;
+	display_name?: string;
+	user_timezone?: string;
+	avatar_url?: string;
 	created_at?: Date;
 	updated_at?: Date;
 	theme?: {};

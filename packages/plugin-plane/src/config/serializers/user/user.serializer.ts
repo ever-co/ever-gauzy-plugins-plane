@@ -138,7 +138,9 @@ export function updateUserProfileInputTranformer(
 	return {
 		firstName: input.first_name,
 		lastName: input.last_name,
-		lastOrganizationId: input.last_workspace_id
+		imageUrl: input.avatar_url,
+		lastOrganizationId: input.last_workspace_id,
+		timeZone: input.user_timezone
 	};
 }
 

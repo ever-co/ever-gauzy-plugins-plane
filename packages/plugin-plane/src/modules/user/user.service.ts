@@ -1,15 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import {
-	IPagination,
-	IUserOrganization,
-	RolesEnum
-} from '@plane-plugin/models';
+import { IPagination, IUser, IUserOrganization } from '@plane-plugin/models';
 import {
 	currentEmployeeId,
 	currentTenantId,
 	getUserOrganizationsQueryParams,
-	roleTransformer
+	organizationsTranformer,
+	roleTransformer,
+	userMeTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
@@ -24,26 +22,27 @@ export class UserService extends ApiFetchService {
 	}
 
 	async getMe() {
-		return {
-			id: currentEmployeeId(),
-			avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
-			cover_image: null,
-			date_joined: '2024-06-25T12:23:12.642525Z',
-			display_name: 'salva.cardano1',
-			email: 'salva.cardano1@gmail.com',
-			first_name: 'Salva',
-			last_name: 'Cardano',
-			is_active: true,
-			is_bot: false,
-			is_email_verified: true,
-			user_timezone: 'UTC',
-			username: '1612687cee92431b8c6da7d1532cb7a4',
-			is_password_autoset: false,
-			last_login_medium: 'email'
-		};
+		try {
+			const query = qs.stringify({ includeEmployee: true });
+
+			const user: IUser = (
+				await this.apiFetch({
+					path: '/user/me',
+					method: 'GET',
+					query
+				})
+			).data;
+
+			return userMeTransformer(user);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
 	}
 
 	async getMyProfile() {
+		try {
+		} catch (error) {}
 		return {
 			id: '4a6ee87a-7368-4625-8a52-5405e3078890',
 			created_at: '2024-06-25T12:23:12.733949Z',
@@ -82,6 +81,10 @@ export class UserService extends ApiFetchService {
 		};
 	}
 
+	/**
+	 * Retrieves and transforms the current user's workspaces with organization details
+	 * @returns Array of transformed organizations with owner and member information
+	 */
 	async getMyWorkspaces() {
 		try {
 			const query = qs.stringify(
@@ -102,48 +105,17 @@ export class UserService extends ApiFetchService {
 				(userOrg) => userOrg.organization
 			);
 
-			console.log({ organizations });
-
-			return organizations.map((organization) => {
-				const owner = organization.employees.find((employee) => {
-					const employeeRole = employee.user.role.name;
-					return (
-						employeeRole === RolesEnum.SUPER_ADMIN ||
-						employeeRole === RolesEnum.ADMIN ||
-						employeeRole === RolesEnum.MANAGER
-					);
-				});
-
-				return {
-					id: organization.id,
-					owner: {
-						id: owner?.id,
-						first_name: owner?.user.firstName,
-						last_name: owner?.user.lastName,
-						avatar: owner?.user.imageUrl,
-						is_bot: false,
-						display_name: owner?.user.fullName
-					},
-					total_members: organization.employees.length,
-					// total_issues: organization.ta.length,
-					created_at: organization.createdAt,
-					updated_at: organization.updatedAt,
-					deleted_at: organization.deletedAt,
-					name: organization.name,
-					logo: organization.imageUrl,
-					slug: organization.id,
-					organization_size:
-						organization.minimumProjectSize || '11-50'
-					// created_by: organization.createdBy,
-					// updated_by: organization.updatedBy
-				};
-			});
+			return organizationsTranformer(organizations);
 		} catch (error: any) {
 			console.log(error);
 			return [];
 		}
 	}
 
+	/**
+	 * Retrieves the roles associated with a project
+	 * @returns An object where each key is a project ID and the value is the role ID
+	 */
 	async findProjectRoles(): Promise<{ [key: string]: number }> {
 		try {
 			const employeeId = currentEmployeeId();

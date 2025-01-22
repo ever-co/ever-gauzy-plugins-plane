@@ -11,7 +11,6 @@ export * from './query-params.serializers';
 export * from './reactions';
 export * from './subscription';
 export * from './tasks';
-export * from './user';
 export * from './user-favorites';
 export * from './views';
 export * from './workspace-organization';

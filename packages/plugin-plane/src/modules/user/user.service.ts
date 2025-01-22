@@ -1,175 +1,104 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import qs from 'qs';
 import {
-	IPagination,
-	IUser,
-	IUserOrganization,
-	IUserProfile
-} from '@plane-plugin/models';
-import {
-	currentEmployeeId,
-	currentUserId,
-	getUserMeQueryParams,
-	getUserOrganizationsQueryParams,
-	organizationsTranformer,
-	roleTransformer,
-	updateUserProfileInputTranformer,
-	userMeTransformer,
-	userProfileTransformer,
-	userSettingsTranformer
+	defaultEmployeeId,
+	defaultTestTenantId,
+	roleTransformer
 } from '../../config';
-import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 
 @Injectable()
-export class UserService extends ApiFetchService {
-	constructor(
-		private readonly _projectService: ProjectService,
-		private readonly _serverFetchService: ApiFetchService
-	) {
-		super(_serverFetchService['_httpService']);
-	}
+export class UserService {
+	constructor(private readonly _projectService: ProjectService) {}
 
-	/**
-	 * Retrieves basic information about the currently authenticated user
-	 * @returns Transformed user data with basic profile details
-	 * @throws {BadRequestException} If the API request fails
-	 */
 	async getMe() {
-		try {
-			const query = qs.stringify({ includeEmployee: true });
-
-			const user: IUser = (
-				await this.apiFetch({
-					path: '/user/me',
-					method: 'GET',
-					query
-				})
-			).data;
-
-			return userMeTransformer(user);
-		} catch (error) {
-			console.log(error);
-			throw new BadRequestException(error);
-		}
+		return {
+			id: defaultEmployeeId(),
+			avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
+			cover_image: null,
+			date_joined: '2024-06-25T12:23:12.642525Z',
+			display_name: 'salva.cardano1',
+			email: 'salva.cardano1@gmail.com',
+			first_name: 'Salva',
+			last_name: 'Cardano',
+			is_active: true,
+			is_bot: false,
+			is_email_verified: true,
+			user_timezone: 'UTC',
+			username: '1612687cee92431b8c6da7d1532cb7a4',
+			is_password_autoset: false,
+			last_login_medium: 'email'
+		};
 	}
 
-	/**
-	 * Retrieves detailed profile information about the currently authenticated user
-	 * @returns Extended user profile including theme, onboarding, and organization details
-	 * @throws {BadRequestException} If the API request fails
-	 */
 	async getMyProfile() {
-		try {
-			const query = qs.stringify(getUserMeQueryParams);
-
-			const user: IUser = (
-				await this.apiFetch({
-					path: '/user/me',
-					method: 'GET',
-					query
-				})
-			).data;
-
-			return userProfileTransformer(user);
-		} catch (error) {
-			console.log(error);
-			throw new BadRequestException(error);
-		}
-	}
-
-	/**
-	 * Updates the current user's profile information
-	 * @param input - Profile data to update
-	 * @returns Updated user profile after successful modification
-	 * @throws {BadRequestException} If the API request fails
-	 */
-	async updateUserProfile(input: IUserProfile) {
-		try {
-			await this.apiFetch({
-				path: `/user/${currentUserId()}`,
-				method: 'PUT',
-				body: updateUserProfileInputTranformer(input)
-			});
-
-			return await this.getMyProfile();
-		} catch (error) {
-			console.log(error);
-			throw new BadRequestException(error);
-		}
-	}
-
-	async updateUserInfo(input: IUserProfile) {
-		try {
-			await this.apiFetch({
-				path: `/user/${currentUserId()}`,
-				method: 'PUT',
-				body: updateUserProfileInputTranformer(input)
-			});
-
-			return this.getMe();
-		} catch (error) {
-			console.log(error);
-			throw new BadRequestException(error);
-		}
+		return {
+			id: '4a6ee87a-7368-4625-8a52-5405e3078890',
+			created_at: '2024-06-25T12:23:12.733949Z',
+			updated_at: '2024-08-13T11:48:29.360720Z',
+			theme: {},
+			is_tour_completed: true,
+			onboarding_step: {
+				workspace_join: true,
+				profile_complete: true,
+				workspace_create: true,
+				workspace_invite: true
+			},
+			use_case: 'Engineering',
+			role: 'Individual contributor',
+			is_onboarded: true,
+			last_workspace_id: defaultTestTenantId(),
+			billing_address_country: 'INDIA',
+			billing_address: null,
+			has_billing_address: false,
+			company_name: '',
+			user: defaultEmployeeId()
+		};
 	}
 
 	async getMySettings() {
-		try {
-			const query = qs.stringify(getUserMeQueryParams);
-			const user: IUser = (
-				await this.apiFetch({
-					path: '/user/me',
-					method: 'GET',
-					query
-				})
-			).data;
-
-			return userSettingsTranformer(user);
-		} catch (error) {
-			console.log(error);
-			throw new BadRequestException(error);
-		}
+		return {
+			id: defaultEmployeeId(),
+			email: 'salva.cardano1@gmail.com',
+			workspace: {
+				last_workspace_id: defaultTestTenantId(),
+				last_workspace_slug: 'cardano',
+				fallback_workspace_id: defaultTestTenantId(),
+				fallback_workspace_slug: 'cardano',
+				invites: 0
+			}
+		};
 	}
 
-	/**
-	 * Retrieves and transforms the current user's workspaces with organization details
-	 * @returns Array of transformed organizations with owner and member information
-	 */
 	async getMyWorkspaces() {
-		try {
-			const query = qs.stringify(
-				getUserOrganizationsQueryParams([
-					'organization.employees.user.role'
-				])
-			);
-
-			const userOrganizations: IPagination<IUserOrganization> = (
-				await this.apiFetch({
-					method: 'GET',
-					path: '/user-organization',
-					query
-				})
-			).data;
-
-			const organizations = userOrganizations.items.map(
-				(userOrg) => userOrg.organization
-			);
-
-			return organizationsTranformer(organizations);
-		} catch (error: any) {
-			console.log(error);
-			return [];
-		}
+		return [
+			{
+				id: defaultTestTenantId(),
+				owner: {
+					id: defaultEmployeeId(),
+					first_name: 'Salva',
+					last_name: 'Cardano',
+					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
+					is_bot: false,
+					display_name: 'salva.cardano1'
+				},
+				total_members: 1,
+				total_issues: 2,
+				created_at: '2024-08-13T11:47:19.032854Z',
+				updated_at: '2024-08-13T11:47:19.032867Z',
+				deleted_at: null,
+				name: 'Cardano',
+				logo: null,
+				slug: 'cardano',
+				organization_size: '11-50',
+				created_by: defaultEmployeeId(),
+				updated_by: defaultEmployeeId()
+			}
+		];
 	}
 
-	/**
-	 * Retrieves the roles associated with a project
-	 * @returns An object where each key is a project ID and the value is the role ID
-	 */
 	async findProjectRoles(): Promise<{ [key: string]: number }> {
 		try {
-			const employeeId = currentEmployeeId();
+			const employeeId = defaultEmployeeId(); // TODO : Ensure that will be changed with authenticated employee
 			const employeeProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,

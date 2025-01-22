@@ -1,7 +1,6 @@
 export * from './accounting-template.model';
 /** App Setting Model */
 export * from './activity-log.model';
-export * from './auth.model';
 export * from './appointment-employees.model';
 export * from './approval-policy.model';
 export * from './availability-slots.model';

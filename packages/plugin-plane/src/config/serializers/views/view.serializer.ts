@@ -209,7 +209,7 @@ export function issueViewTransformer(
 			is_locked: taskView.isLocked,
 			created_by: '', // TODO : Make sure we have this working
 			updated_by: '', // TODO : Make sure we have this working
-			workspace: taskView.organizationId,
+			workspace: taskView.tenantId,
 			project: taskView.projectId,
 			owned_by: '' // TODO : Make sure we have this working
 		};

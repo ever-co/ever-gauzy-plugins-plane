@@ -7,7 +7,7 @@ import {
 	IFavoriteData,
 	IFavoriteFindInput
 } from '@plane-plugin/models';
-import { currentTenantId } from '../../credentials';
+import { defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 export function mapFavoriteEntityType(
@@ -51,7 +51,7 @@ export function favoriteTransformer(
 			logo_props: {}
 		},
 		project_id: data.projectId,
-		workspace_id: currentTenantId()
+		workspace_id: defaultTestTenantId()
 	};
 }
 

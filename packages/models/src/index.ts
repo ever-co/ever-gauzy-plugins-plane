@@ -6,7 +6,6 @@ export * from './config.model';
 export * from './base.model';
 
 // Models
-export * from './auth.model';
 export * from './activity.model';
 export * from './comment.model';
 export * from './cycle.model';

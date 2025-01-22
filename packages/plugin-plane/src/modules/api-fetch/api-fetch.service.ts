@@ -2,25 +2,17 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@plane-plugin/models';
-import { EXTERNAL_BASE_API_URL } from '../../config';
-import { getCurrentTenantId } from './token.helper';
+import {
+	defaultTestTenantId,
+	defaultTestToken,
+	EXTERNAL_BASE_API_URL
+} from '../../config';
 
 @Injectable()
 export class ApiFetchService {
-	private static token: string;
-
 	constructor(private readonly _httpService: HttpService) {}
-
-	setToken(token: string) {
-		ApiFetchService.token = token;
-	}
-
-	static getToken(): string {
-		return ApiFetchService.token;
-	}
-
 	async apiFetch(configs: IServerFetchInputs) {
-		const { method, path, body, query, customHeaders, tenantId, init } =
+		const { method, path, body, bearer_token, query, tenantId, init } =
 			configs;
 
 		const apiUrl = EXTERNAL_BASE_API_URL();
@@ -32,14 +24,19 @@ export class ApiFetchService {
 
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
-			Accept: 'application/json',
-			Authorization: `Bearer ${ApiFetchService.token}`
+			Accept: 'application/json'
 		};
+
+		if (bearer_token) {
+			headers['Authorization'] = `Bearer ${bearer_token}`;
+		} else {
+			headers['Authorization'] = `Bearer ${defaultTestToken()}`;
+		}
 
 		if (tenantId) {
 			headers['Tenant-Id'] = tenantId;
 		} else {
-			headers['Tenant-Id'] = getCurrentTenantId();
+			headers['Tenant-Id'] = defaultTestTenantId();
 		}
 
 		const datas: { body?: string } = {};
@@ -53,8 +50,7 @@ export class ApiFetchService {
 					this._httpService.get(endPoint, {
 						...(init || {}),
 						headers: {
-							...headers,
-							...customHeaders
+							...headers
 						}
 					})
 				);
@@ -64,8 +60,7 @@ export class ApiFetchService {
 					this._httpService.post(endPoint, body, {
 						...(init || {}),
 						headers: {
-							...headers,
-							...customHeaders
+							...headers
 						}
 					})
 				);
@@ -75,8 +70,7 @@ export class ApiFetchService {
 					this._httpService.put(endPoint, body, {
 						...(init || {}),
 						headers: {
-							...headers,
-							...customHeaders
+							...headers
 						}
 					})
 				);
@@ -86,8 +80,7 @@ export class ApiFetchService {
 					this._httpService.delete(endPoint, {
 						...(init || {}),
 						headers: {
-							...headers,
-							...customHeaders
+							...headers
 						}
 					})
 				);

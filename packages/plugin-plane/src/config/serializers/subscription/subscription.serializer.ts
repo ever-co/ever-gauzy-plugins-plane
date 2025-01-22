@@ -7,7 +7,7 @@ import {
 	ISubscriptionFindInput,
 	SubscriptionTypeEnum
 } from '@plane-plugin/models';
-import { currentUserId } from '../../credentials';
+import { defaultUserId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 /**
@@ -20,11 +20,11 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  * @example
  * const entityId = 'taskId123';
  * const subscriptionInput = createSubscriptionTransformer(entityId);
- * // Output: { entity: 'Task', entityId: 'taskId123', type: 'manual', userId: currentUserId }
+ * // Output: { entity: 'Task', entityId: 'taskId123', type: 'manual', userId: defaultUserId }
  */
 export function createSubscriptionTransformer(
 	entityId: ID,
-	userId: ID = currentUserId()
+	userId: ID = defaultUserId()
 ): ISubscriptionCreateInput {
 	return {
 		entity: BaseEntityEnum.Task,
@@ -55,7 +55,7 @@ export function subscriptionTransformer(
 		created_by: subscription.userId,
 		updated_by: null,
 		project: projectId,
-		workspace: subscription.organizationId,
+		workspace: subscription.tenantId,
 		issue: subscription.entityId,
 		subscriber: subscription.userId
 	});

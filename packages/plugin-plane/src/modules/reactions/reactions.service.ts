@@ -9,7 +9,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	createReactionInputTransformer,
-	getCurrentOrganizationSlug,
+	defaultOrganizationId,
 	getReactionsQuery
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -34,7 +34,7 @@ export class ReactionsService extends ApiFetchService {
 		try {
 			const body = {
 				...createReactionInputTransformer(input, entity, entityId),
-				organizationId: getCurrentOrganizationSlug()
+				organizationId: defaultOrganizationId()
 			};
 
 			const reaction: IReaction = (

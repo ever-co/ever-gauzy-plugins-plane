@@ -22,11 +22,11 @@ import {
 } from '@plane-plugin/models';
 import {
 	createCycleInputTransformer,
-	currentEmployeeId,
 	cycleAnalyticsData,
 	cycleIssueTransformer,
 	cycleRelations,
 	cycleTransformer,
+	defaultEmployeeId,
 	employeeSettingSerializer,
 	getSprintsQuery,
 	getTaskCounts,
@@ -362,7 +362,7 @@ export class CyclesService extends ApiFetchService {
 			// Attempt to find existing user properties for the cycle
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
 					entity: BaseEntityEnum.OrganizationSprint,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -384,8 +384,8 @@ export class CyclesService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: currentEmployeeId() },
-						employeeId: currentEmployeeId()
+						employee: { id: defaultEmployeeId() },
+						employeeId: defaultEmployeeId()
 					});
 
 				return employeeSettingSerializer(cycleMemberSetting);
@@ -420,7 +420,7 @@ export class CyclesService extends ApiFetchService {
 			// Find existing employee settings for the given cycle
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: defaultEmployeeId(), // TODO: Change this with cycle
 					entity: BaseEntityEnum.OrganizationSprint,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -454,8 +454,8 @@ export class CyclesService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeId() },
-					employeeId: currentEmployeeId()
+					employee: { id: defaultEmployeeId() },
+					employeeId: defaultEmployeeId()
 				});
 			}
 

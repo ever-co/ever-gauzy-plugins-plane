@@ -48,7 +48,7 @@ export class ProjectController {
 	@Get(':id')
 	async getProject(@Param('id') id: ID) {
 		return await this._projectService.getProject(id, [
-			'members.employee.user',
+			'members',
 			'organizationSprints',
 			'tasks',
 			'modules'

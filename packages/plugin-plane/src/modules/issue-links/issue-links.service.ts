@@ -9,7 +9,7 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createIssueLinkInputTransformer,
-	getCurrentOrganizationSlug,
+	defaultOrganizationId,
 	getIssueLinksQuery,
 	updateIssueLinkInputTransformer
 } from '../../config';
@@ -29,7 +29,7 @@ export class IssueLinksService extends ApiFetchService {
 		try {
 			const body = {
 				...createIssueLinkInputTransformer(input, issueId),
-				organizationId: getCurrentOrganizationSlug()
+				organizationId: defaultOrganizationId()
 			};
 
 			const link: IResourceLink = (

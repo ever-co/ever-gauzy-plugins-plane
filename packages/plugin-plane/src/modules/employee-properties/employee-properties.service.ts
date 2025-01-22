@@ -10,7 +10,7 @@ import {
 	IPagination
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { getCurrentOrganizationSlug } from '../../config';
+import { defaultOrganizationId } from '../../config';
 import { getEmployeeSettingQuery } from '../../config';
 
 @Injectable()
@@ -35,7 +35,7 @@ export class EmployeePropertiesService extends ApiFetchService {
 					body: {
 						...input,
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-						organizationId: getCurrentOrganizationSlug()
+						organizationId: defaultOrganizationId()
 					}
 				})
 			).data;
@@ -64,10 +64,7 @@ export class EmployeePropertiesService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body: {
-						...input,
-						organizationId: getCurrentOrganizationSlug()
-					}
+					body: { ...input, organizationId: defaultOrganizationId() }
 				})
 			).data;
 

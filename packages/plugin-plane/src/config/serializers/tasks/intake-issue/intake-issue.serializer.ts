@@ -15,9 +15,10 @@ import {
 	createIssueInputTransformer,
 	issueTransformer
 } from '../tasks.serializer';
-import { baseGetItemsWhereQuery } from '../../query-params.serializers';
-import { getCurrentOrganizationSlug } from '../../../credentials';
+import { defaultOrganizationId } from '../../../credentials';
 import { extractEmployeeMentionIds } from '../../../utils';
+import { baseGetItemsWhereQuery } from '../../query-params.serializers';
+
 const statusMap: Record<ScreeningTaskStatusEnum, IntakeIssueStatusEnum> = {
 	[ScreeningTaskStatusEnum.ACCEPTED]: IntakeIssueStatusEnum.ACCEPTED,
 	[ScreeningTaskStatusEnum.DECLINED]: IntakeIssueStatusEnum.DECLINED,
@@ -81,7 +82,7 @@ export function createIntakeIssueInputTransformer(
 			employees
 		),
 		taskId: input.issue.id ?? '1',
-		organizationId: getCurrentOrganizationSlug(),
+		organizationId: defaultOrganizationId(),
 		mentionUserIds: mentionedUserIds ?? [],
 		onHoldUntil: input.snoozed_till
 	};
@@ -118,7 +119,7 @@ export function updateIntakeIssueInputTransformer(
 			}
 
 			acc['status'] = intakeStatusToScreeningStatusMap(input.status);
-			acc['organizationId'] = getCurrentOrganizationSlug();
+			acc['organizationId'] = defaultOrganizationId();
 
 			return acc;
 		},

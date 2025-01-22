@@ -10,7 +10,7 @@ import {
 	ProjectModuleStatusEnum,
 	TaskStatusEnum
 } from '@plane-plugin/models';
-import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
+import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { deslugify } from '../../utils';
 
@@ -103,7 +103,7 @@ export function modulesTransformer(
 			member_ids: projectModule?.members?.map(
 				(member) => member.employeeId
 			),
-			workspace_id: projectModule?.organizationId,
+			workspace_id: projectModule?.tenantId,
 			...(projectModule ? moduleDetailsAdapter(projectModule) : {})
 		};
 	};
@@ -215,8 +215,8 @@ export function createModuleInputTransformer(
 		memberIds: (module.member_ids ?? []).map((id) => id),
 		managerIds: managerId ? [managerId] : [],
 		projectId: module.project_id,
-		tenantId: currentTenantId(),
-		organizationId: getCurrentOrganizationSlug()
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId()
 	};
 }
 

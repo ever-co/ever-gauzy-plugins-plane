@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
-import { InstancesModule } from './instances/instances.module';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { ApiFetchModule } from './api-fetch/api-fetch.module';
+import { AuthModule } from './auth/auth.module';
+import { InstancesModule } from './instances/instances.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { StatesModule } from './states/states.module';
@@ -25,10 +27,15 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from './employee-properties/employee-properties.module';
 import { MentionModule } from './mention/mention.module';
+import { TokenMiddleware } from './api-fetch/token.middleware';
+import { WorkspaceMiddleware } from './workspace/workspace.middleware';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
 	imports: [
-		ConfigModule.forRoot({ isGlobal: true }),
+		ConfigModule.forRoot({
+			isGlobal: true
+		}),
 		GlobalHttpModule,
 		ApiFetchModule,
 		AuthModule,
@@ -54,6 +61,18 @@ import { MentionModule } from './mention/mention.module';
 		IntakeIssuesModule,
 		EmployeePropertiesModule,
 		MentionModule
+	],
+	providers: [
+		{
+			provide: APP_GUARD,
+			useClass: AuthGuard
+		}
 	]
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
+		consumer
+			.apply(cookieParser(), TokenMiddleware, WorkspaceMiddleware)
+			.forRoutes('*');
+	}
+}

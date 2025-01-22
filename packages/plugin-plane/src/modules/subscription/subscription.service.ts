@@ -9,7 +9,7 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createSubscriptionTransformer,
-	defaultOrganizationId,
+	getCurrentOrganizationSlug,
 	getSubscriptionQuery
 } from '../../config';
 
@@ -29,7 +29,7 @@ export class SubscriptionService extends ApiFetchService {
 		try {
 			const body = {
 				...createSubscriptionTransformer(issueId, userId),
-				organizationId: defaultOrganizationId()
+				organizationId: getCurrentOrganizationSlug()
 			};
 
 			// Create Subscription

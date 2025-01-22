@@ -21,7 +21,7 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createCommentInputTransformer,
-	getCurrentOrganizationSlug,
+	defaultOrganizationId,
 	getCommentsQuery,
 	reactionTransformer,
 	updateCommentInputTransformer
@@ -69,10 +69,7 @@ export class CommentsService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'POST',
 					path: this.path,
-					body: {
-						...body,
-						organizationId: getCurrentOrganizationSlug()
-					}
+					body: { ...body, organizationId: defaultOrganizationId() }
 				})
 			).data;
 

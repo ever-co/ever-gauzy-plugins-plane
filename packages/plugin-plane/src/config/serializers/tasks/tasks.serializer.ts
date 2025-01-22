@@ -25,7 +25,7 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
-import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
+import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
 import { issueRelationTransformer } from './issue-relations';
 import {
 	deslugify,
@@ -136,6 +136,7 @@ export function issueTransformer(
  *   Each `issue` should contain properties such as `id`, `title`, `startDate`, `dueDate`, `taskStatus`, etc.
  * @returns An array of transformed issue objects, each containing a subset of the original issue's properties.
  *   The returned objects include properties like `id`, `name`, `start_date`, `target_date`, `sequence_id`, and `project` details.
+ *   Additionally, the `workspace__slug` is statically set to "cardano", and the `state__group` is derived from the issue's task status.
  *   Some properties, such as `project__identifier` and `state__color`, are extracted from related objects.
  *   The `type_id` is set to a static value.
  */
@@ -151,7 +152,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 			issue.project.code ||
 			issue.project.name.slice(0, 4).toLocaleUpperCase(),
 		project_id: issue.projectId,
-		workspace__slug: getCurrentOrganizationSlug(),
+		workspace__slug: 'cardano', // TODO : Make this as dynamic as possible
 		state__name: issue.taskStatus?.name,
 		state__group: stateGroup(issue.taskStatus),
 		state__color: issue.taskStatus?.color,
@@ -830,9 +831,7 @@ export const getTaskQuery = (
 	if (orderByField) {
 		const orderField = orderByFieldTransformer(orderByField);
 		const orderDirection = orderByDirection(orderByField);
-		if (orderField.length > 0) {
-			query['order'] = { [orderField]: orderDirection };
-		}
+		query['order'] = { [orderField]: orderDirection };
 	}
 
 	return query;
@@ -960,8 +959,8 @@ export function getFilteredByDatesTaskQuery(
 ): Record<string, any> {
 	// Base queries
 	const query: Record<string, any> = {
-		organizationId: getCurrentOrganizationSlug(),
-		tenantId: currentTenantId()
+		organizationId: defaultOrganizationId(),
+		tenantId: defaultTestTenantId()
 	};
 
 	Object.keys(options).forEach((key) => {
@@ -1017,8 +1016,8 @@ export function createIssueInputTransformer(
 		organizationSprintId: issue?.cycle_id,
 		parentId: issue?.parent_id,
 		taskStatusId: issue?.state_id?.length > 0 ? issue?.state_id : null,
-		tenantId: currentTenantId(),
-		organizationId: getCurrentOrganizationSlug(),
+		tenantId: defaultTestTenantId(),
+		organizationId: defaultOrganizationId(),
 		modules:
 			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule
@@ -1076,7 +1075,7 @@ export function updateIssueInputTransformer(
 						? new Date()
 						: null;
 			}
-			acc['organizationId'] = getCurrentOrganizationSlug();
+			acc['organizationId'] = defaultOrganizationId();
 
 			if (issue.module_ids || issue.modules) {
 				acc['modules'] = modules

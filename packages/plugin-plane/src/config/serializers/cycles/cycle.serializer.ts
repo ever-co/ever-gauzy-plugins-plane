@@ -13,10 +13,7 @@ import {
 	TaskStatusEnum
 } from '@plane-plugin/models';
 import moment from 'moment';
-import {
-	currentEmployeeId,
-	getCurrentOrganizationSlug
-} from '../../credentials';
+import { defaultEmployeeId, defaultOrganizationId } from '../../credentials';
 import { getTaskCounts } from '../modules';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
@@ -155,9 +152,9 @@ export function createCycleInputTransformer(
 		status,
 		length,
 		projectId: project_id,
-		organizationId: getCurrentOrganizationSlug(),
-		managerIds: [currentEmployeeId()], // TODO : Change this and retrive it from authorization Request Header or Body Request
-		memberIds: [currentEmployeeId()] // TODO : Change this and get it from Request
+		organizationId: defaultOrganizationId(),
+		managerIds: [defaultEmployeeId()], // TODO : Change this and retrive it from authorization Request Header or Body Request
+		memberIds: [defaultEmployeeId()] // TODO : Change this and get it from Request
 	};
 }
 
@@ -234,9 +231,9 @@ export function cycleTransformer(
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
 			owned_by_id: sprint.members?.find((member) => member.roleId)?.id,
-			created_by: currentEmployeeId(), // TODO: Make this consistent and add to external API
+			created_by: defaultEmployeeId(), // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
-			workspace_id: sprint.organizationId,
+			workspace_id: sprint.tenantId,
 			view_props: {},
 			logo_props: {},
 			assignee_ids: sprint.members?.map((member) => member.employeeId),

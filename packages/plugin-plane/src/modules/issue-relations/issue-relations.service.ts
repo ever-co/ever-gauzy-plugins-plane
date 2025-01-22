@@ -17,7 +17,7 @@ import {
 import {
 	createdIssueRelationTranformer,
 	createIssueRelationInputTranformer,
-	getCurrentOrganizationSlug,
+	defaultOrganizationId,
 	findByOptionsQuery,
 	getIssueRelationType,
 	getTaskRelatedIssueRelation,
@@ -82,7 +82,7 @@ export class IssueRelationsService extends ApiFetchService {
 								path: this.path,
 								body: {
 									...mainRelation,
-									organizationId: getCurrentOrganizationSlug()
+									organizationId: defaultOrganizationId()
 								}
 							})
 						).data;
@@ -98,7 +98,7 @@ export class IssueRelationsService extends ApiFetchService {
 							path: this.path,
 							body: {
 								...inverseRelation,
-								organizationId: getCurrentOrganizationSlug()
+								organizationId: defaultOrganizationId()
 							}
 						});
 
@@ -301,7 +301,7 @@ export class IssueRelationsService extends ApiFetchService {
 						taskToId: mainRelationToDelete.taskToId,
 						taskFromId: mainRelationToDelete.taskFromId,
 						action: mainRelationToDelete.action,
-						organizationId: getCurrentOrganizationSlug()
+						organizationId: defaultOrganizationId()
 					}
 				});
 

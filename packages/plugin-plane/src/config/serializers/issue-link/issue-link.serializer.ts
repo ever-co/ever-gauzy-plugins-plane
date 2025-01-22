@@ -46,7 +46,7 @@ export function issueLinkTransformer(
 			created_by_id: link.creatorId,
 			updated_by: '', // TODO : Try to use this too,
 			project: project?.id,
-			workspace: link.organizationId
+			workspace: link.tenantId
 		};
 	};
 

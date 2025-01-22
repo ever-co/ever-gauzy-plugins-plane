@@ -1,6 +1,6 @@
 import { ID, IIssueLabel, ITag } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../../query-params.serializers';
-import { currentTenantId } from '../../../credentials';
+import { defaultTestTenantId } from '../../../credentials';
 
 export function issueLabelsTransformer(
 	issues: ITag[] | ITag,
@@ -13,7 +13,7 @@ export function issueLabelsTransformer(
 			name: issue.name,
 			color: issue.color,
 			project_id: projectId,
-			workspace_id: currentTenantId(),
+			workspace_id: defaultTestTenantId(),
 			sort_order: 65535.0 + i * 1000
 		}));
 	}
@@ -24,7 +24,7 @@ export function issueLabelsTransformer(
 		name: issues.name,
 		color: issues.color,
 		project_id: projectId,
-		workspace_id: currentTenantId(),
+		workspace_id: defaultTestTenantId(),
 		sort_order: 65535.0
 	};
 }

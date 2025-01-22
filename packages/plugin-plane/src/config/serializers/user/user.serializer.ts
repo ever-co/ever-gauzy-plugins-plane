@@ -129,7 +129,7 @@ export function userProfileTransformer(user: IUser): IUserProfile {
 		billing_address: null,
 		has_billing_address: false,
 		company_name: user.tenant.name,
-		user: user.employee.id
+		user: user.employee?.id
 	};
 }
 
@@ -146,6 +146,7 @@ export function updateUserProfileInputTranformer(
 		lastName: input.last_name,
 		imageUrl: input.avatar_url,
 		lastOrganizationId: input.last_workspace_id,
+		defaultOrganizationId: input.fallback_workspace_id,
 		timeZone: input.user_timezone
 	};
 }
@@ -174,20 +175,22 @@ export function memberPropertiesSerializer(
 	memberSetting: IEmployeeSetting,
 	employeeId: ID
 ) {
-	const {
-		filters: defaultFilters,
-		display_filters: defaultDisplayFilters,
-		display_properties: defaultDisplayProperties
-	} = memberSetting?.defaultData as Record<string, any>;
+	const defaultData = memberSetting?.defaultData as Record<string, any>;
 
-	const { issue_props } = memberSetting?.defaultData as Record<string, any>;
+	const {
+		filters: defaultFilters = {},
+		display_filters: defaultDisplayFilters = {},
+		display_properties: defaultDisplayProperties = {}
+	} = defaultData ?? {};
+
+	const issue_props = defaultData ? defaultData.issue_props : {};
 
 	return {
 		id: currentUserId(),
-		created_at: memberSetting.createdAt,
-		updated_at: memberSetting.updatedAt,
-		deleted_at: memberSetting.deletedAt,
-		role: roleTransformer(memberSetting.employee.user.role),
+		created_at: memberSetting?.createdAt,
+		updated_at: memberSetting?.updatedAt,
+		deleted_at: memberSetting?.deletedAt,
+		role: roleTransformer(memberSetting?.employee.user.role),
 		company_role: '',
 		view_props: {
 			...employeeSettingSerializer(memberSetting)
@@ -203,7 +206,7 @@ export function memberPropertiesSerializer(
 		updated_by: employeeId,
 		workspace: memberSetting?.organizationId,
 		user_info: {
-			id: memberSetting.employeeId,
+			id: memberSetting?.employeeId,
 			first_name: memberSetting?.employee.user.firstName,
 			last_name: memberSetting?.employee.user.lastName,
 			avatar: memberSetting?.employee.user.imageUrl,

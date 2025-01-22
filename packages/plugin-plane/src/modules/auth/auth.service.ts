@@ -1,10 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadGatewayException,
+	BadRequestException,
+	Injectable
+} from '@nestjs/common';
 import {
 	CheckUserExistEnum,
 	IAuthResponse,
 	ICheckUserExist,
 	IEmailCheckResponse,
 	IEmailInput,
+	IEmployee,
+	IEmployeeCreateInput,
+	IOrganization,
+	IOrganizationCreateInput,
 	IPasswordInput,
 	ITenant,
 	ITenantCreateInput,
@@ -14,9 +22,17 @@ import {
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { apiSecretKeys, registerInputTranformer } from '../../config';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService extends ApiFetchService {
+	constructor(
+		private readonly _userService: UserService,
+		private readonly _serverFetchService: ApiFetchService
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	private path = '/auth';
 
 	/**
@@ -138,6 +154,53 @@ export class AuthService extends ApiFetchService {
 			return response;
 		} catch (error: any) {
 			console.log('Refresh Token error', error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async signUpCreateOrganization(
+		input: IOrganizationCreateInput,
+		token: string
+	): Promise<IOrganization> {
+		try {
+			const organization: IOrganization = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/organization',
+					body: input,
+					bearer_token: token
+				})
+			).data;
+
+			await this._userService.updateUserProfile(
+				{ fallback_workspace_id: organization.id },
+				token,
+				organization.tenantId
+			);
+
+			return organization;
+		} catch (error) {
+			throw new BadGatewayException(error);
+		}
+	}
+
+	async signUpCreateEmployee(
+		input: IEmployeeCreateInput,
+		token: string
+	): Promise<IEmployee> {
+		try {
+			const employee: IEmployee = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/employee',
+					body: input,
+					bearer_token: token
+				})
+			).data;
+
+			return employee;
+		} catch (error: any) {
+			// console.log(error);
 			throw new BadRequestException(error);
 		}
 	}

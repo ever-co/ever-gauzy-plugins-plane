@@ -16,32 +16,32 @@ export function employeeSettingSerializer(
 	employeeSetting: IEmployeeSetting
 ): IUserViewProperties {
 	const { filters, display_filters, display_properties } =
-		employeeSetting.data as Record<string, any>;
+		(employeeSetting?.data as Record<string, any>) || {};
 
 	return {
-		id: employeeSetting.id,
-		created_at: employeeSetting.createdAt,
-		updated_at: employeeSetting.updatedAt,
-		deleted_at: employeeSetting.deletedAt,
+		id: employeeSetting?.id,
+		created_at: employeeSetting?.createdAt,
+		updated_at: employeeSetting?.updatedAt,
+		deleted_at: employeeSetting?.deletedAt,
 		filters,
 		display_filters,
 		display_properties,
-		created_by: employeeSetting.employeeId,
-		updated_by: employeeSetting.employeeId,
+		created_by: employeeSetting?.employeeId,
+		updated_by: employeeSetting?.employeeId,
 		project:
-			employeeSetting.entity === BaseEntityEnum.OrganizationProject
-				? employeeSetting.entityId
+			employeeSetting?.entity === BaseEntityEnum.OrganizationProject
+				? employeeSetting?.entityId
 				: null,
 		module:
-			employeeSetting.entity === BaseEntityEnum.OrganizationProjectModule
-				? employeeSetting.entityId
+			employeeSetting?.entity === BaseEntityEnum.OrganizationProjectModule
+				? employeeSetting?.entityId
 				: null,
 		cycle:
-			employeeSetting.entity === BaseEntityEnum.OrganizationSprint
-				? employeeSetting.entityId
+			employeeSetting?.entity === BaseEntityEnum.OrganizationSprint
+				? employeeSetting?.entityId
 				: null,
-		workspace: employeeSetting.organizationId,
-		user: employeeSetting.employeeId
+		workspace: employeeSetting?.organizationId,
+		user: employeeSetting?.employeeId
 	};
 }
 

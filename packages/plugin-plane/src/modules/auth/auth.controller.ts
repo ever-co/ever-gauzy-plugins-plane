@@ -6,11 +6,16 @@ import {
 	HttpStatus,
 	Post,
 	Query,
+	Req,
 	Res
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
-import { IUserLoginInput, IUserRegisterInput } from '@plane-plugin/models';
+import { Request, Response } from 'express';
+import {
+	CurrenciesEnum,
+	IUserLoginInput,
+	IUserRegisterInput
+} from '@plane-plugin/models';
 import { AuthService } from './auth.service';
 import {
 	EXTERNAL_API_MODE,
@@ -91,12 +96,20 @@ export class AuthController {
 	@ApiOperation({ summary: 'Sign out' })
 	@Post('sign-out')
 	@Public()
-	async signout(@Res() res: Response) {
-		res.clearCookie('auth-proxy-plane-token', {
-			httpOnly: true,
-			secure: EXTERNAL_API_MODE() === 'production',
-			sameSite: 'strict'
-		});
+	async signout(@Res() res: Response, @Req() req: Request) {
+		let index = 0;
+		while (true) {
+			const cookieName = `auth-proxy-plane-token-${index}`;
+			if (!req.cookies[cookieName]) {
+				break;
+			}
+			res.clearCookie(cookieName, {
+				httpOnly: true,
+				secure: EXTERNAL_API_MODE() === 'production',
+				sameSite: 'strict'
+			});
+			index++;
+		}
 		return res.redirect('http://localhost');
 	}
 
@@ -115,17 +128,43 @@ export class AuthController {
 				});
 
 				if (result.user) {
-					await this._authService.onboardTenant(
+					const tenant = await this._authService.onboardTenant(
 						{
 							name: data.email.split('@')[0]
 						},
 						result.token
 					);
 
-					const refrechedToken = await this._authService.refreshToken(
+					let refrechedToken = await this._authService.refreshToken(
 						result.refresh_token,
 						result.token
 					);
+
+					const organization =
+						await this._authService.signUpCreateOrganization(
+							{
+								name: data.email.split('@')[0],
+								currency: CurrenciesEnum.USD,
+								tenantId: tenant.id
+							},
+							refrechedToken.token
+						);
+
+					await this._authService.signUpCreateEmployee(
+						{
+							userId: user.id,
+							organizationId: organization.id,
+							tenantId: tenant.id
+						},
+						refrechedToken.token
+					);
+
+					refrechedToken = await this._authService.refreshToken(
+						result.refresh_token,
+						result.token
+					);
+
+					console.log({ refrechedToken });
 
 					const tokenChunks = splitToken(
 						refrechedToken.token,
@@ -144,8 +183,8 @@ export class AuthController {
 			return res.redirect(
 				'http://localhost/?error_code=INVALID_EMAIL_SIGN_UP&error_message=INVALID_EMAIL_SIGN_UP'
 			);
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response.response);
 		}
 	}
 }

@@ -32,8 +32,8 @@ export function getCurrentEmployeeId(): string | null {
  * Get the user ID from the current token
  * @returns User ID from token or null if not found
  */
-export function getCurrentUserId(): string | null {
-	const token = ApiFetchService.getToken();
+export function getCurrentUserId(defaultToken?: string): string | null {
+	const token = ApiFetchService.getToken() || defaultToken;
 	if (!token) return null;
 
 	const decoded = decodeToken(token);

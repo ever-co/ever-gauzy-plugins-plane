@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
 	CheckUserExistEnum,
 	IAuthResponse,
@@ -6,10 +6,12 @@ import {
 	IEmailCheckResponse,
 	IEmailInput,
 	IPasswordInput,
-	IUserLoginInput
+	IUser,
+	IUserLoginInput,
+	IUserRegisterInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { apiSecretKeys } from '../../config';
+import { apiSecretKeys, registerInputTranformer } from '../../config';
 
 @Injectable()
 export class AuthService extends ApiFetchService {
@@ -45,7 +47,7 @@ export class AuthService extends ApiFetchService {
 			if (!isExists.exists) {
 				return {
 					existing: false,
-					status: CheckUserExistEnum.MAGIC_CODE
+					status: CheckUserExistEnum.CREDENTIALS
 				};
 			}
 			return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
@@ -77,6 +79,24 @@ export class AuthService extends ApiFetchService {
 			return response;
 		} catch (error: any) {
 			return error;
+		}
+	}
+
+	async signUp(input: IUserRegisterInput): Promise<IUser> {
+		try {
+			const user: IUser = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/register`,
+					body: registerInputTranformer(input)
+				})
+			).data;
+
+			console.log({ newUser: user });
+
+			return user;
+		} catch (error: any) {
+			throw new BadRequestException(error);
 		}
 	}
 

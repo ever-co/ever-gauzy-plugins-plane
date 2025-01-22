@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { IUserLoginInput } from '@plane-plugin/models';
+import { IUserLoginInput, IUserRegisterInput } from '@plane-plugin/models';
 import { AuthService } from './auth.service';
 import { EXTERNAL_API_MODE } from '../../config';
 import { Public } from './auth.guard';
@@ -88,5 +88,36 @@ export class AuthController {
 			sameSite: 'strict'
 		});
 		return res.redirect('http://localhost');
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Sign up' })
+	@Post('sign-up')
+	@Public()
+	async signUp(@Res() res: Response, @Body() data: IUserRegisterInput) {
+		try {
+			const user = await this._authService.signUp(data);
+
+			if (user) {
+				const result = await this._authService.signIn({
+					email: user.email,
+					password: data.password
+				});
+
+				if (result.user) {
+					res.cookie('auth-proxy-plane-token', result.token, {
+						httpOnly: true,
+						secure: EXTERNAL_API_MODE() === 'production',
+						sameSite: 'strict'
+					});
+					return res.redirect('http://localhost/onboarding');
+				}
+			}
+			return res.redirect(
+				'http://localhost/?error_code=INVALID_EMAIL_SIGN_UP&error_message=INVALID_EMAIL_SIGN_UP'
+			);
+		} catch (error) {
+			console.log(error);
+		}
 	}
 }

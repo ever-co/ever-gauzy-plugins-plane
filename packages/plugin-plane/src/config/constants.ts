@@ -3,6 +3,8 @@ import { IWidget } from '@plane-plugin/models';
 export const CLIENT_BASE_URL =
 	process.env.CLIENT_BASE_URL ?? 'http://localhost';
 
+export const MAX_TOKEN_COOKIE_SIZE = 3999;
+
 export const EXTERNAL_API_MODE = () => process.env.EXECUTION_MODE;
 
 // External API base URL

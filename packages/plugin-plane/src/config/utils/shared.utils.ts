@@ -95,3 +95,11 @@ export function issueFilterSplitter(
 ): string[] {
 	return criteria.split(separator);
 }
+
+export function splitToken(token: string, chunkSize: number): string[] {
+	const chunks: string[] = [];
+	for (let i = 0; i < token.length; i += chunkSize) {
+		chunks.push(token.slice(i, i + chunkSize));
+	}
+	return chunks;
+}

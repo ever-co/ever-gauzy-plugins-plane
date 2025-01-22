@@ -12,7 +12,11 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { IUserLoginInput, IUserRegisterInput } from '@plane-plugin/models';
 import { AuthService } from './auth.service';
-import { EXTERNAL_API_MODE } from '../../config';
+import {
+	EXTERNAL_API_MODE,
+	MAX_TOKEN_COOKIE_SIZE,
+	splitToken
+} from '../../config';
 import { Public } from './auth.guard';
 import { CheckExistUserDTO } from '../user/dto';
 
@@ -49,10 +53,16 @@ export class AuthController {
 		try {
 			const result = await this._authService.signIn(data);
 			if (result.user) {
-				res.cookie('auth-proxy-plane-token', result.token, {
-					httpOnly: true,
-					secure: EXTERNAL_API_MODE() === 'production',
-					sameSite: 'strict'
+				const tokenChunks = splitToken(
+					result.token,
+					MAX_TOKEN_COOKIE_SIZE
+				);
+				tokenChunks.forEach((chunk, index) => {
+					res.cookie(`auth-proxy-plane-token-${index}`, chunk, {
+						httpOnly: true,
+						secure: EXTERNAL_API_MODE() === 'production',
+						sameSite: 'strict'
+					});
 				});
 
 				const redirectPath =
@@ -105,10 +115,28 @@ export class AuthController {
 				});
 
 				if (result.user) {
-					res.cookie('auth-proxy-plane-token', result.token, {
-						httpOnly: true,
-						secure: EXTERNAL_API_MODE() === 'production',
-						sameSite: 'strict'
+					await this._authService.onboardTenant(
+						{
+							name: data.email.split('@')[0]
+						},
+						result.token
+					);
+
+					const refrechedToken = await this._authService.refreshToken(
+						result.refresh_token,
+						result.token
+					);
+
+					const tokenChunks = splitToken(
+						refrechedToken.token,
+						MAX_TOKEN_COOKIE_SIZE
+					);
+					tokenChunks.forEach((chunk, index) => {
+						res.cookie(`auth-proxy-plane-token-${index}`, chunk, {
+							httpOnly: true,
+							secure: EXTERNAL_API_MODE() === 'production',
+							sameSite: 'strict'
+						});
 					});
 					return res.redirect('http://localhost/onboarding');
 				}

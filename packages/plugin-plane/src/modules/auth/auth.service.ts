@@ -6,6 +6,8 @@ import {
 	IEmailCheckResponse,
 	IEmailInput,
 	IPasswordInput,
+	ITenant,
+	ITenantCreateInput,
 	IUser,
 	IUserLoginInput,
 	IUserRegisterInput
@@ -92,10 +94,50 @@ export class AuthService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ newUser: user });
-
 			return user;
 		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	async onboardTenant(
+		input: ITenantCreateInput,
+		token: string
+	): Promise<ITenant> {
+		try {
+			const tenant: ITenant = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/tenant',
+					body: input,
+					bearer_token: token
+				})
+			).data;
+
+			return tenant;
+		} catch (error: any) {
+			console.log('Tenant Onboard Error', error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async refreshToken(
+		refreshToken: string,
+		token: string
+	): Promise<{ token: string } | null> {
+		try {
+			const response: { token: string } | null = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/refresh-token`,
+					body: { refresh_token: refreshToken },
+					bearer_token: token
+				})
+			).data;
+
+			return response;
+		} catch (error: any) {
+			console.log('Refresh Token error', error);
 			throw new BadRequestException(error);
 		}
 	}

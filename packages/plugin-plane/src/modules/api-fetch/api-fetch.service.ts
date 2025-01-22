@@ -20,8 +20,16 @@ export class ApiFetchService {
 	}
 
 	async apiFetch(configs: IServerFetchInputs) {
-		const { method, path, body, query, customHeaders, tenantId, init } =
-			configs;
+		const {
+			method,
+			path,
+			body,
+			query,
+			customHeaders,
+			bearer_token,
+			tenantId,
+			init
+		} = configs;
 
 		const apiUrl = EXTERNAL_BASE_API_URL();
 		let endPoint = apiUrl + path;
@@ -33,7 +41,7 @@ export class ApiFetchService {
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
-			Authorization: `Bearer ${ApiFetchService.token}`
+			Authorization: `Bearer ${ApiFetchService.token || bearer_token}`
 		};
 
 		if (tenantId) {

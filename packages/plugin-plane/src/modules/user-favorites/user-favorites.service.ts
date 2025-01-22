@@ -17,7 +17,7 @@ import {
 import {
 	apiFavoriteEntityToProxy,
 	createFavoriteInputTransformer,
-	defaultOrganizationId,
+	getCurrentOrganizationSlug,
 	favoriteTransformer,
 	getFavoriteQuery,
 	modulesTransformer
@@ -56,7 +56,7 @@ export class UserFavoritesService extends ApiFetchService {
 			const { entity_identifier, entity_type, project_id } = input;
 			const body = {
 				...createFavoriteInputTransformer(input),
-				organizationId: defaultOrganizationId()
+				organizationId: getCurrentOrganizationSlug()
 			};
 
 			// Create the favorite entity

@@ -1,6 +1,14 @@
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Patch
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
+import { IUserProfile } from '@plane-plugin/models';
 
 @ApiTags('User routes')
 @Controller()
@@ -40,5 +48,19 @@ export class UserController {
 	@Get('me/workspaces/:workspace_name/project-roles')
 	async findProjectRoles() {
 		return await this._userService.findProjectRoles();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update my profile' })
+	@Patch('me/profile')
+	async updateProfile(@Body() input: IUserProfile) {
+		return this._userService.updateUserProfile(input);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update my infos' })
+	@Patch('me')
+	async updateMe(@Body() input: IUserProfile) {
+		return this._userService.updateUserInfo(input);
 	}
 }

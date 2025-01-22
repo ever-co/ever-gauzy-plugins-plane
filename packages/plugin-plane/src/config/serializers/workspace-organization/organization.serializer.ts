@@ -2,10 +2,8 @@ import { employeeSettingSerializer } from '../employee-properties';
 import { getTaskCounts } from '../modules';
 import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
-	IEmployee,
 	IRole,
 	ITask,
-	ITenant,
 	IWorkspaceUserInfo,
 	RolesEnum,
 	TaskPriorityEnum,
@@ -16,7 +14,8 @@ import {
 	IUserProfileData,
 	EmployeeSettingTypeEnum,
 	BaseEntityEnum,
-	IEmployeeSetting
+	IEmployeeSetting,
+	IOrganization
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -46,9 +45,10 @@ export function roleTransformer(role: IRole): number {
 }
 
 export function organizationMembersTransformer(
-	members: IEmployee[],
-	tenant: ITenant
+	organization: IOrganization
 ): IWorkspaceUserInfo[] {
+	const members = organization.employees ?? [];
+
 	return members.map((member) => {
 		const memberSetting =
 			(member.settings ?? []).find(
@@ -81,9 +81,9 @@ export function organizationMembersTransformer(
 					`${member.user.firstName} ${member.user.lastName}`
 			},
 			workspace: {
-				id: tenant.id,
-				name: tenant.name,
-				slug: tenant.name.toLowerCase()
+				id: organization.id,
+				name: organization.name,
+				slug: organization.id
 			},
 			created_at: member.createdAt,
 			updated_at: member.updatedAt,

@@ -82,8 +82,8 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get member info for given workspace' })
 	@Get('workspace-members/me')
-	async getMembersMe(@Param('worspace_name') workspace_name: string) {
-		return await this._workspaceService.getMembersMe(workspace_name);
+	async getMembersMe() {
+		return await this._workspaceService.getMembersMe();
 	}
 
 	/**

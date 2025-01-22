@@ -27,21 +27,18 @@ import {
 	IIssueCreateInput,
 	IIssueUpdateInput,
 	EmployeeSettingTypeEnum,
-	IEmployeeSetting,
 	IGlobalEntitiesResponse,
 	IGlabalEntitiesFindInput,
 	IEntitySearchFindInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
+	currentEmployeeId,
 	cycleTransformer,
 	dashboardTransformer,
 	DEFAULT_DASHBOARD_WIDGETS,
-	defaultEmployeeId,
-	defaultOrganizationId,
-	defaultTestTenantId,
-	defaultUserId,
-	employeeSettingSerializer,
+	getCurrentOrganizationSlug,
+	currentUserId,
 	extractWorkspaceViewIdFromReferer,
 	getProjectsResponse,
 	getStatesTransformer,
@@ -62,7 +59,9 @@ import {
 	userWorkNonGroupedIssues,
 	userWorkProjectsTransformer,
 	widgetTargetDateTransformer,
-	widgetTransformer
+	widgetTransformer,
+	currentTenantId,
+	memberPropertiesSerializer
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -123,7 +122,7 @@ export class WorkspaceService extends ApiFetchService {
 					name: 'home',
 					identifier: 'home',
 					description: 'Default home dashboard for plane',
-					organizationId: defaultOrganizationId()
+					organizationId: getCurrentOrganizationSlug()
 				});
 			}
 
@@ -149,7 +148,7 @@ export class WorkspaceService extends ApiFetchService {
 						)
 					).flat();
 				} catch (error: any) {
-					console.log(error.response);
+					// console.log(error.response);
 					throw new BadRequestException(error.response);
 				}
 			}
@@ -160,7 +159,7 @@ export class WorkspaceService extends ApiFetchService {
 				widgets: transformedWidgets
 			};
 		} catch (error: any) {
-			console.log(error.response);
+			// console.log(error.response);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -234,52 +233,12 @@ export class WorkspaceService extends ApiFetchService {
 	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Get member (from connected user) info for a workspace
-	 * @param {string} workspace_name - slug for workspace name
 	 * @returns - A promise that resolves after getting member informations
 	 * @memberof WorkspaceController
 	 */
-	async getMembersMe(workspace_name: string) {
-		const employeeId = defaultEmployeeId(); // TODO: Replace with connected employee
-		const tenantId = defaultTestTenantId(); // TODO: Replace with current tenant
-
-		console.log({ workspace_name });
-
-		// Helper function to format the result
-		const formatResult = (memberSetting: IEmployeeSetting) => {
-			const {
-				filters: defaultFilters,
-				display_filters: defaultDisplayFilters,
-				display_properties: defaultDisplayProperties
-			} = memberSetting.defaultData as Record<string, any>;
-
-			const { issue_props } = memberSetting.defaultData as Record<
-				string,
-				any
-			>;
-
-			return {
-				id: defaultUserId(),
-				created_at: '2024-08-13T11:47:19.039549Z',
-				updated_at: '2024-08-13T11:47:19.039558Z',
-				deleted_at: null,
-				role: 20,
-				company_role: '',
-				view_props: {
-					...employeeSettingSerializer(memberSetting)
-				},
-				default_props: {
-					filters: defaultFilters,
-					display_filters: defaultDisplayFilters,
-					display_properties: defaultDisplayProperties
-				},
-				issue_props,
-				is_active: true,
-				created_by: employeeId,
-				updated_by: employeeId,
-				workspace: tenantId,
-				member: employeeId
-			};
-		};
+	async getMembersMe() {
+		const employeeId = currentEmployeeId();
+		const tenantId = currentTenantId();
 
 		try {
 			const memberSetting =
@@ -290,7 +249,7 @@ export class WorkspaceService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
 				});
 
-			return formatResult(memberSetting);
+			return memberPropertiesSerializer(memberSetting, employeeId);
 		} catch (error) {
 			console.warn(
 				'Failed to retrieve settings, creating new ones...',
@@ -320,7 +279,7 @@ export class WorkspaceService extends ApiFetchService {
 						employeeId
 					});
 
-				return formatResult(memberSetting);
+				return memberPropertiesSerializer(memberSetting, employeeId);
 			} catch (creationError) {
 				console.error(
 					'Failed to create new view properties',
@@ -343,15 +302,12 @@ export class WorkspaceService extends ApiFetchService {
 		const organization: IOrganization = (
 			await this.apiFetch({
 				method: 'GET',
-				path: `/organization/${defaultOrganizationId()}`, // TODO : Get this organization ID from request
+				path: `/organization/${getCurrentOrganizationSlug()}`,
 				query
 			})
 		).data;
 
-		return organizationMembersTransformer(
-			organization.employees,
-			organization.tenant
-		);
+		return organizationMembersTransformer(organization);
 	}
 
 	/**
@@ -445,7 +401,7 @@ export class WorkspaceService extends ApiFetchService {
 		issue_type?: DashboardIssueTypeEnum,
 		employee?: ID
 	) {
-		const employeeId = employee || defaultEmployeeId(); // TODO: Replace with the correct authenticated employee ID
+		const employeeId = employee || currentEmployeeId();
 		return this.getIssues(
 			employeeId,
 			'employeeId',
@@ -458,7 +414,7 @@ export class WorkspaceService extends ApiFetchService {
 		target_date?: string,
 		issue_type?: DashboardIssueTypeEnum
 	) {
-		const userId = defaultUserId(); // TODO: Replace with the correct authenticated user
+		const userId = currentUserId();
 		return this.getIssues(userId, 'creatorId', target_date, issue_type);
 	}
 
@@ -477,9 +433,9 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
-					defaultEmployeeId(),
+					currentEmployeeId(),
 					['taskStatus']
-				); // TODO: Adjust this to use correct authenticated employee;
+				);
 
 			if (target_date) {
 				const { dueDateFrom, dueDateTo } =
@@ -489,7 +445,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: defaultEmployeeId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeId()
 				});
 			}
 
@@ -531,9 +487,9 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			let tasks: ITask[] =
 				await this._issueService.findExternalByEmployee(
-					defaultEmployeeId(),
+					currentEmployeeId(),
 					['taskStatus']
-				); // TODO: Adjust this to use correct authenticated employee;
+				);
 
 			if (target_date) {
 				const { dueDateFrom, dueDateTo } =
@@ -543,7 +499,7 @@ export class WorkspaceService extends ApiFetchService {
 					dueDateFrom,
 					dueDateTo,
 					relations: ['members'],
-					employeeId: defaultEmployeeId() // TODO: Adjust this to use correct authenticated employee
+					employeeId: currentEmployeeId()
 				});
 			}
 
@@ -595,7 +551,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				creatorId: defaultUserId() || employeeId // Use authenticated user ID
+				creatorId: currentUserId() || employeeId
 			});
 
 			const issueActivities = await Promise.all(
@@ -871,7 +827,7 @@ export class WorkspaceService extends ApiFetchService {
 		employeeId: ID
 	): Promise<IUserProjectsDataResponse> {
 		try {
-			const userId = defaultUserId(); // TODO : Change this with real connected user ID
+			const userId = currentUserId();
 			const userProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
@@ -918,7 +874,7 @@ export class WorkspaceService extends ApiFetchService {
 			} else if (created_by) {
 				const createdTasks = await this._issueService.findAllExternal(
 					{
-						creatorId: defaultUserId() // TODO : Change here with current autheticated user.
+						creatorId: currentUserId()
 					},
 					relations,
 					order_by
@@ -940,7 +896,7 @@ export class WorkspaceService extends ApiFetchService {
 			}
 
 			const issuesWithLinks = await Promise.all(
-				assignedIssues.map(async (issue) => {
+				(assignedIssues ?? []).map(async (issue) => {
 					const issueLinks = await this._issueLinkService.findAll(
 						issue.id
 					);
@@ -990,8 +946,8 @@ export class WorkspaceService extends ApiFetchService {
 
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
-			userId: defaultUserId()
-		}); // TODO : Make sure we pass correct userId
+			userId: currentUserId()
+		});
 		const subscribedTaskIds = subscriptions.map(
 			(subscription) => subscription.entityId
 		);

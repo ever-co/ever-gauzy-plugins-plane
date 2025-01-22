@@ -16,7 +16,7 @@ import {
 } from '@plane-plugin/models';
 import {
 	createViewInputTransformer,
-	defaultOrganizationId,
+	getCurrentOrganizationSlug,
 	getViewsQuery,
 	issueViewTransformer,
 	updateViewInputTransformer
@@ -77,7 +77,7 @@ export class IssueViewService extends ApiFetchService {
 				...createViewInputTransformer(
 					input,
 					projectId,
-					defaultOrganizationId()
+					getCurrentOrganizationSlug()
 				)
 			};
 
@@ -114,7 +114,7 @@ export class IssueViewService extends ApiFetchService {
 				...updateViewInputTransformer(
 					input,
 					projectId,
-					defaultOrganizationId()
+					getCurrentOrganizationSlug()
 				)
 			};
 

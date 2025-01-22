@@ -23,7 +23,7 @@ import {
 import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,
-	defaultEmployeeId,
+	currentEmployeeId,
 	employeeSettingSerializer,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
@@ -341,12 +341,12 @@ export class ProjectService extends ApiFetchService {
 			const project = await this.getProject(id, ['tenant']);
 
 			// Retrieve current member information from the workspace
-			const memberInfos = await this._workspaceService.getMembersMe('');
+			const memberInfos = await this._workspaceService.getMembersMe();
 
 			// Fetch member-specific settings for the project (task views)
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -365,11 +365,7 @@ export class ProjectService extends ApiFetchService {
 			// Construct and return the response object
 			return {
 				id: memberInfos.id,
-				workspace: {
-					name: 'Cardano',
-					slug: 'cardano',
-					id: project.workspace
-				},
+				workspace: memberInfos.workspace_info,
 				project: {
 					id: project.id,
 					identifier: project.identifier,
@@ -378,14 +374,7 @@ export class ProjectService extends ApiFetchService {
 					logo_props: project.logo_props,
 					desciption: project.description
 				},
-				member: {
-					id: memberInfos.member,
-					first_name: 'Salva',
-					last_name: 'Cardano',
-					avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJrkjUa3xiRgBrYPZSQ53906R4CPFcwCnQIE4SarJjw4IRZDQ=s96-c',
-					is_bot: false,
-					display_name: 'salva.cardano1'
-				},
+				member: memberInfos.user_info,
 				created_at: memberInfos.created_at,
 				updated_at: memberInfos.updated_at,
 				deleted_at: memberInfos.deleted_at,
@@ -429,7 +418,7 @@ export class ProjectService extends ApiFetchService {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -448,8 +437,8 @@ export class ProjectService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: defaultEmployeeId() },
-						employeeId: defaultEmployeeId()
+						employee: { id: currentEmployeeId() },
+						employeeId: currentEmployeeId()
 					});
 
 				return employeeSettingSerializer(moduleMemberSetting);
@@ -484,7 +473,7 @@ export class ProjectService extends ApiFetchService {
 			// Find existing employee settings for the given project
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: defaultEmployeeId(), // TODO: Change this with connected employee
+					employeeId: currentEmployeeId(),
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -519,8 +508,8 @@ export class ProjectService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: defaultEmployeeId() },
-					employeeId: defaultEmployeeId()
+					employee: { id: currentEmployeeId() },
+					employeeId: currentEmployeeId()
 				});
 			}
 			// Serialize and return the updated/created employee setting.

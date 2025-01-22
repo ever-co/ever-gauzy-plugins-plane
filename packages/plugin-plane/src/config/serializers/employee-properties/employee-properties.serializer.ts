@@ -40,7 +40,7 @@ export function employeeSettingSerializer(
 			employeeSetting.entity === BaseEntityEnum.OrganizationSprint
 				? employeeSetting.entityId
 				: null,
-		workspace: employeeSetting.tenantId,
+		workspace: employeeSetting.organizationId,
 		user: employeeSetting.employeeId
 	};
 }
@@ -68,7 +68,8 @@ export const getEmployeeSettingQuery = (
 		query['where[settingType]'] = settingType;
 	}
 
-	query['relations[0]'] = 'employee';
+	query['relations[0]'] = 'employee.user.role';
+	query['relations[1]'] = 'organization';
 
 	return query;
 };

@@ -15,7 +15,7 @@ import {
 	ITaskLinkedIssue,
 	IWorkspaceInfo
 } from '@plane-plugin/models';
-import { defaultOrganizationId, defaultTestTenantId } from '../../credentials';
+import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
 import { getProjectsResponse } from '../projects';
 import { statusActivityTransformer } from './status-activities.serializer';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';
@@ -509,8 +509,8 @@ export function getActivityLogsQuery(
 
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
-		organizationId: defaultOrganizationId(),
-		tenantId: defaultTestTenantId()
+		organizationId: getCurrentOrganizationSlug(),
+		tenantId: currentTenantId()
 	};
 
 	if (action) {

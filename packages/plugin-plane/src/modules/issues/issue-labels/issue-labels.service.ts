@@ -10,8 +10,8 @@ import {
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import {
-	defaultOrganizationId,
-	defaultTestTenantId,
+	getCurrentOrganizationSlug,
+	currentTenantId,
 	getLabelsQuery,
 	issueLabelsTransformer
 } from '../../../config';
@@ -64,8 +64,8 @@ export class IssueLabelsService extends ApiFetchService {
 					path: `${this.path}`,
 					body: {
 						...input,
-						organizationId: defaultOrganizationId(),
-						tenantId: defaultTestTenantId()
+						organizationId: getCurrentOrganizationSlug(),
+						tenantId: currentTenantId()
 					}
 				})
 			).data;

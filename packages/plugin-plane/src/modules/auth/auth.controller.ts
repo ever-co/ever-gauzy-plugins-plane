@@ -119,15 +119,18 @@ export class AuthController {
 	@Public()
 	async signUp(@Res() res: Response, @Body() data: IUserRegisterInput) {
 		try {
+			// 1. Attempt to register the new user
 			const user = await this._authService.signUp(data);
 
 			if (user) {
+				// 2. If registration is successful, sign in the user for onboarding process
 				const result = await this._authService.signIn({
 					email: user.email,
 					password: data.password
 				});
 
 				if (result.user) {
+					// 3. Onboard the tenant using the user's email as the tenant name
 					const tenant = await this._authService.onboardTenant(
 						{
 							name: data.email.split('@')[0]
@@ -135,11 +138,13 @@ export class AuthController {
 						result.token
 					);
 
+					// 4. Refresh the token using the refresh token for organization creation purpose
 					let refrechedToken = await this._authService.refreshToken(
 						result.refresh_token,
 						result.token
 					);
 
+					// 5. Create an organization for the tenant
 					const organization =
 						await this._authService.signUpCreateOrganization(
 							{
@@ -150,6 +155,7 @@ export class AuthController {
 							refrechedToken.token
 						);
 
+					// 6. Create an employee record for the user within the created organization
 					await this._authService.signUpCreateEmployee(
 						{
 							userId: user.id,
@@ -159,13 +165,13 @@ export class AuthController {
 						refrechedToken.token
 					);
 
+					// 7. Refresh the token again to include the new employee
 					refrechedToken = await this._authService.refreshToken(
 						result.refresh_token,
 						result.token
 					);
 
-					console.log({ refrechedToken });
-
+					// 8. Split the token into chunks and set cookies for the user
 					const tokenChunks = splitToken(
 						refrechedToken.token,
 						MAX_TOKEN_COOKIE_SIZE
@@ -177,13 +183,16 @@ export class AuthController {
 							sameSite: 'strict'
 						});
 					});
+					// 9. Redirect the user to the onboarding page
 					return res.redirect('http://localhost/onboarding');
 				}
 			}
+			// 10. Redirect to error page if user registration fails
 			return res.redirect(
 				'http://localhost/?error_code=INVALID_EMAIL_SIGN_UP&error_message=INVALID_EMAIL_SIGN_UP'
 			);
 		} catch (error: any) {
+			// Log any errors that occur during the sign-up process
 			console.log(error.response.response);
 		}
 	}

@@ -100,6 +100,14 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Registers a new user by sending their details to the server.
+	 *
+	 * @param {IUserRegisterInput} input - The input containing the user's details.
+	 * @returns {Promise<IUser>} A promise resolving to the created user object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
 	async signUp(input: IUserRegisterInput): Promise<IUser> {
 		try {
 			const user: IUser = (
@@ -116,6 +124,15 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Initiates the onboarding process for a new tenant by sending its details to the server.
+	 *
+	 * @param {ITenantCreateInput} input - The input containing the tenant's details.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<ITenant>} A promise resolving to the created tenant object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
 	async onboardTenant(
 		input: ITenantCreateInput,
 		token: string
@@ -137,6 +154,15 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Refreshes the user's authentication token using a provided refresh token.
+	 *
+	 * @param {string} refreshToken - The refresh token to be used for obtaining a new token.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<{ token: string } | null>} A promise resolving to an object containing the new token or `null` if the request fails.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
 	async refreshToken(
 		refreshToken: string,
 		token: string
@@ -158,6 +184,15 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Creates a new organization by sending its details to the server.
+	 *
+	 * @param {IOrganizationCreateInput} input - The input containing the organization's details.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<IOrganization>} A promise resolving to the created organization object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
 	async signUpCreateOrganization(
 		input: IOrganizationCreateInput,
 		token: string
@@ -184,6 +219,15 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Creates a new employee by sending their details to the server.
+	 *
+	 * @param {IEmployeeCreateInput} input - The input containing the employee's details.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<IEmployee>} A promise resolving to the created employee object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
 	async signUpCreateEmployee(
 		input: IEmployeeCreateInput,
 		token: string

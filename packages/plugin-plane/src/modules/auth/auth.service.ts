@@ -4,9 +4,12 @@ import {
 	Injectable
 } from '@nestjs/common';
 import {
+	BaseEntityEnum,
 	CheckUserExistEnum,
+	EmployeeSettingTypeEnum,
 	IAuthResponse,
 	ICheckUserExist,
+	ID,
 	IEmailCheckResponse,
 	IEmailInput,
 	IEmployee,
@@ -21,13 +24,19 @@ import {
 	IUserRegisterInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { apiSecretKeys, registerInputTranformer } from '../../config';
+import {
+	apiSecretKeys,
+	MEMBER_DEFAULT_VIEW_PROPS,
+	registerInputTranformer
+} from '../../config';
 import { UserService } from '../user/user.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class AuthService extends ApiFetchService {
 	constructor(
 		private readonly _userService: UserService,
+		private readonly _employeePropertiesService: EmployeePropertiesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -195,7 +204,8 @@ export class AuthService extends ApiFetchService {
 	 */
 	async signUpCreateOrganization(
 		input: IOrganizationCreateInput,
-		token: string
+		token: string,
+		tenantId?: ID
 	): Promise<IOrganization> {
 		try {
 			const organization: IOrganization = (
@@ -203,7 +213,8 @@ export class AuthService extends ApiFetchService {
 					method: 'POST',
 					path: '/organization',
 					body: input,
-					bearer_token: token
+					bearer_token: token,
+					tenantId
 				})
 			).data;
 
@@ -230,7 +241,8 @@ export class AuthService extends ApiFetchService {
 	 */
 	async signUpCreateEmployee(
 		input: IEmployeeCreateInput,
-		token: string
+		token: string,
+		tenantId?: ID
 	): Promise<IEmployee> {
 		try {
 			const employee: IEmployee = (
@@ -238,9 +250,42 @@ export class AuthService extends ApiFetchService {
 					method: 'POST',
 					path: '/employee',
 					body: input,
-					bearer_token: token
+					bearer_token: token,
+					tenantId
 				})
 			).data;
+
+			// Create default settings
+			const settingViewProps = {
+				...MEMBER_DEFAULT_VIEW_PROPS,
+				issue_props: {
+					created: true,
+					assigned: true,
+					all_issues: true,
+					subscribed: true
+				}
+			};
+			try {
+				await this._employeePropertiesService.create(
+					{
+						entity: BaseEntityEnum.Tenant,
+						entityId: tenantId,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: settingViewProps,
+						defaultData: settingViewProps,
+						employee: { id: employee.id },
+						employeeId: employee.id
+					},
+					token,
+					tenantId,
+					employee.organizationId
+				);
+			} catch (error: any) {
+				console.log(
+					'Failed to create employee settingg',
+					error.response
+				);
+			}
 
 			return employee;
 		} catch (error: any) {

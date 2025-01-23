@@ -1,5 +1,7 @@
 import * as cheerio from 'cheerio';
 import { ID, IssueOrderByField } from '@plane-plugin/models';
+import { Request, Response } from 'express';
+import { EXTERNAL_API_MODE, MAX_TOKEN_COOKIE_SIZE } from '../constants';
 
 /**
  * Convert slug back to a readable string
@@ -102,4 +104,31 @@ export function splitToken(token: string, chunkSize: number): string[] {
 		chunks.push(token.slice(i, i + chunkSize));
 	}
 	return chunks;
+}
+
+export function sendTokenChunks(token: string, response: Response) {
+	const tokenChunks = splitToken(token, MAX_TOKEN_COOKIE_SIZE);
+	tokenChunks.forEach((chunk, index) => {
+		response.cookie(`auth-proxy-plane-token-${index}`, chunk, {
+			httpOnly: true,
+			secure: EXTERNAL_API_MODE() === 'production',
+			sameSite: 'strict'
+		});
+	});
+}
+
+export function clearTokenChuncks(request: Request, response: Response) {
+	let index = 0;
+	while (true) {
+		const cookieName = `auth-proxy-plane-token-${index}`;
+		if (!request.cookies[cookieName]) {
+			break;
+		}
+		response.clearCookie(cookieName, {
+			httpOnly: true,
+			secure: EXTERNAL_API_MODE() === 'production',
+			sameSite: 'strict'
+		});
+		index++;
+	}
 }

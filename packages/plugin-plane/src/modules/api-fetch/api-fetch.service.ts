@@ -41,7 +41,7 @@ export class ApiFetchService {
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
-			Authorization: `Bearer ${ApiFetchService.token || bearer_token}`
+			Authorization: `Bearer ${bearer_token || ApiFetchService.token}`
 		};
 
 		if (tenantId) {

@@ -177,6 +177,10 @@ export function memberPropertiesSerializer(
 ) {
 	const defaultData = memberSetting?.defaultData as Record<string, any>;
 
+	console.log('++++++++++++++++++++++++++++++++++++++++++++++++');
+	console.log({ memberRole: memberSetting?.employee.user.role });
+	console.log('++++++++++++++++++++++++++++++++++++++++++++++++');
+
 	const {
 		filters: defaultFilters = {},
 		display_filters: defaultDisplayFilters = {},

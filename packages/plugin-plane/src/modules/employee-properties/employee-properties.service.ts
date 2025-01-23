@@ -25,7 +25,10 @@ export class EmployeePropertiesService extends ApiFetchService {
 	 * @throws {BadRequestException} Throws an error if the creation fails.
 	 */
 	async create(
-		input: IEmployeeSettingCreateInput
+		input: IEmployeeSettingCreateInput,
+		token?: string,
+		tenantId?: ID,
+		organizationId?: ID
 	): Promise<IEmployeeSetting> {
 		try {
 			const employeeSetting: IEmployeeSetting = (
@@ -35,8 +38,11 @@ export class EmployeePropertiesService extends ApiFetchService {
 					body: {
 						...input,
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-						organizationId: getCurrentOrganizationSlug()
-					}
+						organizationId:
+							organizationId || getCurrentOrganizationSlug()
+					},
+					bearer_token: token,
+					tenantId
 				})
 			).data;
 

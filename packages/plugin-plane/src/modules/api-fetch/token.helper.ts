@@ -33,7 +33,7 @@ export function getCurrentEmployeeId(): string | null {
  * @returns User ID from token or null if not found
  */
 export function getCurrentUserId(defaultToken?: string): string | null {
-	const token = ApiFetchService.getToken() || defaultToken;
+	const token = defaultToken || ApiFetchService.getToken();
 	if (!token) return null;
 
 	const decoded = decodeToken(token);

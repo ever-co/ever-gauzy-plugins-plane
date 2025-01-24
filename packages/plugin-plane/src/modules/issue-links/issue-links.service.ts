@@ -97,8 +97,8 @@ export class IssueLinksService extends ApiFetchService {
 			).data;
 
 			return links.items;
-		} catch (error) {
-			console.log(error);
+		} catch (error: any) {
+			console.log(error.response);
 			throw new BadRequestException();
 		}
 	}

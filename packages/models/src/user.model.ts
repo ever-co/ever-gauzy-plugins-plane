@@ -83,7 +83,7 @@ export interface IUserProfile {
 	last_workspace_id?: ID;
 	fallback_workspace_id?: ID;
 	billing_address_country?: string;
-	billing_address?: null;
+	billing_address?: any;
 	has_billing_address?: boolean;
 	company_name?: string;
 	user?: ID;

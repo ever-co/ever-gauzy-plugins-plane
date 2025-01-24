@@ -30,6 +30,7 @@ import { MentionModule } from './mention/mention.module';
 import { TokenMiddleware } from './api-fetch/token.middleware';
 import { WorkspaceMiddleware } from './workspace/workspace.middleware';
 import { AuthGuard } from './auth/auth.guard';
+import { TimezonesModule } from './timezones/timezones.module';
 
 @Module({
 	imports: [
@@ -60,7 +61,8 @@ import { AuthGuard } from './auth/auth.guard';
 		SubscriptionModule,
 		IntakeIssuesModule,
 		EmployeePropertiesModule,
-		MentionModule
+		MentionModule,
+		TimezonesModule
 	],
 	providers: [
 		{

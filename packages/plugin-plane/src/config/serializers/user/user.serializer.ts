@@ -66,6 +66,7 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 			total_members: organization.employees.length,
 			// total_issues: organization.ta.length,
 			created_at: organization.createdAt,
+			current_plan: 'PRO',
 			updated_at: organization.updatedAt,
 			deleted_at: organization.deletedAt,
 			name: organization.name,
@@ -96,7 +97,7 @@ export function userMeTransformer(user: IUser) {
 		is_active: user.isActive,
 		is_bot: false,
 		is_email_verified: user.isEmailVerified,
-		user_timezone: user.timeZone,
+		user_timezone: user.timeZone || 'UTC',
 		username: user.username,
 		is_password_autoset: false,
 		last_login_medium: 'email'
@@ -126,8 +127,8 @@ export function userProfileTransformer(user: IUser): IUserProfile {
 		is_onboarded: true,
 		last_workspace_id: user.lastOrganizationId,
 		billing_address_country: 'INDIA',
-		billing_address: null,
-		has_billing_address: false,
+		billing_address: 'My Billing address',
+		has_billing_address: true,
 		company_name: user.tenant.name,
 		user: user.employee?.id
 	};
@@ -176,10 +177,6 @@ export function memberPropertiesSerializer(
 	employeeId: ID
 ) {
 	const defaultData = memberSetting?.defaultData as Record<string, any>;
-
-	console.log('++++++++++++++++++++++++++++++++++++++++++++++++');
-	console.log({ memberRole: memberSetting?.employee.user.role });
-	console.log('++++++++++++++++++++++++++++++++++++++++++++++++');
 
 	const {
 		filters: defaultFilters = {},

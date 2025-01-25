@@ -865,7 +865,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			const task = await this.getExternalIssue(
 				entityId,
-				['project.members.employee.user.role', 'project.tenant'],
+				['project.members.employee.user.role', 'project.organization'],
 				false
 			);
 
@@ -995,7 +995,7 @@ export class IssuesService extends ApiFetchService {
 
 			const task = await this.getExternalIssue(
 				options.entityId,
-				['project.members.employee.user.role', 'project.tenant'],
+				['project.members.employee.user.role', 'project.organization'],
 				false
 			);
 
@@ -1048,7 +1048,7 @@ export class IssuesService extends ApiFetchService {
 
 			const task = await this.getExternalIssue(
 				id,
-				['project.members.employee.user.role', 'project.tenant'],
+				['project.members.employee.user.role', 'project.organization'],
 				false
 			);
 
@@ -1077,6 +1077,8 @@ export class IssuesService extends ApiFetchService {
 						: [transformedActivityLogs];
 				})
 			);
+
+			console.log({ issueActivities });
 
 			// Find links for logs
 			const links = await this._issueLinkService.findAll(id);
@@ -1156,7 +1158,7 @@ export class IssuesService extends ApiFetchService {
 				.concat(linkActivities.flat(2))
 				.concat(issueRelationsActivities.flat(2));
 
-			return flattenedActivities;
+			return flattenedActivities.filter(Boolean);
 		} catch (error: any) {
 			throw new BadRequestException(error);
 		}
@@ -1178,7 +1180,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			const task = await this.getExternalIssue(
 				entityId,
-				['project.members.employee.user.role', 'project.tenant'],
+				['project.members.employee.user.role', 'project.organization'],
 				false
 			);
 
@@ -1231,7 +1233,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			const task = await this.getExternalIssue(
 				options.entityId,
-				['project.members.employee.user.role', 'project.tenant'],
+				['project.members.employee.user.role', 'project.organization'],
 				isDraft
 			);
 
@@ -1349,11 +1351,11 @@ export class IssuesService extends ApiFetchService {
 			}
 
 			// Workspace details
-			const tenant = project?.tenant;
+			const organization = project?.organization;
 			const workspace = {
-				name: tenant?.name,
-				id: tenant?.id,
-				slug: tenant?.name.toLowerCase()
+				name: organization?.name,
+				id: organization?.id,
+				slug: organization?.id
 			};
 
 			// Find actor by userId

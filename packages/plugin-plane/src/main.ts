@@ -24,9 +24,10 @@ export async function bootstrap() {
 			'api/users/me/:slug',
 			'api/users/me/workspaces/:workspace_name/project-roles',
 			'api/instances',
+			'api/timezones',
 			'api/dashboard/:id/:dashboardEndpoint',
 			'api/dashboard/:id/:dashboardEndpoint/:endPointParam'
-		] // Exclude all the routes starting with /auth, /users, /dashboard and /instances from the global prefix
+		] // Exclude all the routes starting with /auth, /users, /timezones /dashboard and /instances from the global prefix
 	});
 
 	const config = new DocumentBuilder()

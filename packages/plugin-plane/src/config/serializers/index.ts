@@ -1,4 +1,5 @@
 export * from './activity';
+export * from './auth';
 export * from './comments';
 export * from './cycles';
 export * from './dashboard';

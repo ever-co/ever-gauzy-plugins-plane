@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
+	ID,
 	IPagination,
 	IUser,
 	IUserOrganization,
@@ -59,7 +60,7 @@ export class UserService extends ApiFetchService {
 	 * @returns Extended user profile including theme, onboarding, and organization details
 	 * @throws {BadRequestException} If the API request fails
 	 */
-	async getMyProfile() {
+	async getMyProfile(token?: string, tenantId?: ID) {
 		try {
 			const query = qs.stringify(getUserMeQueryParams);
 
@@ -67,7 +68,9 @@ export class UserService extends ApiFetchService {
 				await this.apiFetch({
 					path: '/user/me',
 					method: 'GET',
-					query
+					query,
+					bearer_token: token,
+					tenantId
 				})
 			).data;
 
@@ -84,15 +87,21 @@ export class UserService extends ApiFetchService {
 	 * @returns Updated user profile after successful modification
 	 * @throws {BadRequestException} If the API request fails
 	 */
-	async updateUserProfile(input: IUserProfile) {
+	async updateUserProfile(
+		input: IUserProfile,
+		token?: string,
+		tenantId?: ID
+	) {
 		try {
 			await this.apiFetch({
-				path: `/user/${currentUserId()}`,
+				path: `/user/${currentUserId(token)}`,
 				method: 'PUT',
-				body: updateUserProfileInputTranformer(input)
+				body: updateUserProfileInputTranformer(input),
+				bearer_token: token,
+				tenantId
 			});
 
-			return await this.getMyProfile();
+			return await this.getMyProfile(token, tenantId);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

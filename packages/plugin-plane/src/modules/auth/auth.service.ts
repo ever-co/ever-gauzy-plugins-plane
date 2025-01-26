@@ -1,18 +1,47 @@
-import { Injectable } from '@nestjs/common';
 import {
+	BadGatewayException,
+	BadRequestException,
+	Injectable
+} from '@nestjs/common';
+import {
+	BaseEntityEnum,
 	CheckUserExistEnum,
+	EmployeeSettingTypeEnum,
 	IAuthResponse,
 	ICheckUserExist,
+	ID,
 	IEmailCheckResponse,
 	IEmailInput,
+	IEmployee,
+	IEmployeeCreateInput,
+	IOrganization,
+	IOrganizationCreateInput,
 	IPasswordInput,
-	IUserLoginInput
+	ITenant,
+	ITenantCreateInput,
+	IUser,
+	IUserLoginInput,
+	IUserRegisterInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { apiSecretKeys } from '../../config';
+import {
+	apiSecretKeys,
+	MEMBER_DEFAULT_VIEW_PROPS,
+	registerInputTranformer
+} from '../../config';
+import { UserService } from '../user/user.service';
+import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
 @Injectable()
 export class AuthService extends ApiFetchService {
+	constructor(
+		private readonly _userService: UserService,
+		private readonly _employeePropertiesService: EmployeePropertiesService,
+		private readonly _serverFetchService: ApiFetchService
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	private path = '/auth';
 
 	/**
@@ -45,7 +74,7 @@ export class AuthService extends ApiFetchService {
 			if (!isExists.exists) {
 				return {
 					existing: false,
-					status: CheckUserExistEnum.MAGIC_CODE
+					status: CheckUserExistEnum.CREDENTIALS
 				};
 			}
 			return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
@@ -77,6 +106,191 @@ export class AuthService extends ApiFetchService {
 			return response;
 		} catch (error: any) {
 			return error;
+		}
+	}
+
+	/**
+	 * Registers a new user by sending their details to the server.
+	 *
+	 * @param {IUserRegisterInput} input - The input containing the user's details.
+	 * @returns {Promise<IUser>} A promise resolving to the created user object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async signUp(input: IUserRegisterInput): Promise<IUser> {
+		try {
+			const user: IUser = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/register`,
+					body: registerInputTranformer(input)
+				})
+			).data;
+
+			return user;
+		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Initiates the onboarding process for a new tenant by sending its details to the server.
+	 *
+	 * @param {ITenantCreateInput} input - The input containing the tenant's details.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<ITenant>} A promise resolving to the created tenant object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async onboardTenant(
+		input: ITenantCreateInput,
+		token: string
+	): Promise<ITenant> {
+		try {
+			const tenant: ITenant = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/tenant',
+					body: input,
+					bearer_token: token
+				})
+			).data;
+
+			return tenant;
+		} catch (error: any) {
+			console.log('Tenant Onboard Error', error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Refreshes the user's authentication token using a provided refresh token.
+	 *
+	 * @param {string} refreshToken - The refresh token to be used for obtaining a new token.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<{ token: string } | null>} A promise resolving to an object containing the new token or `null` if the request fails.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async refreshToken(
+		refreshToken: string,
+		token: string
+	): Promise<{ token: string } | null> {
+		try {
+			const response: { token: string } | null = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/refresh-token`,
+					body: { refresh_token: refreshToken },
+					bearer_token: token
+				})
+			).data;
+
+			return response;
+		} catch (error: any) {
+			console.log('Refresh Token error', error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Creates a new organization by sending its details to the server.
+	 *
+	 * @param {IOrganizationCreateInput} input - The input containing the organization's details.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<IOrganization>} A promise resolving to the created organization object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async signUpCreateOrganization(
+		input: IOrganizationCreateInput,
+		token: string,
+		tenantId?: ID
+	): Promise<IOrganization> {
+		try {
+			const organization: IOrganization = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/organization',
+					body: input,
+					bearer_token: token,
+					tenantId
+				})
+			).data;
+
+			await this._userService.updateUserProfile(
+				{ fallback_workspace_id: organization.id },
+				token,
+				organization.tenantId
+			);
+
+			return organization;
+		} catch (error) {
+			throw new BadGatewayException(error);
+		}
+	}
+
+	/**
+	 * Creates a new employee by sending their details to the server.
+	 *
+	 * @param {IEmployeeCreateInput} input - The input containing the employee's details.
+	 * @param {string} token - The bearer token for authentication.
+	 * @returns {Promise<IEmployee>} A promise resolving to the created employee object.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async signUpCreateEmployee(
+		input: IEmployeeCreateInput,
+		token: string,
+		tenantId?: ID
+	): Promise<IEmployee> {
+		try {
+			const employee: IEmployee = (
+				await this.apiFetch({
+					method: 'POST',
+					path: '/employee',
+					body: input,
+					bearer_token: token,
+					tenantId
+				})
+			).data;
+
+			// Create default settings
+			const settingViewProps = {
+				...MEMBER_DEFAULT_VIEW_PROPS,
+				issue_props: {
+					created: true,
+					assigned: true,
+					all_issues: true,
+					subscribed: true
+				}
+			};
+			try {
+				await this._employeePropertiesService.create(
+					{
+						entity: BaseEntityEnum.Tenant,
+						entityId: tenantId,
+						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+						data: settingViewProps,
+						defaultData: settingViewProps,
+						employee: { id: employee.id },
+						employeeId: employee.id
+					},
+					token,
+					tenantId,
+					employee.organizationId
+				);
+			} catch (error: any) {
+				console.log(
+					'Failed to create employee settingg',
+					error.response
+				);
+			}
+
+			return employee;
+		} catch (error: any) {
+			// console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 

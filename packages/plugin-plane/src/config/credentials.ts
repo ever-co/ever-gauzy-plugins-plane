@@ -23,6 +23,6 @@ export const currentEmployeeId = () => {
 	return getCurrentEmployeeId();
 };
 
-export const currentUserId = () => {
-	return getCurrentUserId();
+export const currentUserId = (token?: string) => {
+	return getCurrentUserId(token);
 };

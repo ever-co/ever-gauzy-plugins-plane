@@ -27,7 +27,18 @@ export class AuthGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<Request>();
 		const response = context.switchToHttp().getResponse<Response>();
-		const token = request.cookies['auth-proxy-plane-token'];
+
+		const tokenChunks: string[] = [];
+		let index = 0;
+
+		while (request.cookies[`auth-proxy-plane-token-${index}`]) {
+			tokenChunks.push(
+				request.cookies[`auth-proxy-plane-token-${index}`]
+			);
+			index++;
+		}
+
+		const token = tokenChunks.join('');
 
 		if (!token) {
 			response.redirect('http://localhost');

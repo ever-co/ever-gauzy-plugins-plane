@@ -10,6 +10,7 @@ import { ProjectModule } from '../project/project.module';
 		forwardRef(() => ProjectModule)
 	],
 	providers: [UserService],
-	controllers: [UserController]
+	controllers: [UserController],
+	exports: [UserService]
 })
 export class UserModule {}

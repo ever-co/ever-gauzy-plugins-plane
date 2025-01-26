@@ -334,4 +334,135 @@ export class WorkspaceController {
 	) {
 		return await this._workspaceService.findViewIssues(options, referer);
 	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| DASHBOARD ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find current plan' })
+	@Get('current-plan')
+	async getCurrentPlan() {
+		return {
+			is_cancelled: false,
+			purchased_seats: 1,
+			current_period_end_date: '2025-12-31T12:49:48Z',
+			interval: 'YEARLY',
+			product: 'PRO',
+			is_offline_payment: false,
+			trial_end_date: '2025-12-31T12:49:48Z',
+			has_activated_free_trial: true,
+			has_added_payment_method: true,
+			subscription: '59a092b3-54da-47d7-9f31-6b22ae45cd97',
+			is_self_managed: false,
+			is_on_trial: true,
+			is_trial_allowed: true,
+			remaining_trial_days: 342,
+			has_upgraded: true,
+			show_payment_button: false,
+			show_trial_banner: false,
+			free_seats: 12,
+			occupied_seats: 1,
+			show_seats_banner: false,
+			current_period_start_date: '2025-01-23T12:49:48Z',
+			is_trial_ended: false,
+			billable_members: 1,
+			is_free_member_count_exceeded: false
+		};
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find products plans' })
+	@Get('products')
+	async getProducts() {
+		return [
+			{
+				id: 'prod_RagdjBkta6q1td',
+				name: 'Plane Business • Cloud',
+				description:
+					'The earliest packaging of Business at $10 a seat a month billed annually, $12 a seat a month billed monthly for Plane Cloud',
+				type: 'BUSINESS',
+				prices: [
+					{
+						id: 'price_1QhVGcG5xRvEyfTNPq2q1dbA',
+						unit_amount: 12000.0,
+						recurring: 'year',
+						currency: 'usd',
+						workspace_amount: 12000.0
+					},
+					{
+						id: 'price_1QhVGcG5xRvEyfTNVY1ZfpCi',
+						unit_amount: 1200.0,
+						recurring: 'month',
+						currency: 'usd',
+						workspace_amount: 1200.0
+					}
+				],
+				payment_quantity: 1,
+				is_active: false
+			},
+			{
+				id: 'prod_QLrOPmCCpcsN6s',
+				name: 'Plane Pro • Cloud',
+				description:
+					'More views, more cycles powers, more pages features, new reports, and better dashboards are waiting to be unlocked.',
+				type: 'PRO',
+				prices: [
+					{
+						id: 'price_1PnjZ3G5xRvEyfTNT3WNGHsC',
+						unit_amount: 800.0,
+						recurring: 'month',
+						currency: 'usd',
+						workspace_amount: 800.0
+					},
+					{
+						id: 'price_1PnjZjG5xRvEyfTNOkO0UDlX',
+						unit_amount: 7200.0,
+						recurring: 'year',
+						currency: 'usd',
+						workspace_amount: 7200.0
+					}
+				],
+				payment_quantity: 1,
+				is_active: true
+			}
+		];
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find products plans' })
+	@Get('flags')
+	async getPlanFlags() {
+		return {
+			values: {
+				EPICS_DISPLAY: true,
+				EPICS_SETTINGS: true,
+				PROJECT_UPDATES: true,
+				PROJECT_OVERVIEW: true,
+				INBOX_STACKING: true,
+				TIMELINE_DEPENDENCY: true,
+				NO_LOAD: true,
+				FILE_SIZE_LIMIT_PRO: true,
+				EDITOR_AI_OPS: true,
+				COLLABORATION_CURSOR: true,
+				PROJECT_GROUPING: true,
+				BULK_OPS_ADVANCED: true,
+				WORKSPACE_ACTIVE_CYCLES: true,
+				PAGE_ISSUE_EMBEDS: true,
+				PAGE_PUBLISH: true,
+				VIEW_ACCESS_PRIVATE: true,
+				VIEW_PUBLISH: true,
+				VIEW_LOCK: true,
+				ISSUE_TYPE_SETTINGS: true,
+				ISSUE_TYPE_DISPLAY: true,
+				WORKSPACE_PAGES: true,
+				BULK_OPS: true,
+				ESTIMATE_WITH_TIME: true,
+				ISSUE_WORKLOG: true,
+				OIDC_SAML_AUTH: true
+			}
+		};
+	}
 }

@@ -66,6 +66,7 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 			total_members: organization.employees.length,
 			// total_issues: organization.ta.length,
 			created_at: organization.createdAt,
+			current_plan: 'PRO',
 			updated_at: organization.updatedAt,
 			deleted_at: organization.deletedAt,
 			name: organization.name,
@@ -96,7 +97,7 @@ export function userMeTransformer(user: IUser) {
 		is_active: user.isActive,
 		is_bot: false,
 		is_email_verified: user.isEmailVerified,
-		user_timezone: user.timeZone,
+		user_timezone: user.timeZone || 'UTC',
 		username: user.username,
 		is_password_autoset: false,
 		last_login_medium: 'email'
@@ -126,10 +127,10 @@ export function userProfileTransformer(user: IUser): IUserProfile {
 		is_onboarded: true,
 		last_workspace_id: user.lastOrganizationId,
 		billing_address_country: 'INDIA',
-		billing_address: null,
-		has_billing_address: false,
+		billing_address: 'My Billing address',
+		has_billing_address: true,
 		company_name: user.tenant.name,
-		user: user.employee.id
+		user: user.employee?.id
 	};
 }
 
@@ -146,6 +147,7 @@ export function updateUserProfileInputTranformer(
 		lastName: input.last_name,
 		imageUrl: input.avatar_url,
 		lastOrganizationId: input.last_workspace_id,
+		defaultOrganizationId: input.fallback_workspace_id,
 		timeZone: input.user_timezone
 	};
 }
@@ -174,20 +176,22 @@ export function memberPropertiesSerializer(
 	memberSetting: IEmployeeSetting,
 	employeeId: ID
 ) {
-	const {
-		filters: defaultFilters,
-		display_filters: defaultDisplayFilters,
-		display_properties: defaultDisplayProperties
-	} = memberSetting?.defaultData as Record<string, any>;
+	const defaultData = memberSetting?.defaultData as Record<string, any>;
 
-	const { issue_props } = memberSetting?.defaultData as Record<string, any>;
+	const {
+		filters: defaultFilters = {},
+		display_filters: defaultDisplayFilters = {},
+		display_properties: defaultDisplayProperties = {}
+	} = defaultData ?? {};
+
+	const issue_props = defaultData ? defaultData.issue_props : {};
 
 	return {
 		id: currentUserId(),
-		created_at: memberSetting.createdAt,
-		updated_at: memberSetting.updatedAt,
-		deleted_at: memberSetting.deletedAt,
-		role: roleTransformer(memberSetting.employee.user.role),
+		created_at: memberSetting?.createdAt,
+		updated_at: memberSetting?.updatedAt,
+		deleted_at: memberSetting?.deletedAt,
+		role: roleTransformer(memberSetting?.employee.user.role),
 		company_role: '',
 		view_props: {
 			...employeeSettingSerializer(memberSetting)
@@ -203,7 +207,7 @@ export function memberPropertiesSerializer(
 		updated_by: employeeId,
 		workspace: memberSetting?.organizationId,
 		user_info: {
-			id: memberSetting.employeeId,
+			id: memberSetting?.employeeId,
 			first_name: memberSetting?.employee.user.firstName,
 			last_name: memberSetting?.employee.user.lastName,
 			avatar: memberSetting?.employee.user.imageUrl,

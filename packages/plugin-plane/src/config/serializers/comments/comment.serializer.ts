@@ -97,7 +97,8 @@ export function createCommentInputTransformer(
 		entityId,
 		comment: commentHtml,
 		actorType: ActorTypeEnum.User,
-		mentionUserIds: mentionUserIds ?? [] // Default to an empty array if no employees are provided
+		mentionUserIds: mentionUserIds ?? [], // Default to an empty array if no employees are provided
+		entityName: input.entityName
 	};
 }
 

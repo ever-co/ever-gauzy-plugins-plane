@@ -875,7 +875,7 @@ export class IssuesService extends ApiFetchService {
 
 			// Create comment
 			const comment = await this._commentService.create(
-				input,
+				{ ...input, entityName: task.title },
 				BaseEntityEnum.Task,
 				entityId,
 				projectMembers

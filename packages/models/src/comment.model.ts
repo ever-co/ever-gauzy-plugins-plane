@@ -33,4 +33,5 @@ export interface IIssueComment {
 export interface ICreateCommentInput {
 	actorType?: ActorTypeEnum;
 	comment_html: string;
+	entityName?: string;
 }

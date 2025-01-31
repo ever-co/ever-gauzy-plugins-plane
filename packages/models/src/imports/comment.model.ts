@@ -22,6 +22,7 @@ export interface IComment extends IBasePerTenantAndOrganizationEntityModel, IBas
 
 export interface ICommentCreateInput extends IBasePerEntityType {
 	comment: string;
+	entityName?: string;
 	parentId?: ID;
 	members?: IEmployee[];
 	teams?: IOrganizationTeam[];

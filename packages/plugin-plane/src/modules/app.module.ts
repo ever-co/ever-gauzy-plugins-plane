@@ -31,6 +31,7 @@ import { TokenMiddleware } from './api-fetch/token.middleware';
 import { WorkspaceMiddleware } from './workspace/workspace.middleware';
 import { AuthGuard } from './auth/auth.guard';
 import { TimezonesModule } from './timezones/timezones.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
 	imports: [
@@ -62,7 +63,8 @@ import { TimezonesModule } from './timezones/timezones.module';
 		IntakeIssuesModule,
 		EmployeePropertiesModule,
 		MentionModule,
-		TimezonesModule
+		TimezonesModule,
+		NotificationModule
 	],
 	providers: [
 		{

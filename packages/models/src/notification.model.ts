@@ -1,7 +1,7 @@
-import { IIssue } from 'issue.model';
 import { ID } from './imports';
+import { IIssueActivity } from './activity.model';
+import { IIssue } from './issue.model';
 import { IMemberInfo } from './user.model';
-import { IIssueActivity } from 'activity.model';
 
 export interface INotification {
 	id?: ID;
@@ -26,10 +26,15 @@ export interface INotification {
 	read_at?: Date;
 	snoozed_till?: Date;
 	archived_at?: Date;
-	created_by?: Date;
-	updated_by?: Date;
+	created_by?: ID;
+	updated_by?: ID;
 	workspace?: ID;
 	project?: ID;
-	triggered_by?: Date;
-	receiver?: Date;
+	triggered_by?: ID;
+	receiver?: ID;
+}
+
+export interface IUnreadNotificationResponse {
+	total_unread_notifications_count?: number;
+	mention_unread_notifications_count?: number;
 }

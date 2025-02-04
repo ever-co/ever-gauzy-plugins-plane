@@ -16,6 +16,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
 import { ActorTypeEnum } from 'packages/models/src/imports/base-entity.model';
 import { extractEmployeeMentionIds } from '../../utils';
+import { actorDetailsTransformer } from '../user';
 
 export function issueCommentTrasnsformer(
 	comments: IComment[] | IComment,
@@ -29,14 +30,7 @@ export function issueCommentTrasnsformer(
 		return {
 			id: comment.id,
 			issue_detail: issue,
-			actor_detail: {
-				id: actor?.id,
-				first_name: actor?.user?.firstName,
-				last_name: actor?.user?.lastName,
-				avatar: actor?.user?.imageUrl,
-				is_bot: false,
-				display_name: actor?.fullName
-			},
+			actor_detail: actorDetailsTransformer(actor),
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail,
 			comment_reactions: reactions,

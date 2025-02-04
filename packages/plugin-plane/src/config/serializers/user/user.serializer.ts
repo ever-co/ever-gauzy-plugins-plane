@@ -10,6 +10,7 @@ import {
 import { currentTenantId, currentUserId } from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
 import { roleTransformer } from '../workspace-organization';
+import { actorDetailsTransformer } from './actor-details.helper';
 
 /**
  * Generates query parameters for fetching user organizations
@@ -55,14 +56,7 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 
 		return {
 			id: organization.id,
-			owner: {
-				id: owner?.id,
-				first_name: owner?.user.firstName,
-				last_name: owner?.user.lastName,
-				avatar: owner?.user.imageUrl,
-				is_bot: false,
-				display_name: owner?.user.fullName
-			},
+			owner: actorDetailsTransformer(owner),
 			total_members: organization.employees.length,
 			// total_issues: organization.ta.length,
 			created_at: organization.createdAt,
@@ -206,14 +200,7 @@ export function memberPropertiesSerializer(
 		created_by: employeeId,
 		updated_by: employeeId,
 		workspace: memberSetting?.organizationId,
-		user_info: {
-			id: memberSetting?.employeeId,
-			first_name: memberSetting?.employee.user.firstName,
-			last_name: memberSetting?.employee.user.lastName,
-			avatar: memberSetting?.employee.user.imageUrl,
-			is_bot: false,
-			display_name: memberSetting?.employee.user.fullName
-		},
+		user_info: actorDetailsTransformer(memberSetting?.employee),
 		workspace_info: {
 			id: memberSetting?.organizationId,
 			slug: memberSetting?.organizationId,

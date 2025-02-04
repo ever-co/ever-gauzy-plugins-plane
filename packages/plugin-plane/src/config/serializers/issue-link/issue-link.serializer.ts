@@ -10,6 +10,7 @@ import {
 	IResourceLinkUpdateInput
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { actorDetailsTransformer } from '../user';
 
 /**
  * @description Transform external Resource Link(s) to internal use accepted data
@@ -28,14 +29,7 @@ export function issueLinkTransformer(
 			id: link.id,
 			issue: link.entity,
 			issue_id: link.entityId,
-			created_by_detail: {
-				id: actor?.id,
-				first_name: actor?.user?.firstName,
-				last_name: actor?.user?.lastName,
-				avatar: actor?.user?.imageUrl,
-				is_bot: false,
-				display_name: actor?.fullName
-			},
+			created_by_detail: actorDetailsTransformer(actor),
 			created_at: link.createdAt,
 			updated_at: link.updatedAt,
 			deleted_at: link.deletedAt,

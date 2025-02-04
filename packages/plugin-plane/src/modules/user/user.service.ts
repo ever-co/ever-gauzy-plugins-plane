@@ -107,7 +107,13 @@ export class UserService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
-
+	/**
+	 * Updates the user's profile information on the server.
+	 *
+	 * @async
+	 * @param {IUserProfile} input - The updated user profile information.
+	 * @returns A promise that resolves to the updated user profile information.
+	 */
 	async updateUserInfo(input: IUserProfile) {
 		try {
 			await this.apiFetch({
@@ -123,6 +129,12 @@ export class UserService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Fetches the current user's settings from the server.
+	 *
+	 * @async
+	 * @returns A promise that resolves to the user's settings.
+	 */
 	async getMySettings() {
 		try {
 			const query = qs.stringify(getUserMeQueryParams);

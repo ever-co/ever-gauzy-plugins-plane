@@ -29,7 +29,9 @@ import {
 	EmployeeSettingTypeEnum,
 	IGlobalEntitiesResponse,
 	IGlabalEntitiesFindInput,
-	IEntitySearchFindInput
+	IEntitySearchFindInput,
+	INotification,
+	IUnreadNotificationResponse
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -61,7 +63,9 @@ import {
 	widgetTargetDateTransformer,
 	widgetTransformer,
 	currentTenantId,
-	memberPropertiesSerializer
+	memberPropertiesSerializer,
+	notificationTranformer,
+	unreadNotificationData
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -79,6 +83,7 @@ import { ProjectModuleService } from '../project-module/project-module.service';
 import { IssueViewService } from '../views/view.service';
 import { DashboardService } from '../dashboard/dashboard.service';
 import { WidgetService } from '../dashboard/widget.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -96,6 +101,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _employeePropertiesService: EmployeePropertiesService,
 		private readonly _dashboardService: DashboardService,
 		private readonly _widgetService: WidgetService,
+		private readonly _notificationService: NotificationService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -1279,6 +1285,71 @@ export class WorkspaceService extends ApiFetchService {
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| NOTIFICATIONS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+	async findUserNotification(): Promise<INotification[]> {
+		try {
+			const receiverId = currentUserId();
+			const employeeId = currentEmployeeId();
+
+			const userNotifications = await this._notificationService.findAll({
+				receiverId,
+				entity: BaseEntityEnum.Task
+			});
+
+			const notifications = await Promise.all(
+				(userNotifications ?? []).map(async (notification) => {
+					const task = await this._issueService.getExternalIssue(
+						notification.entityId,
+						['project.members.employee.user']
+					);
+
+					const actor = task.project.members
+						.map((member) => member.employee)
+						.find(
+							(employee) =>
+								employee.userId === notification.sentById
+						);
+
+					const tranformedNotification = notificationTranformer(
+						notification,
+						issueTransformer(task),
+						actor,
+						employeeId
+					);
+
+					return Array.isArray(tranformedNotification)
+						? tranformedNotification
+						: [tranformedNotification];
+				})
+			);
+
+			return notifications.flat();
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async findUnreadNotifications(): Promise<IUnreadNotificationResponse> {
+		try {
+			const receiverId = currentUserId();
+			const userNotifications = await this._notificationService.findAll({
+				receiverId,
+				entity: BaseEntityEnum.Task,
+				isRead: false
+			});
+
+			return unreadNotificationData(userNotifications);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 }

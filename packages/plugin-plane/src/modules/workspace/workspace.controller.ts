@@ -337,6 +337,25 @@ export class WorkspaceController {
 
 	/*
 	|--------------------------------------------------------------------------
+	| NOTIFICATIONS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get my notifications' })
+	@Get('users/notifications')
+	async findMyNotifications(options: any) {
+		return this._workspaceService.findUserNotification();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get my unread notifications' })
+	@Get('users/notifications/unread')
+	async findMyUnreadNotifications(options: any) {
+		return this._workspaceService.findUnreadNotifications();
+	}
+
+	/*
+	|--------------------------------------------------------------------------
 	| DASHBOARD ROUTES
 	|--------------------------------------------------------------------------
 	*/

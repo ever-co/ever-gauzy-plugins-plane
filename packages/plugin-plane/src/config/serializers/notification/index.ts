@@ -1,1 +1,1 @@
-export * from './nootification.serializer';
+export * from './notification.serializer';

@@ -2,14 +2,15 @@ import {
 	BaseEntityEnum,
 	ID,
 	IEmployee,
-	IIssue,
 	INotification,
+	ITask,
 	IUnreadNotificationResponse,
 	IUserNotification,
 	UserNotificationTypeEnum
 } from '@plane-plugin/models';
 import { actorDetailsTransformer } from '../user';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { issueTransformer } from '../tasks';
 
 /**
  * Transforms a user notification into a notification object.
@@ -22,7 +23,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  */
 export function notificationTranformer(
 	userNotifications: IUserNotification[] | IUserNotification,
-	issue: IIssue,
+	issue: ITask,
 	actor: IEmployee,
 	employeeId?: ID
 ): INotification | INotification[] {
@@ -33,6 +34,17 @@ export function notificationTranformer(
 			userNotification.type === UserNotificationTypeEnum.ASSIGNMENT
 				? 'added assignee '
 				: '';
+
+		const isComment =
+			userNotification.type === UserNotificationTypeEnum.MENTION ||
+			userNotification.type === UserNotificationTypeEnum.COMMENT;
+
+		const isAssignement =
+			userNotification.type === UserNotificationTypeEnum.ASSIGNMENT;
+
+		const currentEmployee = issue.members.find(
+			(member) => member.id === employeeId
+		);
 
 		return {
 			id: userNotification.id,
@@ -45,14 +57,28 @@ export function notificationTranformer(
 			updated_at: userNotification.updatedAt,
 			deleted_at: userNotification.deletedAt,
 			data: {
-				issue,
-				issue_activity: null // TODO : improve this
+				issue: issueTransformer(issue),
+				issue_activity: {
+					verb: isComment ? 'created' : 'updated',
+					actor: 'None',
+					field: isComment
+						? 'comment'
+						: isAssignement
+							? 'assignees'
+							: 'None',
+					new_value: isAssignement
+						? `${currentEmployee.fullName}`
+						: 'In Progress',
+					old_value: 'None',
+					new_identifier: '72ba61b5-a1aa-4c19-9b61-b13278c637e3',
+					old_identifier: '0bfe1e3d-69c3-433f-9cbf-60c84c135e84'
+				}
 			},
 			entity_identifier: userNotification.entityId,
 			entity_name:
 				userNotification.entity === BaseEntityEnum.Task ? 'issue' : '',
 			title: notificationTitle,
-			message: userNotification.message,
+			message: `${actor.fullName} ${userNotification.title}`,
 			message_stripped: userNotification.message,
 			message_html: userNotification.message,
 			sender: '',
@@ -61,7 +87,7 @@ export function notificationTranformer(
 			archived_at: userNotification.archivedAt,
 			created_by: userNotification.sentById,
 			workspace: userNotification.organizationId,
-			project: issue.project_id,
+			project: issue.projectId,
 			triggered_by: actor.id,
 			receiver: employeeId
 		};

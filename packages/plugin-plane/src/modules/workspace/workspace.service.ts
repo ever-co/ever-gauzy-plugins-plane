@@ -30,8 +30,8 @@ import {
 	IGlobalEntitiesResponse,
 	IGlabalEntitiesFindInput,
 	IEntitySearchFindInput,
-	INotification,
-	IUnreadNotificationResponse
+	IUnreadNotificationResponse,
+	INotificationResponse
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -1293,7 +1293,7 @@ export class WorkspaceService extends ApiFetchService {
 	| NOTIFICATIONS ROUTES
 	|--------------------------------------------------------------------------
 	*/
-	async findUserNotification(): Promise<INotification[]> {
+	async findUserNotification(): Promise<INotificationResponse> {
 		try {
 			const receiverId = currentUserId();
 			const employeeId = currentEmployeeId();
@@ -1307,7 +1307,7 @@ export class WorkspaceService extends ApiFetchService {
 				(userNotifications ?? []).map(async (notification) => {
 					const task = await this._issueService.getExternalIssue(
 						notification.entityId,
-						['project.members.employee.user']
+						['members', 'project.members.employee.user']
 					);
 
 					const actor = task.project.members
@@ -1319,7 +1319,7 @@ export class WorkspaceService extends ApiFetchService {
 
 					const tranformedNotification = notificationTranformer(
 						notification,
-						issueTransformer(task),
+						task,
 						actor,
 						employeeId
 					);
@@ -1330,7 +1330,22 @@ export class WorkspaceService extends ApiFetchService {
 				})
 			);
 
-			return notifications.flat();
+			const results = notifications.flat();
+
+			return {
+				grouped_by: null,
+				sub_grouped_by: null,
+				total_count: results.length,
+				next_cursor: '300:1:0',
+				prev_cursor: '300:-1:1',
+				next_page_results: false,
+				prev_page_results: false,
+				count: results.length,
+				total_pages: 1,
+				total_results: results.length,
+				extra_stats: null,
+				results
+			};
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error);

@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	Headers,
 	HttpCode,
@@ -359,6 +360,13 @@ export class WorkspaceController {
 	@Post('users/notifications/:notificationId/read')
 	async readNotification(@Param('notificationId') id: ID) {
 		return this._workspaceService.readNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Unread notification' })
+	@Delete('users/notifications/:notificationId/read')
+	async unreadNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.unreadNotification(id);
 	}
 
 	/*

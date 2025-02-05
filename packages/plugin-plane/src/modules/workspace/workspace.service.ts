@@ -1389,17 +1389,43 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
 	 */
 	async readNotification(id: ID): Promise<INotification> {
+		return this._toggleNotificationReadStatus(id, true);
+	}
+
+	/**
+	 * Marks a notification as unread and returns the updated notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to mark as read.
+	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
+	 */
+	async unreadNotification(id: ID): Promise<INotification> {
+		return this._toggleNotificationReadStatus(id, false);
+	}
+
+	/**
+	 * Toggles the read status of a notification.
+	 *
+	 * @private
+	 * @async
+	 * @param {ID} id - The ID of the notification to toggle.
+	 * @param {boolean} isRead - Whether the notification should be marked as read.
+	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
+	 */
+	private async _toggleNotificationReadStatus(
+		id: ID,
+		isRead: boolean
+	): Promise<INotification> {
 		try {
 			const employeeId = currentEmployeeId();
 
 			await this._notificationService.update(id, {
-				isRead: true,
-				readAt: new Date()
+				isRead,
+				readAt: isRead ? new Date() : null
 			});
 
 			const updatedNotification =
 				await this._notificationService.findOne(id);
-
 			const task = await this._issueService.getExternalIssue(
 				updatedNotification.entityId,
 				['members', 'project.members.employee.user']
@@ -1412,18 +1438,18 @@ export class WorkspaceService extends ApiFetchService {
 						employee.userId === updatedNotification.sentById
 				);
 
-			const tranformedNotification = notificationTranformer(
+			const transformedNotification = notificationTranformer(
 				updatedNotification,
 				task,
 				actor,
 				employeeId
 			);
 
-			return Array.isArray(tranformedNotification)
-				? tranformedNotification[0]
-				: tranformedNotification;
+			return Array.isArray(transformedNotification)
+				? transformedNotification[0]
+				: transformedNotification;
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 			throw new BadRequestException(error);
 		}
 	}

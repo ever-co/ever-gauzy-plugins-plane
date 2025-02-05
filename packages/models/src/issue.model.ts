@@ -12,6 +12,8 @@ export interface IIssue {
 	description?: any;
 	state?: string;
 	state_id?: ID;
+	state_name?: string;
+	state_group?: string;
 	sort_order?: number;
 	completed_at?: Date;
 	estimate_point?: ID;
@@ -21,6 +23,7 @@ export interface IIssue {
 	sequence_id?: number;
 	project_id?: ID;
 	project__identifier?: string;
+	identifier?: string;
 	parent_id?: ID;
 	parent?: {
 		id?: ID;

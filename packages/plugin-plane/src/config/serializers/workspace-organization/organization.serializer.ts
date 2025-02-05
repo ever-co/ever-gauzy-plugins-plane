@@ -1,5 +1,6 @@
 import { employeeSettingSerializer } from '../employee-properties';
 import { getTaskCounts } from '../modules';
+import { actorDetailsTransformer } from '../user';
 import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
 	IRole,
@@ -69,17 +70,7 @@ export function organizationMembersTransformer(
 
 		return {
 			id: member.userId,
-			member: {
-				id: member.id,
-				first_name: member.user.firstName,
-				last_name: member.user.lastName,
-				avatar: member.user.imageUrl,
-				is_bot: false,
-				email: member.user.email,
-				display_name:
-					member.fullName ||
-					`${member.user.firstName} ${member.user.lastName}`
-			},
+			member: actorDetailsTransformer(member),
 			workspace: {
 				id: organization.id,
 				name: organization.name,

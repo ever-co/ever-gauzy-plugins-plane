@@ -12,6 +12,7 @@ import {
 	ReactionEntityEnum
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { actorDetailsTransformer } from '../user';
 
 export function reactionTransformer(
 	reactions: IReaction[] | IReaction,
@@ -25,14 +26,7 @@ export function reactionTransformer(
 		return {
 			id: reaction.id,
 			reaction: reaction.emoji,
-			actor_detail: {
-				id: actor.id,
-				first_name: actor.user.firstName,
-				last_name: actor.user.lastName,
-				avatar: actor.user.imageUrl,
-				is_bot: false,
-				display_name: actor.fullName
-			},
+			actor_detail: actorDetailsTransformer(actor),
 			created_at: reaction.createdAt,
 			updated_at: reaction.updatedAt,
 			deleted_at: reaction.deletedAt,

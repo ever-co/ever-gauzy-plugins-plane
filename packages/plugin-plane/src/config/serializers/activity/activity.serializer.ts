@@ -22,6 +22,7 @@ import { assigneesActivityTransformer } from './assignees-activities.serializer'
 import { labelsActivityTransformer } from './labels-activities.serializer';
 import { modulesActivityTransformer } from './modules-activities.serializer';
 import { getIssueRelationType } from '../tasks';
+import { actorDetailsTransformer } from '../user';
 
 /**
  * Generates detailed information for a given activity log.
@@ -42,14 +43,7 @@ function activityLogDetails(
 ) {
 	return {
 		issue_detail: issue,
-		actor_detail: {
-			id: actor?.id,
-			first_name: actor?.user?.firstName,
-			last_name: actor?.user?.lastName,
-			avatar: actor?.user?.imageUrl,
-			is_bot: false, // Indicates if the actor is a bot
-			display_name: actor?.fullName
-		},
+		actor_detail: actorDetailsTransformer(actor),
 		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
 		workspace_detail: workspaceDetail,
 		created_at: activityLog.createdAt,

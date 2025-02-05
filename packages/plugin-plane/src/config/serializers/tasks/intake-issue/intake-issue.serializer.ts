@@ -7,6 +7,7 @@ import {
 	IScreeningTask,
 	IScreeningTaskCreateInput,
 	IScreeningTaskUpdateInput,
+	ITask,
 	ScreeningTaskStatusEnum,
 	TaskRelatedIssuesRelationEnum,
 	TaskStatusEnum
@@ -132,29 +133,38 @@ export function updateIntakeIssueInputTransformer(
  * Transforms screening tasks into intake issues.
  *
  * @param {IScreeningTask | IScreeningTask[]} screeningTasks - A single screening task or an array of screening tasks to transform.
+ * @param {ITask} task - An optional task to link duplicates to.
  * @returns {IIntakeIssue | IIntakeIssue[]} The transformed intake issue(s).
  */
 export function intakeIssueTranformer(
-	screeningTasks: IScreeningTask | IScreeningTask[]
+	screeningTasks: IScreeningTask | IScreeningTask[],
+	task?: ITask
 ): IIntakeIssue | IIntakeIssue[] {
 	const tranformIntakeIssue = (
 		screeningTask: IScreeningTask
 	): IIntakeIssue => {
-		const duplicatedTask = (screeningTask.task?.linkedIssues ?? []).find(
-			(linkedIssue) =>
-				linkedIssue.action === TaskRelatedIssuesRelationEnum.DUPLICATES
-		);
+		const duplicatedTask =
+			(screeningTask?.task?.linkedIssues ?? []).find(
+				(linkedIssue) =>
+					linkedIssue.action ===
+					TaskRelatedIssuesRelationEnum.DUPLICATES
+			) ??
+			task.linkedIssues.find(
+				(linkedIssue) =>
+					linkedIssue.action ===
+					TaskRelatedIssuesRelationEnum.DUPLICATES
+			);
 		return {
-			id: screeningTask.id,
-			status: screeningStatusToIntakeStatusMap(screeningTask.status),
+			id: screeningTask?.id,
+			status: screeningStatusToIntakeStatusMap(screeningTask?.status),
 			duplicate_to: duplicatedTask?.taskFrom.id ?? null,
 			duplicate_issue_detail: duplicatedTask?.taskFrom
 				? issueTransformer(duplicatedTask?.taskFrom)
 				: null,
-			snoozed_till: screeningTask.onHoldUntil ?? null,
+			snoozed_till: screeningTask?.onHoldUntil ?? null,
 			source: 'IN_APP',
-			issue: issueTransformer(screeningTask.task),
-			created_by: screeningTask.creatorId // Adjust this to return employee ID
+			issue: issueTransformer(screeningTask?.task ?? task),
+			created_by: screeningTask?.creatorId // Adjust this to return employee ID
 		};
 	};
 

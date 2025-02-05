@@ -18,6 +18,7 @@ export * from './issue-label.model';
 export * from './issue-link.model';
 export * from './issue-relation.model';
 export * from './module.model';
+export * from './notification.model';
 export * from './project.model';
 export * from './reaction.model';
 export * from './subscriber.model';

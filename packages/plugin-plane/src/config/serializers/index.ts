@@ -7,6 +7,7 @@ export * from './employee-properties';
 export * from './issue-link';
 export * from './mention';
 export * from './modules';
+export * from './notification';
 export * from './projects';
 export * from './query-params.serializers';
 export * from './reactions';

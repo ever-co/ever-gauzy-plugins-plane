@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	Headers,
 	HttpCode,
@@ -23,6 +24,7 @@ import {
 	IIssueFindInput,
 	IIssueLabel,
 	IModule,
+	INotification,
 	IUserStatsResponse
 } from '@plane-plugin/models';
 import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
@@ -333,6 +335,70 @@ export class WorkspaceController {
 		@Headers('referer') referer: string
 	) {
 		return await this._workspaceService.findViewIssues(options, referer);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| NOTIFICATIONS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get my notifications' })
+	@Get('users/notifications')
+	async findMyNotifications() {
+		return this._workspaceService.findUserNotification();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get my unread notifications' })
+	@Get('users/notifications/unread')
+	async findMyUnreadNotifications() {
+		return this._workspaceService.findUnreadNotifications();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Read notification' })
+	@Post('users/notifications/mark-all-read')
+	async markAllAsRead() {
+		return this._workspaceService.markAllAsRead();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Read notification' })
+	@Post('users/notifications/:notificationId/read')
+	async readNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.readNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Unread notification' })
+	@Delete('users/notifications/:notificationId/read')
+	async unreadNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.unreadNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Archive notification' })
+	@Post('users/notifications/:notificationId/archive')
+	async archiveNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.archiveNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Un Archive notification' })
+	@Delete('users/notifications/:notificationId/archive')
+	async unArchiveNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.unArchiveNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Hold notification' })
+	@Patch('users/notifications/:notificationId')
+	async holdNotification(
+		@Param('notificationId') id: ID,
+		@Body() data: INotification
+	) {
+		return this._workspaceService.holdNotification(id, data);
 	}
 
 	/*

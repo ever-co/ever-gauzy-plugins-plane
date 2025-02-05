@@ -29,7 +29,10 @@ import {
 	EmployeeSettingTypeEnum,
 	IGlobalEntitiesResponse,
 	IGlabalEntitiesFindInput,
-	IEntitySearchFindInput
+	IEntitySearchFindInput,
+	IUnreadNotificationResponse,
+	INotificationResponse,
+	INotification
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -61,7 +64,9 @@ import {
 	widgetTargetDateTransformer,
 	widgetTransformer,
 	currentTenantId,
-	memberPropertiesSerializer
+	memberPropertiesSerializer,
+	notificationTranformer,
+	unreadNotificationData
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -79,6 +84,7 @@ import { ProjectModuleService } from '../project-module/project-module.service';
 import { IssueViewService } from '../views/view.service';
 import { DashboardService } from '../dashboard/dashboard.service';
 import { WidgetService } from '../dashboard/widget.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class WorkspaceService extends ApiFetchService {
@@ -96,6 +102,7 @@ export class WorkspaceService extends ApiFetchService {
 		private readonly _employeePropertiesService: EmployeePropertiesService,
 		private readonly _dashboardService: DashboardService,
 		private readonly _widgetService: WidgetService,
+		private readonly _notificationService: NotificationService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -1279,6 +1286,221 @@ export class WorkspaceService extends ApiFetchService {
 		} catch (error: any) {
 			console.log(error.response);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| NOTIFICATIONS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+	/**
+	 * Fetches the notifications for the current user.
+	 *
+	 * @async
+	 * @returns {Promise<INotificationResponse>} A promise that resolves to the notification response.
+	 */
+	async findUserNotification(): Promise<INotificationResponse> {
+		try {
+			const receiverId = currentUserId();
+			const employeeId = currentEmployeeId();
+
+			const userNotifications = await this._notificationService.findAll({
+				receiverId,
+				entity: BaseEntityEnum.Task
+			});
+
+			const notifications = await Promise.all(
+				(userNotifications ?? []).map(async (notification) => {
+					const task = await this._issueService.getExternalIssue(
+						notification.entityId,
+						['members', 'project.members.employee.user']
+					);
+
+					const actor = task.project.members
+						.map((member) => member.employee)
+						.find(
+							(employee) =>
+								employee.userId === notification.sentById
+						);
+
+					const tranformedNotification = notificationTranformer(
+						notification,
+						task,
+						actor,
+						employeeId
+					);
+
+					return Array.isArray(tranformedNotification)
+						? tranformedNotification
+						: [tranformedNotification];
+				})
+			);
+
+			const results = notifications.flat();
+
+			return {
+				grouped_by: null,
+				sub_grouped_by: null,
+				total_count: results.length,
+				next_cursor: '300:1:0',
+				prev_cursor: '300:-1:1',
+				next_page_results: false,
+				prev_page_results: false,
+				count: results.length,
+				total_pages: 1,
+				total_results: results.length,
+				extra_stats: null,
+				results
+			};
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetches the unread notifications for the current user.
+	 *
+	 * @async
+	 * @returns {Promise<IUnreadNotificationResponse>} A promise that resolves to the unread notification data.
+	 */
+	async findUnreadNotifications(): Promise<IUnreadNotificationResponse> {
+		try {
+			const receiverId = currentUserId();
+			const userNotifications = await this._notificationService.findAll({
+				receiverId,
+				entity: BaseEntityEnum.Task,
+				isRead: false
+			});
+
+			return unreadNotificationData(userNotifications);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Updates a notification to be on hold until a specified date.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to update.
+	 * @param {INotification} input - The input object containing the snoozed_till date.
+	 * @returns {Promise<any>} A promise that resolves to the result of the update operation.
+	 */
+	async holdNotification(id: ID, input: INotification): Promise<any> {
+		return await this._notificationService.update(id, {
+			onHoldUntil: input.snoozed_till ?? null
+		});
+	}
+
+	/**
+	 * Marks all notifications as read.
+	 *
+	 * @async
+	 * @returns {Promise<any>} A promise that resolves to the response data.
+	 */
+	async markAllAsRead(): Promise<any> {
+		return await this._notificationService.markAllAsRead();
+	}
+
+	/**
+	 * Archives a notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to archive.
+	 * @returns {Promise<any>} A promise that resolves to the result of the archive operation.
+	 */
+	async archiveNotification(id: ID): Promise<any> {
+		return this._toggleNotificationStatus(id, 'isArchived', true);
+	}
+
+	/**
+	 * Unarchives a notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to unarchive.
+	 * @returns {Promise<any>} A promise that resolves to the result of the unarchive operation.
+	 */
+	async unArchiveNotification(id: ID): Promise<any> {
+		return this._toggleNotificationStatus(id, 'isArchived', false);
+	}
+
+	/**
+	 * Marks a notification as read and returns the updated notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to mark as read.
+	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
+	 */
+	async readNotification(id: ID): Promise<INotification> {
+		return this._toggleNotificationStatus(id, 'isRead', true);
+	}
+
+	/**
+	 * Marks a notification as unread and returns the updated notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to mark as read.
+	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
+	 */
+	async unreadNotification(id: ID): Promise<INotification> {
+		return this._toggleNotificationStatus(id, 'isRead', false);
+	}
+
+	/**
+	 * Toggles the status of a notification.
+	 *
+	 * @private
+	 * @async
+	 * @param {ID} id - The ID of the notification to toggle.
+	 * @param {'isRead' | 'isArchived'} statusKey - The key of the status to toggle.
+	 * @param {boolean} statusValue - The value of the status to toggle.
+	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
+	 */
+	private async _toggleNotificationStatus(
+		id: ID,
+		statusKey: 'isRead' | 'isArchived',
+		statusValue: boolean
+	): Promise<INotification> {
+		try {
+			const employeeId = currentEmployeeId();
+			const timestampKey =
+				statusKey === 'isRead' ? 'readAt' : 'archivedAt';
+
+			await this._notificationService.update(id, {
+				[statusKey]: statusValue,
+				[timestampKey]: statusValue ? new Date() : null
+			});
+
+			const updatedNotification =
+				await this._notificationService.findOne(id);
+			const task = await this._issueService.getExternalIssue(
+				updatedNotification.entityId,
+				['members', 'project.members.employee.user']
+			);
+
+			const actor = task.project.members
+				.map((member) => member.employee)
+				.find(
+					(employee) =>
+						employee.userId === updatedNotification.sentById
+				);
+
+			const transformedNotification = notificationTranformer(
+				updatedNotification,
+				task,
+				actor,
+				employeeId
+			);
+
+			return Array.isArray(transformedNotification)
+				? transformedNotification[0]
+				: transformedNotification;
+		} catch (error) {
+			console.error(error);
+			throw new BadRequestException(error);
 		}
 	}
 }

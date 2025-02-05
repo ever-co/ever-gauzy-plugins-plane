@@ -194,13 +194,15 @@ export class IntakeIssuesService extends ApiFetchService {
 		try {
 			const query = qs.stringify(getIntakeIssueQuery(taskId));
 
+			const task = await this._issuesService.getExternalIssue(taskId);
+
 			const screeningTask: IPagination<IScreeningTask> = (
 				await this.apiFetch({ method: 'GET', path: this.path, query })
 			).data;
 
 			const intakeIssue = screeningTask.items[0];
 
-			return intakeIssueTranformer(intakeIssue);
+			return intakeIssueTranformer(intakeIssue, task);
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

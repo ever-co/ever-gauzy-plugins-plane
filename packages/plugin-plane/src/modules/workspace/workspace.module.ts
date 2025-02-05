@@ -12,6 +12,7 @@ import { CyclesModule } from '../cycles/cycles.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
 import { IssueViewModule } from '../views/view.module';
 import { DashboardModule } from '../dashboard/dashboard.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
 	imports: [
@@ -25,7 +26,8 @@ import { DashboardModule } from '../dashboard/dashboard.module';
 		SubscriptionModule,
 		DraftIssuesModule,
 		EmployeePropertiesModule,
-		DashboardModule
+		DashboardModule,
+		NotificationModule
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

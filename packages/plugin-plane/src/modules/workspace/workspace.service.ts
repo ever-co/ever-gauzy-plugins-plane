@@ -1390,9 +1390,17 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<any>} A promise that resolves to the result of the update operation.
 	 */
 	async holdNotification(id: ID, input: INotification): Promise<any> {
-		return this._notificationService.update(id, {
+		return await this._notificationService.update(id, {
 			onHoldUntil: input.snoozed_till ?? null
 		});
+	}
+
+	async archiveNotification(id: ID): Promise<any> {
+		return this._toggleNotificationArchiveStatus(id, true);
+	}
+
+	async unArchiveNotification(id: ID): Promise<any> {
+		return this._toggleNotificationArchiveStatus(id, false);
 	}
 
 	/**
@@ -1436,6 +1444,48 @@ export class WorkspaceService extends ApiFetchService {
 			await this._notificationService.update(id, {
 				isRead,
 				readAt: isRead ? new Date() : null
+			});
+
+			const updatedNotification =
+				await this._notificationService.findOne(id);
+			const task = await this._issueService.getExternalIssue(
+				updatedNotification.entityId,
+				['members', 'project.members.employee.user']
+			);
+
+			const actor = task.project.members
+				.map((member) => member.employee)
+				.find(
+					(employee) =>
+						employee.userId === updatedNotification.sentById
+				);
+
+			const transformedNotification = notificationTranformer(
+				updatedNotification,
+				task,
+				actor,
+				employeeId
+			);
+
+			return Array.isArray(transformedNotification)
+				? transformedNotification[0]
+				: transformedNotification;
+		} catch (error) {
+			console.error(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	private async _toggleNotificationArchiveStatus(
+		id: ID,
+		isArchived: boolean
+	): Promise<INotification> {
+		try {
+			const employeeId = currentEmployeeId();
+
+			await this._notificationService.update(id, {
+				isArchived,
+				archivedAt: isArchived ? new Date() : null
 			});
 
 			const updatedNotification =

@@ -371,6 +371,20 @@ export class WorkspaceController {
 	}
 
 	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Archive notification' })
+	@Post('users/notifications/:notificationId/archive')
+	async archiveNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.archiveNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Un Archive notification' })
+	@Delete('users/notifications/:notificationId/archive')
+	async unArchiveNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.unArchiveNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Hold notification' })
 	@Patch('users/notifications/:notificationId')
 	async holdNotification(

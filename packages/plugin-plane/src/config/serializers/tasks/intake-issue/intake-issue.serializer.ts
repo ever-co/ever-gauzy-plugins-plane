@@ -140,21 +140,21 @@ export function intakeIssueTranformer(
 	const tranformIntakeIssue = (
 		screeningTask: IScreeningTask
 	): IIntakeIssue => {
-		const duplicatedTask = (screeningTask.task?.linkedIssues ?? []).find(
+		const duplicatedTask = (screeningTask?.task?.linkedIssues ?? []).find(
 			(linkedIssue) =>
 				linkedIssue.action === TaskRelatedIssuesRelationEnum.DUPLICATES
 		);
 		return {
-			id: screeningTask.id,
-			status: screeningStatusToIntakeStatusMap(screeningTask.status),
+			id: screeningTask?.id,
+			status: screeningStatusToIntakeStatusMap(screeningTask?.status),
 			duplicate_to: duplicatedTask?.taskFrom.id ?? null,
 			duplicate_issue_detail: duplicatedTask?.taskFrom
 				? issueTransformer(duplicatedTask?.taskFrom)
 				: null,
-			snoozed_till: screeningTask.onHoldUntil ?? null,
+			snoozed_till: screeningTask?.onHoldUntil ?? null,
 			source: 'IN_APP',
-			issue: issueTransformer(screeningTask.task),
-			created_by: screeningTask.creatorId // Adjust this to return employee ID
+			issue: issueTransformer(screeningTask?.task),
+			created_by: screeningTask?.creatorId // Adjust this to return employee ID
 		};
 	};
 

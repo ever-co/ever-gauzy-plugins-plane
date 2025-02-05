@@ -31,7 +31,8 @@ import {
 	IGlabalEntitiesFindInput,
 	IEntitySearchFindInput,
 	IUnreadNotificationResponse,
-	INotificationResponse
+	INotificationResponse,
+	INotification
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -1362,6 +1363,46 @@ export class WorkspaceService extends ApiFetchService {
 			});
 
 			return unreadNotificationData(userNotifications);
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	async readNotification(id: ID): Promise<INotification> {
+		try {
+			const employeeId = currentEmployeeId();
+
+			await this._notificationService.update(id, {
+				isRead: true,
+				readAt: new Date()
+			});
+
+			const updatedNotification =
+				await this._notificationService.findOne(id);
+
+			const task = await this._issueService.getExternalIssue(
+				updatedNotification.entityId,
+				['members', 'project.members.employee.user']
+			);
+
+			const actor = task.project.members
+				.map((member) => member.employee)
+				.find(
+					(employee) =>
+						employee.userId === updatedNotification.sentById
+				);
+
+			const tranformedNotification = notificationTranformer(
+				updatedNotification,
+				task,
+				actor,
+				employeeId
+			);
+
+			return Array.isArray(tranformedNotification)
+				? tranformedNotification[0]
+				: tranformedNotification;
 		} catch (error) {
 			console.log(error);
 			throw new BadRequestException(error);

@@ -343,15 +343,22 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get my notifications' })
 	@Get('users/notifications')
-	async findMyNotifications(options: any) {
+	async findMyNotifications() {
 		return this._workspaceService.findUserNotification();
 	}
 
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get my unread notifications' })
 	@Get('users/notifications/unread')
-	async findMyUnreadNotifications(options: any) {
+	async findMyUnreadNotifications() {
 		return this._workspaceService.findUnreadNotifications();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Read notification' })
+	@Post('users/notifications/:notificationId/read')
+	async readNotification(@Param('notificationId') id: ID) {
+		return this._workspaceService.readNotification(id);
 	}
 
 	/*

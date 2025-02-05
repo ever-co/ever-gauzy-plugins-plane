@@ -41,4 +41,4 @@ export enum NotificationActionTypeEnum {
 export interface IUserNotificationCreateInput extends Omit<IUserNotification, 'isRead' | 'readAt'> {}
 
 export interface INotificationUpdateInput
-	extends Omit<IUserNotification, 'receiverId' | 'receiver' | 'sentById' | 'sentBy'> {}
+	extends Partial<Omit<IUserNotification, 'receiverId' | 'receiver' | 'sentById' | 'sentBy'>> {}

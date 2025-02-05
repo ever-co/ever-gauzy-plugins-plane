@@ -1294,6 +1294,12 @@ export class WorkspaceService extends ApiFetchService {
 	| NOTIFICATIONS ROUTES
 	|--------------------------------------------------------------------------
 	*/
+	/**
+	 * Fetches the notifications for the current user.
+	 *
+	 * @async
+	 * @returns {Promise<INotificationResponse>} A promise that resolves to the notification response.
+	 */
 	async findUserNotification(): Promise<INotificationResponse> {
 		try {
 			const receiverId = currentUserId();
@@ -1353,6 +1359,12 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Fetches the unread notifications for the current user.
+	 *
+	 * @async
+	 * @returns {Promise<IUnreadNotificationResponse>} A promise that resolves to the unread notification data.
+	 */
 	async findUnreadNotifications(): Promise<IUnreadNotificationResponse> {
 		try {
 			const receiverId = currentUserId();
@@ -1369,6 +1381,13 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Marks a notification as read and returns the updated notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to mark as read.
+	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
+	 */
 	async readNotification(id: ID): Promise<INotification> {
 		try {
 			const employeeId = currentEmployeeId();

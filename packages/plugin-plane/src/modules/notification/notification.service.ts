@@ -89,4 +89,23 @@ export class NotificationService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
+
+	/**
+	 * Marks all notifications as read.
+	 *
+	 * @async
+	 * @returns {Promise<any>} A promise that resolves to the response data.
+	 */
+	async markAllAsRead(): Promise<any> {
+		try {
+			const response = await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/mark-all-read`
+			});
+			return response.data;
+		} catch (error: any) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
 }

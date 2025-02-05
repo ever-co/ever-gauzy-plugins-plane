@@ -358,6 +358,13 @@ export class WorkspaceController {
 
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Read notification' })
+	@Post('users/notifications/mark-all-read')
+	async markAllAsRead() {
+		return this._workspaceService.markAllAsRead();
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Read notification' })
 	@Post('users/notifications/:notificationId/read')
 	async readNotification(@Param('notificationId') id: ID) {
 		return this._workspaceService.readNotification(id);

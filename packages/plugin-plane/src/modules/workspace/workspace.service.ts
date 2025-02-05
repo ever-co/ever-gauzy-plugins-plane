@@ -1396,6 +1396,16 @@ export class WorkspaceService extends ApiFetchService {
 	}
 
 	/**
+	 * Marks all notifications as read.
+	 *
+	 * @async
+	 * @returns {Promise<any>} A promise that resolves to the response data.
+	 */
+	async markAllAsRead(): Promise<any> {
+		return await this._notificationService.markAllAsRead();
+	}
+
+	/**
 	 * Archives a notification.
 	 *
 	 * @async

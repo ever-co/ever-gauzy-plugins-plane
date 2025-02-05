@@ -24,6 +24,7 @@ import {
 	IIssueFindInput,
 	IIssueLabel,
 	IModule,
+	INotification,
 	IUserStatsResponse
 } from '@plane-plugin/models';
 import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
@@ -367,6 +368,16 @@ export class WorkspaceController {
 	@Delete('users/notifications/:notificationId/read')
 	async unreadNotification(@Param('notificationId') id: ID) {
 		return this._workspaceService.unreadNotification(id);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Hold notification' })
+	@Patch('users/notifications/:notificationId')
+	async holdNotification(
+		@Param('notificationId') id: ID,
+		@Body() data: INotification
+	) {
+		return this._workspaceService.holdNotification(id, data);
 	}
 
 	/*

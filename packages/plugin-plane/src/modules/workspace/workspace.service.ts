@@ -1382,6 +1382,20 @@ export class WorkspaceService extends ApiFetchService {
 	}
 
 	/**
+	 * Updates a notification to be on hold until a specified date.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to update.
+	 * @param {INotification} input - The input object containing the snoozed_till date.
+	 * @returns {Promise<any>} A promise that resolves to the result of the update operation.
+	 */
+	async holdNotification(id: ID, input: INotification): Promise<any> {
+		return this._notificationService.update(id, {
+			onHoldUntil: input.snoozed_till ?? null
+		});
+	}
+
+	/**
 	 * Marks a notification as read and returns the updated notification.
 	 *
 	 * @async

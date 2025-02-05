@@ -1395,12 +1395,26 @@ export class WorkspaceService extends ApiFetchService {
 		});
 	}
 
+	/**
+	 * Archives a notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to archive.
+	 * @returns {Promise<any>} A promise that resolves to the result of the archive operation.
+	 */
 	async archiveNotification(id: ID): Promise<any> {
-		return this._toggleNotificationArchiveStatus(id, true);
+		return this._toggleNotificationStatus(id, 'isArchived', true);
 	}
 
+	/**
+	 * Unarchives a notification.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the notification to unarchive.
+	 * @returns {Promise<any>} A promise that resolves to the result of the unarchive operation.
+	 */
 	async unArchiveNotification(id: ID): Promise<any> {
-		return this._toggleNotificationArchiveStatus(id, false);
+		return this._toggleNotificationStatus(id, 'isArchived', false);
 	}
 
 	/**
@@ -1411,7 +1425,7 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
 	 */
 	async readNotification(id: ID): Promise<INotification> {
-		return this._toggleNotificationReadStatus(id, true);
+		return this._toggleNotificationStatus(id, 'isRead', true);
 	}
 
 	/**
@@ -1422,70 +1436,32 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
 	 */
 	async unreadNotification(id: ID): Promise<INotification> {
-		return this._toggleNotificationReadStatus(id, false);
+		return this._toggleNotificationStatus(id, 'isRead', false);
 	}
 
 	/**
-	 * Toggles the read status of a notification.
+	 * Toggles the status of a notification.
 	 *
 	 * @private
 	 * @async
 	 * @param {ID} id - The ID of the notification to toggle.
-	 * @param {boolean} isRead - Whether the notification should be marked as read.
+	 * @param {'isRead' | 'isArchived'} statusKey - The key of the status to toggle.
+	 * @param {boolean} statusValue - The value of the status to toggle.
 	 * @returns {Promise<INotification>} A promise that resolves to the updated notification.
 	 */
-	private async _toggleNotificationReadStatus(
+	private async _toggleNotificationStatus(
 		id: ID,
-		isRead: boolean
+		statusKey: 'isRead' | 'isArchived',
+		statusValue: boolean
 	): Promise<INotification> {
 		try {
 			const employeeId = currentEmployeeId();
+			const timestampKey =
+				statusKey === 'isRead' ? 'readAt' : 'archivedAt';
 
 			await this._notificationService.update(id, {
-				isRead,
-				readAt: isRead ? new Date() : null
-			});
-
-			const updatedNotification =
-				await this._notificationService.findOne(id);
-			const task = await this._issueService.getExternalIssue(
-				updatedNotification.entityId,
-				['members', 'project.members.employee.user']
-			);
-
-			const actor = task.project.members
-				.map((member) => member.employee)
-				.find(
-					(employee) =>
-						employee.userId === updatedNotification.sentById
-				);
-
-			const transformedNotification = notificationTranformer(
-				updatedNotification,
-				task,
-				actor,
-				employeeId
-			);
-
-			return Array.isArray(transformedNotification)
-				? transformedNotification[0]
-				: transformedNotification;
-		} catch (error) {
-			console.error(error);
-			throw new BadRequestException(error);
-		}
-	}
-
-	private async _toggleNotificationArchiveStatus(
-		id: ID,
-		isArchived: boolean
-	): Promise<INotification> {
-		try {
-			const employeeId = currentEmployeeId();
-
-			await this._notificationService.update(id, {
-				isArchived,
-				archivedAt: isArchived ? new Date() : null
+				[statusKey]: statusValue,
+				[timestampKey]: statusValue ? new Date() : null
 			});
 
 			const updatedNotification =

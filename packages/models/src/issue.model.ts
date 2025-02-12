@@ -39,7 +39,7 @@ export interface IIssue {
 	is_subscribed?: boolean;
 	archived_at?: Date;
 	state__group?: string;
-	type_id?: string;
+	type_id?: ID;
 	cycle_id?: ID;
 	cycle?: ICycle | IOrganizationSprint;
 	link_count?: number;

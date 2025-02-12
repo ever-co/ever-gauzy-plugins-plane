@@ -101,7 +101,7 @@ export function issueTransformer(
 		parent: {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
-			type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22',
+			type_id: issue?.parent?.taskTypeId,
 			sequence_id: issue?.parent?.number
 		},
 		created_at: issue?.createdAt,
@@ -112,7 +112,7 @@ export function issueTransformer(
 		is_subscribed,
 		archived_at: issue?.archivedAt,
 		state__group: stateGroup(issue?.taskStatus),
-		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22', // TODO : Add to APIs this type as entity
+		type_id: issue?.taskTypeId,
 		description_html: issue?.description ?? '<p></p>',
 		cycle_id: issue?.organizationSprintId,
 		link_count: links?.length || 0,
@@ -137,7 +137,6 @@ export function issueTransformer(
  * @returns An array of transformed issue objects, each containing a subset of the original issue's properties.
  *   The returned objects include properties like `id`, `name`, `start_date`, `target_date`, `sequence_id`, and `project` details.
  *   Some properties, such as `project__identifier` and `state__color`, are extracted from related objects.
- *   The `type_id` is set to a static value.
  */
 export function parentableIssuesTransformer(issues: ITask[]) {
 	return issues?.map((issue) => ({
@@ -155,7 +154,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		state__name: issue.taskStatus?.name,
 		state__group: stateGroup(issue.taskStatus),
 		state__color: issue.taskStatus?.color,
-		type_id: 'ba32a722-eefd-4a6a-b80f-85eb5d811c22'
+		type_id: issue.taskTypeId
 	}));
 }
 
@@ -1049,7 +1048,8 @@ export function updateIssueInputTransformer(
 		cycle_id: 'organizationSprintId',
 		parent_id: 'parentId',
 		state_id: 'taskStatusId',
-		module_ids: 'modules'
+		module_ids: 'modules',
+		type_id: 'taskTypeId'
 	};
 
 	// TODO : Include mention here

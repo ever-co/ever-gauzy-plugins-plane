@@ -22,7 +22,7 @@ export class ProjectController {
 	 * This function handlers should be updated after implementing authentication
 	 *--------------------------------------------------------------*/
 	/**
-	 * @description - Get all projects for a workspace
+	 * @description - Get all projects for a workspace - We will filter this with employee projects
 	 * @returns - A promise that resolves after getting all projects for a workspace
 	 * @memberof ProjectController
 	 */
@@ -30,7 +30,7 @@ export class ProjectController {
 	@ApiOperation({ summary: 'Get workspace projects' })
 	@Get()
 	async getProjects() {
-		return await this._projectService.getProjects([
+		return await this._projectService.getEmployeeProjects([
 			'members.employee.user.role',
 			'organizationSprints',
 			'modules'

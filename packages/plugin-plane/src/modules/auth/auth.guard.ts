@@ -42,6 +42,7 @@ export class AuthGuard implements CanActivate {
 
 		if (!token) {
 			response.redirect('http://localhost');
+			console.log('Access denied for unauthenticated user requests');
 			return false;
 		}
 

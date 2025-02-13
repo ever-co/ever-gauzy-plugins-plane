@@ -32,7 +32,8 @@ import {
 	IEntitySearchFindInput,
 	IUnreadNotificationResponse,
 	INotificationResponse,
-	INotification
+	INotification,
+	IEmployeeSetting
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -248,13 +249,23 @@ export class WorkspaceService extends ApiFetchService {
 		const tenantId = currentTenantId();
 
 		try {
-			const memberSetting =
+			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
 					employeeId,
 					entity: BaseEntityEnum.Tenant,
 					entityId: tenantId,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
 				});
+
+			if (!memberSetting) {
+				// Create default settings if none exist
+				memberSetting = await this.createDefaultSettings(
+					tenantId,
+					employeeId
+				);
+			}
+
+			console.log('=======>', { memberSetting });
 
 			return memberPropertiesSerializer(memberSetting, employeeId);
 		} catch (error) {
@@ -264,28 +275,11 @@ export class WorkspaceService extends ApiFetchService {
 			);
 
 			try {
-				const settingViewProps = {
-					...MEMBER_DEFAULT_VIEW_PROPS,
-					issue_props: {
-						created: true,
-						assigned: true,
-						all_issues: true,
-						subscribed: true
-					}
-				};
-
-				// Create default settings if none exist
-				const memberSetting =
-					await this._employeePropertiesService.create({
-						entity: BaseEntityEnum.Tenant,
-						entityId: tenantId,
-						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-						data: settingViewProps,
-						defaultData: settingViewProps,
-						employee: { id: employeeId },
-						employeeId
-					});
-
+				// Create default settings in case of error
+				const memberSetting = await this.createDefaultSettings(
+					tenantId,
+					employeeId
+				);
 				return memberPropertiesSerializer(memberSetting, employeeId);
 			} catch (creationError) {
 				console.error(
@@ -297,6 +291,39 @@ export class WorkspaceService extends ApiFetchService {
 				);
 			}
 		}
+	}
+
+	private async createDefaultSettings(
+		tenantId: ID,
+		employeeId: ID
+	): Promise<IEmployeeSetting> {
+		const settingViewProps = {
+			...MEMBER_DEFAULT_VIEW_PROPS,
+			issue_props: {
+				created: true,
+				assigned: true,
+				all_issues: true,
+				subscribed: true
+			}
+		};
+
+		await this._employeePropertiesService.create({
+			entity: BaseEntityEnum.Tenant,
+			entityId: tenantId,
+			settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+			data: settingViewProps,
+			defaultData: settingViewProps,
+			employee: { id: employeeId },
+			employeeId
+		});
+
+		// Retourner les paramètres après la création
+		return await this._employeePropertiesService.findOneByOptions({
+			employeeId,
+			entity: BaseEntityEnum.Tenant,
+			entityId: tenantId,
+			settingType: EmployeeSettingTypeEnum.TASK_VIEWS
+		});
 	}
 
 	/**

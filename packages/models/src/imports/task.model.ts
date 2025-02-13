@@ -2,7 +2,11 @@ import { IBasePerTenantAndOrganizationEntityModel, IBaseRelationsEntityModel, ID
 import { IEmployee, IEmployeeEntityInput } from './employee.model';
 import { IInvoiceItem } from './invoice-item.model';
 import { IRelationalOrganizationProject } from './organization-projects.model';
-import { IOrganizationSprint, IRelationalOrganizationSprint } from './organization-sprint.model';
+import {
+	IOrganizationSprint,
+	IRelationalOrganizationSprint,
+	IOrganizationSprintTaskHistory
+} from './organization-sprint.model';
 import { IOrganizationTeam, IRelationalOrganizationTeam } from './organization-team.model';
 import { ITag } from './tag.model';
 import { IUser } from './user.model';
@@ -10,10 +14,14 @@ import { ITaskStatus, TaskStatusEnum } from './task-status.model';
 import { ITaskPriority, TaskPriorityEnum } from './task-priority.model';
 import { ITaskSize, TaskSizeEnum } from './task-size.model';
 import { IOrganizationProjectModule } from './organization-project-module.model';
-import { ITaskLinkedIssue } from './task-linked-issue.model';
+import { IIssueType, TaskTypeEnum } from './issue-type.model';
 import { IMentionUserIds } from './mention.model';
+import { ITaskLinkedIssue } from './task-linked-issue.model';
 
-export interface ITask extends IBasePerTenantAndOrganizationEntityModel, IRelationalOrganizationProject {
+export interface ITask
+	extends IBasePerTenantAndOrganizationEntityModel,
+		IRelationalOrganizationProject,
+		IRelationalOrganizationSprint {
 	title?: string;
 	number?: number;
 	public?: boolean;
@@ -22,22 +30,25 @@ export interface ITask extends IBasePerTenantAndOrganizationEntityModel, IRelati
 	status?: TaskStatusEnum;
 	priority?: TaskPriorityEnum;
 	size?: TaskSizeEnum;
-	dueDate?: Date;
-	linkedIssues?: ITaskLinkedIssue[];
-	resolvedAt?: Date;
-	estimate?: number;
 	startDate?: Date;
+	resolvedAt?: Date;
+	dueDate?: Date;
+	estimate?: number;
+	linkedIssues?: ITaskLinkedIssue[];
 	tags?: ITag[];
 	members?: IEmployee[];
 	invoiceItems?: IInvoiceItem[];
-	modules?: IOrganizationProjectModule[];
 	teams?: IOrganizationTeam[];
-	organizationSprint?: IOrganizationSprint;
-	organizationSprintId?: ID;
+	modules?: IOrganizationProjectModule[];
+	taskSprints?: IOrganizationSprint[];
+	taskSprintHistories?: IOrganizationSprintTaskHistory[];
 	creator?: IUser;
 	creatorId?: ID;
 	isDraft?: boolean; // Define if task is still draft (E.g : Task description not completed yet)
 	isScreeningTask?: boolean; // Defines if the task still in discussion before to be accepted
+
+	version?: string;
+	issueType?: TaskTypeEnum;
 
 	parent?: ITask;
 	parentId?: ID; // Optional field for specifying the parent task ID
@@ -46,15 +57,18 @@ export interface ITask extends IBasePerTenantAndOrganizationEntityModel, IRelati
 	taskStatus?: ITaskStatus;
 	taskSize?: ITaskSize;
 	taskPriority?: ITaskPriority;
+	taskType?: IIssueType;
 	taskStatusId?: ID;
 	taskSizeId?: ID;
 	taskPriorityId?: ID;
+	taskTypeId?: ID;
 
 	rootEpic?: ITask;
 }
 
 export interface IGetTaskOptions extends IBasePerTenantAndOrganizationEntityModel {
 	projectId?: ID;
+	isScreeningTask?: boolean;
 }
 
 export interface IGetTaskByEmployeeOptions extends IBaseRelationsEntityModel {
@@ -102,15 +116,40 @@ export interface IGetTasksByViewFilters extends IBasePerTenantAndOrganizationEnt
 
 export interface ITaskDateFilterInput
 	extends IBasePerTenantAndOrganizationEntityModel,
+		Pick<ITask, 'isScreeningTask' | 'projectId' | 'organizationSprintId' | 'creatorId'>,
 		IEmployeeEntityInput,
-		IRelationalOrganizationProject,
 		IRelationalOrganizationTeam,
-		IRelationalOrganizationSprint,
 		Pick<IGetTasksByViewFilters, 'relations'> {
 	startDateFrom?: Date;
 	startDateTo?: Date;
 	dueDateFrom?: Date;
 	dueDateTo?: Date;
-	creatorId?: ID;
+}
+
+export interface ITaskAdvancedFilter {
+	projects?: ID[];
+	teams?: ID[];
+	modules?: ID[];
+	sprints?: ID[];
+	members?: ID[];
+	tags?: ID[];
+	statusIds?: ID[];
+	statuses?: TaskStatusEnum[];
+	priorityIds?: ID[];
+	priorities?: TaskPriorityEnum[];
+	sizeIds?: ID[];
+	parentIds?: ID[];
+	creators?: ID[];
+	dailyPlans?: ID[];
+	sizes?: TaskSizeEnum[];
+	types?: string[];
+	startDates?: Date[] | string[];
+	dueDates?: Date[] | string[];
+
+	// Relations
 	relations?: string[];
+}
+
+export interface IAdvancedTaskFiltering {
+	filters?: ITaskAdvancedFilter;
 }

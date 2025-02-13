@@ -361,7 +361,6 @@ export class ProjectService extends ApiFetchService {
 
 			// Retrieve current member information from the workspace
 			const memberInfos = await this._workspaceService.getMembersMe();
-			console.log({ memberInfos });
 
 			// Fetch member-specific settings for the project (task views)
 			const memberSetting =

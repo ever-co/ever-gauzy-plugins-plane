@@ -265,8 +265,6 @@ export class WorkspaceService extends ApiFetchService {
 				);
 			}
 
-			console.log('=======>', { memberSetting });
-
 			return memberPropertiesSerializer(memberSetting, employeeId);
 		} catch (error) {
 			console.warn(

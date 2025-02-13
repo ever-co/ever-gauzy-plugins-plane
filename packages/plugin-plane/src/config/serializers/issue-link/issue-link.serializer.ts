@@ -26,21 +26,21 @@ export function issueLinkTransformer(
 ): IIssueLink[] | IIssueLink {
 	const transformIssueLink = (link: IResourceLink): IIssueLink => {
 		return {
-			id: link.id,
-			issue: link.entity,
-			issue_id: link.entityId,
+			id: link?.id,
+			issue: link?.entity,
+			issue_id: link?.entityId,
 			created_by_detail: actorDetailsTransformer(actor),
-			created_at: link.createdAt,
-			updated_at: link.updatedAt,
-			deleted_at: link.deletedAt,
-			title: link.title,
-			url: link.url,
-			metadata: link.metaData,
-			created_by: link.creatorId,
-			created_by_id: link.creatorId,
+			created_at: link?.createdAt,
+			updated_at: link?.updatedAt,
+			deleted_at: link?.deletedAt,
+			title: link?.title,
+			url: link?.url,
+			metadata: link?.metaData,
+			created_by: link?.creatorId,
+			created_by_id: link?.creatorId,
 			updated_by: '', // TODO : Try to use this too,
 			project: project?.id,
-			workspace: link.organizationId
+			workspace: link?.organizationId
 		};
 	};
 

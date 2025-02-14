@@ -125,6 +125,25 @@ export class ProjectService extends ApiFetchService {
 		}
 	}
 
+	async getEmployeeProjects(relations?: string[]): Promise<IProject[]> {
+		try {
+			const employeeProjects = await this.getExternalProjectsByEmployee(
+				currentEmployeeId(),
+				relations
+			);
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationProject
+				);
+
+			return getProjectsResponse(employeeProjects, favoriteIds);
+		} catch (error: any) {
+			console.log(error.reponse);
+			throw new BadRequestException(error);
+		}
+	}
+
 	/**
 	 * @description - Get remode API project
 	 * @private

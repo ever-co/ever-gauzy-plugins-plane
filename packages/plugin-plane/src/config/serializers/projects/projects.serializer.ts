@@ -20,6 +20,12 @@ export function getProjectsResponse(
 	favoriteIds?: ID[]
 ): Partial<IProject>[] {
 	return projects?.map((project) => {
+		// Retrieve current member
+		const employeeId = currentEmployeeId();
+		const currentMember = (project?.members ?? []).find(
+			(member) => member.employeeId === employeeId
+		)?.employee;
+
 		// Safely handle the presence of `project.members` by using a fallback to an empty array.
 		const members = Array.isArray(project?.members)
 			? project.members.map((member) => ({
@@ -48,9 +54,9 @@ export function getProjectsResponse(
 			total_cycles: project?.organizationSprints?.length || 0,
 			total_issues: project?.tasks?.length || 0,
 			total_modules: project?.modules?.length || 0,
-			is_member: true, // Research and know what it is exactly
+			is_member: !!currentMember,
 			sort_order: 66373.5, // Research and know what it is exactly
-			member_role: 20, // Seems it should be a project creator/owner/etc. role associated to that user.
+			member_role: roleTransformer(currentMember?.user.role), // Seems it should be a project creator/owner/etc. role associated to that user.
 			anchor: null, // Research and know what it is exactly
 			members,
 			state_id: null, // Research and know what it is exactly,

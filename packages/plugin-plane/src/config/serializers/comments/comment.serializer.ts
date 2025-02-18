@@ -30,7 +30,7 @@ export function issueCommentTrasnsformer(
 		return {
 			id: comment.id,
 			issue_detail: issue,
-			actor_detail: actorDetailsTransformer(actor),
+			actor_detail: actorDetailsTransformer(comment.employee),
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail,
 			comment_reactions: reactions,
@@ -44,12 +44,12 @@ export function issueCommentTrasnsformer(
 			access: 'INTERNAL',
 			external_source: null,
 			external_id: null,
-			created_by: comment.creatorId,
+			created_by: comment.employee.userId,
 			updated_by: null,
 			project: project.id,
 			workspace: workspace_detail.id,
 			issue: issue.id,
-			actor: actor?.id
+			actor: comment.employeeId
 		};
 	};
 
@@ -122,6 +122,8 @@ export function getCommentsQuery(
 	if (entity) {
 		query['where[entity]'] = entity;
 	}
+
+	query['relations[0]'] = 'employee;';
 
 	return query;
 }

@@ -16,5 +16,9 @@ export interface IMentionUserIds {
 	mentionUserIds?: ID[];
 }
 
+export interface IMentionEmployeeIds {
+	mentionEmployeeIds?: ID[];
+}
+
 export interface IMentionFindInput
 	extends Pick<IMention, 'entity' | 'entityId' | 'parentEntityId' | 'parentEntityType'> {}

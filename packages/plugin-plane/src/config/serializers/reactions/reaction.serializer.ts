@@ -1,7 +1,6 @@
 import {
 	ICreateReactionInput,
 	ID,
-	IEmployee,
 	// IIssue,
 	// IIssueComment,
 	IOrganizationProject,
@@ -16,7 +15,6 @@ import { actorDetailsTransformer } from '../user';
 
 export function reactionTransformer(
 	reactions: IReaction[] | IReaction,
-	actor: IEmployee,
 	project: IOrganizationProject,
 	workspace_detail: IWorkspaceInfo
 	// issue?: IIssue,
@@ -26,15 +24,15 @@ export function reactionTransformer(
 		return {
 			id: reaction.id,
 			reaction: reaction.emoji,
-			actor_detail: actorDetailsTransformer(actor),
+			actor_detail: actorDetailsTransformer(reaction.employee),
 			created_at: reaction.createdAt,
 			updated_at: reaction.updatedAt,
 			deleted_at: reaction.deletedAt,
-			created_by: reaction.creatorId,
+			created_by: reaction.employeeId,
 			updated_by: null,
 			project: project.id,
 			workspace: workspace_detail.id,
-			actor: actor.id,
+			actor: reaction.employeeId,
 			issue:
 				reaction.entity === ReactionEntityEnum.Task
 					? reaction.entityId
@@ -86,6 +84,8 @@ export function getReactionsQuery(
 	if (emoji) {
 		query['where[emoji]'] = emoji;
 	}
+
+	query['relations[0]'] = 'employee';
 
 	return query;
 }

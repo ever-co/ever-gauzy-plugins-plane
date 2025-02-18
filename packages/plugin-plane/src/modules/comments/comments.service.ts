@@ -207,16 +207,14 @@ export class CommentsService extends ApiFetchService {
 			);
 
 			// Reaction details
-			const { actor, project, workspace } =
-				await this.getCommentReactionDetails(
-					projectId,
-					reaction.creatorId
-				);
+			const { project, workspace } = await this.getCommentReactionDetails(
+				projectId,
+				reaction.employeeId
+			);
 
 			// Transform Reaction
 			const transformedReaction = reactionTransformer(
 				reaction,
-				actor,
 				project,
 				workspace
 			);
@@ -281,15 +279,14 @@ export class CommentsService extends ApiFetchService {
 
 			const commentReactions: IReactionData[] = await Promise.all(
 				reactions.map(async (reaction) => {
-					const { actor, project, workspace } =
+					const { project, workspace } =
 						await this.getCommentReactionDetails(
 							projectId,
-							reaction.creatorId
+							reaction.employeeId
 						);
 
 					const transformedReaction = reactionTransformer(
 						reaction,
-						actor,
 						project,
 						workspace
 					);

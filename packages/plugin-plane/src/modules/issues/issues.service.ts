@@ -885,7 +885,7 @@ export class IssuesService extends ApiFetchService {
 				await this.getIssueCommentDetails(
 					entityId,
 					projectId,
-					comment.creatorId,
+					comment.employee.us,
 					task,
 					task.project
 				);
@@ -940,7 +940,7 @@ export class IssuesService extends ApiFetchService {
 				await this.getIssueCommentDetails(
 					updatedComment.entityId,
 					projectId,
-					updatedComment.creatorId
+					updatedComment.employeeId
 				);
 
 			const reactions = await this._commentService.findCommentReactions(
@@ -1014,7 +1014,7 @@ export class IssuesService extends ApiFetchService {
 						await this.getIssueCommentDetails(
 							options.entityId,
 							projectId,
-							comment.creatorId,
+							comment.employeeId,
 							task,
 							task.project
 						);
@@ -1319,7 +1319,7 @@ export class IssuesService extends ApiFetchService {
 	 * @description Get Issue comment and reaction details
 	 * @param {ID} id - Issue ID
 	 * @param {ID} projectId - Project ID
-	 * @param {ID} creatorId Creator ID for returning actor details
+	 * @param {ID} employeeId Creator ID for returning actor details
 	 * @param {ITask} originalTask Optional task to avoid multiple API calls
 	 * @param {IOrganizationProject} originalProject Optional project to avoid multiple API calls
 	 * @returns - A promise resolced afet got details
@@ -1328,7 +1328,7 @@ export class IssuesService extends ApiFetchService {
 	async getIssueCommentDetails(
 		id: ID,
 		projectId: ID,
-		creatorId: ID,
+		employeeId: ID,
 		originalTask?: ITask,
 		originalProject?: IOrganizationProject
 	) {
@@ -1360,7 +1360,7 @@ export class IssuesService extends ApiFetchService {
 
 			// Find actor by userId
 			const actor = project?.members?.find(
-				(member) => member.employee.userId === creatorId
+				(member) => member.employeeId === employeeId
 			)?.employee;
 
 			return { issue, project, workspace, actor };

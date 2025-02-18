@@ -123,7 +123,7 @@ export function getCommentsQuery(
 		query['where[entity]'] = entity;
 	}
 
-	query['relations[0]'] = 'employee;';
+	query['relations[0]'] = 'employee';
 
 	return query;
 }

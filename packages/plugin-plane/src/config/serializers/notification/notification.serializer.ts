@@ -1,7 +1,5 @@
 import {
 	BaseEntityEnum,
-	ID,
-	IEmployee,
 	INotification,
 	ITask,
 	IUnreadNotificationResponse,
@@ -15,47 +13,45 @@ import { issueTransformer } from '../tasks';
 /**
  * Transforms a user notification into a notification object.
  *
- * @param {IEmployeeNotification} userNotifications - The user notification to transform.
+ * @param {IEmployeeNotification} employeeNotifications - The user notification to transform.
  * @param {IIssue} issue - The issue associated with the notification.
- * @param {IEmployee} actor - The actor who triggered the notification.
- * @param {ID} employeeId - The of employee ID of receiver .
  * @returns {INotification} The transformed notification object.
  */
 export function notificationTranformer(
-	userNotifications: IEmployeeNotification[] | IEmployeeNotification,
-	issue: ITask,
-	actor: IEmployee,
-	employeeId?: ID
+	employeeNotifications: IEmployeeNotification[] | IEmployeeNotification,
+	issue: ITask
 ): INotification | INotification[] {
-	const tranformUserNotification = (
-		userNotification: IEmployeeNotification
+	const tranformemployeeNotification = (
+		employeeNotification: IEmployeeNotification
 	): INotification => {
 		const notificationTitle =
-			userNotification.type === EmployeeNotificationTypeEnum.ASSIGNMENT
+			employeeNotification.type ===
+			EmployeeNotificationTypeEnum.ASSIGNMENT
 				? 'added assignee '
 				: '';
 
 		const isComment =
-			userNotification.type === EmployeeNotificationTypeEnum.MENTION ||
-			userNotification.type === EmployeeNotificationTypeEnum.COMMENT;
+			employeeNotification.type ===
+				EmployeeNotificationTypeEnum.MENTION ||
+			employeeNotification.type === EmployeeNotificationTypeEnum.COMMENT;
 
 		const isAssignement =
-			userNotification.type === EmployeeNotificationTypeEnum.ASSIGNMENT;
-
-		const currentEmployee = issue.members.find(
-			(member) => member.id === employeeId
-		);
+			employeeNotification.type ===
+			EmployeeNotificationTypeEnum.ASSIGNMENT;
 
 		return {
-			id: userNotification.id,
-			triggered_by_details: actorDetailsTransformer(actor),
+			id: employeeNotification.id,
+			triggered_by_details: actorDetailsTransformer(
+				employeeNotification.sentBy
+			),
 			is_inbox_issue: true,
 			is_intake_issue: true,
 			is_mentioned_notification:
-				userNotification.type === EmployeeNotificationTypeEnum.MENTION,
-			created_at: userNotification.createdAt,
-			updated_at: userNotification.updatedAt,
-			deleted_at: userNotification.deletedAt,
+				employeeNotification.type ===
+				EmployeeNotificationTypeEnum.MENTION,
+			created_at: employeeNotification.createdAt,
+			updated_at: employeeNotification.updatedAt,
+			deleted_at: employeeNotification.deletedAt,
 			data: {
 				issue: issueTransformer(issue),
 				issue_activity: {
@@ -67,37 +63,39 @@ export function notificationTranformer(
 							? 'assignees'
 							: 'None',
 					new_value: isAssignement
-						? `${currentEmployee.fullName}`
+						? `${employeeNotification.receiver.fullName}`
 						: 'In Progress',
 					old_value: 'None',
 					new_identifier: '72ba61b5-a1aa-4c19-9b61-b13278c637e3',
 					old_identifier: '0bfe1e3d-69c3-433f-9cbf-60c84c135e84'
 				}
 			},
-			entity_identifier: userNotification.entityId,
+			entity_identifier: employeeNotification.entityId,
 			entity_name:
-				userNotification.entity === BaseEntityEnum.Task ? 'issue' : '',
+				employeeNotification.entity === BaseEntityEnum.Task
+					? 'issue'
+					: '',
 			title: notificationTitle,
-			message: `${actor.fullName} ${userNotification.title}`,
-			message_stripped: userNotification.message,
-			message_html: userNotification.message,
+			message: `${employeeNotification.sentBy.fullName} ${employeeNotification.title}`,
+			message_stripped: employeeNotification.message,
+			message_html: employeeNotification.message,
 			sender: '',
-			read_at: userNotification.readAt,
-			snoozed_till: userNotification.onHoldUntil,
-			archived_at: userNotification.archivedAt,
-			created_by: userNotification.sentById,
-			workspace: userNotification.organizationId,
+			read_at: employeeNotification.readAt,
+			snoozed_till: employeeNotification.onHoldUntil,
+			archived_at: employeeNotification.archivedAt,
+			created_by: employeeNotification.sentById,
+			workspace: employeeNotification.organizationId,
 			project: issue.projectId,
-			triggered_by: actor.id,
-			receiver: employeeId
+			triggered_by: employeeNotification.sentById,
+			receiver: employeeNotification.receiverId
 		};
 	};
 
-	if (Array.isArray(userNotifications)) {
-		return userNotifications.map(tranformUserNotification);
+	if (Array.isArray(employeeNotifications)) {
+		return employeeNotifications.map(tranformemployeeNotification);
 	}
 
-	return tranformUserNotification(userNotifications);
+	return tranformemployeeNotification(employeeNotifications);
 }
 
 /**
@@ -131,17 +129,17 @@ export function unreadNotificationData(
 	};
 }
 
-export function getUserNotificationsQuery(
+export function getEmployeeNotificationsQuery(
 	options: Partial<IEmployeeNotification>
 ): Record<string, any> {
-	const relations = ['sentBy', 'receiver'];
+	const relations = ['sentByEmployee.user', 'receiverEmployee.user'];
 
 	const query: Record<string, any> = {
 		...baseGetItemsWhereQuery()
 	};
 
 	if (options?.receiverId) {
-		query['where[receiverId]'] = options?.receiverId;
+		query['where[receiverEmployeeId]'] = options?.receiverId;
 	}
 
 	if (options?.isRead) {

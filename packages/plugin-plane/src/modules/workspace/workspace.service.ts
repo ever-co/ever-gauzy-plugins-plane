@@ -1327,11 +1327,10 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findUserNotification(): Promise<INotificationResponse> {
 		try {
-			const receiverId = currentUserId();
 			const employeeId = currentEmployeeId();
 
 			const userNotifications = await this._notificationService.findAll({
-				receiverId,
+				receiverId: employeeId,
 				entity: BaseEntityEnum.Task
 			});
 
@@ -1342,18 +1341,9 @@ export class WorkspaceService extends ApiFetchService {
 						['members', 'project.members.employee.user']
 					);
 
-					const actor = task.project.members
-						.map((member) => member.employee)
-						.find(
-							(employee) =>
-								employee.userId === notification.sentById
-						);
-
 					const tranformedNotification = notificationTranformer(
 						notification,
-						task,
-						actor,
-						employeeId
+						task
 					);
 
 					return Array.isArray(tranformedNotification)
@@ -1392,7 +1382,7 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async findUnreadNotifications(): Promise<IUnreadNotificationResponse> {
 		try {
-			const receiverId = currentUserId();
+			const receiverId = currentEmployeeId();
 			const userNotifications = await this._notificationService.findAll({
 				receiverId,
 				entity: BaseEntityEnum.Task,
@@ -1490,7 +1480,6 @@ export class WorkspaceService extends ApiFetchService {
 		statusValue: boolean
 	): Promise<INotification> {
 		try {
-			const employeeId = currentEmployeeId();
 			const timestampKey =
 				statusKey === 'isRead' ? 'readAt' : 'archivedAt';
 
@@ -1506,18 +1495,9 @@ export class WorkspaceService extends ApiFetchService {
 				['members', 'project.members.employee.user']
 			);
 
-			const actor = task.project.members
-				.map((member) => member.employee)
-				.find(
-					(employee) =>
-						employee.userId === updatedNotification.sentById
-				);
-
 			const transformedNotification = notificationTranformer(
 				updatedNotification,
-				task,
-				actor,
-				employeeId
+				task
 			);
 
 			return Array.isArray(transformedNotification)

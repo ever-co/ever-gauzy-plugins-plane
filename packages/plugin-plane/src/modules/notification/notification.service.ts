@@ -11,7 +11,7 @@ import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
 @Injectable()
 export class NotificationService extends ApiFetchService {
-	private readonly path = '/user-notification';
+	private readonly path = '/employee-notification';
 
 	/**
 	 * Updates a notification with the specified ID.

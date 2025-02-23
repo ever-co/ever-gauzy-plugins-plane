@@ -5,8 +5,8 @@ import {
 	INotification,
 	ITask,
 	IUnreadNotificationResponse,
-	IUserNotification,
-	UserNotificationTypeEnum
+	IEmployeeNotification,
+	EmployeeNotificationTypeEnum
 } from '@plane-plugin/models';
 import { actorDetailsTransformer } from '../user';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
@@ -15,32 +15,32 @@ import { issueTransformer } from '../tasks';
 /**
  * Transforms a user notification into a notification object.
  *
- * @param {IUserNotification} userNotifications - The user notification to transform.
+ * @param {IEmployeeNotification} userNotifications - The user notification to transform.
  * @param {IIssue} issue - The issue associated with the notification.
  * @param {IEmployee} actor - The actor who triggered the notification.
  * @param {ID} employeeId - The of employee ID of receiver .
  * @returns {INotification} The transformed notification object.
  */
 export function notificationTranformer(
-	userNotifications: IUserNotification[] | IUserNotification,
+	userNotifications: IEmployeeNotification[] | IEmployeeNotification,
 	issue: ITask,
 	actor: IEmployee,
 	employeeId?: ID
 ): INotification | INotification[] {
 	const tranformUserNotification = (
-		userNotification: IUserNotification
+		userNotification: IEmployeeNotification
 	): INotification => {
 		const notificationTitle =
-			userNotification.type === UserNotificationTypeEnum.ASSIGNMENT
+			userNotification.type === EmployeeNotificationTypeEnum.ASSIGNMENT
 				? 'added assignee '
 				: '';
 
 		const isComment =
-			userNotification.type === UserNotificationTypeEnum.MENTION ||
-			userNotification.type === UserNotificationTypeEnum.COMMENT;
+			userNotification.type === EmployeeNotificationTypeEnum.MENTION ||
+			userNotification.type === EmployeeNotificationTypeEnum.COMMENT;
 
 		const isAssignement =
-			userNotification.type === UserNotificationTypeEnum.ASSIGNMENT;
+			userNotification.type === EmployeeNotificationTypeEnum.ASSIGNMENT;
 
 		const currentEmployee = issue.members.find(
 			(member) => member.id === employeeId
@@ -52,7 +52,7 @@ export function notificationTranformer(
 			is_inbox_issue: true,
 			is_intake_issue: true,
 			is_mentioned_notification:
-				userNotification.type === UserNotificationTypeEnum.MENTION,
+				userNotification.type === EmployeeNotificationTypeEnum.MENTION,
 			created_at: userNotification.createdAt,
 			updated_at: userNotification.updatedAt,
 			deleted_at: userNotification.deletedAt,
@@ -103,28 +103,36 @@ export function notificationTranformer(
 /**
  * Calculates the unread notification data from a list of notifications.
  *
- * @param {IUserNotification[]} notifications - The list of notifications.
+ * @param {IEmployeeNotification[]} notifications - The list of notifications.
  * @returns {IUnreadNotificationResponse} An object containing the total unread notification count and the mention unread notification count.
  */
 export function unreadNotificationData(
-	notifications: IUserNotification[]
+	notifications?: IEmployeeNotification[]
 ): IUnreadNotificationResponse {
-	const unreadNotifications = notifications.filter(
-		(notification) => !notification.isRead
-	).length;
+	if (Array.isArray(notifications) && notifications.length > 0) {
+		const unreadNotifications = notifications.filter(
+			(notification) => !notification.isRead
+		).length;
+
+		return {
+			total_unread_notifications_count: unreadNotifications,
+			mention_unread_notifications_count: notifications.filter(
+				(notification) =>
+					notification.type ===
+						EmployeeNotificationTypeEnum.MENTION &&
+					!notification.isRead
+			).length
+		};
+	}
 
 	return {
-		total_unread_notifications_count: unreadNotifications,
-		mention_unread_notifications_count: notifications.filter(
-			(notification) =>
-				notification.type === UserNotificationTypeEnum.MENTION &&
-				!notification.isRead
-		).length
+		total_unread_notifications_count: 0,
+		mention_unread_notifications_count: 0
 	};
 }
 
 export function getUserNotificationsQuery(
-	options: Partial<IUserNotification>
+	options: Partial<IEmployeeNotification>
 ): Record<string, any> {
 	const relations = ['sentBy', 'receiver'];
 

@@ -43,7 +43,6 @@ export class ProjectModuleController {
 	@ApiOperation({ summary: 'Get Project Modules' })
 	@Get()
 	async getWorkspaceProjectModules(@Param('projectId') projectId: ID) {
-		console.log(`Requete recue pour projectId: ${projectId}`);
 		return this._projectModuleService.getAllModulesByProject(projectId);
 	}
 

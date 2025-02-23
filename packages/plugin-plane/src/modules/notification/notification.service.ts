@@ -2,29 +2,29 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
 	ID,
-	INotificationUpdateInput,
+	IEmployeeNotificationUpdateInput,
 	IPagination,
-	IUserNotification
+	IEmployeeNotification
 } from '@plane-plugin/models';
-import { getUserNotificationsQuery } from '../../config';
+import { getEmployeeNotificationsQuery } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 
 @Injectable()
 export class NotificationService extends ApiFetchService {
-	private readonly path = '/user-notification';
+	private readonly path = '/employee-notification';
 
 	/**
 	 * Updates a notification with the specified ID.
 	 *
 	 * @async
 	 * @param {ID} id - The ID of the notification to update.
-	 * @param {INotificationUpdateInput} input - The updated notification information.
-	 * @returns {Promise<IUserNotification>} A promise that resolves to the updated notification.
+	 * @param {IEmployeeNotificationUpdateInput} input - The updated notification information.
+	 * @returns {Promise<IEmployeeNotification>} A promise that resolves to the updated notification.
 	 */
 	async update(
 		id: ID,
-		input: INotificationUpdateInput
-	): Promise<IUserNotification> {
+		input: IEmployeeNotificationUpdateInput
+	): Promise<IEmployeeNotification> {
 		try {
 			const response = await this.apiFetch({
 				method: 'PUT',
@@ -45,11 +45,11 @@ export class NotificationService extends ApiFetchService {
 	 * @returns {Promise<INotification[]>} A promise that resolves to an array of notification objects.
 	 */
 	async findAll(
-		options?: Partial<IUserNotification>
-	): Promise<IUserNotification[]> {
+		options?: Partial<IEmployeeNotification>
+	): Promise<IEmployeeNotification[]> {
 		try {
-			const query = qs.stringify(getUserNotificationsQuery(options));
-			const notifications: IPagination<IUserNotification> = (
+			const query = qs.stringify(getEmployeeNotificationsQuery(options));
+			const notifications: IPagination<IEmployeeNotification> = (
 				await this.apiFetch({
 					method: 'GET',
 					path: this.path,
@@ -69,15 +69,15 @@ export class NotificationService extends ApiFetchService {
 	 *
 	 * @async
 	 * @param {ID} id - The ID of the notification to fetch.
-	 * @param {IUserNotification} [options] - Optional query options.
-	 * @returns {Promise<IUserNotification>} A promise that resolves to the notification.
+	 * @param {IEmployeeNotification} [options] - Optional query options.
+	 * @returns {Promise<IEmployeeNotification>} A promise that resolves to the notification.
 	 */
 	async findOne(
 		id: ID,
-		options?: IUserNotification
-	): Promise<IUserNotification> {
+		options?: IEmployeeNotification
+	): Promise<IEmployeeNotification> {
 		try {
-			const query = qs.stringify(getUserNotificationsQuery(options));
+			const query = qs.stringify(getEmployeeNotificationsQuery(options));
 			const response = await this.apiFetch({
 				method: 'GET',
 				path: `${this.path}/${id}`,

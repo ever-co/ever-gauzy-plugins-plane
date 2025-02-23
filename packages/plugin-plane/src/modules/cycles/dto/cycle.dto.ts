@@ -1,10 +1,9 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
 	IsArray,
 	IsBoolean,
 	IsDate,
 	IsEnum,
-	IsNotEmpty,
 	IsNumber,
 	IsObject,
 	IsOptional,
@@ -15,10 +14,10 @@ import { Type } from 'class-transformer';
 import { CycleStatusEnum, ICycle, ID } from '@plane-plugin/models';
 
 export class CycleDTO implements ICycle {
-	@ApiProperty({ type: () => String })
-	@IsNotEmpty()
+	@ApiPropertyOptional({ type: () => String })
+	@IsOptional()
 	@IsUUID()
-	id: ID;
+	id?: ID;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsOptional()

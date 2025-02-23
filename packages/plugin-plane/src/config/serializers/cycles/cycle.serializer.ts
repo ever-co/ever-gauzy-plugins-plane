@@ -168,7 +168,7 @@ export function createCycleInputTransformer(
  * @returns {IOrganizationSprintUpdateInput} - The transformed input for updating the sprint.
  */
 export function updateCycleInputTransformer(
-	cycle: ICycle
+	cycle: Partial<Omit<ICycle, 'id'>>
 ): IOrganizationSprintUpdateInput {
 	const {
 		name,

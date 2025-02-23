@@ -114,7 +114,10 @@ export class CyclesService extends ApiFetchService {
 	 * @returns {Promise<ICycle | ICycle[]>} - The updated cycle or a list of updated cycles after transformation.
 	 * @throws {BadRequestException} - Throws an error if the update fails.
 	 */
-	async update(id: ID, input: ICycle): Promise<ICycle | ICycle[]> {
+	async update(
+		id: ID,
+		input: Partial<Omit<ICycle, 'id'>>
+	): Promise<ICycle | ICycle[]> {
 		try {
 			// Build the body request
 			const body = updateCycleInputTransformer(input);

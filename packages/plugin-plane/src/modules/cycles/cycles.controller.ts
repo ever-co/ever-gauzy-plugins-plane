@@ -18,7 +18,7 @@ import {
 	ID
 } from '@plane-plugin/models';
 import { CyclesService } from './cycles.service';
-import { CycleDTO } from './dto';
+import { CreateCycleDTO, CycleDTO, UpdateCycleDTO } from './dto';
 
 @ApiTags('Cycles')
 @Controller()
@@ -28,13 +28,13 @@ export class CyclesController {
 	/**
 	 * Creates a new cycle (sprint) based on the provided input.
 	 *
-	 * @param {CycleDTO} input - The data transfer object containing the cycle details to create.
+	 * @param {CreateCycleDTO} input - The data transfer object containing the cycle details to create.
 	 * @returns {Promise<ICycle | ICycle[]>} - The newly created cycle or a list of cycles after the creation.
 	 */
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Cycle' })
 	@Post()
-	async create(@Body() input: CycleDTO): Promise<ICycle | ICycle[]> {
+	async create(@Body() input: CreateCycleDTO): Promise<ICycle | ICycle[]> {
 		return await this._cycleService.create(input);
 	}
 
@@ -75,7 +75,7 @@ export class CyclesController {
 	 * Updates an existing cycle (sprint) based on the provided ID and input data.
 	 *
 	 * @param {ID} id - The unique identifier of the cycle to update.
-	 * @param {CycleDTO} input - The data transfer object containing the updated cycle details.
+	 * @param {UpdateCycleDTO} input - The data transfer object containing the updated cycle details.
 	 * @returns {Promise<ICycle | ICycle[]>} - The updated cycle or a list of updated cycles after the update.
 	 */
 	@HttpCode(HttpStatus.OK)
@@ -83,7 +83,7 @@ export class CyclesController {
 	@Patch(':id')
 	async update(
 		@Param('id') id: ID,
-		@Body() input: CycleDTO
+		@Body() input: UpdateCycleDTO
 	): Promise<ICycle | ICycle[]> {
 		return await this._cycleService.update(id, input);
 	}

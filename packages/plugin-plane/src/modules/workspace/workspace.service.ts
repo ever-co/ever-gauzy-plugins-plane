@@ -654,7 +654,7 @@ export class WorkspaceService extends ApiFetchService {
 			];
 			const relations = [
 				'members.user',
-				'creator',
+				'createdByUser',
 				'project.members.employee.user.role',
 				...dateRangesRelations
 			];

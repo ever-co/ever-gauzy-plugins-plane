@@ -50,7 +50,7 @@ function activityLogDetails(
 		updated_at: activityLog.updatedAt,
 		deleted_at: activityLog.deletedAt,
 		attachments: [],
-		created_by: activityLog.creatorId,
+		created_by: activityLog.employeeId,
 		updated_by: null,
 		project: project.id,
 		workspace: workspaceDetail.id,

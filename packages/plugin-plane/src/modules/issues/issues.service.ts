@@ -756,7 +756,6 @@ export class IssuesService extends ApiFetchService {
 		employeeId: ID,
 		relations?: string[]
 	): Promise<IIssue[]> {
-		console.log('IS CALLED');
 		try {
 			const tasks = await this.findExternalByEmployee(
 				employeeId,
@@ -1052,7 +1051,7 @@ export class IssuesService extends ApiFetchService {
 						await this.getIssueCommentDetails(
 							id,
 							projectId,
-							activityLog.creatorId,
+							activityLog.employeeId,
 							task,
 							task.project
 						);
@@ -1090,7 +1089,7 @@ export class IssuesService extends ApiFetchService {
 								await this.getIssueCommentDetails(
 									id,
 									projectId,
-									log.creatorId,
+									log.employeeId,
 									task,
 									task.project
 								);
@@ -1126,7 +1125,7 @@ export class IssuesService extends ApiFetchService {
 								await this.getIssueCommentDetails(
 									id,
 									projectId,
-									log.creatorId,
+									log.employeeId,
 									task,
 									task.project
 								);

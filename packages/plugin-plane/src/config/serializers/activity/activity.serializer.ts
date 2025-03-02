@@ -482,7 +482,7 @@ export function activityLogFieldTransformer(field: keyof ITask): keyof IIssue {
 		parentId: 'parent_id',
 		createdAt: 'created_at',
 		updatedAt: 'updated_at',
-		creatorId: 'created_by',
+		createdByUserId: 'created_by',
 		isDraft: 'is_draft',
 		organizationSprintId: 'cycle_id',
 		archivedAt: 'archived_at',

@@ -106,8 +106,8 @@ export function issueTransformer(
 		},
 		created_at: issue?.createdAt,
 		updated_at: issue?.updatedAt,
-		created_by: issue?.creatorId,
-		updated_by: issue?.creatorId,
+		created_by: issue?.createdByUserId,
+		updated_by: issue?.createdByUserId,
 		is_draft: issue?.isDraft,
 		is_subscribed,
 		archived_at: issue?.archivedAt,
@@ -168,7 +168,7 @@ export function getGroupKeyForCriteria(
 			return issue.members?.map((member) => member.id) || ['None'];
 		case IssueGroupByEnum.CREATED_BY:
 			const creator = employees?.find(
-				(emp) => emp.userId === issue.creatorId
+				(emp) => emp.userId === issue.createdByUserId
 			);
 			return creator ? creator.id : 'None';
 		case IssueGroupByEnum.CYCLE_ID:
@@ -552,7 +552,7 @@ export function groupIssuesByCreatorId(
 		issuesWithLinks,
 		(issue) => {
 			const member = employees.find(
-				(member) => member.userId === issue.creatorId
+				(member) => member.userId === issue.createdByUserId
 			);
 			return member?.id || 'None';
 		},
@@ -718,7 +718,7 @@ export function nonGroupedIssues(issues: ITask[]) {
 export const taskRelations = [
 	'tags',
 	'members.user',
-	'creator',
+	'createdByUser',
 	'project.members.employee.user.role',
 	'organizationSprint',
 	'linkedIssues.taskTo',
@@ -757,11 +757,11 @@ export const getTaskQuery = (
 
 	if (created_by) {
 		if (!created_by.includes(',')) {
-			query['where[creatorId]'] = created_by;
+			query['where[createdByUserId]'] = created_by;
 		} else {
 			const creators = issueFilterSplitter(created_by);
 			creators.forEach((creator, i) => {
-				query[`filters[creators][${i}]`] = creator;
+				query[`filters[createdByUserIds][${i}]`] = creator;
 			});
 		}
 	}
@@ -808,7 +808,7 @@ export const getTaskQuery = (
 	}
 
 	if (creatorId) {
-		query['where[creatorId]'] = options.creatorId;
+		query['where[createdByUserId]'] = options.creatorId;
 	}
 
 	if (typeof isDraft !== 'undefined') {
@@ -981,8 +981,7 @@ export function getFilteredByDatesTaskQuery(
 
 export function createIssueInputTransformer(
 	issue: IIssueCreateInput,
-	status: TaskStatusEnum,
-	employees: IEmployee[]
+	status: TaskStatusEnum
 ): ITaskCreateInput {
 	const tags = issue?.label_ids
 		? issue?.label_ids?.map((id) => ({ id }) as ITag)
@@ -995,12 +994,6 @@ export function createIssueInputTransformer(
 	const mentionedEmployeeIds = extractEmployeeMentionIds(
 		issue?.description_html
 	);
-
-	// Map employee IDs to user IDs
-	const mentionUserIds = employees
-		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
-		.map((employee) => employee.userId) // Map to corresponding user IDs
-		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
 
 	return {
 		title: issue?.name,
@@ -1022,7 +1015,7 @@ export function createIssueInputTransformer(
 			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule
 			) || [],
-		mentionUserIds: mentionUserIds ?? []
+		mentionEmployeeIds: mentionedEmployeeIds ?? []
 	};
 }
 

@@ -601,7 +601,7 @@ export class WorkspaceService extends ApiFetchService {
 							await this._issueService.getIssueCommentDetails(
 								task.id,
 								task.projectId,
-								activityLog.creatorId,
+								activityLog.employeeId,
 								task,
 								task.project
 							);

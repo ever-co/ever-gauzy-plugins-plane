@@ -73,6 +73,7 @@ export interface IIssueFindInput {
 	created_by?: string;
 	assignees?: string;
 	priority?: string;
+	projectId?: ID;
 	state?: string;
 	type?: IssueFindByTypeEnum;
 	start_date?: string;

@@ -135,7 +135,7 @@ export class IssuesService extends ApiFetchService {
 	 * @throws {BadRequestException} If an error occurs during the fetch.
 	 */
 	async findAllExternal(
-		options: ITask,
+		options: IIssueFindInput,
 		relations?: string[],
 		orderByField?: IssueOrderByField,
 		isDraft: boolean = false

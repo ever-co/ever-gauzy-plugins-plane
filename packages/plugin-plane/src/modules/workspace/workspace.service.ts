@@ -906,11 +906,12 @@ export class WorkspaceService extends ApiFetchService {
 			} else if (created_by) {
 				const createdTasks = await this._issueService.findAllExternal(
 					{
-						createdByUserId: currentUserId()
+						created_by: currentUserId()
 					},
 					relations,
 					order_by
 				);
+
 				assignedIssues = createdTasks.items;
 			} else if (subscriber) {
 				assignedIssues = await this.findUserSubscribedIssues(

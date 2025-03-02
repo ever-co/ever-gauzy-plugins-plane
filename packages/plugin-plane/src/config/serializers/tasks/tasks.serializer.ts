@@ -741,10 +741,18 @@ export const getTaskQuery = (
 		...baseGetItemsWhereQuery()
 	};
 
-	const { assignees, created_by, creatorId, cycle, labels, module, state } =
-		options;
+	const {
+		assignees,
+		created_by,
+		creatorId,
+		cycle,
+		labels,
+		module,
+		projectId: project_id,
+		state
+	} = options;
 
-	if (projectId) {
+	if (projectId || project_id) {
 		query['where[projectId]'] = projectId;
 	}
 

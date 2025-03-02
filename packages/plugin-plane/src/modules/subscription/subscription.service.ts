@@ -15,7 +15,7 @@ import {
 
 @Injectable()
 export class SubscriptionService extends ApiFetchService {
-	private readonly path = '/subscription';
+	private readonly path = '/entity-subscription';
 
 	/**
 	 * Creates a subscription for a given issue and optionally a specific user.

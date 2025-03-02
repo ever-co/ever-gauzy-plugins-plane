@@ -237,7 +237,7 @@ export class IssuesService extends ApiFetchService {
 				[
 					'tags',
 					'members.user',
-					'creator',
+					'createdByUser',
 					'project.members.employee.user.role',
 					'organizationSprint',
 					'modules'
@@ -874,11 +874,11 @@ export class IssuesService extends ApiFetchService {
 				projectMembers
 			);
 
-			const { actor, issue, project, workspace } =
+			const { issue, project, workspace } =
 				await this.getIssueCommentDetails(
 					entityId,
 					projectId,
-					comment.employee.us,
+					comment.employee.id,
 					task,
 					task.project
 				);
@@ -886,7 +886,6 @@ export class IssuesService extends ApiFetchService {
 			const transformedComment = issueCommentTrasnsformer(
 				comment,
 				issue,
-				actor,
 				project,
 				workspace,
 				[] // On creation, comment has no reaction yet
@@ -929,7 +928,7 @@ export class IssuesService extends ApiFetchService {
 				options
 			);
 
-			const { actor, issue, project, workspace } =
+			const { issue, project, workspace } =
 				await this.getIssueCommentDetails(
 					updatedComment.entityId,
 					projectId,
@@ -947,7 +946,6 @@ export class IssuesService extends ApiFetchService {
 			const transformedComment = issueCommentTrasnsformer(
 				updatedComment,
 				issue,
-				actor,
 				project,
 				workspace,
 				reactions
@@ -1003,7 +1001,7 @@ export class IssuesService extends ApiFetchService {
 							projectId
 						);
 
-					const { actor, issue, project, workspace } =
+					const { issue, project, workspace } =
 						await this.getIssueCommentDetails(
 							options.entityId,
 							projectId,
@@ -1014,7 +1012,6 @@ export class IssuesService extends ApiFetchService {
 					const transformedComment = issueCommentTrasnsformer(
 						comment,
 						issue,
-						actor,
 						project,
 						workspace,
 						reactions
@@ -1070,8 +1067,6 @@ export class IssuesService extends ApiFetchService {
 						: [transformedActivityLogs];
 				})
 			);
-
-			console.log({ issueActivities });
 
 			// Find links for logs
 			const links = await this._issueLinkService.findAll(id);
@@ -1379,7 +1374,7 @@ export class IssuesService extends ApiFetchService {
 			const task = await this.getExternalIssue(id, [
 				'tags',
 				'members.user',
-				'creator',
+				'createdByUser',
 				'project.members.employee.user.role',
 				'organizationSprint'
 			]);
@@ -1388,7 +1383,7 @@ export class IssuesService extends ApiFetchService {
 			const { actor, project } = await this.getIssueCommentDetails(
 				id,
 				projectId,
-				link.creatorId,
+				link.employeeId,
 				task,
 				task.project
 			);
@@ -1432,7 +1427,7 @@ export class IssuesService extends ApiFetchService {
 			const { actor, project } = await this.getIssueCommentDetails(
 				issueId,
 				projectId,
-				link.creatorId
+				link.employeeId
 			);
 
 			// Transform Link
@@ -1464,7 +1459,7 @@ export class IssuesService extends ApiFetchService {
 						await this.getIssueCommentDetails(
 							id,
 							projectId,
-							link.creatorId,
+							link.employeeId,
 							issue,
 							issue.project
 						);

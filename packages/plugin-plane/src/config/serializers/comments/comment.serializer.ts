@@ -21,7 +21,6 @@ import { actorDetailsTransformer } from '../user';
 export function issueCommentTrasnsformer(
 	comments: IComment[] | IComment,
 	issue: IIssue,
-	actor: IEmployee,
 	project: IOrganizationProject,
 	workspace_detail: IWorkspaceInfo,
 	reactions: IReactionData[]

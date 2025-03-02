@@ -904,7 +904,6 @@ export class WorkspaceService extends ApiFetchService {
 						order_by
 					);
 			} else if (created_by) {
-				console.log({ here: created_by, user: currentUserId() });
 				const createdTasks = await this._issueService.findAllExternal(
 					{
 						created_by: currentUserId()

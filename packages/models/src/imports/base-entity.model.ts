@@ -1,5 +1,6 @@
 import { ITenant } from './tenant.model';
 import { IOrganization } from './organization.model';
+import { IUser } from './user.model';
 
 // Define a type for JSON data
 export type JsonData = Record<string, any> | string;
@@ -33,7 +34,7 @@ export interface IBaseSoftDeleteEntityModel {
 }
 
 // Common properties for entities
-export interface IBaseEntityModel extends IBaseSoftDeleteEntityModel {
+export interface IBaseEntityModel extends IBaseEntityActionByUserModel, IBaseSoftDeleteEntityModel {
 	id?: ID; // Unique identifier
 
 	readonly createdAt?: Date; // Date when the record was created
@@ -42,6 +43,17 @@ export interface IBaseEntityModel extends IBaseSoftDeleteEntityModel {
 	isActive?: boolean; // Indicates if the record is currently active
 	isArchived?: boolean; // Indicates if the record is archived
 	archivedAt?: Date; // Date when the record was archived
+}
+
+export interface IBaseEntityActionByUserModel {
+	createdByUser?: IUser; // User who created the record
+	createdByUserId?: ID; // ID of the user who created the record
+
+	updatedByUser?: IUser; // User who last updated the record
+	updatedByUserId?: ID; // ID of the user who last updated the record
+
+	deletedByUser?: IUser; // User who deleted the record
+	deletedByUserId?: ID; // ID of the user who deleted the record
 }
 
 // Common properties for entities associated with a tenant
@@ -68,6 +80,7 @@ export interface IBasePerTenantAndOrganizationEntityMutationInput extends Partia
 	organization?: Partial<IOrganization>; // Allow additional fields from IOrganization
 }
 
+// Represents a base structure for generic entities, linking their unique ID with their type.
 export interface IBasePerEntityType extends IBasePerTenantAndOrganizationEntityModel {
 	entityId: ID; // Unique ID of the entity
 	entity: BaseEntityEnum; // The type of the entity, defined in BaseEntityEnum enumeration.
@@ -79,14 +92,17 @@ export enum ActorTypeEnum {
 	User = 'User' // User performed the action
 }
 
+// BaseEntityEnum defines the type of the entity, used in BaseEntity model
 export enum BaseEntityEnum {
 	Candidate = 'Candidate',
 	Comment = 'Comment',
 	Contact = 'Contact',
 	Currency = 'Currency',
+	DailyPlan = 'DailyPlan',
+	Dashboard = 'Dashboard',
+	DashboardWidget = 'DashboardWidget',
 	Employee = 'Employee',
 	Expense = 'Expense',
-	DailyPlan = 'DailyPlan',
 	Invoice = 'Invoice',
 	Income = 'Income',
 	Language = 'Language',
@@ -98,11 +114,12 @@ export enum BaseEntityEnum {
 	OrganizationTeam = 'OrganizationTeam',
 	OrganizationProjectModule = 'OrganizationProjectModule',
 	OrganizationSprint = 'OrganizationSprint',
-	ResourceLink = 'ResourceLink',
 	OrganizationVendor = 'OrganizationVendor',
+	ResourceLink = 'ResourceLink',
+	ScreeningTask = 'ScreeningTask',
 	Task = 'Task',
-	TaskView = 'TaskView',
 	TaskLinkedIssue = 'TaskLinkedIssue',
+	TaskView = 'TaskView',
 	User = 'User',
 	Tenant = 'Tenant'
 }

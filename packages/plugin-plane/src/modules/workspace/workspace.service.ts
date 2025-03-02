@@ -654,7 +654,7 @@ export class WorkspaceService extends ApiFetchService {
 			];
 			const relations = [
 				'members.user',
-				'creator',
+				'createdByUser',
 				'project.members.employee.user.role',
 				...dateRangesRelations
 			];
@@ -677,7 +677,7 @@ export class WorkspaceService extends ApiFetchService {
 						dueDateFrom,
 						dueDateTo,
 						relations: dateRangesRelations,
-						creatorId: id // Explicitly specify creatorId
+						createdByUserId: id // Explicitly specify creatorId
 					});
 				}
 
@@ -723,7 +723,7 @@ export class WorkspaceService extends ApiFetchService {
 					); // Directly pass the employeeId
 				} else {
 					tasks = await this._issueService.findAll(
-						{ creatorId: id },
+						{ createdByUserId: id },
 						relations
 					); // Directly pass the creatorId
 				}
@@ -906,7 +906,7 @@ export class WorkspaceService extends ApiFetchService {
 			} else if (created_by) {
 				const createdTasks = await this._issueService.findAllExternal(
 					{
-						creatorId: currentUserId()
+						createdByUserId: currentUserId()
 					},
 					relations,
 					order_by

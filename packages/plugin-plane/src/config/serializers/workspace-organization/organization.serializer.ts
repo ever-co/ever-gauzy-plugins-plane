@@ -156,7 +156,7 @@ export function userWorkProjectsTransformer(
 
 	const transformedProjects: IUserProjectData[] = projects.map((project) => {
 		const createdIssues = project.tasks?.filter(
-			(task) => task.creatorId === userId
+			(task) => task.createdByUserId === userId
 		);
 
 		const assignedIssues = project.tasks?.filter((task) =>

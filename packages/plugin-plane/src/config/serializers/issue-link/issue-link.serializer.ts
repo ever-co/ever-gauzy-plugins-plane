@@ -36,8 +36,8 @@ export function issueLinkTransformer(
 			title: link?.title,
 			url: link?.url,
 			metadata: link?.metaData,
-			created_by: link?.creatorId,
-			created_by_id: link?.creatorId,
+			created_by: link?.employeeId,
+			created_by_id: link?.employeeId,
 			updated_by: '', // TODO : Try to use this too,
 			project: project?.id,
 			workspace: link?.organizationId

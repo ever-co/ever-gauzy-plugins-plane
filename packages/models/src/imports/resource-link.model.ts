@@ -1,19 +1,16 @@
 import { IURLMetaData } from './timesheet.model';
-import { BaseEntityEnum, IBasePerTenantAndOrganizationEntityModel, ID } from './base-entity.model';
-import { IUser } from './user.model';
+import { IBasePerEntityType, OmitFields } from './base-entity.model';
+import { IEmployeeEntityInput } from './employee.model';
 
-export interface IResourceLink extends IBasePerTenantAndOrganizationEntityModel {
-	entity: BaseEntityEnum;
-	entityId: ID;
+export interface IResourceLink extends IBasePerEntityType, IEmployeeEntityInput {
 	title: string;
 	url: string;
-	creator?: IUser;
-	creatorId?: ID;
 	metaData?: string | IURLMetaData;
 }
 
-export interface IResourceLinkCreateInput extends Omit<IResourceLink, 'creator' | 'creatorId'> {}
+export interface IResourceLinkCreateInput extends OmitFields<IResourceLink> {}
 
-export interface IResourceLinkUpdateInput extends Partial<Omit<IResourceLinkCreateInput, 'entity' | 'entityId'>> {}
+export interface IResourceLinkUpdateInput
+	extends Partial<OmitFields<IResourceLinkCreateInput, 'employee' | 'employeeId' | 'entity' | 'entityId'>> {}
 
 export interface IResourceLinkFindInput extends Pick<IResourceLink, 'entity' | 'entityId'> {}

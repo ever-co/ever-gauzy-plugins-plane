@@ -583,7 +583,7 @@ export class WorkspaceService extends ApiFetchService {
 		try {
 			const activityLogs = await this._activityService.findAll({
 				entity: BaseEntityEnum.Task,
-				creatorId: currentUserId() || employeeId
+				employeeId: currentEmployeeId() || employeeId
 			});
 
 			const issueActivities = await Promise.all(

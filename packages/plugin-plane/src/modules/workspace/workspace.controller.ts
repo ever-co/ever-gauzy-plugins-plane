@@ -16,6 +16,7 @@ import { WorkspaceService } from './workspace.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
+	ICreateIssueLink,
 	ICycle,
 	ID,
 	IEntitySearchFindInput,
@@ -69,6 +70,39 @@ export class WorkspaceController {
 		);
 	}
 
+	/**
+	 * Retrieves the default set of dashboard widgets for the home preferences.
+	 *
+	 * @returns An array of widget objects, each containing a key,
+	 * is_enabled status, config, and sort_order. These widgets represent
+	 * the default settings for the home dashboard.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get dashboard widgets' })
+	@Get('home-preferences')
+	async getWidgets() {
+		return [
+			{
+				key: 'my_stickies',
+				is_enabled: true,
+				config: {},
+				sort_order: 997.0
+			},
+			{
+				key: 'recents',
+				is_enabled: true,
+				config: {},
+				sort_order: 998.0
+			},
+			{
+				key: 'quick_links',
+				is_enabled: true,
+				config: {},
+				sort_order: 999.0
+			}
+		];
+	}
+
 	/*
 	|--------------------------------------------------------------------------
 	| WORKSPACE MEMBERS ROUTES
@@ -77,7 +111,6 @@ export class WorkspaceController {
 
 	/**
 	 * @description - Get member (from connected user) info for a workspace
-	 * @param {string} workspace_name - slug for workspace name
 	 * @returns - A promise that resolves after getting member informations
 	 * @memberof WorkspaceController
 	 */
@@ -175,6 +208,18 @@ export class WorkspaceController {
 	| WORKSPACE GLOBAL DATA ROUTES
 	|--------------------------------------------------------------------------
 	*/
+
+	/**
+	 * Fetches all projects associated with the workspace.
+	 *
+	 * @returns A promise resolving to an array of workspace projects.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace projects' })
+	@Get('projects')
+	async findWorkspaceProjects(): Promise<any> {
+		return await this._workspaceService.findProjects();
+	}
 
 	/**
 	 * Fetches all workspace states associated with projects in the workspace.
@@ -530,5 +575,58 @@ export class WorkspaceController {
 				OIDC_SAML_AUTH: true
 			}
 		};
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| QUICK LINKS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Creates a quick link, an issue link that is not associated with any issue.
+	 * @param data - The input data for creating the quick link.
+	 * @returns The created quick link.
+	 * @throws {BadRequestException} If the API returns an array of links instead of a single link.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create A Quick link' })
+	@Post('quick-links')
+	async createQuickLink(@Body() data: ICreateIssueLink) {
+		return await this._workspaceService.createQuickLink(data);
+	}
+
+	/**
+	 * Updates a quick link in the workspace.
+	 * @param linkId - The ID of the quick link to update.
+	 * @param data - The updated data for the quick link.
+	 * @returns The updated quick link.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Update A Quick link' })
+	@Patch('quick-links/:id')
+	async updateQuickLink(
+		@Param('id') linkId: ID,
+		@Body() data: ICreateIssueLink
+	) {
+		return await this._workspaceService.updateQuickLink(linkId, data);
+	}
+
+	/**
+	 * Finds all quick links in the workspace.
+	 * @returns A promise resolved to an array of quick links.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Find Quick links' })
+	@Get('quick-links')
+	async getQuickinks() {
+		return await this._workspaceService.findQuickLinks();
+	}
+
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete A Quick Link' })
+	@Delete('quick-links/:id')
+	async deleteQuickLink(@Param('id') linkId: ID) {
+		return await this._workspaceService.deleteQuickLink(linkId);
 	}
 }

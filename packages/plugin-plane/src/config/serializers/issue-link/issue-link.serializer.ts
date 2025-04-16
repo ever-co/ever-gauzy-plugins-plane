@@ -38,9 +38,10 @@ export function issueLinkTransformer(
 			metadata: link?.metaData,
 			created_by: link?.employeeId,
 			created_by_id: link?.employeeId,
-			updated_by: '', // TODO : Try to use this too,
+			updated_by: link?.employeeId,
 			project: project?.id,
-			workspace: link?.organizationId
+			workspace: link?.organizationId,
+			owner: link?.employeeId
 		};
 	};
 
@@ -59,10 +60,14 @@ export function issueLinkTransformer(
  */
 export function createIssueLinkInputTransformer(
 	input: ICreateIssueLink,
-	issueId: ID
+	issueId: ID,
+	type: string = 'issue'
 ): IResourceLinkCreateInput {
 	return {
-		entity: BaseEntityEnum.Task,
+		entity:
+			type === 'issue'
+				? BaseEntityEnum.Task
+				: BaseEntityEnum.Organization,
 		entityId: issueId,
 		title: input.title,
 		url: input.url
@@ -85,7 +90,11 @@ export function updateIssueLinkInputTransformer(
  * @param {ID} issueId - The Issue ID
  * @returns {Record<string, string>} A object with filter options
  */
-export function getIssueLinksQuery(issueId?: ID): Record<string, string> {
+export function getIssueLinksQuery(
+	type: BaseEntityEnum,
+	issueId?: ID,
+	organizationId?: ID
+): Record<string, string> {
 	// Tenant and Organization based query
 	const query: Record<string, string> = {
 		...baseGetItemsWhereQuery()
@@ -95,7 +104,17 @@ export function getIssueLinksQuery(issueId?: ID): Record<string, string> {
 		query['where[entityId]'] = issueId;
 	}
 
-	query['where[entity]'] = BaseEntityEnum.Task;
+	if (organizationId) {
+		query['where[entityId]'] = organizationId;
+	}
+
+	if (type === BaseEntityEnum.Task) {
+		query['where[entity]'] = BaseEntityEnum.Task;
+	}
+
+	if (type === BaseEntityEnum.Organization) {
+		query['where[entity]'] = BaseEntityEnum.Organization;
+	}
 
 	return query;
 }

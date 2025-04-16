@@ -33,7 +33,10 @@ import {
 	IUnreadNotificationResponse,
 	INotificationResponse,
 	INotification,
-	IEmployeeSetting
+	IEmployeeSetting,
+	IProject,
+	IIssueLink,
+	ICreateIssueLink
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -544,6 +547,26 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
+	/*************  ✨ Windsurf Command ⭐  *************/
+	/**
+	 * Retrieves all projects for the authenticated employee.
+	 *
+	 * This function fetches all projects with no specific filters and returns an array of projects.
+	 *
+	 * @returns {Promise<IProject[]>} A promise that resolves to an array of projects.
+	 * @throws {BadRequestException} If an error occurs during project retrieval.
+	 */
+	/*******  e3fe4c94-518f-42c5-ad1c-6ca918f83028  *******/
+	async findProjects(): Promise<IProject[]> {
+		try {
+			return await this._projectService.getProjects([]);
+		} catch (error) {
+			// Log the error and throw a BadRequestException
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
+
 	/**
 	 * Retrieves the most recent project IDs.
 	 *
@@ -931,6 +954,7 @@ export class WorkspaceService extends ApiFetchService {
 			const issuesWithLinks = await Promise.all(
 				(assignedIssues ?? []).map(async (issue) => {
 					const issueLinks = await this._issueLinkService.findAll(
+						BaseEntityEnum.Task,
 						issue.id
 					);
 
@@ -1317,7 +1341,7 @@ export class WorkspaceService extends ApiFetchService {
 
 	/*
 	|--------------------------------------------------------------------------
-	| NOTIFICATIONS ROUTES
+	| NOTIFICATIONS SERVICES
 	|--------------------------------------------------------------------------
 	*/
 	/**
@@ -1508,5 +1532,72 @@ export class WorkspaceService extends ApiFetchService {
 			console.error(error);
 			throw new BadRequestException(error);
 		}
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| QUICK LINKS SERVICES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * Creates a quick link, an issue link that is not associated with any issue.
+	 *
+	 * @param input - The input data for creating the quick link.
+	 * @returns The created quick link.
+	 * @throws {BadRequestException} If the API returns an array of links instead of a single link.
+	 */
+	async createQuickLink(input: ICreateIssueLink): Promise<IIssueLink> {
+		const link = await this._issueLinkService.create(
+			input,
+			getCurrentOrganizationSlug(),
+			'organization'
+		);
+		return issueLinkTransformer(link) as IIssueLink;
+	}
+
+	/**
+	 * Updates a quick link in the workspace.
+	 *
+	 * @param linkId - The ID of the quick link to update.
+	 * @param input - The updated data for the quick link.
+	 * @returns The updated quick link.
+	 */
+	async updateQuickLink(
+		linkId: ID,
+		input: ICreateIssueLink
+	): Promise<IIssueLink> {
+		const link = await this._issueLinkService.update(
+			linkId,
+			null,
+			getCurrentOrganizationSlug(),
+			input,
+			BaseEntityEnum.Organization
+		);
+		return issueLinkTransformer(link) as IIssueLink;
+	}
+
+	/**
+	 * Finds all quick links in the workspace.
+	 * @returns {Promise<IIssueLink[]>} A promise resolved to an array of quick links.
+	 */
+	async findQuickLinks(): Promise<IIssueLink[]> {
+		const quickLinks =
+			await this._issueLinkService.findWorkspaceQuickLinks();
+
+		const transformed = issueLinkTransformer(quickLinks);
+
+		// Ensure the result is always an array
+		return Array.isArray(transformed) ? transformed : [transformed];
+	}
+
+	/**
+	 * Deletes a quick link from the workspace.
+	 *
+	 * @param id - The ID of the quick link to delete.
+	 * @returns A promise resolving to the deleted result.
+	 */
+	deleteQuickLink(id: ID): Promise<any> {
+		return this._issueLinkService.delete(id);
 	}
 }

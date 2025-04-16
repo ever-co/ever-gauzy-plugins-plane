@@ -68,7 +68,7 @@ export function modulesTransformer(
 			backlogIssues
 		} = getTaskCounts(projectModule?.tasks);
 
-		const isFavorite = favoriteIds?.includes(projectModule.id);
+		const isFavorite = favoriteIds?.includes(projectModule?.id);
 		const leadId = projectModule?.members?.filter(
 			(member) => member.isManager && member.roleId
 		)[0]?.employeeId;

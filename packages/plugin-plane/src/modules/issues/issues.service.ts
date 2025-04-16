@@ -600,6 +600,7 @@ export class IssuesService extends ApiFetchService {
 			const issuesWithLinks = await Promise.all(
 				issues.map(async (issue) => {
 					const issueLinks = await this._issueLinkService.findAll(
+						BaseEntityEnum.Task,
 						issue.id
 					);
 
@@ -837,7 +838,7 @@ export class IssuesService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`
+				path: `${this.path}/${id}/soft`
 			})
 		).data;
 	}
@@ -1069,7 +1070,10 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			// Find links for logs
-			const links = await this._issueLinkService.findAll(id);
+			const links = await this._issueLinkService.findAll(
+				BaseEntityEnum.Task,
+				id
+			);
 
 			const linkActivities = await Promise.all(
 				(links ?? []).map(async (link) => {
@@ -1420,7 +1424,9 @@ export class IssuesService extends ApiFetchService {
 			const link = await this._issueLinkService.update(
 				id,
 				issueId,
-				input
+				null,
+				input,
+				BaseEntityEnum.Task
 			);
 
 			// Link Details
@@ -1451,7 +1457,10 @@ export class IssuesService extends ApiFetchService {
 	 */
 	async findIssueLinks(id: ID, projectId: ID, issue: ITask): Promise<any> {
 		try {
-			const links = await this._issueLinkService.findAll(id);
+			const links = await this._issueLinkService.findAll(
+				BaseEntityEnum.Task,
+				id
+			);
 
 			const issueLinks: IIssueLink[] = await Promise.all(
 				(links ?? []).map(async (link) => {

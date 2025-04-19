@@ -68,7 +68,7 @@ export function modulesTransformer(
 			backlogIssues
 		} = getTaskCounts(projectModule?.tasks);
 
-		const isFavorite = favoriteIds?.includes(projectModule.id);
+		const isFavorite = favoriteIds?.includes(projectModule?.id);
 		const leadId = projectModule?.members?.filter(
 			(member) => member.isManager && member.roleId
 		)[0]?.employeeId;
@@ -157,7 +157,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		let completedIssues = 0;
 		let pendingIssues = 0;
 
-		tasks.forEach((task) => {
+		(tasks ?? []).forEach((task) => {
 			if (task.members.some((assignee) => assignee.id === member.id)) {
 				// Increment the total issues number
 				totalIssues++;
@@ -178,7 +178,7 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 			first_name: user?.firstName,
 			last_name: user?.lastName,
 			assignee_id: member?.id,
-			display_name: member?.employee.fullName,
+			display_name: member?.employee?.fullName,
 			avatar: user?.imageUrl,
 			total_issues: totalIssues,
 			completed_issues: completedIssues,
@@ -215,6 +215,7 @@ export function createModuleInputTransformer(
 		memberIds: (module.member_ids ?? []).map((id) => id),
 		managerIds: managerId ? [managerId] : [],
 		projectId: module.project_id,
+		tasks: (module.issues ?? []).map((id) => ({ id })),
 		tenantId: currentTenantId(),
 		organizationId: getCurrentOrganizationSlug()
 	};

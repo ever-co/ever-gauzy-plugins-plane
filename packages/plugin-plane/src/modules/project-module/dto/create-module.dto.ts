@@ -57,4 +57,9 @@ export class CreateModuleDTO implements ICreateModuleInput {
 	@IsUUID()
 	@IsNotEmpty()
 	project_id: ID;
+
+	@ApiPropertyOptional({ type: () => Array })
+	@IsArray()
+	@IsOptional()
+	issues?: ID[];
 }

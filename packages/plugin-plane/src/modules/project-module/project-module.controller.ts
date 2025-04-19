@@ -33,6 +33,15 @@ export class ProjectModuleController {
 		return await this._projectModuleService.create(input);
 	}
 
+	@Post(':id/issues')
+	async addIssuesToModule(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID,
+		@Body() input: UpdateModuleDTO
+	) {
+		return await this._projectModuleService.update(id, projectId, input);
+	}
+
 	/**
 	 * @description - Get project modules
 	 * @param {ID} projectId - The ID of the project for whom get modules
@@ -62,9 +71,6 @@ export class ProjectModuleController {
 		return this._projectModuleService.getModule(id, projectId);
 	}
 
-	/**--------------------------------------------------------------
-	 * This API route handlers should be updated after implementing authentication and User features
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description Get user modules properties
 	 * @param {ID} id - Module ID of module for whom get properties

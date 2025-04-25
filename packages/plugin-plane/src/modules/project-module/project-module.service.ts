@@ -86,7 +86,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Return the transformed module, including the managerId if lead is found
 			return modulesTransformer(projectModule, []);
 		} catch (error: any) {
-			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -100,7 +100,9 @@ export class ProjectModuleService extends ApiFetchService {
 	async getAllModulesByProject(projectId?: ID) {
 		try {
 			// Build the query string once
-			const query = qs.stringify(getModulesQuery(projectId));
+			const query = qs.stringify(
+				getModulesQuery(projectId, ['members.employee'])
+			);
 
 			const favoriteIds =
 				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
@@ -132,7 +134,9 @@ export class ProjectModuleService extends ApiFetchService {
 	 */
 	async getModule(id: ID, projectId: ID) {
 		try {
-			const module = await this.getExternalModule(id, projectId);
+			const module = await this.getExternalModule(id, projectId, [
+				'members.employee'
+			]);
 
 			// Favorites
 			const favoriteIds =
@@ -188,15 +192,15 @@ export class ProjectModuleService extends ApiFetchService {
 
 			// Transform the update input for API compatibility, using the correct managerId (userId)
 			const body = createModuleInputTransformer(
-				input,
-				lead?.employee.userId
+				{ ...input },
+				lead?.employeeId
 			);
 
 			// Update the module using a PATCH request
 			await this.apiFetch({
 				method: 'PUT',
 				path: `${this.path}/${id}`,
-				body
+				body: { ...existingModule, ...body }
 			});
 
 			const favoriteIds =
@@ -230,9 +234,6 @@ export class ProjectModuleService extends ApiFetchService {
 		).data;
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication and User features
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description Get user modules properties
 	 * @param {ID} id - Module ID of module for whom get properties

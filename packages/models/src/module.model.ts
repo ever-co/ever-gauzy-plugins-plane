@@ -37,9 +37,10 @@ export interface ICreateModuleInput {
 	start_date?: Date;
 	target_date?: Date;
 	status?: ProjectModuleStatusEnum;
-	lead_id?: string;
-	member_ids?: string[];
-	project_id: string;
+	lead_id?: ID;
+	member_ids?: ID[];
+	project_id: ID;
+	issues?: ID[];
 }
 
 export interface IModuleFindInput {

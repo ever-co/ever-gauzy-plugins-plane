@@ -193,7 +193,7 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;
 		} catch (error: any) {
-			console.log(error.response);
+			console.log('============', error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -205,14 +205,35 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
-		const project = await this.getProject(id, ['members']);
-		const members = project.members;
-		return members.map((member) => ({
-			id: member.id,
-			member: member.member_id,
-			role: member.role,
-			project: project.id
-		}));
+		const employeeId = currentEmployeeId();
+		try {
+			const project = await this.getExternalProject(id, [
+				'members.employee.user.role',
+				'members.role'
+			]);
+			const members = project.members;
+			const currentMember = (members ?? []).find(
+				(member) => member.employeeId === employeeId
+			);
+			return members?.map((member) => {
+				if (typeof member !== 'string') {
+					return {
+						id: member.employee?.user.id || member.employee?.userId,
+						member: member.employeeId,
+						role: members
+							.map(({ employeeId }) => employeeId)
+							.includes(currentMember?.employeeId)
+							? currentMember?.isManager
+								? 20
+								: 15
+							: 0,
+						project: project.id
+					};
+				}
+			});
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	/**--------------------------------------------------------------

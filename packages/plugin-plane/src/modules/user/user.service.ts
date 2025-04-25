@@ -13,7 +13,6 @@ import {
 	getUserMeQueryParams,
 	getUserOrganizationsQueryParams,
 	organizationsTranformer,
-	roleTransformer,
 	updateUserProfileInputTranformer,
 	userMeTransformer,
 	userProfileTransformer,
@@ -194,7 +193,7 @@ export class UserService extends ApiFetchService {
 			const employeeProjects =
 				await this._projectService.getExternalProjectsByEmployee(
 					employeeId,
-					['members.employee.user.role']
+					['members.employee.user.role', 'members.role']
 				);
 
 			const projectRoles = employeeProjects.reduce(
@@ -204,9 +203,7 @@ export class UserService extends ApiFetchService {
 					);
 
 					if (member) {
-						acc[project.id] = roleTransformer(
-							member.employee.user.role
-						);
+						acc[project.id] = member.isManager ? 20 : 15;
 					}
 					return acc;
 				},

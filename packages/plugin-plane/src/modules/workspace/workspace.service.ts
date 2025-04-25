@@ -559,7 +559,11 @@ export class WorkspaceService extends ApiFetchService {
 	/*******  e3fe4c94-518f-42c5-ad1c-6ca918f83028  *******/
 	async findProjects(): Promise<IProject[]> {
 		try {
-			return await this._projectService.getProjects([]);
+			return await this._projectService.getProjects([
+				'members.employee.user.role',
+				'organizationSprints',
+				'modules'
+			]);
 		} catch (error) {
 			// Log the error and throw a BadRequestException
 			console.log(error);
@@ -1285,11 +1289,16 @@ export class WorkspaceService extends ApiFetchService {
 				const members = project.members;
 
 				return {
-					user_mention: members.map((member) => ({
-						member__display_name: member.member__display_name,
-						member__id: member.member_id,
-						member__avatar_url: member.member__avatar
-					}))
+					user_mention: members.map((member) => {
+						if (typeof member !== 'string') {
+							return {
+								member__display_name:
+									member.member__display_name,
+								member__id: member.member_id,
+								member__avatar_url: member.member__avatar
+							};
+						}
+					})
 				};
 			}
 		} catch (error) {

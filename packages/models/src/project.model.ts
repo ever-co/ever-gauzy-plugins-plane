@@ -16,7 +16,7 @@ export interface IProject {
 	sort_order?: number;
 	member_role?: number;
 	anchor?: any;
-	members?: IProjectMember[];
+	members?: (IProjectMember | ID)[];
 	state_id?: any;
 	priority?: any;
 	start_date?: Date;

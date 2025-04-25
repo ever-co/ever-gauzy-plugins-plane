@@ -18,9 +18,6 @@ import { CreateProjectDTO, ProjectMemberDTO } from './dto';
 export class ProjectController {
 	constructor(private readonly _projectService: ProjectService) {}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Get all projects for a workspace - We will filter this with employee projects
 	 * @returns - A promise that resolves after getting all projects for a workspace
@@ -48,7 +45,8 @@ export class ProjectController {
 	@Get(':id')
 	async getProject(@Param('id') id: ID) {
 		return await this._projectService.getProject(id, [
-			'members.employee.user',
+			'members.employee.user.role',
+			'members.role',
 			'organizationSprints',
 			'tasks',
 			'modules'

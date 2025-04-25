@@ -28,7 +28,7 @@ export class ProjectController {
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get workspace projects' })
-	@Get()
+	@Get('details')
 	async getProjects() {
 		return await this._projectService.getProjects([
 			'members.employee.user.role',

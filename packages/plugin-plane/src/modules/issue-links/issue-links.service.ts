@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
+	BaseEntityEnum,
 	ICreateIssueLink,
 	ID,
 	IPagination,
@@ -25,10 +26,14 @@ export class IssueLinksService extends ApiFetchService {
 	 * @returns A promise resolved to created link
 	 * @memberof IssueLinksService
 	 */
-	async create(input: ICreateIssueLink, issueId: ID): Promise<IResourceLink> {
+	async create(
+		input: ICreateIssueLink,
+		issueId: ID,
+		type?: string
+	): Promise<IResourceLink> {
 		try {
 			const body = {
-				...createIssueLinkInputTransformer(input, issueId),
+				...createIssueLinkInputTransformer(input, issueId, type),
 				organizationId: getCurrentOrganizationSlug()
 			};
 
@@ -57,10 +62,17 @@ export class IssueLinksService extends ApiFetchService {
 	async update(
 		id: ID,
 		issueId: ID,
-		input: ICreateIssueLink
+		organizationId: ID,
+		input: ICreateIssueLink,
+		type: BaseEntityEnum
 	): Promise<IResourceLink> {
 		try {
-			const existingLink = await this.findOne(id, issueId);
+			const existingLink = await this.findOne(
+				id,
+				type,
+				issueId,
+				organizationId
+			);
 
 			if (!existingLink) {
 				throw new BadRequestException('Link Not Found');
@@ -88,9 +100,15 @@ export class IssueLinksService extends ApiFetchService {
 	 * @returns A promise resolved to fetched links
 	 * @memberof IssueLinksService
 	 */
-	async findAll(issueId: ID): Promise<IResourceLink[]> {
+	async findAll(
+		type: BaseEntityEnum,
+		issueId?: ID,
+		organizationId?: ID
+	): Promise<IResourceLink[]> {
 		try {
-			const query = qs.stringify(getIssueLinksQuery(issueId));
+			const query = qs.stringify(
+				getIssueLinksQuery(type, issueId, organizationId)
+			);
 
 			const links: IPagination<IResourceLink> = (
 				await this.apiFetch({ method: 'GET', path: this.path, query })
@@ -109,9 +127,16 @@ export class IssueLinksService extends ApiFetchService {
 	 * @returns A promise resolved to found link
 	 * @memberof IssueLinksService
 	 */
-	async findOne(id: ID, issueId: ID): Promise<IResourceLink> {
+	async findOne(
+		id: ID,
+		type: BaseEntityEnum,
+		issueId: ID,
+		organizationId: ID
+	): Promise<IResourceLink> {
 		try {
-			const query = qs.stringify(getIssueLinksQuery(issueId));
+			const query = qs.stringify(
+				getIssueLinksQuery(type, issueId, organizationId)
+			);
 
 			const link: IResourceLink = (
 				await this.apiFetch({
@@ -138,8 +163,28 @@ export class IssueLinksService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`
+				path: `${this.path}/${id}/soft`
 			})
 		).data;
+	}
+
+	/**
+	 * @description Find all workspace quick links
+	 * @returns A promise resolved to an array of quick links
+	 * @memberof IssueLinksService
+	 */
+	async findWorkspaceQuickLinks(): Promise<IResourceLink[]> {
+		try {
+			const links = await this.findAll(
+				BaseEntityEnum.Organization,
+				null,
+				getCurrentOrganizationSlug()
+			);
+
+			return links;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException();
+		}
 	}
 }

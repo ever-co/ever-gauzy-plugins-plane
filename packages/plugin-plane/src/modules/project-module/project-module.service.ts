@@ -229,7 +229,7 @@ export class ProjectModuleService extends ApiFetchService {
 		return (
 			await this.apiFetch({
 				method: 'DELETE',
-				path: `${this.path}/${id}`
+				path: `${this.path}/${id}/soft`
 			})
 		).data;
 	}

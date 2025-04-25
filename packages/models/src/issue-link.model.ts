@@ -17,6 +17,7 @@ export interface IIssueLink {
 	workspace?: ID;
 	issue?: ID;
 	issue_id?: ID;
+	owner?: ID;
 }
 
 export interface ICreateIssueLink {

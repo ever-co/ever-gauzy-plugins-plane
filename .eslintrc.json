@@ -1,49 +1,44 @@
 {
 	"root": true,
-	"extends": ["turbo", "next/core-web-vitals", "@typescript-eslint/recommended"],
 	"parser": "@typescript-eslint/parser",
-	"plugins": ["@typescript-eslint"],
-	"parserOptions": {
-		"ecmaVersion": "latest",
-		"sourceType": "module",
-		"project": "./tsconfig.json"
-	},
-	"rules": {
-		// Règles générales
-		"comma-dangle": "off",
-		"@typescript-eslint/comma-dangle": "off",
-		"@typescript-eslint/no-unused-vars": "warn",
-		"@typescript-eslint/no-explicit-any": "warn",
-
-		// Règles spécifiques à Next.js
-		"@next/next/no-html-link-for-pages": "error",
-		"@next/next/no-img-element": "warn",
-
-		// Règles pour une meilleure qualité de code
-		"prefer-const": "error",
-		"no-var": "error"
-	},
+	"ignorePatterns": ["**/*"],
+	"plugins": ["@nrwl/nx", "@typescript-eslint"],
 	"overrides": [
 		{
-			"files": ["*.ts", "*.tsx"],
+			"files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
 			"rules": {
-				"@typescript-eslint/explicit-function-return-type": "off",
-				"@typescript-eslint/explicit-module-boundary-types": "off"
+				"comma-dangle": "off",
+				"@typescript-eslint/comma-dangle": "off",
+				"@nrwl/nx/enforce-module-boundaries": [
+					"error",
+					{
+						"enforceBuildableLibDependency": true,
+						"allow": [],
+						"depConstraints": [
+							{
+								"sourceTag": "*",
+								"onlyDependOnLibsWithTags": ["*"]
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"files": ["*.ts", "*.tsx"],
+			"extends": ["plugin:@nrwl/nx/typescript"],
+			"parserOptions": { "project": "./tsconfig.*?.json" },
+			"rules": {
+				"comma-dangle": "off",
+				"@typescript-eslint/comma-dangle": "off"
 			}
 		},
 		{
 			"files": ["*.js", "*.jsx"],
+			"extends": ["plugin:@nrwl/nx/javascript"],
 			"rules": {
-				"@typescript-eslint/no-var-requires": "off"
-			}
-		},
-		// Configuration spécifique pour les fichiers de configuration
-		{
-			"files": ["next.config.js", "tailwind.config.js", "postcss.config.js", "turbo.json"],
-			"rules": {
-				"@typescript-eslint/no-var-requires": "off"
+				"comma-dangle": "off"
 			}
 		}
-	],
-	"ignorePatterns": ["node_modules/", ".next/", ".turbo/", "dist/", "build/", "out/", "*.config.js"]
+	]
 }

@@ -160,6 +160,7 @@ export class UserService extends ApiFetchService {
 		try {
 			const query = qs.stringify(
 				getUserOrganizationsQueryParams([
+					'organization',
 					'organization.employees.user.role'
 				])
 			);

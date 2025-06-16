@@ -69,13 +69,13 @@ export class AuthController {
 					? redirectPath
 					: `/${redirectPath}`;
 
-				return res.redirect(`http://localhost${normalizedPath}`);
+				return res.redirect(`http://localhost:3000${normalizedPath}`);
 			}
 			const nextPathParam = data.next_path
 				? `&next_path=${encodeURIComponent(data.next_path)}`
 				: '';
 			return res.redirect(
-				`http://localhost/?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
+				`http://localhost:3000/?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
 			);
 		} catch (error) {
 			console.log(error);
@@ -88,7 +88,7 @@ export class AuthController {
 	@Public()
 	async signout(@Res() res: Response, @Req() req: Request) {
 		clearTokenChuncks(req, res);
-		return res.redirect('http://localhost');
+		return res.redirect('http://localhost:3000');
 	}
 
 	@HttpCode(HttpStatus.OK)
@@ -191,12 +191,12 @@ export class AuthController {
 					sendTokenChunks(refrechedToken.token, res);
 
 					// 9. Redirect the user to the onboarding page
-					return res.redirect('http://localhost/onboarding');
+					return res.redirect('http://localhost:3000/onboarding');
 				}
 			}
 			// 10. Redirect to error page if user registration fails
 			return res.redirect(
-				'http://localhost/?error_code=INVALID_EMAIL_SIGN_UP&error_message=INVALID_EMAIL_SIGN_UP'
+				'http://localhost:3000/?error_code=INVALID_EMAIL_SIGN_UP&error_message=INVALID_EMAIL_SIGN_UP'
 			);
 		} catch (error: any) {
 			// Log any errors that occur during the sign-up process

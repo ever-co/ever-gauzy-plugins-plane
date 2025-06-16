@@ -45,7 +45,7 @@ export const getUserMeQueryParams = {
  */
 export function organizationsTranformer(organizations: IOrganization[]) {
 	return organizations.map((organization) => {
-		const owner = organization.employees.find((employee) => {
+		const owner = organization?.employees?.find((employee) => {
 			const employeeRole = employee.user.role.name;
 			return (
 				employeeRole === RolesEnum.SUPER_ADMIN ||
@@ -55,18 +55,18 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 		});
 
 		return {
-			id: organization.id,
+			id: organization?.id,
 			owner: actorDetailsTransformer(owner),
-			total_members: organization.employees.length,
+			total_members: organization?.totalEmployees,
 			// total_issues: organization.ta.length,
-			created_at: organization.createdAt,
+			created_at: organization?.createdAt,
 			current_plan: 'PRO',
-			updated_at: organization.updatedAt,
-			deleted_at: organization.deletedAt,
-			name: organization.name,
-			logo: organization.imageUrl,
-			slug: organization.id,
-			organization_size: organization.minimumProjectSize || '11-50'
+			updated_at: organization?.updatedAt,
+			deleted_at: organization?.deletedAt,
+			name: organization?.name,
+			logo: organization?.imageUrl,
+			slug: organization?.id,
+			organization_size: organization?.minimumProjectSize || '11-50'
 			// created_by: organization.createdBy,
 			// updated_by: organization.updatedBy
 		};
@@ -153,8 +153,10 @@ export function userSettingsTranformer(user: IUser) {
 		workspace: {
 			last_workspace_id: user.lastOrganizationId,
 			last_workspace_slug: user.lastOrganizationId,
-			fallback_workspace_id: user.defaultOrganizationId,
-			fallback_workspace_slug: user.defaultOrganizationId,
+			fallback_workspace_id:
+				user.defaultOrganizationId ?? user.employee.organizationId,
+			fallback_workspace_slug:
+				user.defaultOrganizationId ?? user.employee.organizationId,
 			invites: user.invites
 		}
 	};

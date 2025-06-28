@@ -233,7 +233,8 @@ export function cycleTransformer(
 					: sprint.tasks?.length,
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
-			owned_by_id: sprint.members?.find((member) => member.roleId)?.id,
+			owned_by_id: sprint.members?.find((member) => member.roleId)
+				?.employeeId,
 			created_by: currentEmployeeId(), // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
 			workspace_id: sprint.organizationId,

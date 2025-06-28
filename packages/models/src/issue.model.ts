@@ -63,25 +63,38 @@ export interface IIssueCreateInput extends Omit<IIssue, 'id' | 'parent'> {}
 export type IIssueUpdateInput = IIssue;
 
 export interface IIssueFindInput {
-	module?: string;
-	cycle?: string;
-	group_by?: IssueGroupByEnum;
-	sub_group_by?: IssueGroupByEnum;
-	order_by?: IssueOrderByField;
-	sub_issue?: boolean;
+	issues?: string;
+
+	// Users/assigneers/collaborators
 	creatorId?: ID;
 	created_by?: string;
 	assignees?: string;
-	priority?: string;
-	projectId?: ID;
-	state?: string;
-	type?: IssueFindByTypeEnum;
-	start_date?: string;
-	target_date?: string;
 	subscriber?: string;
 	mentions?: string;
-	labels?: string;
+
+	// Projects/modules/cycles
+	projectId?: ID;
+	module?: string;
 	module_ids?: ID[];
+	cycle?: string;
+
+	// Group and Order
+	group_by?: IssueGroupByEnum;
+	sub_group_by?: IssueGroupByEnum;
+	order_by?: IssueOrderByField;
+
+	// State/Type/priority/sub issues
+	state?: string;
+	type?: IssueFindByTypeEnum;
+	priority?: string;
+	sub_issue?: boolean;
+
+	// Dates
+	start_date?: string;
+	target_date?: string;
+
+	// Labels
+	labels?: string;
 }
 
 export enum IssueFindByTypeEnum {

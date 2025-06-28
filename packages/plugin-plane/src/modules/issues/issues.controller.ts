@@ -69,6 +69,28 @@ export class IssuesController {
 	}
 
 	/**
+	 * @description - Get project issues list
+	 * @param {ID} projectId - The ID of the project for whom get issues
+	 * @returns - A promise that resolves after got issues
+	 * @memberof IssuesController
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Issues' })
+	@Get('list')
+	async getIssuesList(
+		@Param('projectId') projectId: ID,
+		@Query() options: IIssueFindInput,
+		@Headers('referer') referer: string
+	) {
+		const issues = await this._issueService.getAllIssuesByProject(
+			projectId,
+			options,
+			referer
+		);
+		return issues.results;
+	}
+
+	/**
 	 * @description - Find issue by Id
 	 * @param {ID} id - The issue ID to search
 	 * @returns - A promise that resolves after issue fetched

@@ -746,6 +746,7 @@ export const getTaskQuery = (
 		created_by,
 		creatorId,
 		cycle,
+		issues,
 		labels,
 		module,
 		projectId: project_id,
@@ -756,11 +757,26 @@ export const getTaskQuery = (
 		query['where[projectId]'] = projectId;
 	}
 
-	if (assignees && assignees.includes(',')) {
-		const members = issueFilterSplitter(assignees);
-		members.forEach((memberId, i) => {
-			query[`filters[members][${i}]`] = memberId;
-		});
+	if (issues) {
+		if (issues.includes(',')) {
+			const tasks = issueFilterSplitter(issues);
+			tasks.forEach((taskId, i) => {
+				query[`filters[id][${i}]`] = taskId;
+			});
+		} else {
+			query[`where[id]`] = issues;
+		}
+	}
+
+	if (assignees) {
+		if (assignees.includes(',')) {
+			const members = issueFilterSplitter(assignees);
+			members.forEach((memberId, i) => {
+				query[`filters[members][${i}]`] = memberId;
+			});
+		} else {
+			query[`where[members][id]`] = assignees;
+		}
 	}
 
 	if (created_by) {
@@ -1006,7 +1022,6 @@ export function createIssueInputTransformer(
 	return {
 		title: issue?.name,
 		description: issue?.description_html,
-		priority: issue?.priority,
 		startDate: issue?.start_date,
 		dueDate: issue?.target_date,
 		projectId: issue?.project_id,
@@ -1019,6 +1034,9 @@ export function createIssueInputTransformer(
 		taskStatusId: issue?.state_id?.length > 0 ? issue?.state_id : null,
 		tenantId: currentTenantId(),
 		organizationId: getCurrentOrganizationSlug(),
+		...(issue.priority !== ('none' as TaskPriorityEnum) && {
+			priority: issue.priority
+		}),
 		modules:
 			issue?.module_ids?.map(
 				(id) => ({ id }) as IOrganizationProjectModule

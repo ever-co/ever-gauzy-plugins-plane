@@ -619,7 +619,8 @@ export class WorkspaceService extends ApiFetchService {
 						activityLog.entityId,
 						[
 							'project.members.employee.user.role',
-							'organizationSprint'
+							'organizationSprint',
+							'taskSprintHistories.toSprint'
 						]
 					);
 
@@ -633,6 +634,24 @@ export class WorkspaceService extends ApiFetchService {
 								task.project
 							);
 
+						// Check if updatedValues contains organizationSprintId
+						const updatedSprintObj: any =
+							activityLog.updatedValues?.find(
+								(value) => 'organizationSprintId' in value
+							);
+						let updatedSprint = null;
+
+						if (
+							updatedSprintObj &&
+							updatedSprintObj.organizationSprintId
+						) {
+							updatedSprint = task.taskSprintHistories.find(
+								(sprint) =>
+									sprint.toSprintId ===
+									updatedSprintObj.organizationSprintId
+							)?.toSprint;
+						}
+
 						const transformedActivityLogs =
 							issueActivityLogTransformer(
 								activityLog,
@@ -640,7 +659,16 @@ export class WorkspaceService extends ApiFetchService {
 								actor,
 								project,
 								workspace,
-								issue.cycle
+								updatedSprint
+									? updatedSprint
+									: task.organizationSprint,
+								task.project.members
+									.map((member) => member.employee)
+									.filter(
+										(employee) =>
+											employee.userId ===
+											activityLog.createdByUserId
+									)[0]
 							);
 
 						return Array.isArray(transformedActivityLogs)

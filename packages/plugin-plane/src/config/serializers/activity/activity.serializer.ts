@@ -39,23 +39,24 @@ function activityLogDetails(
 	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspaceDetail: IWorkspaceInfo
+	workspaceDetail: IWorkspaceInfo,
+	employee: IEmployee
 ) {
 	return {
 		issue_detail: issue,
-		actor_detail: actorDetailsTransformer(actor),
+		actor_detail: actorDetailsTransformer(activityLog.employee || employee),
 		project_detail: getProjectsResponse([project])[0], // Get the first project detail from the response
 		workspace_detail: workspaceDetail,
 		created_at: activityLog.createdAt,
 		updated_at: activityLog.updatedAt,
 		deleted_at: activityLog.deletedAt,
 		attachments: [],
-		created_by: activityLog.employeeId,
+		created_by: activityLog.employee?.userId || activityLog.createdByUserId,
 		updated_by: null,
 		project: project.id,
 		workspace: workspaceDetail.id,
 		issue: issue.id,
-		actor: actor?.id
+		actor: activityLog.employeeId || employee.id
 	};
 }
 
@@ -77,6 +78,7 @@ const transformIssueActivityLog = (
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
 	sprint: IOrganizationSprint | ICycle,
+	employee: IEmployee,
 	oldStatusValue?: string
 ): IIssueActivity[] => {
 	const {
@@ -101,7 +103,8 @@ const transformIssueActivityLog = (
 		issue,
 		actor,
 		project,
-		workspaceDetail
+		workspaceDetail,
+		employee
 	);
 
 	// Process updated fields to create activity entries
@@ -334,7 +337,8 @@ export function issueLinksActivities(
 	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspaceDetail: IWorkspaceInfo
+	workspaceDetail: IWorkspaceInfo,
+	employee: IEmployee
 ): IIssueActivity[] {
 	// Map over activity logs and transform each log into an issue activity entry
 	const activities = activityLogs.map((activityLog, i) => {
@@ -344,7 +348,8 @@ export function issueLinksActivities(
 			issue,
 			actor,
 			project,
-			workspaceDetail
+			workspaceDetail,
+			employee
 		);
 
 		// Extract and normalize the action performed (verb) to lowercase
@@ -376,7 +381,8 @@ export function issueRelationActivities(
 	issue: IIssue,
 	actor: IEmployee,
 	project: IOrganizationProject,
-	workspaceDetail: IWorkspaceInfo
+	workspaceDetail: IWorkspaceInfo,
+	employee: IEmployee
 ): IIssueActivity[] {
 	// Map over activity logs and transform each log into an issue activity entry
 	const activities = activityLogs.map((activityLog) => {
@@ -386,7 +392,8 @@ export function issueRelationActivities(
 			issue,
 			actor,
 			project,
-			workspaceDetail
+			workspaceDetail,
+			employee
 		);
 
 		// Extract and normalize the action performed (verb) to lowercase
@@ -438,7 +445,8 @@ export function issueActivityLogTransformer(
 	actor: IEmployee,
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
-	sprint: IOrganizationSprint | ICycle
+	sprint: IOrganizationSprint | ICycle,
+	employee: IEmployee
 ): IIssueActivity[] | IIssueActivity {
 	if (Array.isArray(activityLogs)) {
 		// Combine multiple activity logs into a single array of structured activities
@@ -450,7 +458,8 @@ export function issueActivityLogTransformer(
 					actor,
 					project,
 					workspaceDetail,
-					sprint
+					sprint,
+					employee
 				)
 			)
 			.reduce((acc, cur) => acc.concat(cur), []);
@@ -465,7 +474,8 @@ export function issueActivityLogTransformer(
 		actor,
 		project,
 		workspaceDetail,
-		sprint
+		sprint,
+		employee
 	);
 }
 
@@ -522,6 +532,7 @@ export function getActivityLogsQuery(
 	if (employeeId) {
 		query['employeeId'] = employeeId;
 	}
+	query['relations[0]'] = 'employee';
 
 	return query;
 }

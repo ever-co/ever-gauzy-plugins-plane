@@ -1039,7 +1039,12 @@ export class IssuesService extends ApiFetchService {
 
 			const task = await this.getExternalIssue(
 				id,
-				['project.members.employee.user.role', 'project.organization'],
+				[
+					'project.members.employee.user.role',
+					'project.organization',
+					'organizationSprint',
+					'taskSprintHistories.toSprint'
+				],
 				false
 			);
 
@@ -1054,13 +1059,38 @@ export class IssuesService extends ApiFetchService {
 							task.project
 						);
 
+					// Check if updatedValues contains organizationSprintId
+					const updatedSprintObj: any =
+						activityLog.updatedValues?.find(
+							(value) => 'organizationSprintId' in value
+						);
+					let updatedSprint = null;
+
+					if (
+						updatedSprintObj &&
+						updatedSprintObj.organizationSprintId
+					) {
+						updatedSprint = task.taskSprintHistories.find(
+							(sprint) =>
+								sprint.toSprintId ===
+								updatedSprintObj.organizationSprintId
+						)?.toSprint;
+					}
+
 					const transformedActivityLogs = issueActivityLogTransformer(
 						activityLog,
 						issue,
 						actor,
 						project,
 						workspace,
-						issue.cycle
+						updatedSprint ? updatedSprint : task.organizationSprint,
+						task.project.members
+							.map((member) => member.employee)
+							.filter(
+								(employee) =>
+									employee.userId ===
+									activityLog.createdByUserId
+							)[0]
 					);
 
 					return Array.isArray(transformedActivityLogs)
@@ -1099,7 +1129,14 @@ export class IssuesService extends ApiFetchService {
 								issue,
 								actor,
 								project,
-								workspace
+								workspace,
+								task.project.members
+									.map((member) => member.employee)
+									.filter(
+										(employee) =>
+											employee.userId ===
+											log.createdByUserId
+									)[0]
 							);
 						})
 					);
@@ -1135,7 +1172,14 @@ export class IssuesService extends ApiFetchService {
 								issue,
 								actor,
 								project,
-								workspace
+								workspace,
+								task.project.members
+									.map((member) => member.employee)
+									.filter(
+										(employee) =>
+											employee.userId ===
+											log.createdByUserId
+									)[0]
 							);
 						})
 					);

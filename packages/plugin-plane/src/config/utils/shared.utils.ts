@@ -98,37 +98,106 @@ export function issueFilterSplitter(
 	return criteria.split(separator);
 }
 
+/**
+ * Splits a token string into chunks of specified size.
+ * @param token - The token string to be split.
+ * @param chunkSize - The size of each chunk.
+ * @returns An array of token chunks.
+ */
 export function splitToken(token: string, chunkSize: number): string[] {
+	// Initialize an array to store the chunks
 	const chunks: string[] = [];
+	// Iterate through the token string, slicing it into chunks of specified size
 	for (let i = 0; i < token.length; i += chunkSize) {
 		chunks.push(token.slice(i, i + chunkSize));
 	}
+	// Return the array of chunks
 	return chunks;
 }
 
+/**
+ * Sends token chunks as cookies in the response.
+ * @param token - The token string to be split and sent as cookies.
+ * @param response - The response object to set cookies on.
+ */
 export function sendTokenChunks(token: string, response: Response) {
+	// Split the token into chunks using the splitToken function
 	const tokenChunks = splitToken(token, MAX_TOKEN_COOKIE_SIZE);
+	// Iterate through each chunk and set it as a cookie
 	tokenChunks.forEach((chunk, index) => {
 		response.cookie(`auth-proxy-plane-token-${index}`, chunk, {
-			httpOnly: true,
-			secure: EXTERNAL_API_MODE() === 'production',
-			sameSite: 'strict'
+			httpOnly: true, // Ensure cookie is inaccessible to JavaScript
+			secure: EXTERNAL_API_MODE() === 'production', // Use secure cookies in production
+			sameSite: 'strict' // Restrict cookie to same-site requests
 		});
 	});
 }
 
+/**
+ * Clears token chunk cookies from the response.
+ * @param request - The request object containing cookies.
+ * @param response - The response object to clear cookies from.
+ */
 export function clearTokenChuncks(request: Request, response: Response) {
+	// Initialize index for cookie names
 	let index = 0;
+	// Loop to find and clear all token chunk cookies
 	while (true) {
 		const cookieName = `auth-proxy-plane-token-${index}`;
+		// Break if no cookie exists with the current index
 		if (!request.cookies[cookieName]) {
 			break;
 		}
+		// Clear the cookie with matching name
 		response.clearCookie(cookieName, {
-			httpOnly: true,
-			secure: EXTERNAL_API_MODE() === 'production',
-			sameSite: 'strict'
+			httpOnly: true, // Ensure cookie is inaccessible to JavaScript
+			secure: EXTERNAL_API_MODE() === 'production', // Use secure cookies in production
+			sameSite: 'strict' // Restrict cookie to same-site requests
 		});
 		index++;
 	}
+}
+
+/**
+ * Checks if an item is empty, handling arrays, objects, and primitive values.
+ * @param item - The item to check for emptiness. Can be of any type.
+ * @returns True if the item is considered empty, false otherwise.
+ */
+export function isEmpty(item: any): boolean {
+	// Handle arrays by filtering out empty elements and checking length
+	if (item instanceof Array) {
+		item = item.filter((val) => !isEmpty(val));
+		return item.length === 0;
+	}
+	// Handle objects by removing null, undefined, or empty string properties
+	else if (item && typeof item === 'object') {
+		for (const key in item) {
+			if (
+				item[key] === null ||
+				item[key] === undefined ||
+				item[key] === ''
+			) {
+				delete item[key];
+			}
+		}
+		// Return true if no properties remain
+		return Object.keys(item).length === 0;
+	}
+	// Handle primitive values (null, undefined, or string representations)
+	else {
+		return (
+			!item ||
+			(item + '').toLocaleLowerCase() === 'null' ||
+			(item + '').toLocaleLowerCase() === 'undefined'
+		);
+	}
+}
+
+/**
+ * Check value not empty.
+ * @param item
+ * @returns {boolean}
+ */
+export function isNotEmpty(item: any): boolean {
+	return !isEmpty(item);
 }

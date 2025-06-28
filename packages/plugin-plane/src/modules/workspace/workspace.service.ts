@@ -70,7 +70,8 @@ import {
 	currentTenantId,
 	memberPropertiesSerializer,
 	notificationTranformer,
-	unreadNotificationData
+	unreadNotificationData,
+	isNotEmpty
 } from '../../config';
 import {
 	getOrganizationQuery,
@@ -1305,32 +1306,55 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<any>} A promise resolving to an object containing the user mention details.
 	 * @throws {BadRequestException} Throws a BadRequestException if an error occurs during the process.
 	 */
-	async entitySearch(options: IEntitySearchFindInput): Promise<any> {
+	async entitySearch(options: IEntitySearchFindInput): Promise<{
+		user_mention: Array<{
+			member__display_name: string;
+			member__id: string;
+			member__avatar_url: string;
+		}>;
+	}> {
+		const { project_id, query_type } = options;
+
 		try {
-			const { project_id, query_type } = options;
+			let members: any[] = [];
 
 			if (query_type === 'user_mention') {
-				const project = await this._projectService.getProject(
-					project_id,
-					['members.employee.user']
-				);
-				const members = project.members;
-
-				return {
-					user_mention: members.map((member) => {
-						if (typeof member !== 'string') {
-							return {
-								member__display_name:
-									member.member__display_name,
-								member__id: member.member_id,
-								member__avatar_url: member.member__avatar
-							};
-						}
-					})
-				};
+				if (isNotEmpty(project_id)) {
+					const project = await this._projectService.getProject(
+						project_id,
+						['members.employee.user']
+					);
+					members = project.members || [];
+				} else {
+					const projects = await this._projectService.getProjects(
+						['members.employee.user'],
+						'objects'
+					);
+					members = projects.flatMap(
+						(project) => project.members || []
+					);
+				}
 			}
+
+			return {
+				user_mention: members
+					.filter(
+						(member): member is NonNullable<typeof member> =>
+							member != null && typeof member !== 'string'
+					)
+					.map(
+						({
+							member__display_name,
+							member__id,
+							member__avatar
+						}) => ({
+							member__display_name,
+							member__id,
+							member__avatar_url: member__avatar
+						})
+					)
+			};
 		} catch (error) {
-			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}

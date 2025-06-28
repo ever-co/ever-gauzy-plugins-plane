@@ -28,6 +28,7 @@ import {
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
 	getProjectsResponse,
+	isEmpty,
 	MEMBER_DEFAULT_VIEW_PROPS
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -77,7 +78,10 @@ export class ProjectService extends ApiFetchService {
 	 * @returns - A promise that resolves after getting all projects for a workspace
 	 * @memberof ProjectService
 	 */
-	async getProjects(relations?: string[]): Promise<Partial<IProject>[]> {
+	async getProjects(
+		relations?: string[],
+		memberReturnType: 'ids' | 'objects' = 'ids'
+	): Promise<Partial<IProject>[]> {
 		try {
 			const projects = await this.getExternalProjects(relations);
 
@@ -86,7 +90,7 @@ export class ProjectService extends ApiFetchService {
 					BaseEntityEnum.OrganizationProject
 				);
 
-			return getProjectsResponse(projects, favoriteIds);
+			return getProjectsResponse(projects, favoriteIds, memberReturnType);
 		} catch (error: any) {
 			console.log(error.reponse);
 			throw new BadRequestException(error);
@@ -156,6 +160,12 @@ export class ProjectService extends ApiFetchService {
 		relations?: string[]
 	): Promise<IOrganizationProject> {
 		try {
+			if (isEmpty(id)) {
+				throw new BadRequestException(
+					'Please provide the project ID to search'
+				);
+			}
+
 			const query = qs.stringify(getProjectsQuery(relations));
 			return (
 				await this.apiFetch({
@@ -165,7 +175,7 @@ export class ProjectService extends ApiFetchService {
 				})
 			).data;
 		} catch (error: any) {
-			console.log(error.message);
+			throw new BadRequestException(error.message);
 		}
 	}
 
@@ -193,7 +203,7 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;
 		} catch (error: any) {
-			console.log('============', error);
+			console.log(error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -322,7 +332,6 @@ export class ProjectService extends ApiFetchService {
 	/**
 	 * @description - Add other members to project
 	 * @param {ID} id - The project ID
-	 * @param {IProjectMember[]} members - New Members to be added
 	 * @returns A promise resoved after members assigned to projec
 	 * @memberof ProjectService
 	 */

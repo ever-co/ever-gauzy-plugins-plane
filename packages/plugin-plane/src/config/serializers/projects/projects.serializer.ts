@@ -32,7 +32,8 @@ function extractMemberIds(members?: MemberInput[]): MemberId[] {
 
 export function getProjectsResponse(
 	projects: IOrganizationProject[],
-	favoriteIds?: ID[]
+	favoriteIds?: ID[],
+	memberReturnType: 'ids' | 'objects' = 'ids'
 ): Partial<IProject>[] {
 	return projects?.map((project) => {
 		// Retrieve current member
@@ -41,10 +42,22 @@ export function getProjectsResponse(
 			(member) => member.employeeId === employeeId
 		);
 
-		// Safely handle the presence of `project.members` by using a fallback to an empty array.
-		const members = Array.isArray(project?.members)
-			? project.members.map((member) => member.employeeId)
-			: []; // If `project.members` is undefined, set `members` to an empty array
+		let members: any[] = [];
+
+		if (memberReturnType === 'objects') {
+			members = Array.isArray(project?.members)
+				? project.members.map((member) => ({
+						member__display_name: member.employee.fullName,
+						member__id: member.employeeId,
+						member__avatar_url: member.employee.user.imageUrl
+					}))
+				: [];
+		} else {
+			// Safely handle the presence of `project.members` by using a fallback to an empty array.
+			members = Array.isArray(project?.members)
+				? project.members.map((member) => member.employeeId)
+				: []; // If `project.members` is undefined, set `members` to an empty array
+		}
 
 		const isFavorite = favoriteIds?.includes(project.id);
 

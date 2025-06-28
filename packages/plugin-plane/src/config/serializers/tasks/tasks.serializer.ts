@@ -758,11 +758,14 @@ export const getTaskQuery = (
 	}
 
 	if (issues) {
-		const tasks = issueFilterSplitter(issues);
-		console.log({ tasks });
-		tasks.forEach((taskId, i) => {
-			query[`filters[id][${i}]`] = taskId;
-		});
+		if (issues.includes(',')) {
+			const tasks = issueFilterSplitter(issues);
+			tasks.forEach((taskId, i) => {
+				query[`filters[id][${i}]`] = taskId;
+			});
+		} else {
+			query[`where[id]`] = issues;
+		}
 	}
 
 	if (assignees) {

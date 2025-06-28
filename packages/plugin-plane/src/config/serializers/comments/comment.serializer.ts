@@ -23,13 +23,14 @@ export function issueCommentTrasnsformer(
 	issue: IIssue,
 	project: IOrganizationProject,
 	workspace_detail: IWorkspaceInfo,
-	reactions: IReactionData[]
+	reactions: IReactionData[],
+	employee: IEmployee
 ): IIssueComment[] | IIssueComment {
 	const transformIssueComment = (comment: IComment): IIssueComment => {
 		return {
 			id: comment.id,
 			issue_detail: issue,
-			actor_detail: actorDetailsTransformer(comment.employee),
+			actor_detail: actorDetailsTransformer(comment.employee || employee),
 			project_detail: getProjectsResponse([project])[0],
 			workspace_detail,
 			comment_reactions: reactions,
@@ -43,12 +44,12 @@ export function issueCommentTrasnsformer(
 			access: 'INTERNAL',
 			external_source: null,
 			external_id: null,
-			created_by: comment.employee.userId,
+			created_by: comment.createdByUserId,
 			updated_by: null,
 			project: project.id,
 			workspace: workspace_detail.id,
 			issue: issue.id,
-			actor: comment.employeeId
+			actor: comment.employeeId || employee.id
 		};
 	};
 

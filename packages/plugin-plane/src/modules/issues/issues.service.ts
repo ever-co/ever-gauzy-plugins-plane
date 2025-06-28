@@ -878,7 +878,7 @@ export class IssuesService extends ApiFetchService {
 			const { issue, project, workspace } =
 				await this.getIssueCommentDetails(
 					entityId,
-					projectId,
+					task.projectId,
 					comment.employee.id,
 					task,
 					task.project
@@ -889,7 +889,13 @@ export class IssuesService extends ApiFetchService {
 				issue,
 				project,
 				workspace,
-				[] // On creation, comment has no reaction yet
+				[], // On creation, comment has no reaction yet
+				project.members
+					.map((member) => member.employee)
+					.filter(
+						(employee) =>
+							employee.userId === comment.createdByUserId
+					)[0]
 			);
 
 			return Array.isArray(transformedComment)
@@ -922,7 +928,11 @@ export class IssuesService extends ApiFetchService {
 				entity: BaseEntityEnum.Task,
 				entityId
 			};
-			await this._commentService.update(id, options, input);
+			const comment = await this._commentService.update(
+				id,
+				options,
+				input
+			);
 
 			const updatedComment = await this._commentService.findOne(
 				id,
@@ -949,7 +959,13 @@ export class IssuesService extends ApiFetchService {
 				issue,
 				project,
 				workspace,
-				reactions
+				reactions,
+				project.members
+					.map((member) => member.employee)
+					.filter(
+						(employee) =>
+							employee.userId === comment.createdByUserId
+					)[0]
 			);
 
 			return Array.isArray(transformedComment)
@@ -1015,7 +1031,13 @@ export class IssuesService extends ApiFetchService {
 						issue,
 						project,
 						workspace,
-						reactions
+						reactions,
+						task.project.members
+							.map((member) => member.employee)
+							.filter(
+								(employee) =>
+									employee.userId === comment.createdByUserId
+							)[0]
 					);
 					return Array.isArray(transformedComment)
 						? transformedComment[0]

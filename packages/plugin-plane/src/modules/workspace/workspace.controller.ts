@@ -357,7 +357,7 @@ export class WorkspaceController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Entity search' })
 	@Get('entity-search')
-	async entitySearch(@Query() options: IEntitySearchFindInput) {
+	async entitySearch(@Query() options: IEntitySearchFindInput): Promise<any> {
 		return await this._workspaceService.entitySearch(options);
 	}
 

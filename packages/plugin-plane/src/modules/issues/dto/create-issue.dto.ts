@@ -10,6 +10,7 @@ import {
 	IsUUID
 } from 'class-validator';
 import { ID, IIssueCreateInput, TaskPriorityEnum } from '@plane-plugin/models';
+import { NonePriorityToUndefined } from '../../../config';
 
 export class CreateIssueDTO implements IIssueCreateInput {
 	@ApiPropertyOptional({ type: () => String })
@@ -41,6 +42,7 @@ export class CreateIssueDTO implements IIssueCreateInput {
 	@ApiPropertyOptional({ type: () => String, enum: TaskPriorityEnum })
 	@IsEnum(TaskPriorityEnum)
 	@IsOptional()
+	@NonePriorityToUndefined()
 	priority?: TaskPriorityEnum;
 
 	@ApiPropertyOptional({ type: () => Date })

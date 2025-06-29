@@ -11,7 +11,7 @@ export class InstancesController {
 	getDefaultIntanceAndConfigs() {
 		return {
 			instance: this.instancesService.getDefaultInstance(),
-			configs: this.instancesService.getDefaultConfigs()
+			config: this.instancesService.getDefaultConfigs()
 		};
 	}
 }

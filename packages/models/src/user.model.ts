@@ -9,7 +9,7 @@ export interface IWorkspaceUserInfo {
 	updated_at?: Date;
 	deleted_at?: Date;
 	role?: number;
-	company_role?: string;
+	company_role?: string | number;
 	view_props?: IViewProps;
 	default_props?: IDefaultProps;
 	issue_props?: IDefaultIssueProps;

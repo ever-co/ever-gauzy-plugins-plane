@@ -729,6 +729,16 @@ export const taskRelations = [
 	'modules'
 ];
 
+/**
+ * Builds a query object for fetching tasks based on various filters and options.
+ *
+ * @param projectId - The ID of the project to filter tasks by.
+ * @param options - An object containing filter options such as assignees, state, labels, etc.
+ * @param relations - Optional array of related entities to include in the response.
+ * @param orderByField - Optional field used to order the results.
+ * @param isDraft - Optional flag to include only draft tasks.
+ * @returns A query object formatted for the backend to retrieve filtered task data.
+ */
 export const getTaskQuery = (
 	projectId?: ID,
 	options?: IIssueFindInput,

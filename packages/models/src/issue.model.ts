@@ -25,12 +25,14 @@ export interface IIssue {
 	project__identifier?: string;
 	identifier?: string;
 	parent_id?: ID;
-	parent?: {
-		id?: ID;
-		sequence_id?: number;
-		project_id: ID;
-		type_id: ID;
-	};
+	parent?:
+		| {
+				id?: ID;
+				sequence_id?: number;
+				project_id: ID;
+				type_id: ID;
+		  }
+		| string;
 	created_at?: Date;
 	updated_at?: Date;
 	created_by?: string;

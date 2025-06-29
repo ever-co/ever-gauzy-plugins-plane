@@ -186,10 +186,10 @@ export function userWorkProjectsTransformer(
 	});
 
 	const user_data: IUserProfileData = {
-		email: employee.user.email,
-		first_name: employee.user.firstName,
-		last_name: employee.user.lastName,
-		avatar_url: employee.user.imageUrl,
+		email: employee.user?.email,
+		first_name: employee.user?.firstName,
+		last_name: employee.user?.lastName,
+		avatar_url: employee.user?.imageUrl,
 		cover_image_url: null,
 		date_joined: employee.createdAt,
 		user_timezone: 'UTC',

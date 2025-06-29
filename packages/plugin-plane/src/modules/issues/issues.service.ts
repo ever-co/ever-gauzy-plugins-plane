@@ -1007,6 +1007,10 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
+			const projectMembers = task.project.members.map(
+				(member) => member.employee
+			);
+
 			const issueComments: IIssueComment[] = await Promise.all(
 				(comments ?? []).map(async (comment) => {
 					const reactions =
@@ -1032,12 +1036,10 @@ export class IssuesService extends ApiFetchService {
 						project,
 						workspace,
 						reactions,
-						task.project.members
-							.map((member) => member.employee)
-							.filter(
-								(employee) =>
-									employee.userId === comment.createdByUserId
-							)[0]
+						projectMembers.filter(
+							(employee) =>
+								employee.userId === comment.createdByUserId
+						)[0]
 					);
 					return Array.isArray(transformedComment)
 						? transformedComment[0]
@@ -1065,10 +1067,49 @@ export class IssuesService extends ApiFetchService {
 					'project.members.employee.user.role',
 					'project.organization',
 					'organizationSprint',
-					'taskSprintHistories.toSprint'
+					'taskSprintHistories.toSprint',
+					'parent'
 				],
 				false
 			);
+
+			const projectEmployees = task.project.members.map(
+				(member) => member.employee
+			);
+
+			// Collect all the IDs of parents mentioned in the logs
+			const parentIds = new Set<string>();
+
+			activityLogs?.forEach((log: any) => {
+				if (log.updatedFields?.includes('parentId')) {
+					log.updatedValues?.forEach((value: any) => {
+						if ('parentId' in value && value.parentId) {
+							parentIds.add(value.parentId);
+						}
+					});
+					log.previousValues?.forEach((value: any) => {
+						if ('parentId' in value && value.parentId) {
+							parentIds.add(value.parentId);
+						}
+					});
+				}
+			});
+
+			// Load all the parent tasks
+			const parentTasks = new Map<string, any>();
+
+			if (parentIds.size > 0) {
+				const parents = await this.findAllExternal(
+					{
+						issues: Array.from(parentIds).join(',')
+					},
+					['project']
+				);
+
+				parents.items.forEach((parent) => {
+					parentTasks.set(parent.id, parent);
+				});
+			}
 
 			const issueActivities = await Promise.all(
 				(activityLogs ?? []).map(async (activityLog) => {
@@ -1106,13 +1147,12 @@ export class IssuesService extends ApiFetchService {
 						project,
 						workspace,
 						updatedSprint ? updatedSprint : task.organizationSprint,
-						task.project.members
-							.map((member) => member.employee)
-							.filter(
-								(employee) =>
-									employee.userId ===
-									activityLog.createdByUserId
-							)[0]
+						projectEmployees.filter(
+							(employee) =>
+								employee.userId === activityLog.createdByUserId
+						)[0],
+						projectEmployees,
+						parentTasks
 					);
 
 					return Array.isArray(transformedActivityLogs)
@@ -1152,13 +1192,10 @@ export class IssuesService extends ApiFetchService {
 								actor,
 								project,
 								workspace,
-								task.project.members
-									.map((member) => member.employee)
-									.filter(
-										(employee) =>
-											employee.userId ===
-											log.createdByUserId
-									)[0]
+								projectEmployees.filter(
+									(employee) =>
+										employee.userId === log.createdByUserId
+								)[0]
 							);
 						})
 					);
@@ -1195,13 +1232,10 @@ export class IssuesService extends ApiFetchService {
 								actor,
 								project,
 								workspace,
-								task.project.members
-									.map((member) => member.employee)
-									.filter(
-										(employee) =>
-											employee.userId ===
-											log.createdByUserId
-									)[0]
+								projectEmployees.filter(
+									(employee) =>
+										employee.userId === log.createdByUserId
+								)[0]
 							);
 						})
 					);

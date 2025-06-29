@@ -107,7 +107,7 @@ export class AuthController {
 			if (user) {
 				// 2. If registration is successful, sign in the user for onboarding process
 				const result = await this._authService.signIn({
-					email: user.email,
+					email: user?.email,
 					password: data.password
 				});
 

@@ -614,6 +614,37 @@ export class WorkspaceService extends ApiFetchService {
 				employeeId: currentEmployeeId() || employeeId
 			});
 
+			// Collect all the IDs of parents mentioned in the logs
+			const parentIds = new Set<string>();
+
+			activityLogs?.forEach((log: any) => {
+				if (log.updatedFields?.includes('parentId')) {
+					log.updatedValues?.forEach((value: any) => {
+						if ('parentId' in value && value.parentId) {
+							parentIds.add(value.parentId);
+						}
+					});
+					log.previousValues?.forEach((value: any) => {
+						if ('parentId' in value && value.parentId) {
+							parentIds.add(value.parentId);
+						}
+					});
+				}
+			});
+
+			// Load all the parent tasks
+			const parentTasks = new Map<string, any>();
+
+			if (parentIds.size > 0) {
+				const parents = await this._issueService.findAllExternal({
+					issues: Array.from(parentIds).join(',')
+				});
+
+				parents.items.forEach((parent) => {
+					parentTasks.set(parent.id, parent);
+				});
+			}
+
 			const issueActivities = await Promise.all(
 				activityLogs.map(async (activityLog) => {
 					const task = await this._issueService.getExternalIssue(
@@ -623,6 +654,10 @@ export class WorkspaceService extends ApiFetchService {
 							'organizationSprint',
 							'taskSprintHistories.toSprint'
 						]
+					);
+
+					const projectMembers = task.project.members.map(
+						(member) => member.employee
 					);
 
 					if (task.projectId) {
@@ -663,13 +698,13 @@ export class WorkspaceService extends ApiFetchService {
 								updatedSprint
 									? updatedSprint
 									: task.organizationSprint,
-								task.project.members
-									.map((member) => member.employee)
-									.filter(
-										(employee) =>
-											employee.userId ===
-											activityLog.createdByUserId
-									)[0]
+								projectMembers.filter(
+									(employee) =>
+										employee.userId ===
+										activityLog.createdByUserId
+								)[0],
+								projectMembers,
+								parentTasks
 							);
 
 						return Array.isArray(transformedActivityLogs)

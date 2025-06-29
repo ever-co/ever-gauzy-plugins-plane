@@ -1007,6 +1007,10 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
+			const projectMembers = task.project.members.map(
+				(member) => member.employee
+			);
+
 			const issueComments: IIssueComment[] = await Promise.all(
 				(comments ?? []).map(async (comment) => {
 					const reactions =
@@ -1032,12 +1036,10 @@ export class IssuesService extends ApiFetchService {
 						project,
 						workspace,
 						reactions,
-						task.project.members
-							.map((member) => member.employee)
-							.filter(
-								(employee) =>
-									employee.userId === comment.createdByUserId
-							)[0]
+						projectMembers.filter(
+							(employee) =>
+								employee.userId === comment.createdByUserId
+						)[0]
 					);
 					return Array.isArray(transformedComment)
 						? transformedComment[0]
@@ -1068,6 +1070,10 @@ export class IssuesService extends ApiFetchService {
 					'taskSprintHistories.toSprint'
 				],
 				false
+			);
+
+			const projectEmployees = task.project.members.map(
+				(member) => member.employee
 			);
 
 			const issueActivities = await Promise.all(
@@ -1106,13 +1112,11 @@ export class IssuesService extends ApiFetchService {
 						project,
 						workspace,
 						updatedSprint ? updatedSprint : task.organizationSprint,
-						task.project.members
-							.map((member) => member.employee)
-							.filter(
-								(employee) =>
-									employee.userId ===
-									activityLog.createdByUserId
-							)[0]
+						projectEmployees.filter(
+							(employee) =>
+								employee.userId === activityLog.createdByUserId
+						)[0],
+						projectEmployees
 					);
 
 					return Array.isArray(transformedActivityLogs)
@@ -1152,13 +1156,10 @@ export class IssuesService extends ApiFetchService {
 								actor,
 								project,
 								workspace,
-								task.project.members
-									.map((member) => member.employee)
-									.filter(
-										(employee) =>
-											employee.userId ===
-											log.createdByUserId
-									)[0]
+								projectEmployees.filter(
+									(employee) =>
+										employee.userId === log.createdByUserId
+								)[0]
 							);
 						})
 					);
@@ -1195,13 +1196,10 @@ export class IssuesService extends ApiFetchService {
 								actor,
 								project,
 								workspace,
-								task.project.members
-									.map((member) => member.employee)
-									.filter(
-										(employee) =>
-											employee.userId ===
-											log.createdByUserId
-									)[0]
+								projectEmployees.filter(
+									(employee) =>
+										employee.userId === log.createdByUserId
+								)[0]
 							);
 						})
 					);

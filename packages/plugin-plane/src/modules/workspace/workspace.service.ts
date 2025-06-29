@@ -625,6 +625,10 @@ export class WorkspaceService extends ApiFetchService {
 						]
 					);
 
+					const projectMembers = task.project.members.map(
+						(member) => member.employee
+					);
+
 					if (task.projectId) {
 						const { actor, issue, project, workspace } =
 							await this._issueService.getIssueCommentDetails(
@@ -663,13 +667,12 @@ export class WorkspaceService extends ApiFetchService {
 								updatedSprint
 									? updatedSprint
 									: task.organizationSprint,
-								task.project.members
-									.map((member) => member.employee)
-									.filter(
-										(employee) =>
-											employee.userId ===
-											activityLog.createdByUserId
-									)[0]
+								projectMembers.filter(
+									(employee) =>
+										employee.userId ===
+										activityLog.createdByUserId
+								)[0],
+								projectMembers
 							);
 
 						return Array.isArray(transformedActivityLogs)

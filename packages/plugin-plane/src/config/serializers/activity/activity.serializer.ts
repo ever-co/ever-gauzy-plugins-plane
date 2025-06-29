@@ -79,6 +79,7 @@ const transformIssueActivityLog = (
 	workspaceDetail: IWorkspaceInfo,
 	sprint: IOrganizationSprint | ICycle,
 	employee: IEmployee,
+	assignees: IEmployee[],
 	oldStatusValue?: string
 ): IIssueActivity[] => {
 	const {
@@ -190,26 +191,30 @@ const transformIssueActivityLog = (
 		if (added) {
 			const { members: addedMembers, verb: addedVerb } = added;
 
-			addedMembers.map((member, i) =>
-				activities.push({
+			addedMembers.map((member, i) => {
+				const assignee = assignees.find(({ id }) => id === member.id);
+				console.log({ assignee });
+				return activities.push({
 					id: activityLog.id + member.userId + i,
 					...activityDetails,
 					verb: 'updated',
 					field: 'assignees',
 					comment: `${addedVerb} assignee `,
 					old_value: '',
-					new_value: member.fullName,
+					new_value: assignee?.fullName,
 					old_identifier: null,
 					new_identifier: member.id
-				})
-			);
+				});
+			});
 		}
 
 		if (removed) {
 			const { members: removedMembers, verb: removedVerb } = removed;
 
-			removedMembers.map((member, i) =>
-				activities.push({
+			removedMembers.map((member, i) => {
+				const assignee = assignees.find(({ id }) => id === member.id);
+				console.log({ assignee });
+				return activities.push({
 					id:
 						activityLog.id +
 						member.userId +
@@ -219,12 +224,12 @@ const transformIssueActivityLog = (
 					verb: 'updated',
 					field: 'assignees',
 					comment: `${removedVerb} assignee `,
-					old_value: member.profile_link,
+					old_value: assignee?.fullName,
 					new_value: null,
 					old_identifier: member.id,
 					new_identifier: null
-				})
-			);
+				});
+			});
 		}
 	}
 
@@ -446,7 +451,8 @@ export function issueActivityLogTransformer(
 	project: IOrganizationProject,
 	workspaceDetail: IWorkspaceInfo,
 	sprint: IOrganizationSprint | ICycle,
-	employee: IEmployee
+	employee: IEmployee,
+	assignees: IEmployee[]
 ): IIssueActivity[] | IIssueActivity {
 	if (Array.isArray(activityLogs)) {
 		// Combine multiple activity logs into a single array of structured activities
@@ -459,7 +465,8 @@ export function issueActivityLogTransformer(
 					project,
 					workspaceDetail,
 					sprint,
-					employee
+					employee,
+					assignees
 				)
 			)
 			.reduce((acc, cur) => acc.concat(cur), []);
@@ -475,7 +482,8 @@ export function issueActivityLogTransformer(
 		project,
 		workspaceDetail,
 		sprint,
-		employee
+		employee,
+		assignees
 	);
 }
 

@@ -80,7 +80,7 @@ export function organizationMembersTransformer(
 			updated_at: member.updatedAt,
 			deleted_at: member.deletedAt,
 			role: roleTransformer(member.user.role),
-			company_role: '', // TODO: Know how it works
+			company_role: roleTransformer(member.user.role), // TODO: Know how it works
 			view_props: memberSetting.data
 				? {
 						...employeeSettingSerializer(

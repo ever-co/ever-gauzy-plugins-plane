@@ -7,7 +7,11 @@ import {
 	IUserProfile,
 	RolesEnum
 } from '@plane-plugin/models';
-import { currentTenantId, currentUserId } from '../../credentials';
+import {
+	currentEmployeeId,
+	currentTenantId,
+	currentUserId
+} from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
 import { roleTransformer } from '../workspace-organization';
 import { actorDetailsTransformer } from './actor-details.helper';
@@ -54,6 +58,10 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 			);
 		});
 
+		const currentEmployee = organization.employees.find(
+			(employee) => employee.id === currentEmployeeId()
+		);
+
 		return {
 			id: organization?.id,
 			owner: actorDetailsTransformer(owner),
@@ -66,6 +74,7 @@ export function organizationsTranformer(organizations: IOrganization[]) {
 			name: organization?.name,
 			logo: organization?.imageUrl,
 			slug: organization?.id,
+			role: roleTransformer(currentEmployee.user.role),
 			organization_size: organization?.minimumProjectSize || '11-50'
 			// created_by: organization.createdBy,
 			// updated_by: organization.updatedBy

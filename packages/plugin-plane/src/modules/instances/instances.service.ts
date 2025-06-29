@@ -32,13 +32,13 @@ export class InstancesService {
 			is_trial: false,
 			plan: {
 				id: 'f94d4bf8-35b6-4543-9b6f-ca2072a9582e',
-				name: 'Plane Professional',
+				name: 'Plane Enterprise',
 				plan_id: 'f94d4bf8-35b6-4543-9b6f-ca2072a9582e',
 				created_at: '2024-07-20T12:12:42.803977Z',
 				updated_at: '2024-07-20T12:12:42.803977Z',
 				created_by: null,
 				updated_by: null,
-				plan_name: 'Plane Professional'
+				plan_name: 'Plane Enterprise'
 			},
 			is_test: false
 		};
@@ -46,6 +46,8 @@ export class InstancesService {
 
 	getDefaultConfigs() {
 		return {
+			enable_signup: true,
+			is_workspace_creation_disabled: false,
 			is_google_enabled: true,
 			is_github_enabled: true,
 			is_gitlab_enabled: false,

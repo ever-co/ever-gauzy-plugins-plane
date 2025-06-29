@@ -150,8 +150,8 @@ export function createProjectInputTransformer(
 		imageUrl: input.cover_image,
 		public: input.network === 0 ? false : true,
 		defaultAssigneeId: input.default_assignee,
-		memberIds,
-		managerIds,
+		memberIds: memberIds.length > 0 ? memberIds : [currentEmployeeId()],
+		managerIds: managerIds.length > 0 ? managerIds : [currentEmployeeId()],
 		tenantId: currentTenantId(),
 		organizationId: getCurrentOrganizationSlug()
 	};

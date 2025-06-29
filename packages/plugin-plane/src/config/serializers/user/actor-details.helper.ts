@@ -8,6 +8,6 @@ export function actorDetailsTransformer(actor: IEmployee) {
 		avatar: actor?.user?.imageUrl,
 		is_bot: false,
 		display_name: actor?.fullName,
-		email: actor?.user.email
+		email: actor?.user?.email
 	};
 }

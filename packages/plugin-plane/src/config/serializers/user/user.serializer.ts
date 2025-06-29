@@ -80,19 +80,19 @@ export function organizationsTranformer(organizations: IOrganization[]) {
  */
 export function userMeTransformer(user: IUser) {
 	return {
-		id: user.employee.id,
-		avatar: user.imageUrl,
+		id: user?.employee.id,
+		avatar: user?.imageUrl,
 		cover_image: null,
-		date_joined: user.employee.startedWorkOn,
-		display_name: user.name,
-		email: user.email,
-		first_name: user.firstName,
-		last_name: user.lastName,
-		is_active: user.isActive,
+		date_joined: user?.employee.startedWorkOn,
+		display_name: user?.name,
+		email: user?.email,
+		first_name: user?.firstName,
+		last_name: user?.lastName,
+		is_active: user?.isActive,
 		is_bot: false,
-		is_email_verified: user.isEmailVerified,
-		user_timezone: user.timeZone || 'UTC',
-		username: user.username,
+		is_email_verified: user?.isEmailVerified,
+		user_timezone: user?.timeZone || 'UTC',
+		username: user?.username,
 		is_password_autoset: false,
 		last_login_medium: 'email'
 	};

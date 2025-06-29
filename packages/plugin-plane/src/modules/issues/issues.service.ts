@@ -1067,7 +1067,8 @@ export class IssuesService extends ApiFetchService {
 					'project.members.employee.user.role',
 					'project.organization',
 					'organizationSprint',
-					'taskSprintHistories.toSprint'
+					'taskSprintHistories.toSprint',
+					'parent'
 				],
 				false
 			);
@@ -1075,6 +1076,40 @@ export class IssuesService extends ApiFetchService {
 			const projectEmployees = task.project.members.map(
 				(member) => member.employee
 			);
+
+			// Collect all the IDs of parents mentioned in the logs
+			const parentIds = new Set<string>();
+
+			activityLogs?.forEach((log: any) => {
+				if (log.updatedFields?.includes('parentId')) {
+					log.updatedValues?.forEach((value: any) => {
+						if ('parentId' in value && value.parentId) {
+							parentIds.add(value.parentId);
+						}
+					});
+					log.previousValues?.forEach((value: any) => {
+						if ('parentId' in value && value.parentId) {
+							parentIds.add(value.parentId);
+						}
+					});
+				}
+			});
+
+			// Load all the parent tasks
+			const parentTasks = new Map<string, any>();
+
+			if (parentIds.size > 0) {
+				const parents = await this.findAllExternal(
+					{
+						issues: Array.from(parentIds).join(',')
+					},
+					['project']
+				);
+
+				parents.items.forEach((parent) => {
+					parentTasks.set(parent.id, parent);
+				});
+			}
 
 			const issueActivities = await Promise.all(
 				(activityLogs ?? []).map(async (activityLog) => {
@@ -1116,7 +1151,8 @@ export class IssuesService extends ApiFetchService {
 							(employee) =>
 								employee.userId === activityLog.createdByUserId
 						)[0],
-						projectEmployees
+						projectEmployees,
+						parentTasks
 					);
 
 					return Array.isArray(transformedActivityLogs)

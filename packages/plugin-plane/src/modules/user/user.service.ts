@@ -159,10 +159,7 @@ export class UserService extends ApiFetchService {
 	async getMyWorkspaces() {
 		try {
 			const query = qs.stringify(
-				getUserOrganizationsQueryParams([
-					'organization',
-					'organization.employees.user.role'
-				])
+				getUserOrganizationsQueryParams(['user.role', 'organization'])
 			);
 
 			const userOrganizations: IPagination<IUserOrganization> = (
@@ -173,11 +170,7 @@ export class UserService extends ApiFetchService {
 				})
 			).data;
 
-			const organizations = userOrganizations.items.map(
-				(userOrg) => userOrg.organization
-			);
-
-			return organizationsTranformer(organizations);
+			return organizationsTranformer(userOrganizations.items);
 		} catch (error: any) {
 			console.log(error);
 			return [];

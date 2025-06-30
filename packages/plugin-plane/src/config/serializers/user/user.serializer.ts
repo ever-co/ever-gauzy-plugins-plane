@@ -1,17 +1,13 @@
 import {
 	ID,
 	IEmployeeSetting,
-	IOrganization,
 	IUser,
 	IUserCreateInput,
+	IUserOrganization,
 	IUserProfile,
 	RolesEnum
 } from '@plane-plugin/models';
-import {
-	currentEmployeeId,
-	currentTenantId,
-	currentUserId
-} from '../../credentials';
+import { currentTenantId, currentUserId } from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
 import { roleTransformer } from '../workspace-organization';
 import { actorDetailsTransformer } from './actor-details.helper';
@@ -28,6 +24,8 @@ export function getUserOrganizationsQueryParams(
 		'where[tenantId]': currentTenantId(),
 		'where[userId]': currentUserId()
 	};
+
+	query['includeEmployee'] = true;
 
 	if (relations) {
 		relations.forEach((relation, i) => {
@@ -47,34 +45,36 @@ export const getUserMeQueryParams = {
  * @param organizations - Array of organization entities with employee relationships
  * @returns Transformed organizations with owner info and member counts
  */
-export function organizationsTranformer(organizations: IOrganization[]) {
-	return organizations.map((organization) => {
-		const owner = organization?.employees?.find((employee) => {
-			const employeeRole = employee.user.role.name;
-			return (
-				employeeRole === RolesEnum.SUPER_ADMIN ||
-				employeeRole === RolesEnum.ADMIN ||
-				employeeRole === RolesEnum.MANAGER
-			);
-		});
-
-		const currentEmployee = organization.employees.find(
-			(employee) => employee.id === currentEmployeeId()
+export function organizationsTranformer(
+	userOrganizations: IUserOrganization[]
+) {
+	return userOrganizations.map((userOrganization) => {
+		const organization = userOrganization.organization;
+		const owner = userOrganization?.organization.employees?.find(
+			(employee) => {
+				const employeeRole = employee.user.role.name;
+				return (
+					employeeRole === RolesEnum.SUPER_ADMIN ||
+					employeeRole === RolesEnum.ADMIN ||
+					employeeRole === RolesEnum.MANAGER
+				);
+			}
 		);
 
 		return {
 			id: organization?.id,
 			owner: actorDetailsTransformer(owner),
 			total_members: organization?.totalEmployees,
-			// total_issues: organization.ta.length,
+			// total_issues: organization.tasks.length,
 			created_at: organization?.createdAt,
 			current_plan: 'PRO',
 			updated_at: organization?.updatedAt,
 			deleted_at: organization?.deletedAt,
+			is_on_trial: false,
 			name: organization?.name,
 			logo: organization?.imageUrl,
 			slug: organization?.id,
-			role: roleTransformer(currentEmployee.user.role),
+			role: roleTransformer(userOrganization?.user.role),
 			organization_size: organization?.minimumProjectSize || '11-50'
 			// created_by: organization.createdBy,
 			// updated_by: organization.updatedBy

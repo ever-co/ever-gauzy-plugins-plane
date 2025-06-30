@@ -26,7 +26,9 @@ export async function bootstrap() {
 			'api/instances',
 			'api/timezones',
 			'api/dashboard/:id/:dashboardEndpoint',
-			'api/dashboard/:id/:dashboardEndpoint/:endPointParam'
+			'api/dashboard/:id/:dashboardEndpoint/:endPointParam',
+			'api/workspace-slug-check',
+			'api/workspaces'
 		] // Exclude all the routes starting with /auth, /users, /timezones /dashboard and /instances from the global prefix
 	});
 

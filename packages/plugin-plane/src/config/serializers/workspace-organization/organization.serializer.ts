@@ -1,5 +1,7 @@
+import { currentEmployeeId } from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
 import { getTaskCounts } from '../modules';
+import { extractMemberIds } from '../projects';
 import { actorDetailsTransformer } from '../user';
 import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
@@ -16,7 +18,10 @@ import {
 	EmployeeSettingTypeEnum,
 	BaseEntityEnum,
 	IEmployeeSetting,
-	IOrganization
+	IOrganization,
+	ICreateWorkSpace,
+	IOrganizationCreateInput,
+	CurrenciesEnum
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -197,4 +202,21 @@ export function userWorkProjectsTransformer(
 	};
 
 	return { project_data: transformedProjects, user_data };
+}
+
+export function createOrganizationInputTransformer(
+	input: ICreateWorkSpace
+): IOrganizationCreateInput {
+	let memberIds = [];
+
+	if (input.members) {
+		memberIds = extractMemberIds(input.members);
+	}
+
+	return {
+		name: input.name,
+		employees: memberIds.length > 0 ? memberIds : [currentEmployeeId()],
+		currency: CurrenciesEnum.USD,
+		minimumProjectSize: input.organization_size
+	};
 }

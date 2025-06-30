@@ -32,6 +32,8 @@ import { WorkspaceMiddleware } from './workspace/workspace.middleware';
 import { AuthGuard } from './auth/auth.guard';
 import { TimezonesModule } from './timezones/timezones.module';
 import { NotificationModule } from './notification/notification.module';
+import { WorkspaceSlugModule } from './workspace-slug/workspace-slug.module';
+import { WorkspacesModule } from './workspace/workspaces.module';
 
 @Module({
 	imports: [
@@ -64,7 +66,9 @@ import { NotificationModule } from './notification/notification.module';
 		EmployeePropertiesModule,
 		MentionModule,
 		TimezonesModule,
-		NotificationModule
+		NotificationModule,
+		WorkspaceSlugModule,
+		WorkspacesModule
 	],
 	providers: [
 		{

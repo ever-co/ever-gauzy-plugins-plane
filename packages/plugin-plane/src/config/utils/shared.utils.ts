@@ -169,6 +169,12 @@ export function isEmpty(item: any): boolean {
 		item = item.filter((val) => !isEmpty(val));
 		return item.length === 0;
 	}
+
+	// Handle Dates
+	else if (item instanceof Date) {
+		return isNaN(item.getTime()); // invalid date is considered empty
+	}
+
 	// Handle objects by removing null, undefined, or empty string properties
 	else if (item && typeof item === 'object') {
 		for (const key in item) {

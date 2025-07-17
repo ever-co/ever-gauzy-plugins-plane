@@ -1,7 +1,8 @@
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -12,6 +13,7 @@ import {
 import { ID } from '@plane-plugin/models';
 import { ProjectService } from './project.service';
 import { CreateProjectDTO, ProjectMemberDTO } from './dto';
+import { UpdateProjectDTO } from './dto/update-project.dto';
 
 @ApiTags('Projects')
 @Controller()
@@ -73,9 +75,6 @@ export class ProjectController {
 		return await this._projectService.getProjectMembers(id);
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication and User features
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Get user properties project
 	 * @param {ID} id - The UUID primary key of the project for whom get properties
@@ -89,9 +88,6 @@ export class ProjectController {
 		return await this._projectService.getProjectUserProperties(id);
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Create new Project in workspace
 	 * @param {CreateProjectDTO} input - input data with which to create project
@@ -132,14 +128,14 @@ export class ProjectController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update workspace projects' })
 	@Patch(':id')
-	async update(@Param('id') id: ID, @Body() input: CreateProjectDTO) {
+	async update(@Param('id') id: ID, @Body() input: UpdateProjectDTO) {
 		return await this._projectService.update(id, input);
 	}
 
 	/**
-	 * @description Update project
+	 * @description Update the user properties in the project
 	 * @param {ID} id The project ID
-	 * @param {CreateProjectDTO} input Data to be updated
+	 * @param input Data to be updated
 	 * @returns A promise that resolves after project updated
 	 * @memberof ProjectController
 	 */
@@ -151,5 +147,27 @@ export class ProjectController {
 			id,
 			input
 		);
+	}
+
+	/**
+	 * Deletes a workspace project by its ID.
+	 *
+	 * @param {ID} id - The ID of the project to be deleted.
+	 * @returns - The result of the deletion operation.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Delete workspace project' })
+	@ApiResponse({
+		status: 200,
+		description: 'The project was successfully deleted.'
+	})
+	@ApiResponse({
+		status: 400,
+		description:
+			'Bad Request. The project ID might be invalid or cause a conflict.'
+	})
+	@Delete(':id')
+	async delete(@Param('id') id: ID) {
+		return await this._projectService.delete(id);
 	}
 }

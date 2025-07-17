@@ -568,4 +568,25 @@ export class ProjectService extends ApiFetchService {
 			throw new BadRequestException(error);
 		}
 	}
+
+	/**
+	 * Deletes a project by its ID.
+	 *
+	 * Sends a DELETE request to the API using the provided project ID.
+	 * If the request fails, it throws a BadRequestException with the original error.
+	 *
+	 * @param {ID} id - The unique identifier of the project to delete.
+	 * @returns {Promise<any>} - The API response if the deletion is successful.
+	 * @throws {BadRequestException} - Thrown if the API request fails.
+	 */
+	async delete(id: ID): Promise<any> {
+		try {
+			return await this.apiFetch({
+				path: `${this.path}/${id}`,
+				method: 'DELETE'
+			});
+		} catch (error) {
+			throw new BadRequestException(error);
+		}
+	}
 }

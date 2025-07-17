@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {
 	ID,
 	IEmployee,
@@ -80,7 +81,7 @@ export function createIntakeIssueInputTransformer(
 			{ ...input.issue, project_id: projectId },
 			status
 		),
-		taskId: input.issue.id ?? '1',
+		taskId: input.issue.id ?? uuidv4(),
 		organizationId: getCurrentOrganizationSlug(),
 		mentionUserIds: mentionedUserIds ?? [],
 		onHoldUntil: input.snoozed_till
@@ -148,7 +149,7 @@ export function intakeIssueTranformer(
 					linkedIssue.action ===
 					TaskRelatedIssuesRelationEnum.DUPLICATES
 			) ??
-			task.linkedIssues.find(
+			task?.linkedIssues.find(
 				(linkedIssue) =>
 					linkedIssue.action ===
 					TaskRelatedIssuesRelationEnum.DUPLICATES

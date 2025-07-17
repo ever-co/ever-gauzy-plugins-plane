@@ -102,6 +102,29 @@ export class ProjectController {
 	}
 
 	/**
+	 * Archives a workspace project by setting its `archived_at` timestamp.
+	 *
+	 * @param {ID} id - The ID of the project to be archived.
+	 * @returns {Promise<any>} - The updated project after archiving.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Archive workspace projects' })
+	@ApiResponse({
+		status: 201,
+		description: 'The project was successfully archived.'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Bad Request. The project ID might be invalid.'
+	})
+	@Post(':id/archive')
+	async archive(@Param('id') id: ID): Promise<any> {
+		return await this._projectService.update(id, {
+			archived_at: new Date()
+		});
+	}
+
+	/**
 	 * @description - Add other members to project
 	 * @param {ID} id - The project ID
 	 * @param {IProjectMember[]} input - New Members to be added
@@ -169,5 +192,28 @@ export class ProjectController {
 	@Delete(':id')
 	async delete(@Param('id') id: ID) {
 		return await this._projectService.delete(id);
+	}
+
+	/**
+	 * Un-archives a workspace project by clearing its `archived_at` timestamp.
+	 *
+	 * @param {ID} id - The ID of the project to be un-archived.
+	 * @returns {Promise<any>} - The updated project after un-archiving.
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Un-archive workspace projects' })
+	@ApiResponse({
+		status: 201,
+		description: 'The project was successfully un-archived.'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Bad Request. The project ID might be invalid.'
+	})
+	@Delete(':id/archive')
+	async unarchive(@Param('id') id: ID): Promise<any> {
+		return await this._projectService.update(id, {
+			archived_at: null
+		});
 	}
 }

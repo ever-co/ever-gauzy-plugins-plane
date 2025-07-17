@@ -13,6 +13,7 @@ import {
 	currentTenantId,
 	getCurrentOrganizationSlug
 } from '../../credentials';
+import { isNotEmpty } from '../../utils';
 
 type MemberInput = IProjectMember | ID;
 
@@ -127,6 +128,16 @@ export function getProjectsResponse(
 	});
 }
 
+/**
+ * Transforms project creation or update input into the format required
+ * for creating an organization project.
+ *
+ * Extracts member and manager IDs, applies default values when necessary,
+ * and maps input fields to the expected project creation shape.
+ *
+ * @param {ICreateProjectInput | IUpdateProjectInput} input - The raw input for creating or updating a project.
+ * @returns {IOrganizationProjectCreateInput} - The transformed input suitable for project creation in the organization context.
+ */
 export function createProjectInputTransformer(
 	input: ICreateProjectInput | IUpdateProjectInput
 ): IOrganizationProjectCreateInput {
@@ -141,7 +152,7 @@ export function createProjectInputTransformer(
 		managerIds = [input.project_lead];
 	}
 
-	return {
+	const data: IOrganizationProjectCreateInput = {
 		name: input.name,
 		code: input.identifier,
 		description: input.description,
@@ -155,6 +166,18 @@ export function createProjectInputTransformer(
 		tenantId: currentTenantId(),
 		organizationId: getCurrentOrganizationSlug()
 	};
+
+	if ('archived_at' in input) {
+		if (isNotEmpty(input.archived_at)) {
+			data.archivedAt = input.archived_at;
+			data.isArchived = true;
+		} else {
+			data.archivedAt = null;
+			data.isArchived = false;
+		}
+	}
+
+	return data;
 }
 
 export function assignMembersToProjectTransformer(

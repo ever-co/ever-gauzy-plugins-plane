@@ -581,10 +581,12 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async delete(id: ID): Promise<any> {
 		try {
-			return await this.apiFetch({
-				path: `${this.path}/${id}`,
-				method: 'DELETE'
-			});
+			return (
+				await this.apiFetch({
+					path: `${this.path}/${id}`,
+					method: 'DELETE'
+				})
+			).data;
 		} catch (error) {
 			throw new BadRequestException(error);
 		}

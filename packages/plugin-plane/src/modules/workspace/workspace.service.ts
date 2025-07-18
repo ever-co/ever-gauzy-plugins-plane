@@ -334,16 +334,23 @@ export class WorkspaceService extends ApiFetchService {
 	 * @memberof WorkspaceService
 	 */
 	async getWorkspaceMembers(): Promise<IWorkspaceUserInfo[]> {
-		const query = qs.stringify(getOrganizationQuery);
-		const organization: IOrganization = (
-			await this.apiFetch({
-				method: 'GET',
-				path: `/organization/${getCurrentOrganizationSlug()}`,
-				query
-			})
-		).data;
+		try {
+			const query = qs.stringify(getOrganizationQuery);
+			const organization: IOrganization = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `/organization/${getCurrentOrganizationSlug()}`,
+					query
+				})
+			).data;
 
-		return organizationMembersTransformer(organization);
+			return organizationMembersTransformer(organization);
+		} catch (error) {
+			console.log('Error while retrieving workspace members: ', {
+				error
+			});
+			throw new BadRequestException(error);
+		}
 	}
 
 	/**
@@ -646,7 +653,7 @@ export class WorkspaceService extends ApiFetchService {
 			}
 
 			const issueActivities = await Promise.all(
-				activityLogs.map(async (activityLog) => {
+				(activityLogs ?? []).map(async (activityLog) => {
 					const task = await this._issueService.getExternalIssue(
 						activityLog.entityId,
 						[

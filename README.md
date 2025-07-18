@@ -78,6 +78,7 @@ Lightweight application runner for production deployments.
 - **Node.js**: >= 18.0.0
 - **Yarn**: 1.22.21 (specified in packageManager)
 - **Ever Gauzy Backend**: Running instance for API integration
+- **Ever Gauzy Backend**: Generate Tenant API key and secret from admin
 
 ### Installation
 
@@ -111,8 +112,8 @@ Lightweight application runner for production deployments.
    EXECUTION_MODE=develop  # Change to develop if want to use local Gauzy API
 
    # Auth and API KEYS
-   API_KEY='T5BsfAsLY1eBvOEPWaYZi9uWXjcBheGM'
-   API_SECRET='NBpQl2kV7OE1K9U02uTUNr5lGFhJw89DOuLJ9l6XgobzNk1xKSjQSAYjQpfYlGVD'
+   API_KEY='YOUR_GENERATED_GAUZY_API_KEY'
+   API_SECRET='YOUR_GENERATED_GAUZY_API_SECRET'
    ```
 
 4. **Build the project**

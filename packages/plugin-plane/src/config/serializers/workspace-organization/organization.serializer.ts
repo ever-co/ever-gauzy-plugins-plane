@@ -21,7 +21,8 @@ import {
 	IOrganization,
 	ICreateWorkSpace,
 	IOrganizationCreateInput,
-	CurrenciesEnum
+	CurrenciesEnum,
+	IWorkspaceInfo
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -50,6 +51,33 @@ export function roleTransformer(role: IRole): number {
 	return rolePriority[role?.name] ?? 0;
 }
 
+/**
+ * Transforms an IOrganization object into a simplified workspace object.
+ *
+ * This is typically used to expose minimal workspace details in APIs or UI components.
+ *
+ * @param organization - The organization to transform.
+ * @returns An object representing the workspace with id, name, and slug.
+ */
+export function workspaceTransformer(
+	organization: IOrganization
+): IWorkspaceInfo {
+	return {
+		id: organization.id,
+		name: organization.name,
+		slug: organization.id
+	};
+}
+
+/**
+ * Transforms an organization with its employees into a list of workspace user info objects.
+ *
+ * This includes view preferences, roles, and status of each member in the workspace.
+ * It reads task view settings from each employee and formats them for frontend consumption.
+ *
+ * @param organization - The organization entity containing employee data.
+ * @returns An array of workspace user info objects.
+ */
 export function organizationMembersTransformer(
 	organization: IOrganization
 ): IWorkspaceUserInfo[] {
@@ -76,11 +104,7 @@ export function organizationMembersTransformer(
 		return {
 			id: member.userId,
 			member: actorDetailsTransformer(member),
-			workspace: {
-				id: organization.id,
-				name: organization.name,
-				slug: organization.id
-			},
+			workspace: workspaceTransformer(organization),
 			created_at: member.createdAt,
 			updated_at: member.updatedAt,
 			deleted_at: member.deletedAt,
@@ -204,6 +228,15 @@ export function userWorkProjectsTransformer(
 	return { project_data: transformedProjects, user_data };
 }
 
+/**
+ * Transforms a workspace creation input into an organization creation input.
+ *
+ * This function extracts member IDs from the provided input and ensures
+ * at least one employee ID is included (defaulting to the current employee if none are given).
+ *
+ * @param {ICreateWorkSpace} input - The input object representing a workspace creation request.
+ * @returns {IOrganizationCreateInput} - The transformed input suitable for organization creation.
+ */
 export function createOrganizationInputTransformer(
 	input: ICreateWorkSpace
 ): IOrganizationCreateInput {
@@ -215,8 +248,10 @@ export function createOrganizationInputTransformer(
 
 	return {
 		name: input.name,
-		employees: memberIds.length > 0 ? memberIds : [currentEmployeeId()],
-		currency: CurrenciesEnum.USD,
-		minimumProjectSize: input.organization_size
+		employees:
+			memberIds.length > 0
+				? [...memberIds, currentEmployeeId()]
+				: [currentEmployeeId()],
+		currency: CurrenciesEnum.USD
 	};
 }

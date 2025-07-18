@@ -6,19 +6,33 @@ import {
 	Param,
 	Patch
 } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ID } from '@plane-plugin/models';
 import { DashboardService } from './dashboard.service';
 
 @Controller()
 export class DashboardController {
 	constructor(private readonly _dashboardService: DashboardService) {}
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------/
+
+	/**
+	 * Updates a specific widget within a dashboard.
+	 *
+	 * Sends a PATCH request to update the widget with the given ID using the provided data.
+	 *
+	 * @param {ID} widgetId - The ID of the widget to update.
+	 * @param {any} data - The data to update the widget with.
+	 * @returns - The updated widget or result of the update operation.
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update widget' })
+	@ApiResponse({
+		status: 200,
+		description: 'The widget was successfully updated.'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Bad Request. The widget ID or data might be invalid.'
+	})
 	@Patch(':id/widgets/:widgetId')
 	async updateDashboardWidget(
 		@Param('widgetId') widgetId: ID,

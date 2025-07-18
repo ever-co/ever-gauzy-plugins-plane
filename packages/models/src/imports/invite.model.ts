@@ -1,5 +1,5 @@
 import { IRole } from './role.model';
-import { IBasePerTenantAndOrganizationEntityModel } from './base-entity.model';
+import { IBasePerTenantAndOrganizationEntityModel, ID } from './base-entity.model';
 import {
 	IUser,
 	IUserCodeInput,
@@ -15,20 +15,24 @@ import { IOrganizationDepartment } from './organization-department.model';
 import { IEmployee } from './employee.model';
 import { IOrganizationTeam } from './organization-team.model';
 
-export interface IInvite extends IBasePerTenantAndOrganizationEntityModel, IUserEmailInput, IUserTokenInput, Partial<IUserCodeInput> {
+export interface IInvite
+	extends IBasePerTenantAndOrganizationEntityModel,
+		IUserEmailInput,
+		IUserTokenInput,
+		Partial<IUserCodeInput> {
 	status: InviteStatusEnum;
 	expireDate: Date;
 	actionDate?: Date;
 	role?: IRole;
-	roleId: IRole['id'];
+	roleId: ID;
 	invitedBy?: IUser;
-	invitedById: IUser['id'];
+	invitedById: ID;
 	projects?: IOrganizationProject[];
 	teams?: IOrganizationTeam[];
 	organizationContacts?: IOrganizationContact[];
 	departments?: IOrganizationDepartment[];
 	user?: IUser;
-	userId?: IUser['id'];
+	userId?: ID;
 	fullName?: string;
 	isExpired?: boolean;
 }
@@ -39,7 +43,7 @@ export interface IInviteAcceptInput extends IUserRegistrationInput, IUserEmailIn
 }
 
 export interface IInviteResendInput extends IBasePerTenantAndOrganizationEntityModel {
-	inviteId: IInvite['id'];
+	inviteId: ID;
 	inviteType: InvitationTypeEnum;
 	[x: string]: any;
 }

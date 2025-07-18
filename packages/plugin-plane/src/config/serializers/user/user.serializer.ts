@@ -49,7 +49,7 @@ export function organizationsTranformer(
 	userOrganizations: IUserOrganization[]
 ) {
 	return userOrganizations.map((userOrganization) => {
-		const organization = userOrganization.organization;
+		const organization = userOrganization?.organization;
 		const owner = userOrganization?.organization.employees?.find(
 			(employee) => {
 				const employeeRole = employee.user.role.name;

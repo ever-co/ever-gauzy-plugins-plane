@@ -13,6 +13,7 @@ export * from './cycle.model';
 export * from './dashboard.model';
 export * from './favorite.model';
 export * from './intake-issue.model';
+export * from './invitation.model';
 export * from './issue.model';
 export * from './issue-label.model';
 export * from './issue-link.model';

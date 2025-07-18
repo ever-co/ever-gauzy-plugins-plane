@@ -129,6 +129,20 @@ export function unreadNotificationData(
 	};
 }
 
+/**
+ * Builds a query object for fetching employee notifications with optional filters and predefined relations.
+ *
+ * This function generates a query object formatted for APIs that accept filtering via
+ * nested query parameters like `where[field]=value` and `relations[index]=relation`.
+ *
+ * @param {Partial<IEmployeeNotification>} options - Optional filters for the notifications query.
+ * - `receiverId`: Filters by the receiver employee's ID.
+ * - `isRead`: Filters by read status.
+ * - `entityId`: Filters by the related entity ID.
+ * - `entity`: Filters by the related entity type.
+ *
+ * @returns {Record<string, any>} A query object that can be used in an HTTP request (e.g., for RESTful endpoints).
+ */
 export function getEmployeeNotificationsQuery(
 	options: Partial<IEmployeeNotification>
 ): Record<string, any> {

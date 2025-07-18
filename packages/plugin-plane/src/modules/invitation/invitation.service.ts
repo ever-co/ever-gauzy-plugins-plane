@@ -1,12 +1,18 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import qs from 'qs';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	ICreateEmailInvitesOutput,
 	ICreateWorkspaceInvitationInput,
+	IInvitation,
+	IInvite,
+	IPagination,
 	IRole
 } from '@plane-plugin/models';
 import {
 	createBulkWorkspaceInvitationInputTransformer,
+	getInvitationsQuery,
+	invitationTransformer,
 	roleNameMap
 } from '../../config';
 
@@ -71,6 +77,41 @@ export class InvitationService extends ApiFetchService {
 			return invitations;
 		} catch (error: any) {
 			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Fetches all invitation records from the API, with optional filters applied via query parameters.
+	 *
+	 * The method builds a query string from `getInvitationsQuery({})`, sends a GET request,
+	 * transforms the results using `invitationTransformer`, and returns the list of invitations.
+	 *
+	 * @returns {Promise<IInvitation[]>} A promise that resolves to a list of transformed invitation objects.
+	 *
+	 * @throws {BadRequestException} If the API request fails, the error response is logged and rethrown as a BadRequestException.
+	 */
+	async findAll(): Promise<IInvitation[]> {
+		try {
+			const query = qs.stringify(getInvitationsQuery({}));
+
+			const invitations: IPagination<IInvite> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}`,
+					query
+				})
+			).data;
+
+			const transformedInvitations = invitationTransformer(
+				invitations.items
+			);
+
+			return Array.isArray(transformedInvitations)
+				? [...transformedInvitations]
+				: [transformedInvitations];
+		} catch (error: any) {
+			console.log(error);
 			throw new BadRequestException(error.response);
 		}
 	}

@@ -4,6 +4,7 @@ export interface IWorkspaceInfo {
 	name?: string;
 	slug?: string;
 	id?: ID;
+	logo_url?: string;
 }
 
 export interface IDefaultProps extends IViewProps {}

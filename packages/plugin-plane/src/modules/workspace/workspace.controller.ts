@@ -629,4 +629,7 @@ export class WorkspaceController {
 	async deleteQuickLink(@Param('id') linkId: ID) {
 		return await this._workspaceService.deleteQuickLink(linkId);
 	}
+
+	@Post()
+	async createWorkspapce() {}
 }

@@ -21,7 +21,7 @@ interface MemberId {
 	employeeId: ID;
 }
 
-function extractMemberIds(members?: MemberInput[]): MemberId[] {
+export function extractMemberIds(members?: MemberInput[]): MemberId[] {
 	if (!members || members.length === 0) return [];
 
 	return members.map((member): MemberId => {

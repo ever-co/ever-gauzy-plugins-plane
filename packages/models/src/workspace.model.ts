@@ -108,3 +108,11 @@ export interface IEntitySearchFindInput {
 	project_id?: ID;
 	issue_id?: ID;
 }
+
+export interface ICreateWorkSpace {
+	name?: string;
+	organization_size?: string;
+	slug?: string;
+	members: any[];
+	owner?: ID;
+}

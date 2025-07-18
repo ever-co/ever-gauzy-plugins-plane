@@ -39,6 +39,12 @@ organizationRelations.forEach((relation, i) => {
 	getOrganizationQuery[`relations[${i}]`] = relation;
 });
 
+/**
+ * Transforms a role into a numeric role value based on predefined role hierarchy.
+ *
+ * @param {IRole} role - The role object containing the role name.
+ * @returns {number} The corresponding role value. Returns 0 if the role is not recognized.
+ */
 export function roleTransformer(role: IRole): number {
 	const rolePriority = {
 		[RolesEnum.SUPER_ADMIN]: 20,
@@ -49,6 +55,23 @@ export function roleTransformer(role: IRole): number {
 	};
 
 	return rolePriority[role?.name] ?? 0;
+}
+
+/**
+ * Maps a numeric role priority to its corresponding role name.
+ *
+ * @param {number} roleNumber - The numeric representation of a role's priority.
+ * @returns {RolesEnum} The corresponding role name from the RolesEnum.
+ *                      Defaults to RolesEnum.VIEWER if not matched.
+ */
+export function roleNameMap(roleNumber: number): RolesEnum {
+	const roleMap = {
+		20: RolesEnum.ADMIN,
+		15: RolesEnum.EMPLOYEE,
+		5: RolesEnum.VIEWER
+	};
+
+	return roleMap[roleNumber] ?? RolesEnum.VIEWER;
 }
 
 /**

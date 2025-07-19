@@ -8,6 +8,12 @@ import { CreateWorkspaceDTO } from './dto/create-workspace.dto';
 export class WorkspacesController {
 	constructor(private readonly _workspacesService: WorkspacesService) {}
 
+	/**
+	 * Create a new workspace.
+	 *
+	 * @param input - The data required to create the workspace.
+	 * @returns The newly created workspace.
+	 */
 	@Post()
 	@ApiOperation({ summary: 'Create a new workspace' })
 	@ApiResponse({

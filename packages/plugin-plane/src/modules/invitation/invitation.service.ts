@@ -1,16 +1,18 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	ICreateEmailInvitesOutput,
 	ICreateWorkspaceInvitationInput,
+	ID,
 	IInvitation,
 	IInvite,
 	IPagination,
 	IRole
 } from '@plane-plugin/models';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createBulkWorkspaceInvitationInputTransformer,
+	deleteInvitationQuery,
 	getInvitationsQuery,
 	invitationTransformer,
 	roleNameMap
@@ -113,6 +115,23 @@ export class InvitationService extends ApiFetchService {
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	async delete(id: ID) {
+		try {
+			const query = qs.stringify(deleteInvitationQuery());
+
+			return (
+				await this.apiFetch({
+					method: 'DELETE',
+					path: `${this.path}/${id}`,
+					query
+				})
+			).data;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 }

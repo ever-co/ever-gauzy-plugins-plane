@@ -1,16 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	ICreateEmailInvitesOutput,
 	ICreateWorkspaceInvitationInput,
+	ID,
 	IInvitation,
 	IInvite,
 	IPagination,
-	IRole
+	IRole,
+	RolesEnum
 } from '@plane-plugin/models';
+import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	createBulkWorkspaceInvitationInputTransformer,
+	deleteInvitationQuery,
 	getInvitationsQuery,
 	invitationTransformer,
 	roleNameMap
@@ -94,25 +97,50 @@ export class InvitationService extends ApiFetchService {
 	async findAll(): Promise<IInvitation[]> {
 		try {
 			const query = qs.stringify(getInvitationsQuery({}));
-
-			const invitations: IPagination<IInvite> = (
-				await this.apiFetch({
-					method: 'GET',
-					path: `${this.path}`,
-					query
-				})
-			).data;
-
-			const transformedInvitations = invitationTransformer(
-				invitations.items
+			const employeeInvitesQuery = qs.stringify(
+				getInvitationsQuery({ role: { name: RolesEnum.EMPLOYEE } })
 			);
 
-			return Array.isArray(transformedInvitations)
-				? [...transformedInvitations]
-				: [transformedInvitations];
+			const [invitationsRes, employeeInvitationsRes]: [
+				{ data: IPagination<IInvite> },
+				{ data: IPagination<IInvite> }
+			] = await Promise.all([
+				this.apiFetch({ method: 'GET', path: this.path, query }),
+				this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query: employeeInvitesQuery
+				})
+			]);
+
+			const allItems = [
+				...invitationsRes.data.items,
+				...employeeInvitationsRes.data.items
+			];
+
+			const transformed = invitationTransformer(allItems);
+
+			return Array.isArray(transformed) ? transformed : [transformed];
 		} catch (error: any) {
 			console.log(error);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	async delete(id: ID) {
+		try {
+			const query = qs.stringify(deleteInvitationQuery());
+
+			return (
+				await this.apiFetch({
+					method: 'DELETE',
+					path: `${this.path}/${id}`,
+					query
+				})
+			).data;
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
 		}
 	}
 }

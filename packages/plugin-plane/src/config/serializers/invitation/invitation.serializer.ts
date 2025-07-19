@@ -7,7 +7,7 @@ import {
 	InvitationTypeEnum,
 	InviteStatusEnum
 } from '@plane-plugin/models';
-import { getCurrentOrganizationSlug } from '../../credentials';
+import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
 import {
 	roleTransformer,
 	workspaceTransformer
@@ -118,6 +118,21 @@ export function getInvitationsQuery(
 	relations.forEach((relation, i) => {
 		query[`relations[${i}]`] = relation;
 	});
+
+	return query;
+}
+
+/**
+ * Builds the query object used when deleting an invitation.
+ * Includes tenant and organization identifiers.
+ *
+ * @returns Record<string, any> Query parameters for deletion request
+ */
+export function deleteInvitationQuery(): Record<string, any> {
+	const query: Record<string, any> = {
+		tenantId: currentTenantId(),
+		organizationId: getCurrentOrganizationSlug()
+	};
 
 	return query;
 }

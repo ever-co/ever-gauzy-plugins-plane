@@ -13,6 +13,7 @@ import {
 	workspaceTransformer
 } from '../workspace-organization';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
+import { CLIENT_BASE_URL } from '../../constants';
 
 /**
  * Transforms an invitation status into a boolean indicating whether the invitation was accepted.
@@ -49,7 +50,13 @@ export function createBulkWorkspaceInvitationInputTransformer(
 		inviteType: InvitationTypeEnum.EMPLOYEE,
 		startedWorkOn: new Date(),
 		invitationExpirationPeriod: 'Never',
-		organizationId: getCurrentOrganizationSlug()
+		organizationId: getCurrentOrganizationSlug(),
+		callbackUrl: `${CLIENT_BASE_URL}/workspace-invitations`,
+		queryParams: {
+			invitation_id: 'token',
+			email: 'email',
+			slug: 'organizationId'
+		}
 	};
 }
 

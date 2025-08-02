@@ -77,7 +77,7 @@ export function invitationTransformer(
 			id: invitation.id,
 			deleted_at: invitation.deletedAt,
 			workspace: workspaceTransformer(invitation.organization),
-			invite_link: invitation.token,
+			invite_link: `/workspace-invitations/?invitation_id=${invitation.id}&email=${invitation.email}&slug=${invitation.organizationId}`,
 			created_at: invitation.createdAt,
 			updated_at: invitation.updatedAt,
 			email: invitation.email,
@@ -105,7 +105,6 @@ export function invitationTransformer(
  * supporting filtering by role name and eager-loading related entities like `organization`, `invitedByUser`, and `role`.
  *
  * @param {Partial<IInvite>} options - Optional filtering parameters for the invitations query.
- * - `role.name`: Filters invitations by the name of the assigned role.
  *
  * @returns {Record<string, any>} A query object formatted for use with APIs expecting nested query parameters.
  */
@@ -122,9 +121,36 @@ export function getInvitationsQuery(
 		query['where[role][name]'] = options?.role.name;
 	}
 
+	if (options?.email) {
+		query['where[email]'] = options?.email;
+	}
+
+	if (options?.token) {
+		query['where[token]'] = options?.token;
+	}
+
 	relations.forEach((relation, i) => {
 		query[`relations[${i}]`] = relation;
 	});
+
+	return query;
+}
+
+/**
+ * Builds a query object to fetch an invitation by token and email.
+ *
+ * @param {string} token - The unique invitation token.
+ * @param {string} email - The email address associated with the invitation.
+ * @returns {Record<string, any>} A query object containing the token and email.
+ */
+export function getInvitationByTokenQuery(
+	token: string,
+	email: string
+): Record<string, any> {
+	const query: Record<string, any> = {
+		token,
+		email
+	};
 
 	return query;
 }

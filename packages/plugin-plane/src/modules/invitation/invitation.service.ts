@@ -6,17 +6,21 @@ import {
 	ID,
 	IInvitation,
 	IInvite,
+	InviteStatusEnum,
 	IPagination,
 	IRole,
 	RolesEnum
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
+import { decodeToken } from '../api-fetch/token.helper';
 import {
 	createBulkWorkspaceInvitationInputTransformer,
 	deleteInvitationQuery,
+	getInvitationByTokenQuery,
 	getInvitationsQuery,
 	invitationTransformer,
-	roleNameMap
+	roleNameMap,
+	sanitizeEmail
 } from '../../config';
 
 @Injectable()
@@ -127,7 +131,52 @@ export class InvitationService extends ApiFetchService {
 		}
 	}
 
-	async delete(id: ID) {
+	/**
+	 * Finds a single invitation by token and email.
+	 *
+	 * @param {Partial<IInvite>} options - Filter criteria (e.g. token, email).
+	 * @returns {Promise<IInvitation | null>} The first matching invitation found, or null if none.
+	 * @throws {BadRequestException} If the API requests fail.
+	 */
+	async findOne(options?: Partial<IInvite>): Promise<IInvitation | null> {
+		try {
+			const email = decodeToken(options?.token)?.email;
+			const cleanEmail = sanitizeEmail(email);
+
+			const query = qs.stringify(
+				getInvitationByTokenQuery(options?.token, cleanEmail)
+			);
+
+			const invitationsRes: IInvite = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/validate`,
+					query
+				})
+			).data;
+
+			const transformed = invitationTransformer({
+				...invitationsRes,
+				id: options.token,
+				status: InviteStatusEnum.INVITED,
+				token: options.token
+			});
+			return Array.isArray(transformed) ? transformed[0] : transformed;
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Deletes an invitation by its ID.
+	 *
+	 * @async
+	 * @param {ID} id - The ID of the invitation to delete.
+	 * @returns {Promise<any>} The response data from the API after deletion.
+	 * @throws {BadRequestException} Throws if the deletion request fails.
+	 */
+	async delete(id: ID): Promise<any> {
 		try {
 			const query = qs.stringify(deleteInvitationQuery());
 

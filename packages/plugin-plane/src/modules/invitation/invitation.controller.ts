@@ -3,6 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ID } from '@plane-plugin/models';
 import { InvitationService } from './invitation.service';
 import { CreateInvitationDTO } from './dto';
+import { Public } from '../auth/auth.guard';
 
 @ApiTags('Invitations')
 @Controller()
@@ -52,6 +53,21 @@ export class InvitationController {
 	})
 	async findAll() {
 		return await this._issueViewService.findAll();
+	}
+
+	@Public()
+	@Get(':token/join')
+	@ApiOperation({ summary: 'Get workspace invitation by token' })
+	@ApiResponse({
+		status: 200,
+		description: 'Invitation found'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Invalid request'
+	})
+	async findOneJoin(@Param('token') token: string) {
+		return await this._issueViewService.findOne({ token: token });
 	}
 
 	/**

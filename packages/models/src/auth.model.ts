@@ -7,6 +7,8 @@ export interface IDecodedToken {
 	role: string;
 	permissions: string[];
 	iat: number;
+	email?: string;
+	code?: string;
 }
 
 export interface IUserRegisterInput {

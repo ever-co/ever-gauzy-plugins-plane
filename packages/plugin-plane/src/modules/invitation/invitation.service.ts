@@ -99,7 +99,7 @@ export class InvitationService extends ApiFetchService {
 	 *
 	 * @throws {BadRequestException} If the API request fails, the error response is logged and rethrown as a BadRequestException.
 	 */
-	async findAll(): Promise<IInvitation[]> {
+	async findAll(onlyPending = true): Promise<IInvitation[]> {
 		try {
 			const query = qs.stringify(getInvitationsQuery({}));
 			const employeeInvitesQuery = qs.stringify(
@@ -118,10 +118,16 @@ export class InvitationService extends ApiFetchService {
 				})
 			]);
 
-			const allItems = [
+			let allItems = [
 				...invitationsRes.data.items,
 				...employeeInvitationsRes.data.items
 			];
+
+			if (onlyPending) {
+				allItems = allItems.filter(
+					(invite) => invite.status === InviteStatusEnum.INVITED
+				);
+			}
 
 			const transformed = invitationTransformer(allItems);
 

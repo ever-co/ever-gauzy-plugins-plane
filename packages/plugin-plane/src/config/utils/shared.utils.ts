@@ -207,3 +207,14 @@ export function isEmpty(item: any): boolean {
 export function isNotEmpty(item: any): boolean {
 	return !isEmpty(item);
 }
+
+/**
+ * Sanitizes and decodes an encoded email address from a URL.
+ *
+ * @param {string} encodedEmail - The URL-encoded email string (e.g. "gloire%40ever.tech").
+ * @returns {string} The decoded, sanitized email address (e.g. "gloire@ever.tech").
+ */
+export function sanitizeEmail(encodedEmail: string): string {
+	// Trim leading/trailing spaces and decode URI component
+	return decodeURIComponent(encodedEmail.trim());
+}

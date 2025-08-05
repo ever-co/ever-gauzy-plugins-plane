@@ -55,6 +55,15 @@ export class InvitationController {
 		return await this._issueViewService.findAll();
 	}
 
+	/**
+	 * Retrieves a workspace invitation using the provided token.
+	 *
+	 * This endpoint is publicly accessible and returns the invitation associated with the given token.
+	 *
+	 * @param {string} token - The invitation token extracted from the URL.
+	 * @returns The invitation data if found.
+	 * @throws {BadRequestException} If the request is invalid or the invitation is not found.
+	 */
 	@Public()
 	@Get(':token/join')
 	@ApiOperation({ summary: 'Get workspace invitation by token' })
@@ -67,7 +76,33 @@ export class InvitationController {
 		description: 'Invalid request'
 	})
 	async findOneJoin(@Param('token') token: string) {
-		return await this._issueViewService.findOne({ token: token });
+		return await this._issueViewService.findOne({ token });
+	}
+
+	/**
+	 * Accepts a workspace invitation using a token and email address.
+	 *
+	 * This publicly accessible endpoint is used to accept an invitation by providing the invitation token
+	 * and the email address associated with it.
+	 *
+	 * @param {string} token - The invitation token from the URL.
+	 * @param {string} email - The email address associated with the invitation.
+	 * @returns A message indicating whether the invitation was accepted.
+	 * @throws {BadRequestException} If the token is invalid or the request is malformed.
+	 */
+	@Public()
+	@Post(':token/join')
+	@ApiOperation({ summary: 'Accept invitation by token' })
+	@ApiResponse({
+		status: 200,
+		description: 'Invitation accepted'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Invalid request'
+	})
+	async accept(@Param('token') token: string, @Body('email') email: string) {
+		return await this._issueViewService.acceptInvite(token, email);
 	}
 
 	/**

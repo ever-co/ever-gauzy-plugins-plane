@@ -5,6 +5,7 @@ import {
 	ICreateWorkspaceInvitationInput,
 	ID,
 	IInvitation,
+	IInvitationAcceptResponse,
 	IInvite,
 	InviteStatusEnum,
 	IPagination,
@@ -163,8 +164,42 @@ export class InvitationService extends ApiFetchService {
 			});
 			return Array.isArray(transformed) ? transformed[0] : transformed;
 		} catch (error: any) {
-			console.log(error.response);
+			console.log(error);
 			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
+	 * Accepts a workspace invitation using the provided token and email.
+	 *
+	 * Sends a POST request to the API to accept the invitation. If the invitation is successfully accepted,
+	 * a confirmation message is returned.
+	 *
+	 * @async
+	 * @param {string} token - The invitation token sent to the user.
+	 * @param {string} email - The email address associated with the invitation.
+	 * @returns {Promise<{ message: string }>} A success message if the invitation is accepted, or an empty message otherwise.
+	 * @throws {BadRequestException} Throws if the request fails.
+	 */
+	async acceptInvite(
+		token: string,
+		email: string
+	): Promise<{ message: string }> {
+		try {
+			const user: IInvitationAcceptResponse = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/accept`,
+					body: { token, email, user: { email } }
+				})
+			).data;
+			if (user) {
+				return { message: 'Workspace Invitation Accepted' };
+			}
+			return { message: '' };
+		} catch (error: any) {
+			console.log({ error });
+			throw new BadRequestException(error);
 		}
 	}
 

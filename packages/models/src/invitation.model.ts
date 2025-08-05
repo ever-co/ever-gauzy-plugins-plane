@@ -1,5 +1,5 @@
+import { ID, IUser } from './imports';
 import { IWorkspaceInfo } from './base.model';
-import { ID } from './imports';
 
 export interface ICreateWorkspaceInvitationInput {
 	email: string;
@@ -21,4 +21,10 @@ export interface IInvitation {
 	role?: number;
 	created_by?: ID;
 	updated_by?: ID;
+}
+
+export interface IInvitationAcceptResponse {
+	user: IUser;
+	token: string;
+	refresh_token: string;
 }

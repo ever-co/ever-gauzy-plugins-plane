@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ID } from '@plane-plugin/models';
+import { ID, IInvitationAcceptInput } from '@plane-plugin/models';
 import { InvitationService } from './invitation.service';
 import { CreateInvitationDTO } from './dto';
 import { Public } from '../auth/auth.guard';
@@ -101,8 +101,14 @@ export class InvitationController {
 		status: 400,
 		description: 'Invalid request'
 	})
-	async accept(@Param('token') token: string, @Body('email') email: string) {
-		return await this._issueViewService.acceptInvite(token, email);
+	async acceptOrReject(
+		@Param('token') token: string,
+		@Body() input: IInvitationAcceptInput
+	) {
+		return await this._issueViewService.acceptOrReject({
+			token,
+			...input
+		});
 	}
 
 	/**

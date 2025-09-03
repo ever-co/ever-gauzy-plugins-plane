@@ -18,3 +18,7 @@ export interface IUserRegisterInput {
 	password: string;
 	confirm_password: string;
 }
+
+export interface IMagicGenerateResponse {
+	key: string;
+}

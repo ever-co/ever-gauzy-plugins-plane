@@ -14,18 +14,21 @@ import {
 	IEmailInput,
 	IEmployee,
 	IEmployeeCreateInput,
+	IMagicGenerateResponse,
 	IOrganization,
 	IOrganizationCreateInput,
 	IPasswordInput,
 	ITenant,
 	ITenantCreateInput,
 	IUser,
+	IUserEmailInput,
 	IUserLoginInput,
 	IUserRegisterInput
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	apiSecretKeys,
+	DEFAULT_MAGIC_GENERATE_PREFIX,
 	MEMBER_DEFAULT_VIEW_PROPS,
 	registerInputTranformer
 } from '../../config';
@@ -128,6 +131,30 @@ export class AuthService extends ApiFetchService {
 			).data;
 
 			return user;
+		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Generates a magic key for a user by sending their email to the server.
+	 *
+	 * @param {IUserEmailInput} input - The input containing the user's email.
+	 * @returns {Promise<IMagicGenerateResponse>} A promise resolving to the magic key.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async magicGenerate(
+		input: IUserEmailInput
+	): Promise<IMagicGenerateResponse> {
+		try {
+			await this.apiFetch({
+				method: 'POST',
+				path: `${this.path}/signin.email`,
+				body: input
+			});
+
+			return { key: `${DEFAULT_MAGIC_GENERATE_PREFIX}${input.email}` };
 		} catch (error: any) {
 			throw new BadRequestException(error);
 		}
@@ -294,6 +321,10 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * @description Get the CSRF token
+	 * @returns {Promise<{ csrf_token: string }>} The CSRF token
+	 */
 	async getCsrfToken(): Promise<{ csrf_token: string }> {
 		return {
 			csrf_token:

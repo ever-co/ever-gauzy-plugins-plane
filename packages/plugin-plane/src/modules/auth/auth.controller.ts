@@ -22,6 +22,7 @@ import { AuthService } from './auth.service';
 import { clearTokenChuncks, sendTokenChunks } from '../../config';
 import { Public } from './auth.guard';
 import { CheckExistUserDTO, UserEmailDTO } from '../user/dto';
+import { WorkspaceSigninEmailVerifyDTO } from './dto';
 
 @ApiTags('Authentication routes')
 @Controller()
@@ -71,6 +72,45 @@ export class AuthController {
 
 				return res.redirect(`${req.headers.referer}${normalizedPath}`);
 			}
+			const nextPathParam = data.next_path
+				? `&next_path=${encodeURIComponent(data.next_path)}`
+				: '';
+			return res.redirect(
+				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
+			);
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Magic signin' })
+	@Post('magic-sign-in')
+	@Public()
+	async magicSignin(
+		@Req() req: Request,
+		@Res() res: Response,
+		@Body() data: WorkspaceSigninEmailVerifyDTO & { next_path?: string },
+		@Query('next_path') queryNextPath?: string
+	) {
+		try {
+			const result = await this._authService.magicSignin(data);
+			if (result.user) {
+				clearTokenChuncks(req, res);
+				sendTokenChunks(result.token, res);
+
+				const redirectPath =
+					data.next_path ||
+					queryNextPath ||
+					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
+
+				const normalizedPath = redirectPath.startsWith('/')
+					? redirectPath
+					: `/${redirectPath}`;
+
+				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+			}
+
 			const nextPathParam = data.next_path
 				? `&next_path=${encodeURIComponent(data.next_path)}`
 				: '';

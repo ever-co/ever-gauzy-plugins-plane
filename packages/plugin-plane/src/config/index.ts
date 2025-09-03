@@ -4,3 +4,4 @@ export * from './decorators';
 export * from './serializers/index';
 export * from './time-zones';
 export * from './utils';
+export * from './validators';

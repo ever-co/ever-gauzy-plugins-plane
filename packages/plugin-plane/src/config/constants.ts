@@ -130,3 +130,8 @@ export const DEFAULT_DASHBOARD_WIDGETS: IWidget[] = [
  * The default magic generate prefix
  */
 export const DEFAULT_MAGIC_GENERATE_PREFIX = 'magic_';
+
+/**
+ * The default alpha numeric code length
+ */
+export const ALPHA_NUMERIC_CODE_LENGTH = 6;

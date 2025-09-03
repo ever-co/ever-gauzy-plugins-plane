@@ -3,6 +3,18 @@ import { IWidget } from '@plane-plugin/models';
 export const CLIENT_BASE_URL =
 	process.env.CLIENT_BASE_URL ?? 'http://localhost:3000';
 
+export const CLIENT_SPACE_URL =
+	process.env.CLIENT_SPACE_URL ?? 'http://localhost:3001';
+
+export const CLIENT_ADMIN_URL =
+	process.env.CLIENT_ADMIN_URL ?? 'http://localhost:3002';
+
+export const CLIENT_URLS = [
+	CLIENT_BASE_URL,
+	CLIENT_SPACE_URL,
+	CLIENT_ADMIN_URL
+];
+
 export const MAX_TOKEN_COOKIE_SIZE = 3999;
 
 export const EXTERNAL_API_MODE = () => process.env.EXECUTION_MODE;
@@ -13,6 +25,9 @@ export const EXTERNAL_BASE_API_URL = () =>
 		? process.env.EXTERNAL_BASE_LOCAL_API_URL
 		: process.env.EXTERNAL_BASE_API_URL;
 
+/**
+ * The default view props for the member
+ */
 export const MEMBER_DEFAULT_VIEW_PROPS = {
 	filters: {
 		state: null,
@@ -55,6 +70,9 @@ export const MEMBER_DEFAULT_VIEW_PROPS = {
 	}
 };
 
+/**
+ * The default dashboard widgets
+ */
 export const DEFAULT_DASHBOARD_WIDGETS: IWidget[] = [
 	{
 		key: 'recent_collaborators',
@@ -107,3 +125,13 @@ export const DEFAULT_DASHBOARD_WIDGETS: IWidget[] = [
 		widget_filters: {}
 	}
 ];
+
+/**
+ * The default magic generate prefix
+ */
+export const DEFAULT_MAGIC_GENERATE_PREFIX = 'magic_';
+
+/**
+ * The default alpha numeric code length
+ */
+export const ALPHA_NUMERIC_CODE_LENGTH = 6;

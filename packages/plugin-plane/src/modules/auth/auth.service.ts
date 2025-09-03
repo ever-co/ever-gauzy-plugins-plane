@@ -14,18 +14,23 @@ import {
 	IEmailInput,
 	IEmployee,
 	IEmployeeCreateInput,
+	IMagicGenerateResponse,
 	IOrganization,
 	IOrganizationCreateInput,
 	IPasswordInput,
 	ITenant,
 	ITenantCreateInput,
 	IUser,
+	IUserCodeInput,
+	IUserEmailInput,
 	IUserLoginInput,
-	IUserRegisterInput
+	IUserRegisterInput,
+	IUserSigninWorkspaceResponse
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	apiSecretKeys,
+	DEFAULT_MAGIC_GENERATE_PREFIX,
 	MEMBER_DEFAULT_VIEW_PROPS,
 	registerInputTranformer
 } from '../../config';
@@ -129,6 +134,76 @@ export class AuthService extends ApiFetchService {
 
 			return user;
 		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Generates a magic key for a user by sending their email to the server.
+	 *
+	 * @param {IUserEmailInput} input - The input containing the user's email.
+	 * @returns {Promise<IMagicGenerateResponse>} A promise resolving to the magic key.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async magicGenerate(
+		input: IUserEmailInput
+	): Promise<IMagicGenerateResponse> {
+		try {
+			await this.apiFetch({
+				method: 'POST',
+				path: `${this.path}/signin.email`,
+				body: input
+			});
+
+			return { key: `${DEFAULT_MAGIC_GENERATE_PREFIX}${input.email}` };
+		} catch (error: any) {
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Confirms a magic signin by sending the user's email and code to the server.
+	 *
+	 * @param {IUserEmailInput & IUserCodeInput} input - The input containing the user's email and code.
+	 * @returns {Promise<IUserSigninWorkspaceResponse>} A promise resolving to the user's signin workspace response.
+	 *
+	 * @throws {BadRequestException} Throws an exception if the API request fails.
+	 */
+	async magicSignin(
+		input: IUserEmailInput & IUserCodeInput
+	): Promise<IAuthResponse> {
+		try {
+			// Confirm the signin by email and code
+			const response: IUserSigninWorkspaceResponse = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/signin.email/confirm`,
+					body: input
+				})
+			).data;
+
+			// Get the last workspace
+			const lastWorkspace =
+				response.workspaces.find(
+					(workspace) => workspace.user.lastOrganizationId
+				) || response.workspaces[0];
+
+			// Signin to the last workspace
+			const lastWorkspaceResponse: IAuthResponse = (
+				await this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/signin.workspace`,
+					body: {
+						email: lastWorkspace.user.email,
+						token: lastWorkspace.token
+					}
+				})
+			).data;
+
+			return lastWorkspaceResponse;
+		} catch (error: any) {
+			console.log('Magic Signin Error', error);
 			throw new BadRequestException(error);
 		}
 	}
@@ -294,6 +369,10 @@ export class AuthService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * @description Get the CSRF token
+	 * @returns {Promise<{ csrf_token: string }>} The CSRF token
+	 */
 	async getCsrfToken(): Promise<{ csrf_token: string }> {
 		return {
 			csrf_token:

@@ -70,7 +70,7 @@ export function getProjectsResponse(
 		return {
 			id: project?.id,
 			is_favorite: isFavorite, // To be implemented after Auth,
-			total_members: project?.membersCount,
+			total_members: members.length || project?.membersCount,
 			total_cycles: project?.organizationSprints?.length || 0,
 			total_issues: project?.tasks?.length || 0,
 			total_modules: project?.modules?.length || 0,
@@ -235,6 +235,9 @@ export const getProjectsQuery = (
 	return baseQuery;
 };
 
+/**
+ * Helper function to build query object for finding employee projects
+ */
 export const findEmployeeProjectsQuery = (
 	relations?: string[]
 ): Record<string, string> => {

@@ -129,6 +129,15 @@ export class ProjectService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * Retrieves the projects associated with a specific employee by their ID.
+	 * The method sends a GET request to the external API and processes the response to
+	 * return a list of organization projects.
+	 *
+	 * @returns {Promise<IOrganizationProject[]>} A promise that resolves with a list of organization projects.
+	 *
+	 * @throws {BadRequestException} If an error occurs during the API request or response handling.
+	 */
 	async getEmployeeProjects(relations?: string[]): Promise<IProject[]> {
 		try {
 			const employeeProjects = await this.getExternalProjectsByEmployee(

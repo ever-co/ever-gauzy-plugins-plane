@@ -215,28 +215,21 @@ export class ProjectService extends ApiFetchService {
 	 * @memberof ProjectService
 	 */
 	async getProjectMembers(id: ID): Promise<IGetProjectMembersResponse[]> {
-		const employeeId = currentEmployeeId();
 		try {
 			const project = await this.getExternalProject(id, [
 				'members.employee.user.role',
 				'members.role'
 			]);
 			const members = project.members;
-			const currentMember = (members ?? []).find(
-				(member) => member.employeeId === employeeId
-			);
+
 			return members?.map((member) => {
 				if (typeof member !== 'string') {
 					return {
 						id: member.employee?.user.id || member.employee?.userId,
+						original_role: member.isManager ? 20 : 15,
 						member: member.employeeId,
-						role: members
-							.map(({ employeeId }) => employeeId)
-							.includes(currentMember?.employeeId)
-							? currentMember?.isManager
-								? 20
-								: 15
-							: 0,
+						role: member.isManager ? 20 : 15,
+						created_at: member.createdAt,
 						project: project.id
 					};
 				}
@@ -246,9 +239,6 @@ export class ProjectService extends ApiFetchService {
 		}
 	}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication (Reason : retrive the workspace ID from request session)
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Create new Project in workspace
 	 * @param {CreateProjectDTO} input - input data with which to create project
@@ -341,6 +331,7 @@ export class ProjectService extends ApiFetchService {
 	): Promise<IProject> {
 		try {
 			const { members } = input;
+			const managers = members.filter((member) => member.role === 20);
 			const project = await this.getExternalProject(id);
 
 			if (!project) {
@@ -351,6 +342,11 @@ export class ProjectService extends ApiFetchService {
 			const { members: existingMembers = [], ...projectWithoutMembers } =
 				project;
 
+			// Extract existing managers and prepare `projectWithoutManagers`
+			const existingManagers = existingMembers.filter(
+				(member) => member.isManager
+			);
+
 			// Create a Set to eliminate duplicates and include new member IDs
 			const memberIds = [
 				...new Set([
@@ -359,11 +355,19 @@ export class ProjectService extends ApiFetchService {
 				])
 			];
 
+			// Create a Set to eliminate duplicates and include new manager IDs
+			const managerIds = [
+				...new Set([
+					...managers.map((m) => m.member_id),
+					...existingManagers.map((m) => m.employeeId)
+				])
+			];
+
 			const updatedProject = (
 				await this.apiFetch({
 					method: 'PUT',
 					path: `${this.path}/${id}`,
-					body: { ...projectWithoutMembers, memberIds }
+					body: { ...projectWithoutMembers, memberIds, managerIds }
 				})
 			).data;
 
@@ -386,68 +390,22 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async getWorkspaceProjectMemberMe(id: ID): Promise<any> {
 		try {
+			const employeeId = currentEmployeeId();
 			// Fetch project details with the tenant relationship
-			const project = await this.getProject(id, ['tenant']);
+			const project = await this.getExternalProject(id, [
+				'tenant',
+				'members'
+			]);
 
-			// Retrieve current member information from the workspace
-			const memberInfos = await this._workspaceService.getMembersMe();
-
-			// Fetch member-specific settings for the project (task views)
-			const memberSetting =
-				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
-					entity: BaseEntityEnum.OrganizationProject,
-					entityId: id,
-					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
-				});
-
-			// Destructure properties from the member settings and their defaults
-			const { filters, display_filters, display_properties } =
-				memberSetting.data as Record<string, any>;
-
-			const {
-				filters: defaultFiltes,
-				display_filters: defaultDisplayFilters,
-				display_properties: defaultDisplayProperties
-			} = memberSetting.defaultData as Record<string, any>;
+			// Retrieve current member information from the project
+			const memberInfos = project.members.find(
+				(member) => member.employeeId === employeeId
+			);
 
 			// Construct and return the response object
 			return {
-				id: memberInfos.id,
-				workspace: memberInfos.workspace_info,
-				project: {
-					id: project.id,
-					identifier: project.identifier,
-					name: project.name,
-					cover_image: project.cover_image,
-					logo_props: project.logo_props,
-					desciption: project.description
-				},
-				member: memberInfos.user_info,
-				created_at: memberInfos.created_at,
-				updated_at: memberInfos.updated_at,
-				deleted_at: memberInfos.deleted_at,
-				comment: null,
-				role: memberInfos.role,
-				view_props: {
-					filters,
-					display_filters,
-					display_properties
-				},
-				default_props: {
-					filters: defaultFiltes,
-					display_filters: defaultDisplayFilters,
-					display_properties: defaultDisplayProperties
-				},
-				preferences: {
-					pages: {
-						block_display: true
-					}
-				},
-				sort_order: 65535.0,
-				is_active: memberInfos.is_active,
-				created_by: memberInfos.created_by,
-				updated_by: memberInfos.updated_by
+				member: memberInfos.employeeId,
+				role: memberInfos.isManager ? 20 : 15
 			};
 		} catch (error) {
 			throw new BadRequestException(error);

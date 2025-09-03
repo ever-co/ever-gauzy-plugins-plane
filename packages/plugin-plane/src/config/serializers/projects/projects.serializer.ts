@@ -180,6 +180,12 @@ export function createProjectInputTransformer(
 	return data;
 }
 
+/**
+ * Transforms project members into an array of member IDs.
+ *
+ * @param {IProjectMember[] | ID[]} projectMembers - The project members to transform.
+ * @returns {ID[]} An array of member IDs.
+ */
 export function assignMembersToProjectTransformer(
 	projectMembers: (IProjectMember | ID)[]
 ): ID[] {
@@ -189,6 +195,9 @@ export function assignMembersToProjectTransformer(
 	return memberIds;
 }
 
+/**
+ * An array of project relations.
+ */
 export const projectRelations = [
 	'organization',
 	'members',

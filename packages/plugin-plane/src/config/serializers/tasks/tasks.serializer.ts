@@ -742,11 +742,39 @@ function normalizeFilters(filters: any): Record<string, any> {
 	// If filters has an "and" array, merge all conditions into a flat object
 	if (Array.isArray(filters.and)) {
 		const normalizedFilters: Record<string, any> = {};
+		// Temporary storage for date values that need to be merged
+		const startDateValues: string[] = [];
+		const targetDateValues: string[] = [];
 
 		filters.and.forEach((condition: Record<string, any>) => {
 			if (condition && typeof condition === 'object') {
 				Object.keys(condition).forEach((key) => {
 					const value = condition[key];
+
+					// Special handling for date filters - collect all values
+					if (
+						key === 'start_date__exact' ||
+						key === 'start_date__range'
+					) {
+						const dates =
+							typeof value === 'string' && value.includes(',')
+								? value.split(',')
+								: [value];
+						startDateValues.push(...dates);
+						return;
+					}
+
+					if (
+						key === 'target_date__exact' ||
+						key === 'target_date__range'
+					) {
+						const dates =
+							typeof value === 'string' && value.includes(',')
+								? value.split(',')
+								: [value];
+						targetDateValues.push(...dates);
+						return;
+					}
 
 					// If key already exists, merge values
 					if (normalizedFilters[key]) {
@@ -779,6 +807,32 @@ function normalizeFilters(filters: any): Record<string, any> {
 				});
 			}
 		});
+
+		// Merge all start date values into a single key (deduplicate)
+		if (startDateValues.length > 0) {
+			const uniqueStartDates = [...new Set(startDateValues)];
+			normalizedFilters.start_date__exact =
+				uniqueStartDates.length === 1
+					? uniqueStartDates[0]
+					: uniqueStartDates.join(',');
+			normalizedFilters.start_date__range =
+				uniqueStartDates.length === 1
+					? uniqueStartDates[0]
+					: uniqueStartDates.join(',');
+		}
+
+		// Merge all target date values into a single key (deduplicate)
+		if (targetDateValues.length > 0) {
+			const uniqueTargetDates = [...new Set(targetDateValues)];
+			normalizedFilters.target_date__exact =
+				uniqueTargetDates.length === 1
+					? uniqueTargetDates[0]
+					: uniqueTargetDates.join(',');
+			normalizedFilters.target_date__range =
+				uniqueTargetDates.length === 1
+					? uniqueTargetDates[0]
+					: uniqueTargetDates.join(',');
+		}
 
 		return normalizedFilters;
 	}
@@ -956,32 +1010,30 @@ export const getTaskQuery = (
 		});
 	}
 
-	// Handle date filters
+	// Handle date filters - merge all start_date values into one array
+	const allStartDates: string[] = [];
 	if (filters.start_date__exact) {
-		const dates = issueFilterSplitter(filters.start_date__exact);
-		dates.forEach((date, i) => {
-			query[`filters[startDates][${i}]`] = new Date(date);
-		});
+		allStartDates.push(...issueFilterSplitter(filters.start_date__exact));
 	}
-
-	if (filters.target_date__exact) {
-		const dates = issueFilterSplitter(filters.target_date__exact);
-		dates.forEach((date, i) => {
-			query[`filters[dueDates][${i}]`] = new Date(date);
-		});
-	}
-
 	if (filters.start_date__range) {
-		// start_date__range is typically a single value like "2025-11-18,2025-11-22"
-		const dates = issueFilterSplitter(filters.start_date__range);
-		dates.forEach((date, i) => {
+		allStartDates.push(...issueFilterSplitter(filters.start_date__range));
+	}
+	if (allStartDates.length > 0) {
+		allStartDates.forEach((date, i) => {
 			query[`filters[startDates][${i}]`] = new Date(date);
 		});
 	}
 
+	// Handle date filters - merge all target_date values into one array
+	const allTargetDates: string[] = [];
+	if (filters.target_date__exact) {
+		allTargetDates.push(...issueFilterSplitter(filters.target_date__exact));
+	}
 	if (filters.target_date__range) {
-		const dates = issueFilterSplitter(filters.target_date__range);
-		dates.forEach((date, i) => {
+		allTargetDates.push(...issueFilterSplitter(filters.target_date__range));
+	}
+	if (allTargetDates.length > 0) {
+		allTargetDates.forEach((date, i) => {
 			query[`filters[dueDates][${i}]`] = new Date(date);
 		});
 	}

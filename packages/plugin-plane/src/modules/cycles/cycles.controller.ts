@@ -55,7 +55,6 @@ export class CyclesController {
 
 	/**
 	 * Adds a list of issues to a sprint by updating each issue with the given cycle ID.
-	 * Utilizes `Promise.all` to perform asynchronous updates on multiple issues concurrently.
 	 *
 	 * @param {ID} id - The ID of the sprint (cycle) to which the issues will be added.
 	 * @param {ID[]} input - An array of issue IDs that need to be associated with the sprint.
@@ -69,6 +68,19 @@ export class CyclesController {
 		@Body() input: { issues: ID[] }
 	): Promise<{ message: string }> {
 		return await this._cycleService.addIssuesToSprint(id, input);
+	}
+
+	/**
+	 * Removes an issue from a sprint by updating the issue with the given cycle ID to null.
+	 *
+	 * @param {ID} issueId - The ID of the issue to be removed from the sprint.
+	 * @returns A promise that resolves to the updated issue.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Remove Issue from Cycle' })
+	@Delete('/:id/cycle-issues/:issueId')
+	async removeIssueFromSprint(@Param('issueId') issueId: ID) {
+		return await this._cycleService.removeIssueFromSprint(issueId);
 	}
 
 	/**

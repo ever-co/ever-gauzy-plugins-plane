@@ -155,7 +155,6 @@ export class AuthController {
 					// 3. Onboard the tenant using the user's email as the tenant name
 					let tenant: ITenant;
 
-					console.log('Attempt create tenant...');
 					try {
 						tenant = await this._authService.onboardTenant(
 							{
@@ -163,22 +162,17 @@ export class AuthController {
 							},
 							result.token
 						);
-						console.log('Tenant Created');
 					} catch (error: any) {
 						console.log('Error when creating new Tenant...', error);
 					}
 
 					// 4. Refresh the token using the refresh token for organization creation purpose
-					console.log('Refreshing token....');
 					let refrechedToken = await this._authService.refreshToken(
 						result.refresh_token,
 						result.token
 					);
 
-					console.log('1..... First refreshed token');
-
 					// 5. Create an organization for the tenant
-					console.log('Attempt create new default organization...');
 					let organization: IOrganization;
 					try {
 						organization =
@@ -191,8 +185,6 @@ export class AuthController {
 								refrechedToken.token,
 								tenant.id
 							);
-
-						console.log('Organization Created');
 					} catch (error) {
 						console.log(
 							'Error when creating new default Organization...',
@@ -201,7 +193,6 @@ export class AuthController {
 					}
 
 					// 6. Create an employee record for the user within the created organization
-					console.log('Attempt create employee...');
 					try {
 						await this._authService.signUpCreateEmployee(
 							{
@@ -212,19 +203,15 @@ export class AuthController {
 							refrechedToken.token,
 							tenant.id
 						);
-						console.log('Employee Created');
 					} catch (error) {
 						console.log('Error when creating Employee...', error);
 					}
 
 					// 7. Refresh the token again to include the new employee
-					console.log('Refreshing token again....');
 					refrechedToken = await this._authService.refreshToken(
 						result.refresh_token,
 						result.token
 					);
-
-					console.log('2..... Second refreshed token');
 
 					// 8. Split the token into chunks and set cookies for the user
 					clearTokenChuncks(req, res);

@@ -278,13 +278,25 @@ export class ProjectModuleService extends ApiFetchService {
 		}
 	}
 
+	/**
+	 * @description Update Module User properties
+	 * @param {ID} id - Module ID of module for whom update properties
+	 * @param {IUpdateUserPropertiesInput} input - The updated properties input
+	 * @returns A promise resolved to updated user properties
+	 * @memberof ProjectModuleService
+	 */
 	async updateModuleUserProperties(
 		id: ID,
 		input: IUpdateUserPropertiesInput
 	): Promise<IUserViewProperties> {
 		try {
 			// Destructure input properties for clarity
-			const { display_filters, display_properties, filters } = input;
+			const {
+				display_filters,
+				display_properties,
+				filters,
+				rich_filters
+			} = input;
 
 			// Find existing employee settings for the given project module
 			let memberSetting =
@@ -307,6 +319,9 @@ export class ProjectModuleService extends ApiFetchService {
 						...memberSetting,
 						data: {
 							filters: filters ? filters : data.filters,
+							rich_filters: rich_filters
+								? rich_filters
+								: data.rich_filters,
 							display_filters: display_filters
 								? display_filters
 								: data.display_filters,

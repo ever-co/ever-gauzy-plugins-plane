@@ -484,7 +484,12 @@ export class ProjectService extends ApiFetchService {
 	): Promise<any> {
 		try {
 			// Destructure input properties for clarity
-			const { display_filters, display_properties, filters } = input;
+			const {
+				display_filters,
+				display_properties,
+				filters,
+				rich_filters
+			} = input;
 
 			// Find existing employee settings for the given project
 			let memberSetting =
@@ -507,6 +512,9 @@ export class ProjectService extends ApiFetchService {
 						...memberSetting,
 						data: {
 							filters: filters ? filters : data.filters,
+							rich_filters: rich_filters
+								? rich_filters
+								: data.rich_filters,
 							display_filters: display_filters
 								? display_filters
 								: data.display_filters,

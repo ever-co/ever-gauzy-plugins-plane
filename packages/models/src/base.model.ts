@@ -10,6 +10,7 @@ export interface IWorkspaceInfo {
 export interface IDefaultProps extends IViewProps {}
 
 export interface IViewProps {
+	rich_filters?: IViewPropsFilters;
 	filters?: IViewPropsFilters;
 	display_filters?: IViewPropsDisplayFilters;
 	display_properties?: IDisplayProperties;
@@ -36,6 +37,17 @@ export interface IViewPropsFilters {
 	subscriber?: string[];
 	state?: string[];
 	state_in?: ID[];
+	state_id__in?: ID[];
+	state_group__in?: ID[];
+	module_id__in?: ID[];
+	cycle_id__in?: ID[];
+	assignee_id__in?: ID[];
+	priority__in?: ID[];
+	mention_id__in?: ID[];
+	label_id__in?: ID[];
+	start_date__exact?: string[];
+	target_date__exact?: string[];
+	start_date__range?: string[];
 }
 
 export interface IViewPropsDisplayFilters {
@@ -75,6 +87,7 @@ export interface IDisplayProperties {
 export interface IUpdateUserPropertiesInput {
 	display_filters?: IViewPropsDisplayFilters;
 	filters?: IViewPropsFilters;
+	rich_filters?: IViewPropsFilters;
 	display_properties?: IDisplayProperties;
 }
 

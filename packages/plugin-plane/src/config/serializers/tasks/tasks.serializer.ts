@@ -730,6 +730,118 @@ export const taskRelations = [
 ];
 
 /**
+ * Normalizes filter structure from {"and": [...]} format to a flat object
+ * @param filters - Filter object that may contain an "and" array structure
+ * @returns Normalized flat filter object
+ */
+function normalizeFilters(filters: any): Record<string, any> {
+	if (!filters || typeof filters !== 'object') {
+		return {};
+	}
+
+	// If filters has an "and" array, merge all conditions into a flat object
+	if (Array.isArray(filters.and)) {
+		const normalizedFilters: Record<string, any> = {};
+		// Temporary storage for date values that need to be merged
+		const startDateValues: string[] = [];
+		const targetDateValues: string[] = [];
+
+		filters.and.forEach((condition: Record<string, any>) => {
+			if (condition && typeof condition === 'object') {
+				Object.keys(condition).forEach((key) => {
+					const value = condition[key];
+
+					// Special handling for date filters - collect all values
+					if (
+						key === 'start_date__exact' ||
+						key === 'start_date__range'
+					) {
+						const dates =
+							typeof value === 'string' && value.includes(',')
+								? value.split(',')
+								: [value];
+						startDateValues.push(...dates);
+						return;
+					}
+
+					if (
+						key === 'target_date__exact' ||
+						key === 'target_date__range'
+					) {
+						const dates =
+							typeof value === 'string' && value.includes(',')
+								? value.split(',')
+								: [value];
+						targetDateValues.push(...dates);
+						return;
+					}
+
+					// If key already exists, merge values
+					if (normalizedFilters[key]) {
+						// Convert existing value to array if it's not already
+						const existingValues = Array.isArray(
+							normalizedFilters[key]
+						)
+							? normalizedFilters[key]
+							: [normalizedFilters[key]];
+
+						// Handle new value - split if it's a comma-separated string
+						const newValues =
+							typeof value === 'string' && value.includes(',')
+								? value.split(',')
+								: [value];
+
+						// Merge and deduplicate
+						const mergedConditions = [
+							...existingValues,
+							...newValues
+						];
+						normalizedFilters[key] =
+							mergedConditions.length === 1
+								? mergedConditions[0]
+								: mergedConditions.join(',');
+					} else {
+						// First occurrence - keep as is (string with commas or single value)
+						normalizedFilters[key] = value;
+					}
+				});
+			}
+		});
+
+		// Merge all start date values into a single key (deduplicate)
+		if (startDateValues.length > 0) {
+			const uniqueStartDates = [...new Set(startDateValues)];
+			normalizedFilters.start_date__exact =
+				uniqueStartDates.length === 1
+					? uniqueStartDates[0]
+					: uniqueStartDates.join(',');
+			normalizedFilters.start_date__range =
+				uniqueStartDates.length === 1
+					? uniqueStartDates[0]
+					: uniqueStartDates.join(',');
+		}
+
+		// Merge all target date values into a single key (deduplicate)
+		if (targetDateValues.length > 0) {
+			const uniqueTargetDates = [...new Set(targetDateValues)];
+			normalizedFilters.target_date__exact =
+				uniqueTargetDates.length === 1
+					? uniqueTargetDates[0]
+					: uniqueTargetDates.join(',');
+			normalizedFilters.target_date__range =
+				uniqueTargetDates.length === 1
+					? uniqueTargetDates[0]
+					: uniqueTargetDates.join(',');
+		}
+
+		return normalizedFilters;
+	}
+
+	// If filters is already a flat object, return as is
+	return filters;
+}
+
+/**
  * Builds a query object for fetching tasks based on various filters and options.
  *
  * @param projectId - The ID of the project to filter tasks by.
@@ -751,6 +863,21 @@ export const getTaskQuery = (
 		...baseGetItemsWhereQuery()
 	};
 
+	// Parse filters if it's a string (JSON encoded in URL)
+	if (options?.filters && typeof options.filters === 'string') {
+		try {
+			options.filters = JSON.parse(options.filters);
+		} catch (error) {
+			// If parsing fails, set filters to empty object
+			options.filters = {};
+		}
+	}
+
+	// Normalize filters structure (handle {"and": [...]} format)
+	if (options?.filters) {
+		options.filters = normalizeFilters(options.filters);
+	}
+
 	const {
 		assignees,
 		created_by,
@@ -760,8 +887,9 @@ export const getTaskQuery = (
 		labels,
 		module,
 		projectId: project_id,
-		state
-	} = options;
+		state,
+		filters = {}
+	} = options || {};
 
 	if (projectId || project_id) {
 		query['where[projectId]'] = projectId;
@@ -778,71 +906,128 @@ export const getTaskQuery = (
 		}
 	}
 
-	if (assignees) {
-		if (assignees.includes(',')) {
-			const members = issueFilterSplitter(assignees);
+	if (assignees || filters.assignee_id__in) {
+		const assigneesValue = assignees || filters.assignee_id__in;
+		if (assigneesValue && assigneesValue.includes(',')) {
+			const members = issueFilterSplitter(assigneesValue);
 			members.forEach((memberId, i) => {
 				query[`filters[members][${i}]`] = memberId;
 			});
 		} else {
-			query[`where[members][id]`] = assignees;
+			query[`where[members][id]`] = assigneesValue;
 		}
 	}
 
-	if (created_by) {
-		if (!created_by.includes(',')) {
-			query['where[createdByUserId]'] = created_by;
-		} else {
-			const creators = issueFilterSplitter(created_by);
+	if (created_by || filters.created_by__in) {
+		const createdByValue = created_by || filters.created_by__in;
+		if (createdByValue && createdByValue.includes(',')) {
+			const creators = issueFilterSplitter(createdByValue);
 			creators.forEach((creator, i) => {
 				query[`filters[createdByUserIds][${i}]`] = creator;
 			});
+		} else {
+			query['where[createdByUserId]'] = createdByValue;
 		}
 	}
 
-	if (module) {
-		if (!module.includes(',')) {
-			query['join[alias]'] = 'task';
-			query['where[modules][0]'] = options.module;
-		} else {
-			const modules = issueFilterSplitter(module);
+	if (module || filters.module_id__in) {
+		const moduleValue = module || filters.module_id__in;
+		if (moduleValue && moduleValue.includes(',')) {
+			const modules = issueFilterSplitter(moduleValue);
 			modules.forEach((mod, i) => {
 				query[`filters[modules][${i}]`] = mod;
 			});
+		} else {
+			query['join[alias]'] = 'task';
+			query['where[modules][0]'] = moduleValue;
 		}
 	}
 
-	if (cycle) {
-		if (!cycle.includes(',')) {
-			query['where[organizationSprintId]'] = cycle;
+	if (cycle || filters.cycle_id__in) {
+		const cycleValue = cycle || filters.cycle_id__in;
+		if (cycleValue && !cycleValue.includes(',')) {
+			query['where[organizationSprintId]'] = cycleValue;
 		} else {
-			const sprints = issueFilterSplitter(cycle);
+			const sprints = issueFilterSplitter(cycleValue);
 			sprints.forEach((sprint, i) => {
 				query[`filters[sprints][${i}]`] = sprint;
 			});
 		}
 	}
 
-	if (labels) {
-		const tags = issueFilterSplitter(labels);
+	if (labels || filters.label_id__in) {
+		const tags = issueFilterSplitter(labels || filters.label_id__in);
 		tags.forEach((tag, i) => {
 			query[`filters[tags][${i}]`] = tag;
 		});
 	}
 
-	if (state) {
-		if (!state.includes(',')) {
-			query['where[taskStatusId]'] = state;
-		} else {
-			const statusIds = issueFilterSplitter(state);
+	if (state || filters.state_id__in) {
+		const stateValue = state || filters.state_id__in;
+		if (stateValue && stateValue.includes(',')) {
+			const statusIds = issueFilterSplitter(stateValue);
 			statusIds.forEach((statusId, i) => {
 				query[`filters[statusIds][${i}]`] = statusId;
 			});
+		} else {
+			query['where[taskStatusId]'] = stateValue;
 		}
 	}
 
 	if (creatorId) {
 		query['where[createdByUserId]'] = options.creatorId;
+	}
+
+	// Handle priority__in filter
+	if (filters.priority__in) {
+		const priorities = issueFilterSplitter(filters.priority__in);
+		priorities.forEach((priority, i) => {
+			query[`filters[priorities][${i}]`] = priority;
+		});
+	}
+
+	// Handle state_group__in filter
+	if (filters.state_group__in) {
+		const stateGroups = issueFilterSplitter(filters.state_group__in);
+		stateGroups.forEach((stateGroup, i) => {
+			query[`filters[statuses][${i}]`] = stateGroup;
+		});
+	}
+
+	// Handle mention_id__in filter
+	if (filters.mention_id__in) {
+		const mentions = issueFilterSplitter(filters.mention_id__in);
+		mentions.forEach((mention, i) => {
+			query[`filters[mentionIds][${i}]`] = mention;
+		});
+	}
+
+	// Handle date filters - merge all start_date values into one array
+	const allStartDates: string[] = [];
+	if (filters.start_date__exact) {
+		allStartDates.push(...issueFilterSplitter(filters.start_date__exact));
+	}
+	if (filters.start_date__range) {
+		allStartDates.push(...issueFilterSplitter(filters.start_date__range));
+	}
+	if (allStartDates.length > 0) {
+		allStartDates.forEach((date, i) => {
+			query[`filters[startDates][${i}]`] = new Date(date);
+		});
+	}
+
+	// Handle date filters - merge all target_date values into one array
+	const allTargetDates: string[] = [];
+	if (filters.target_date__exact) {
+		allTargetDates.push(...issueFilterSplitter(filters.target_date__exact));
+	}
+	if (filters.target_date__range) {
+		allTargetDates.push(...issueFilterSplitter(filters.target_date__range));
+	}
+	if (allTargetDates.length > 0) {
+		allTargetDates.forEach((date, i) => {
+			query[`filters[dueDates][${i}]`] = new Date(date);
+		});
 	}
 
 	if (typeof isDraft !== 'undefined') {

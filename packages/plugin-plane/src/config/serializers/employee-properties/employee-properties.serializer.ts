@@ -15,7 +15,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
 export function employeeSettingSerializer(
 	employeeSetting: IEmployeeSetting
 ): IUserViewProperties {
-	const { filters, display_filters, display_properties } =
+	const { filters, display_filters, display_properties, rich_filters } =
 		(employeeSetting?.data as Record<string, any>) || {};
 
 	return {
@@ -26,6 +26,7 @@ export function employeeSettingSerializer(
 		filters,
 		display_filters,
 		display_properties,
+		rich_filters,
 		created_by: employeeSetting?.employeeId,
 		updated_by: employeeSetting?.employeeId,
 		project:

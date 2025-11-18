@@ -598,7 +598,7 @@ export class IssuesService extends ApiFetchService {
 
 			// Group the issues based on the group_by option, or return non-grouped issues by default
 			const issuesWithLinks = await Promise.all(
-				issues.map(async (issue) => {
+				(issues ?? []).map(async (issue) => {
 					const issueLinks = await this._issueLinkService.findAll(
 						BaseEntityEnum.Task,
 						issue.id

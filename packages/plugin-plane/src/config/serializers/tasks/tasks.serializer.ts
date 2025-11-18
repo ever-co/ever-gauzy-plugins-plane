@@ -907,55 +907,48 @@ export const getTaskQuery = (
 	}
 
 	if (assignees || filters.assignee_id__in) {
-		if (assignees?.includes(',') || filters.assignee_id__in.includes(',')) {
-			const members = issueFilterSplitter(
-				assignees || filters.assignee_id__in
-			);
+		const assigneesValue = assignees || filters.assignee_id__in;
+		if (assigneesValue && assigneesValue.includes(',')) {
+			const members = issueFilterSplitter(assigneesValue);
 			members.forEach((memberId, i) => {
 				query[`filters[members][${i}]`] = memberId;
 			});
 		} else {
-			query[`where[members][id]`] = assignees || filters.assignee_id__in;
+			query[`where[members][id]`] = assigneesValue;
 		}
 	}
 
 	if (created_by || filters.created_by__in) {
-		if (
-			!created_by?.includes(',') ||
-			!filters.created_by__in.includes(',')
-		) {
-			query['where[createdByUserId]'] =
-				created_by || filters.created_by__in;
-		} else {
-			const creators = issueFilterSplitter(
-				created_by || filters.created_by__in
-			);
+		const createdByValue = created_by || filters.created_by__in;
+		if (createdByValue && createdByValue.includes(',')) {
+			const creators = issueFilterSplitter(createdByValue);
 			creators.forEach((creator, i) => {
 				query[`filters[createdByUserIds][${i}]`] = creator;
 			});
+		} else {
+			query['where[createdByUserId]'] = createdByValue;
 		}
 	}
 
 	if (module || filters.module_id__in) {
-		if (!module?.includes(',') || !filters?.module_id__in.includes(',')) {
-			query['join[alias]'] = 'task';
-			query['where[modules][0]'] = module || filters.module_id__in;
-		} else {
-			const modules = issueFilterSplitter(
-				module || filters.module_id__in
-			);
+		const moduleValue = module || filters.module_id__in;
+		if (moduleValue && moduleValue.includes(',')) {
+			const modules = issueFilterSplitter(moduleValue);
 			modules.forEach((mod, i) => {
 				query[`filters[modules][${i}]`] = mod;
 			});
+		} else {
+			query['join[alias]'] = 'task';
+			query['where[modules][0]'] = moduleValue;
 		}
 	}
 
-	if (filters.cycle || filters.cycle_id__in) {
-		if (!cycle?.includes(',') || !filters?.cycle_id__in.includes(',')) {
-			query['where[organizationSprintId]'] =
-				filters.cycle || filters.cycle_id__in;
+	if (cycle || filters.cycle_id__in) {
+		const cycleValue = cycle || filters.cycle_id__in;
+		if (cycleValue && !cycleValue.includes(',')) {
+			query['where[organizationSprintId]'] = cycleValue;
 		} else {
-			const sprints = issueFilterSplitter(cycle || filters.cycle_id__in);
+			const sprints = issueFilterSplitter(cycleValue);
 			sprints.forEach((sprint, i) => {
 				query[`filters[sprints][${i}]`] = sprint;
 			});
@@ -970,15 +963,14 @@ export const getTaskQuery = (
 	}
 
 	if (state || filters.state_id__in) {
-		if (!state?.includes(',') || !filters.state_id__in.includes(',')) {
-			query['where[taskStatusId]'] = state || filters.state_id__in;
-		} else {
-			const statusIds = issueFilterSplitter(
-				state || filters.state_id__in
-			);
+		const stateValue = state || filters.state_id__in;
+		if (stateValue && stateValue.includes(',')) {
+			const statusIds = issueFilterSplitter(stateValue);
 			statusIds.forEach((statusId, i) => {
 				query[`filters[statusIds][${i}]`] = statusId;
 			});
+		} else {
+			query['where[taskStatusId]'] = stateValue;
 		}
 	}
 

@@ -730,6 +730,64 @@ export const taskRelations = [
 ];
 
 /**
+ * Normalizes filter structure from {"and": [...]} format to a flat object
+ * @param filters - Filter object that may contain an "and" array structure
+ * @returns Normalized flat filter object
+ */
+function normalizeFilters(filters: any): Record<string, any> {
+	if (!filters || typeof filters !== 'object') {
+		return {};
+	}
+
+	// If filters has an "and" array, merge all conditions into a flat object
+	if (Array.isArray(filters.and)) {
+		const normalizedFilters: Record<string, any> = {};
+
+		filters.and.forEach((condition: Record<string, any>) => {
+			if (condition && typeof condition === 'object') {
+				Object.keys(condition).forEach((key) => {
+					const value = condition[key];
+
+					// If key already exists, merge values
+					if (normalizedFilters[key]) {
+						// Convert existing value to array if it's not already
+						const existingValues = Array.isArray(
+							normalizedFilters[key]
+						)
+							? normalizedFilters[key]
+							: [normalizedFilters[key]];
+
+						// Handle new value - split if it's a comma-separated string
+						const newValues =
+							typeof value === 'string' && value.includes(',')
+								? value.split(',')
+								: [value];
+
+						// Merge and deduplicate
+						const mergedConditions = [
+							...existingValues,
+							...newValues
+						];
+						normalizedFilters[key] =
+							mergedConditions.length === 1
+								? mergedConditions[0]
+								: mergedConditions.join(',');
+					} else {
+						// First occurrence - keep as is (string with commas or single value)
+						normalizedFilters[key] = value;
+					}
+				});
+			}
+		});
+
+		return normalizedFilters;
+	}
+
+	// If filters is already a flat object, return as is
+	return filters;
+}
+
+/**
  * Builds a query object for fetching tasks based on various filters and options.
  *
  * @param projectId - The ID of the project to filter tasks by.
@@ -759,6 +817,11 @@ export const getTaskQuery = (
 			// If parsing fails, set filters to empty object
 			options.filters = {};
 		}
+	}
+
+	// Normalize filters structure (handle {"and": [...]} format)
+	if (options?.filters) {
+		options.filters = normalizeFilters(options.filters);
 	}
 
 	const {
@@ -867,6 +930,60 @@ export const getTaskQuery = (
 
 	if (creatorId) {
 		query['where[createdByUserId]'] = options.creatorId;
+	}
+
+	// Handle priority__in filter
+	if (filters.priority__in) {
+		const priorities = issueFilterSplitter(filters.priority__in);
+		priorities.forEach((priority, i) => {
+			query[`filters[priorities][${i}]`] = priority;
+		});
+	}
+
+	// Handle state_group__in filter
+	if (filters.state_group__in) {
+		const stateGroups = issueFilterSplitter(filters.state_group__in);
+		stateGroups.forEach((stateGroup, i) => {
+			query[`filters[statuses][${i}]`] = stateGroup;
+		});
+	}
+
+	// Handle mention_id__in filter
+	if (filters.mention_id__in) {
+		const mentions = issueFilterSplitter(filters.mention_id__in);
+		mentions.forEach((mention, i) => {
+			query[`filters[mentionIds][${i}]`] = mention;
+		});
+	}
+
+	// Handle date filters
+	if (filters.start_date__exact) {
+		const dates = issueFilterSplitter(filters.start_date__exact);
+		dates.forEach((date, i) => {
+			query[`filters[startDates][${i}]`] = new Date(date);
+		});
+	}
+
+	if (filters.target_date__exact) {
+		const dates = issueFilterSplitter(filters.target_date__exact);
+		dates.forEach((date, i) => {
+			query[`filters[dueDates][${i}]`] = new Date(date);
+		});
+	}
+
+	if (filters.start_date__range) {
+		// start_date__range is typically a single value like "2025-11-18,2025-11-22"
+		const dates = issueFilterSplitter(filters.start_date__range);
+		dates.forEach((date, i) => {
+			query[`filters[startDates][${i}]`] = new Date(date);
+		});
+	}
+
+	if (filters.target_date__range) {
+		const dates = issueFilterSplitter(filters.target_date__range);
+		dates.forEach((date, i) => {
+			query[`filters[dueDates][${i}]`] = new Date(date);
+		});
 	}
 
 	if (typeof isDraft !== 'undefined') {

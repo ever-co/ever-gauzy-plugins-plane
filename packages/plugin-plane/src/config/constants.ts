@@ -40,6 +40,7 @@ export const MEMBER_DEFAULT_VIEW_PROPS = {
 		state_group: null,
 		target_date: null
 	},
+	rich_filters: {},
 	display_filters: {
 		type: null,
 		layout: 'kanban',

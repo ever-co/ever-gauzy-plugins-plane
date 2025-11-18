@@ -438,7 +438,12 @@ export class CyclesService extends ApiFetchService {
 	): Promise<IUserViewProperties> {
 		try {
 			// Destructure input properties
-			const { display_filters, display_properties, filters } = input;
+			const {
+				display_filters,
+				display_properties,
+				filters,
+				rich_filters
+			} = input;
 
 			// Find existing employee settings for the given cycle
 			let memberSetting =
@@ -462,6 +467,7 @@ export class CyclesService extends ApiFetchService {
 						...memberSetting,
 						data: {
 							filters: filters ?? data.filters,
+							rich_filters: rich_filters ?? data.rich_filters,
 							display_filters:
 								display_filters ?? data.display_filters,
 							display_properties:

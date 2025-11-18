@@ -87,6 +87,7 @@ export interface IDisplayProperties {
 export interface IUpdateUserPropertiesInput {
 	display_filters?: IViewPropsDisplayFilters;
 	filters?: IViewPropsFilters;
+	rich_filters?: IViewPropsFilters;
 	display_properties?: IDisplayProperties;
 }
 

@@ -751,6 +751,16 @@ export const getTaskQuery = (
 		...baseGetItemsWhereQuery()
 	};
 
+	// Parse filters if it's a string (JSON encoded in URL)
+	if (options?.filters && typeof options.filters === 'string') {
+		try {
+			options.filters = JSON.parse(options.filters);
+		} catch (error) {
+			// If parsing fails, set filters to empty object
+			options.filters = {};
+		}
+	}
+
 	const {
 		assignees,
 		created_by,
@@ -760,8 +770,9 @@ export const getTaskQuery = (
 		labels,
 		module,
 		projectId: project_id,
-		state
-	} = options;
+		state,
+		filters = {}
+	} = options || {};
 
 	if (projectId || project_id) {
 		query['where[projectId]'] = projectId;
@@ -778,63 +789,76 @@ export const getTaskQuery = (
 		}
 	}
 
-	if (assignees) {
-		if (assignees.includes(',')) {
-			const members = issueFilterSplitter(assignees);
+	if (assignees || filters.assignee_id__in) {
+		if (assignees?.includes(',') || filters.assignee_id__in.includes(',')) {
+			const members = issueFilterSplitter(
+				assignees || filters.assignee_id__in
+			);
 			members.forEach((memberId, i) => {
 				query[`filters[members][${i}]`] = memberId;
 			});
 		} else {
-			query[`where[members][id]`] = assignees;
+			query[`where[members][id]`] = assignees || filters.assignee_id__in;
 		}
 	}
 
-	if (created_by) {
-		if (!created_by.includes(',')) {
-			query['where[createdByUserId]'] = created_by;
+	if (created_by || filters.created_by__in) {
+		if (
+			!created_by?.includes(',') ||
+			!filters.created_by__in.includes(',')
+		) {
+			query['where[createdByUserId]'] =
+				created_by || filters.created_by__in;
 		} else {
-			const creators = issueFilterSplitter(created_by);
+			const creators = issueFilterSplitter(
+				created_by || filters.created_by__in
+			);
 			creators.forEach((creator, i) => {
 				query[`filters[createdByUserIds][${i}]`] = creator;
 			});
 		}
 	}
 
-	if (module) {
-		if (!module.includes(',')) {
+	if (module || filters.module_id__in) {
+		if (!module?.includes(',') || !filters?.module_id__in.includes(',')) {
 			query['join[alias]'] = 'task';
-			query['where[modules][0]'] = options.module;
+			query['where[modules][0]'] = module || filters.module_id__in;
 		} else {
-			const modules = issueFilterSplitter(module);
+			const modules = issueFilterSplitter(
+				module || filters.module_id__in
+			);
 			modules.forEach((mod, i) => {
 				query[`filters[modules][${i}]`] = mod;
 			});
 		}
 	}
 
-	if (cycle) {
-		if (!cycle.includes(',')) {
-			query['where[organizationSprintId]'] = cycle;
+	if (filters.cycle || filters.cycle_id__in) {
+		if (!cycle?.includes(',') || !filters?.cycle_id__in.includes(',')) {
+			query['where[organizationSprintId]'] =
+				filters.cycle || filters.cycle_id__in;
 		} else {
-			const sprints = issueFilterSplitter(cycle);
+			const sprints = issueFilterSplitter(cycle || filters.cycle_id__in);
 			sprints.forEach((sprint, i) => {
 				query[`filters[sprints][${i}]`] = sprint;
 			});
 		}
 	}
 
-	if (labels) {
-		const tags = issueFilterSplitter(labels);
+	if (labels || filters.label_id__in) {
+		const tags = issueFilterSplitter(labels || filters.label_id__in);
 		tags.forEach((tag, i) => {
 			query[`filters[tags][${i}]`] = tag;
 		});
 	}
 
-	if (state) {
-		if (!state.includes(',')) {
-			query['where[taskStatusId]'] = state;
+	if (state || filters.state_id__in) {
+		if (!state?.includes(',') || !filters.state_id__in.includes(',')) {
+			query['where[taskStatusId]'] = state || filters.state_id__in;
 		} else {
-			const statusIds = issueFilterSplitter(state);
+			const statusIds = issueFilterSplitter(
+				state || filters.state_id__in
+			);
 			statusIds.forEach((statusId, i) => {
 				query[`filters[statusIds][${i}]`] = statusId;
 			});

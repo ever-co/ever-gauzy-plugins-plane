@@ -237,6 +237,26 @@ export class CyclesService extends ApiFetchService {
 	}
 
 	/**
+	 * Removes an issue from a sprint by updating the issue with the given cycle ID to null.
+	 *
+	 * @param {ID} issueId - The ID of the issue to be removed from the sprint.
+	 * @returns promise that resolves to the updated issue.
+	 * @throws {BadRequestException} If there is an error during the update of the issue.
+	 */
+	async removeIssueFromSprint(issueId: ID) {
+		try {
+			return await this._issueService.update(
+				issueId,
+				{ cycle_id: null },
+				false
+			);
+		} catch (error: any) {
+			console.log(error.response);
+			throw new BadRequestException(error.response);
+		}
+	}
+
+	/**
 	 * Retrieves all tasks that were ever part of a sprint (current and previous).
 	 * This method combines current and previous sprint tasks, ensuring no duplicates.
 	 *

@@ -97,6 +97,9 @@ export interface IIssueFindInput {
 
 	// Labels
 	labels?: string;
+
+	// Filters
+	filters?: any;
 }
 
 export enum IssueFindByTypeEnum {

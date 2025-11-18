@@ -21,14 +21,23 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  * @returns {IGetTasksByViewFilters} - A transformed object that matched external API naming
  */
 export function filtersToQueryParams(
-	filters: ICreateViewInput['filters']
+	filters: ICreateViewInput['filters'] | ICreateViewInput['rich_filters']
 ): IGetTasksByViewFilters {
 	const {
 		assignees = [],
 		created_by = [],
 		cycle = [],
+		cycle_id__in = [],
 		labels = [],
 		module = [],
+		module_id__in = [],
+		state_id__in = [],
+		state_group__in = [],
+		assignee_id__in = [],
+		priority__in = [],
+		label_id__in = [],
+		start_date__exact = [],
+		target_date__exact = [],
 		priority = [],
 		project = [],
 		start_date = [],
@@ -36,19 +45,23 @@ export function filtersToQueryParams(
 		state_group = [],
 		// subscriber = [], To be added in external API
 		target_date = []
-	} = filters;
+	} = filters as IViewPropsFilters;
 
 	return {
 		projects: project,
-		modules: module,
-		tags: labels,
-		statusIds: state,
-		statuses: state_group as TaskStatusEnum[],
-		priorities: priority as TaskPriorityEnum[],
-		sprints: cycle,
-		members: assignees,
-		startDates: start_date.map((date) => new Date(date)),
-		dueDates: target_date.map((date) => new Date(date)),
+		modules: module || module_id__in,
+		tags: labels || label_id__in,
+		statusIds: state || state_id__in,
+		statuses: (state_group || state_group__in) as TaskStatusEnum[],
+		priorities: (priority || priority__in) as TaskPriorityEnum[],
+		sprints: cycle_id__in || cycle,
+		members: assignees || assignee_id__in,
+		startDates: (start_date || start_date__exact).map(
+			(date) => new Date(date)
+		),
+		dueDates: (target_date || target_date__exact).map(
+			(date) => new Date(date)
+		),
 		creators: created_by
 	};
 }
@@ -78,15 +91,25 @@ export function queryParamsToFilters(
 	return {
 		project: projects,
 		module: modules,
+		module_id__in: modules,
 		labels: tags,
+		label_id__in: tags,
 		state: statusIds,
+		state_id__in: statusIds,
 		state_in: statusIds,
 		state_group: statuses as string[], // assuming statuses are internally handled as strings
+		state_group__in: statuses as string[],
 		priority: priorities as string[], // assuming priorities are internally handled as strings
+		priority__in: priorities as string[],
 		cycle: sprints,
+		cycle_id__in: sprints,
 		assignees: members,
+		assignee_id__in: members,
 		start_date: startDates as string[],
+		start_date__exact: startDates as string[],
+		start_date__range: startDates as string[],
 		target_date: dueDates as string[],
+		target_date__exact: dueDates as string[],
 		created_by: creators
 	};
 }
@@ -109,6 +132,7 @@ export function createViewInputTransformer(
 ): ITaskViewCreateInput {
 	const {
 		filters,
+		rich_filters,
 		display_filters,
 		display_properties,
 		name,
@@ -121,14 +145,14 @@ export function createViewInputTransformer(
 			? VisibilityLevelEnum.TEAM_AND_PROJECT
 			: VisibilityLevelEnum.ORGANIZATION;
 
-	const queryParams = filtersToQueryParams(filters);
+	const queryParams = filtersToQueryParams(rich_filters || filters);
 
 	return {
 		name,
 		description,
 		visibilityLevel,
 		queryParams,
-		filterOptions: filters,
+		filterOptions: rich_filters || filters,
 		displayOptions: display_filters,
 		properties: display_properties as Record<string, boolean>,
 		organizationId,
@@ -157,6 +181,7 @@ export function updateViewInputTransformer(
 	// Default values if some properties are missing
 	const defaultView: ICreateViewInput = {
 		filters: {},
+		rich_filters: {},
 		display_filters: {},
 		display_properties: {},
 		name: view.name
@@ -200,6 +225,7 @@ export function issueViewTransformer(
 				taskView.queryParams as IGetTasksByViewFilters
 			),
 			filters: taskView.filterOptions as IViewPropsFilters,
+			rich_filters: taskView.filterOptions as IViewPropsFilters,
 			display_filters:
 				taskView.displayOptions as IViewPropsDisplayFilters,
 			display_properties: taskView.properties,

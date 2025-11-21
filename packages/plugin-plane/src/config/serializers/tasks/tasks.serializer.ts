@@ -36,6 +36,23 @@ import {
 } from '../../utils';
 
 /**
+ * Task default relations
+ */
+export const taskRelations = [
+	'tags',
+	'members.user',
+	'createdByUser',
+	'project.members.employee.user.role',
+	'organizationSprint',
+	'linkedIssues.taskTo',
+	'linkedIssues.taskFrom',
+	'parent',
+	'children.taskStatus',
+	'taskStatus',
+	'modules'
+];
+
+/**
  * Extracts the IDs of the assignees from a given issue.
  *
  * @param {ITask} issue - The issue object from which to extract assignee IDs.
@@ -715,20 +732,6 @@ export function nonGroupedIssues(issues: ITask[]) {
 	};
 }
 
-export const taskRelations = [
-	'tags',
-	'members.user',
-	'createdByUser',
-	'project.members.employee.user.role',
-	'organizationSprint',
-	'linkedIssues.taskTo',
-	'linkedIssues.taskFrom',
-	'parent',
-	'children.taskStatus',
-	'taskStatus',
-	'modules'
-];
-
 /**
  * Normalizes filter structure from {"and": [...]} format to a flat object
  * @param filters - Filter object that may contain an "and" array structure
@@ -1396,4 +1399,24 @@ export function issuesByPriority(
 				task.priority === value || (value === null && !task.priority)
 		).length
 	}));
+}
+
+/**
+ * Get query with identifier for a task
+ */
+export function getTaskByIdentifierQuery(
+	identifier: string,
+	relations?: string[]
+): Record<string, string> {
+	const query: Record<string, string> = {
+		...baseGetItemsWhereQuery()
+	};
+	query['where[number]'] = identifier.split('-')[1];
+	query['where[project][code]'] = identifier.split('-')[0];
+
+	relations?.forEach((relation, i) => {
+		query[`relations[${i}]`] = relation;
+	});
+
+	return query;
 }

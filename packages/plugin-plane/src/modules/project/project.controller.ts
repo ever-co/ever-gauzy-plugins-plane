@@ -94,7 +94,7 @@ export class ProjectController {
 	 * @returns - A promise that resolves after created project
 	 * @memberof ProjectController
 	 */
-	@HttpCode(HttpStatus.BAD_REQUEST)
+	// @HttpCode(HttpStatus.BAD_REQUEST)
 	@HttpCode(HttpStatus.CREATED)
 	@ApiResponse({
 		status: 201,

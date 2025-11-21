@@ -1351,8 +1351,6 @@ export function getTaskDistribution(tasks: ITask[]) {
 		const status = task.status ? sluggify(task.status) : '';
 		const category = statusMap[status];
 
-		console.log({ status, category });
-
 		if (category) {
 			stateDistribution[category].push(task.id);
 		}

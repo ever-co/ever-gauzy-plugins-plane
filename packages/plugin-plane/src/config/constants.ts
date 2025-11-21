@@ -128,6 +128,52 @@ export const DEFAULT_DASHBOARD_WIDGETS: IWidget[] = [
 ];
 
 /**
+ * The default sidebar preferences
+ */
+export const DEFAULT_SIDBAR_PREFERENCES = {
+	views: {
+		is_pinned: false,
+		sort_order: 65535.0
+	},
+	active_cycles: {
+		is_pinned: false,
+		sort_order: 75535.0
+	},
+	analytics: {
+		is_pinned: false,
+		sort_order: 85535.0
+	},
+	drafts: {
+		is_pinned: false,
+		sort_order: 95535.0
+	},
+	your_work: {
+		is_pinned: false,
+		sort_order: 105535.0
+	},
+	archives: {
+		is_pinned: false,
+		sort_order: 115535.0
+	},
+	team_spaces: {
+		is_pinned: false,
+		sort_order: 125535.0
+	},
+	initiatives: {
+		is_pinned: false,
+		sort_order: 135535.0
+	},
+	customers: {
+		is_pinned: false,
+		sort_order: 145535.0
+	},
+	dashboards: {
+		is_pinned: false,
+		sort_order: 155535.0
+	}
+};
+
+/**
  * The default magic generate prefix
  */
 export const DEFAULT_MAGIC_GENERATE_PREFIX = 'magic_';

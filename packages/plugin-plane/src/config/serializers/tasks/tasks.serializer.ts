@@ -32,7 +32,8 @@ import {
 	extractEmployeeMentionIds,
 	issueFilterSplitter,
 	orderByDirection,
-	orderByFieldTransformer
+	orderByFieldTransformer,
+	sluggify
 } from '../../utils';
 
 /**
@@ -1347,7 +1348,7 @@ export function getTaskDistribution(tasks: ITask[]) {
 	};
 
 	tasks.forEach((task) => {
-		const status = task.status.toLocaleLowerCase();
+		const status = task.status ? sluggify(task.status) : '';
 		const category = statusMap[status];
 
 		if (category) {

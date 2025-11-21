@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import slugify from 'slugify';
 import { ID, IssueOrderByField } from '@plane-plugin/models';
 import { Request, Response } from 'express';
 import { EXTERNAL_API_MODE, MAX_TOKEN_COOKIE_SIZE } from '../constants';
@@ -20,6 +21,27 @@ export function deslugify(slug: string, replacement: any = '-'): string {
 	return result;
 }
 
+/**
+ * Generate a slug from a string value.
+ *
+ * @param string - The input string to be converted into a slug.
+ * @param replacement - The character to replace spaces with (default is '-').
+ * @returns The generated slug as a string.
+ */
+export function sluggify(string: string, replacement: string = '-'): string {
+	return slugify(string, {
+		replacement: replacement, // replace spaces with replacement character, defaults to `-`
+		remove: /[*+~()'"!:@,.]/g, // remove characters that match regex, defaults to `undefined`
+		lower: true, // convert to lower case, defaults to `false`
+		trim: true // trim leading and trailing replacement chars, defaults to `true`
+	}).replace(/[_]/g, replacement);
+}
+
+/**
+ * Map of issue ordering fields to their corresponding property names.
+ *
+ * @type {Object} An object with keys representing the issue ordering fields and values representing the corresponding property names.
+ */
 export const orderByFieldMap: { [key in IssueOrderByField]: string } = {
 	[IssueOrderByField.DESC_CREATED_AT]: 'createdAt',
 	[IssueOrderByField.ASC_CREATED_AT]: 'createdAt',

@@ -215,11 +215,16 @@ export const projectRelations = [
  * Helper function to build query object
  */
 export const getProjectsQuery = (
-	relations?: string[]
+	relations?: string[],
+	options?: Partial<IOrganizationProject>
 ): Record<string, string> => {
 	const baseQuery = {
 		...baseGetItemsWhereQuery()
 	};
+
+	if (options?.code) {
+		baseQuery['where[code]'] = options.code;
+	}
 
 	// Add relations to the baseQuery
 	if (relations) {

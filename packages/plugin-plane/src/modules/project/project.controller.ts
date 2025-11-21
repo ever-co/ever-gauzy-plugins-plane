@@ -94,7 +94,16 @@ export class ProjectController {
 	 * @returns - A promise that resolves after created project
 	 * @memberof ProjectController
 	 */
+	@HttpCode(HttpStatus.BAD_REQUEST)
 	@HttpCode(HttpStatus.CREATED)
+	@ApiResponse({
+		status: 201,
+		description: 'The project was successfully created.'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Bad Request. Failed to create project.'
+	})
 	@ApiOperation({ summary: 'Create workspace projects' })
 	@Post()
 	async createOrganizationProject(@Body() input: CreateProjectDTO) {

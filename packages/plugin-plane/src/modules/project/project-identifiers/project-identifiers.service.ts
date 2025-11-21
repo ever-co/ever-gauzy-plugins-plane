@@ -16,9 +16,6 @@ export class ProjectIdentifiersService extends ApiFetchService {
 
 	private path = '/organization-projects';
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Get all projects by code / identifier
 	 * @param {string} identifier identifier for filtering

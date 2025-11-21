@@ -51,9 +51,10 @@ export class ProjectService extends ApiFetchService {
 	private readonly path = '/organization-projects';
 
 	async getExternalProjects(
-		relations?: string[]
+		relations?: string[],
+		options?: Partial<IOrganizationProject>
 	): Promise<IOrganizationProject[]> {
-		const query = qs.stringify(getProjectsQuery(relations));
+		const query = qs.stringify(getProjectsQuery(relations, options));
 		try {
 			const projects: IPagination<IOrganizationProject> = (
 				await this.apiFetch({
@@ -257,7 +258,28 @@ export class ProjectService extends ApiFetchService {
 	async createOrganizationProject(
 		input: ICreateProjectInput
 	): Promise<IProject> {
+		// Validate if the project identifier is already in use
+		try {
+			const projects = await this.getExternalProjects([], {
+				code: input.identifier
+			});
+
+			if (projects.length > 0) {
+				throw new BadRequestException({
+					identifier: ['PROJECT_IDENTIFIER_ALREADY_EXIST']
+				});
+			}
+		} catch (error) {
+			if (error instanceof BadRequestException) {
+				throw error;
+			}
+			return;
+		}
+
+		// Construct the body request
 		const body = createProjectInputTransformer(input);
+
+		// Create the project
 		try {
 			const project: IOrganizationProject = (
 				await this.apiFetch({

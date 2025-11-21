@@ -35,6 +35,7 @@ import { NotificationModule } from './notification/notification.module';
 import { WorkspaceSlugModule } from './workspace-slug/workspace-slug.module';
 import { WorkspacesModule } from './workspace/workspaces.module';
 import { InvitationModule } from './invitation/invitation.module';
+import { WorkItemsModule } from './work-items/work-items.module';
 
 @Module({
 	imports: [
@@ -70,7 +71,8 @@ import { InvitationModule } from './invitation/invitation.module';
 		TimezonesModule,
 		NotificationModule,
 		WorkspaceSlugModule,
-		WorkspacesModule
+		WorkspacesModule,
+		WorkItemsModule
 	],
 	providers: [
 		{

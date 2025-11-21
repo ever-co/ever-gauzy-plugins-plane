@@ -9,9 +9,6 @@ export class ProjectIdentifiersController {
 		private readonly _projectIdentifierService: ProjectIdentifiersService
 	) {}
 
-	/**--------------------------------------------------------------
-	 * This function handlers should be updated after implementing authentication
-	 *--------------------------------------------------------------*/
 	/**
 	 * @description - Get all projects by code / identifier
 	 * @param {string} identifier identifier for filtering

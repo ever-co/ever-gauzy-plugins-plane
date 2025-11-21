@@ -104,6 +104,19 @@ export class IssuesController {
 	}
 
 	/**
+	 * Get issue meta
+	 * @param {ID} id - Issue ID
+	 * @returns A promise that resolves to the issue meta
+	 * @throws {BadRequestException} If the issue is not found
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get issue meta' })
+	@Get(':id/meta')
+	async getIssueMeta(@Param('id') id: ID) {
+		return await this._issueService.getIssueMeta(id);
+	}
+
+	/**
 	 * @description - Create issue
 	 * @param {CreateIssueDTO} input - data for creating new issue
 	 * @returns - A promise that resolves after issue created

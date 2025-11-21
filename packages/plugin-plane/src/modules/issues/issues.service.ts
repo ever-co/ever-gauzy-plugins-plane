@@ -1654,4 +1654,30 @@ export class IssuesService extends ApiFetchService {
 			userId: currentUserId()
 		});
 	}
+
+	/**
+	 * Get issue meta
+	 * @param {ID} issueId - Issue ID
+	 * @returns {Promise<{ sequence_id: number; project_identifier: string }>} A promise that resolves to the issue meta
+	 * @throws {BadRequestException} If the issue is not found
+	 */
+	async getIssueMeta(
+		issueId: ID
+	): Promise<{ sequence_id: number; project_identifier: string }> {
+		try {
+			const issue = await this.getExternalIssue(issueId, ['project']);
+
+			if (!issue) {
+				throw new BadRequestException('Issue not found');
+			}
+
+			return {
+				sequence_id: issue.number,
+				project_identifier: issue.project.code
+			};
+		} catch (error) {
+			console.log(error);
+			throw new BadRequestException(error);
+		}
+	}
 }

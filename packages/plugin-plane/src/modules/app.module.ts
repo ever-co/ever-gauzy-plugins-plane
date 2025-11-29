@@ -37,6 +37,7 @@ import { WorkspacesModule } from './workspace/workspaces.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { WorkItemsModule } from './work-items/work-items.module';
 import { SidebarPreferencesModule } from './sidebar-preferences/sirebar-preferences.module';
+import { RecentVisitsModule } from './recent-visits/recent-visits.module';
 
 @Module({
 	imports: [
@@ -74,7 +75,8 @@ import { SidebarPreferencesModule } from './sidebar-preferences/sirebar-preferen
 		WorkspaceSlugModule,
 		WorkspacesModule,
 		WorkItemsModule,
-		SidebarPreferencesModule
+		SidebarPreferencesModule,
+		RecentVisitsModule
 	],
 	providers: [
 		{

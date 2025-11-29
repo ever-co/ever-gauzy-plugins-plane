@@ -12,6 +12,7 @@ export * from './notification';
 export * from './projects';
 export * from './query-params.serializers';
 export * from './reactions';
+export * from './recent-visits';
 export * from './subscription';
 export * from './tasks';
 export * from './user';

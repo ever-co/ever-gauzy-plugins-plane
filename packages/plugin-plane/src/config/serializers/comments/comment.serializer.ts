@@ -18,6 +18,17 @@ import { ActorTypeEnum } from 'packages/models/src/imports/base-entity.model';
 import { extractEmployeeMentionIds } from '../../utils';
 import { actorDetailsTransformer } from '../user';
 
+/**
+ * Transforms a comment object to a standardized format.
+ *
+ * @param {IComment[] | IComment} comments - The comment object to be transformed.
+ * @param {IIssue} issue - The issue object associated with the comment.
+ * @param {IOrganizationProject} project - The project object associated with the comment.
+ * @param {IWorkspaceInfo} workspace_detail - The workspace object associated with the comment.
+ * @param {IReactionData[]} reactions - The reactions associated with the comment.
+ * @param {IEmployee} employee - The employee object associated with the comment.
+ * @returns {IIssueComment[] | IIssueComment} The transformed comment object in a standardized format.
+ */
 export function issueCommentTrasnsformer(
 	comments: IComment[] | IComment,
 	issue: IIssue,

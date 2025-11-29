@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RecentVisitsService } from './recent-visits.service';
-import { IEmployeeRecentVisit } from '@plane-plugin/models';
+import { IRecentVisit } from '@plane-plugin/models';
 
 @Controller('recent-visits')
 export class RecentVisitsController {
@@ -23,7 +23,7 @@ export class RecentVisitsController {
 		description: 'Failed to retrieve employee recent visits.'
 	})
 	@Get()
-	async getRecentVisits(): Promise<IEmployeeRecentVisit[]> {
+	async getRecentVisits(): Promise<IRecentVisit[] | IRecentVisit> {
 		return this.recentVisitsService.geEmployeetRecentVisits();
 	}
 }

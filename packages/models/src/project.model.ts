@@ -1,5 +1,13 @@
 import { ID } from './imports';
 
+export interface IProjectLogoProps {
+	emoji: {
+		url?: string;
+		value?: string;
+	};
+	in_use: string;
+}
+
 export interface IProject {
 	id?: string;
 	is_favorite?: boolean;
@@ -42,12 +50,7 @@ export interface IProject {
 	cover_image?: string;
 	archive_in?: number;
 	close_in?: number;
-	logo_props?: {
-		emoji: {
-			value: string;
-		};
-		in_use: string;
-	};
+	logo_props?: IProjectLogoProps;
 	archived_at?: Date;
 	created_by?: ID;
 	updated_by?: ID;

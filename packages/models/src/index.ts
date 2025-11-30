@@ -22,6 +22,7 @@ export * from './module.model';
 export * from './notification.model';
 export * from './project.model';
 export * from './reaction.model';
+export * from './recent-visits.model';
 export * from './subscriber.model';
 export * from './state.model';
 export * from './user.model';

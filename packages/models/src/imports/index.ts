@@ -38,6 +38,7 @@ export * from './employee-job.model';
 export * from './employee-notification.model';
 export * from './employee-phone.model';
 export * from './employee-proposal-template.model';
+export * from './employee-recent-visit.model';
 export * from './employee-recurring-expense.model';
 export * from './employee-settings.model';
 export * from './employee-statistics.model';

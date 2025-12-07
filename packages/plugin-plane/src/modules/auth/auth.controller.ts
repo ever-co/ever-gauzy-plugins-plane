@@ -85,7 +85,8 @@ export class AuthController {
 			req,
 			res,
 			data,
-			queryNextPath
+			queryNextPath,
+			'spaces'
 		);
 	}
 
@@ -135,6 +136,15 @@ export class AuthController {
 	async signout(@Res() res: Response, @Req() req: Request) {
 		clearTokenChuncks(req, res);
 		return res.redirect(req.headers.referer);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Spaces sign out' })
+	@Post('spaces/sign-out')
+	@Public()
+	async spacesSignout(@Res() res: Response, @Req() req: Request) {
+		clearTokenChuncks(req, res);
+		return res.redirect(`${req.headers.referer}spaces`);
 	}
 
 	@HttpCode(HttpStatus.OK)

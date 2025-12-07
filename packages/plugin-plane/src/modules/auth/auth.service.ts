@@ -130,7 +130,8 @@ export class AuthService extends ApiFetchService {
 		req: Request,
 		res: Response,
 		data: IUserLoginInput & { next_path?: string },
-		queryNextPath?: string
+		queryNextPath?: string,
+		customRedirectPath?: string
 	): Promise<void> {
 		try {
 			const result = await this.signIn(data);
@@ -139,13 +140,14 @@ export class AuthService extends ApiFetchService {
 				sendTokenChunks(result.token, res);
 
 				const redirectPath =
+					customRedirectPath ||
 					data.next_path ||
 					queryNextPath ||
-					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
+					`${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
 
-				const normalizedPath = redirectPath.startsWith('/')
-					? redirectPath
-					: `/${redirectPath}`;
+				const normalizedPath = redirectPath;
+
+				console.log('normalizedPath', normalizedPath);
 
 				return res.redirect(`${req.headers.referer}${normalizedPath}`);
 			}

@@ -38,6 +38,14 @@ export class AuthController {
 	}
 
 	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Check email' })
+	@Post('spaces/email-check')
+	@Public()
+	async checkExistingUserSpaces(@Body() input: CheckExistUserDTO) {
+		return await this._authService.checkExistingUser(input);
+	}
+
+	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get csrf_token' })
 	@Get('get-csrf-token')
 	@Public()

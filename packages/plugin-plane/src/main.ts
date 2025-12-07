@@ -20,6 +20,7 @@ export async function bootstrap() {
 	app.setGlobalPrefix('api/workspaces/:workspace_name', {
 		exclude: [
 			'auth/:authEndPoint',
+			'auth/spaces/:authEndPoint',
 			'api/users/me',
 			'api/users/me/:slug',
 			'api/users/me/workspaces/:workspace_name/project-roles',

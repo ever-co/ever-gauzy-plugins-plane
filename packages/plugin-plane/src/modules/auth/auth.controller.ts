@@ -100,33 +100,31 @@ export class AuthController {
 		@Body() data: WorkspaceSigninEmailVerifyDTO & { next_path?: string },
 		@Query('next_path') queryNextPath?: string
 	) {
-		try {
-			const result = await this._authService.magicSignin(data);
-			if (result.user) {
-				clearTokenChuncks(req, res);
-				sendTokenChunks(result.token, res);
+		return await this._authService.handleMagicSignIn(
+			req,
+			res,
+			data,
+			queryNextPath
+		);
+	}
 
-				const redirectPath =
-					data.next_path ||
-					queryNextPath ||
-					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
-
-				const normalizedPath = redirectPath.startsWith('/')
-					? redirectPath
-					: `/${redirectPath}`;
-
-				return res.redirect(`${req.headers.referer}${normalizedPath}`);
-			}
-
-			const nextPathParam = data.next_path
-				? `&next_path=${encodeURIComponent(data.next_path)}`
-				: '';
-			return res.redirect(
-				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
-			);
-		} catch (error) {
-			console.log(error);
-		}
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Magic signin' })
+	@Post('spaces/magic-sign-in')
+	@Public()
+	async spacesMagicSignin(
+		@Req() req: Request,
+		@Res() res: Response,
+		@Body() data: WorkspaceSigninEmailVerifyDTO & { next_path?: string },
+		@Query('next_path') queryNextPath?: string
+	) {
+		return await this._authService.handleMagicSignIn(
+			req,
+			res,
+			data,
+			queryNextPath,
+			'spaces'
+		);
 	}
 
 	@HttpCode(HttpStatus.OK)
@@ -252,6 +250,14 @@ export class AuthController {
 	@Post('magic-generate')
 	@Public()
 	async magicGenerate(@Body() input: UserEmailDTO) {
+		return await this._authService.magicGenerate(input);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Spaces magic generate' })
+	@Post('spaces/magic-generate')
+	@Public()
+	async spacesMagicGenerate(@Body() input: UserEmailDTO) {
 		return await this._authService.magicGenerate(input);
 	}
 }

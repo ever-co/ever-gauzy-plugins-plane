@@ -147,8 +147,6 @@ export class AuthService extends ApiFetchService {
 
 				const normalizedPath = redirectPath;
 
-				console.log('normalizedPath', normalizedPath);
-
 				return res.redirect(`${req.headers.referer}${normalizedPath}`);
 			}
 			const nextPathParam = data.next_path
@@ -253,6 +251,51 @@ export class AuthService extends ApiFetchService {
 		} catch (error: any) {
 			console.log('Magic Signin Error', error);
 			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Handles the magic sign-in process including token management and redirection.
+	 *
+	 * @param {Request} req - The Express request object.
+	 * @param {Response} res - The Express response object.
+	 * @param {IUserEmailInput & IUserCodeInput & { next_path?: string }} data - The magic sign-in input data with optional next_path.
+	 * @param {string} [queryNextPath] - Optional next path from query parameters.
+	 * @param {string} [customRedirectPath] - Optional custom redirect path.
+	 * @returns {Promise<void>}
+	 */
+	async handleMagicSignIn(
+		req: Request,
+		res: Response,
+		data: IUserEmailInput & IUserCodeInput & { next_path?: string },
+		queryNextPath?: string,
+		customRedirectPath?: string
+	): Promise<void> {
+		try {
+			const result = await this.magicSignin(data);
+			if (result?.user) {
+				clearTokenChuncks(req, res);
+				sendTokenChunks(result.token, res);
+
+				const redirectPath =
+					customRedirectPath ||
+					data.next_path ||
+					queryNextPath ||
+					`${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
+
+				const normalizedPath = redirectPath;
+
+				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+			}
+
+			const nextPathParam = data.next_path
+				? `&next_path=${encodeURIComponent(data.next_path)}`
+				: '';
+			return res.redirect(
+				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
+			);
+		} catch (error) {
+			console.log(error);
 		}
 	}
 

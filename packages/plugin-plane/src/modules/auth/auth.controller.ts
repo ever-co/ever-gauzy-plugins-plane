@@ -63,32 +63,30 @@ export class AuthController {
 		@Body() data: IUserLoginInput & { next_path?: string },
 		@Query('next_path') queryNextPath?: string
 	) {
-		try {
-			const result = await this._authService.signIn(data);
-			if (result.user) {
-				clearTokenChuncks(req, res);
-				sendTokenChunks(result.token, res);
+		return await this._authService.handleSignIn(
+			req,
+			res,
+			data,
+			queryNextPath
+		);
+	}
 
-				const redirectPath =
-					data.next_path ||
-					queryNextPath ||
-					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
-
-				const normalizedPath = redirectPath.startsWith('/')
-					? redirectPath
-					: `/${redirectPath}`;
-
-				return res.redirect(`${req.headers.referer}${normalizedPath}`);
-			}
-			const nextPathParam = data.next_path
-				? `&next_path=${encodeURIComponent(data.next_path)}`
-				: '';
-			return res.redirect(
-				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
-			);
-		} catch (error) {
-			console.log(error);
-		}
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Sign in' })
+	@Post('spaces/sign-in')
+	@Public()
+	async spacesSignIn(
+		@Req() req: Request,
+		@Res() res: Response,
+		@Body() data: IUserLoginInput & { next_path?: string },
+		@Query('next_path') queryNextPath?: string
+	) {
+		return await this._authService.handleSignIn(
+			req,
+			res,
+			data,
+			queryNextPath
+		);
 	}
 
 	@HttpCode(HttpStatus.OK)

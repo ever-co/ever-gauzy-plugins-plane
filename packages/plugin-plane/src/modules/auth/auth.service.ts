@@ -3,6 +3,7 @@ import {
 	BadRequestException,
 	Injectable
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import {
 	BaseEntityEnum,
 	CheckUserExistEnum,
@@ -30,9 +31,11 @@ import {
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
 	apiSecretKeys,
+	clearTokenChuncks,
 	DEFAULT_MAGIC_GENERATE_PREFIX,
 	MEMBER_DEFAULT_VIEW_PROPS,
-	registerInputTranformer
+	registerInputTranformer,
+	sendTokenChunks
 } from '../../config';
 import { UserService } from '../user/user.service';
 import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
@@ -111,6 +114,49 @@ export class AuthService extends ApiFetchService {
 			return response;
 		} catch (error: any) {
 			return error;
+		}
+	}
+
+	/**
+	 * Handles the sign-in process including token management and redirection.
+	 *
+	 * @param {Request} req - The Express request object.
+	 * @param {Response} res - The Express response object.
+	 * @param {IUserLoginInput & { next_path?: string }} data - The login input data with optional next_path.
+	 * @param {string} [queryNextPath] - Optional next path from query parameters.
+	 * @returns {Promise<void>}
+	 */
+	async handleSignIn(
+		req: Request,
+		res: Response,
+		data: IUserLoginInput & { next_path?: string },
+		queryNextPath?: string
+	): Promise<void> {
+		try {
+			const result = await this.signIn(data);
+			if (result?.user) {
+				clearTokenChuncks(req, res);
+				sendTokenChunks(result.token, res);
+
+				const redirectPath =
+					data.next_path ||
+					queryNextPath ||
+					`/${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
+
+				const normalizedPath = redirectPath.startsWith('/')
+					? redirectPath
+					: `/${redirectPath}`;
+
+				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+			}
+			const nextPathParam = data.next_path
+				? `&next_path=${encodeURIComponent(data.next_path)}`
+				: '';
+			return res.redirect(
+				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
+			);
+		} catch (error) {
+			console.log(error);
 		}
 	}
 

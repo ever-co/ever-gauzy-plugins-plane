@@ -182,3 +182,20 @@ export const DEFAULT_MAGIC_GENERATE_PREFIX = 'magic_';
  * The default alpha numeric code length
  */
 export const ALPHA_NUMERIC_CODE_LENGTH = 6;
+
+/**
+ * The default project deploy boards properties
+ */
+export const DEFAULT_PROJECT_DEPLOY_BOARDS_PROPERTIES = {
+	entity_identifier: null,
+	entity_name: '',
+	is_comments_enabled: false,
+	is_reactions_enabled: false,
+	is_votes_enabled: false,
+	view_props: null,
+	is_activity_enabled: false,
+	is_disabled: false,
+	created_by: null,
+	updated_by: null,
+	intake: null
+};

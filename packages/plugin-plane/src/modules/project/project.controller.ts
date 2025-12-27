@@ -10,15 +10,19 @@ import {
 	Patch,
 	Post
 } from '@nestjs/common';
-import { ID } from '@plane-plugin/models';
+import { ID, IProjectDeployBoardsCreateInput } from '@plane-plugin/models';
 import { ProjectService } from './project.service';
+import { ProjectDeployBoardsService } from './project-deploy-boards/project-deploy-boards.service';
 import { CreateProjectDTO, ProjectMemberDTO } from './dto';
 import { UpdateProjectDTO } from './dto/update-project.dto';
 
 @ApiTags('Projects')
 @Controller()
 export class ProjectController {
-	constructor(private readonly _projectService: ProjectService) {}
+	constructor(
+		private readonly _projectService: ProjectService,
+		private readonly _projectDeployBoardsService: ProjectDeployBoardsService
+	) {}
 
 	/**
 	 * @description - Get all projects for a workspace - We will filter this with employee projects
@@ -224,5 +228,42 @@ export class ProjectController {
 		return await this._projectService.update(id, {
 			archived_at: null
 		});
+	}
+
+	/* ====== Project Deploy Boards ====== */
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project deploy boards' })
+	@ApiResponse({
+		status: 200,
+		description: 'The project deploy boards were successfully retrieved.'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Bad Request. The project ID might be invalid.'
+	})
+	@Get(':id/project-deploy-boards')
+	async getProjectDeployBoards(@Param('id') id: ID) {
+		return await this._projectDeployBoardsService.getProjectDeployBoards(
+			id
+		);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Create project deploy boards' })
+	@ApiResponse({
+		status: 201,
+		description: 'The project deploy boards were successfully created.'
+	})
+	@ApiResponse({
+		status: 400,
+		description: 'Bad Request. The project ID might be invalid.'
+	})
+	@Post(':id/project-deploy-boards')
+	async createProjectDeployBoards(
+		@Param('id') id: ID,
+		@Body() input: IProjectDeployBoardsCreateInput
+	) {
+		return await this._projectDeployBoardsService.create(id, input);
 	}
 }

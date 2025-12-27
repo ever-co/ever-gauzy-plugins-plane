@@ -21,6 +21,7 @@ export * from './issue-relation.model';
 export * from './module.model';
 export * from './notification.model';
 export * from './project.model';
+export * from './project-deploy-boards.model';
 export * from './reaction.model';
 export * from './recent-visits.model';
 export * from './subscriber.model';

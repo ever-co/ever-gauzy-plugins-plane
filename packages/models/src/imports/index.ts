@@ -111,6 +111,7 @@ export * from './request-approval.model';
 export * from './resource-link.model';
 export * from './role-permission.model';
 export * from './role.model';
+export * from './shared-entity.model';
 export * from './screenshot.model';
 export * from './seed.model';
 export * from './shared-types';

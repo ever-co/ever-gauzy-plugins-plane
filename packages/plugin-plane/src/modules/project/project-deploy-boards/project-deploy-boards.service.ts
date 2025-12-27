@@ -1,8 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable
+} from '@nestjs/common';
 import qs from 'qs';
 import {
 	ID,
+	IOrganization,
 	IPagination,
+	IProjectDeployBoardResponse,
 	IProjectDeployBoardsCreateInput,
 	ISharedEntity,
 	JsonData
@@ -10,13 +17,24 @@ import {
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import {
 	DEFAULT_PROJECT_DEPLOY_BOARDS_PROPERTIES,
+	getCurrentOrganizationSlug,
 	getSharedProjectQuery,
 	isEmpty,
-	projectDeployBoardsCreateInputTransformer
+	projectDeployBoardsCreateInputTransformer,
+	transformSharedEntityToDeployBoardResponse
 } from '../../../config';
+import { ProjectService } from '../project.service';
 
 @Injectable()
 export class ProjectDeployBoardsService extends ApiFetchService {
+	constructor(
+		@Inject(forwardRef(() => ProjectService))
+		private readonly _projectService: ProjectService,
+		private readonly _serverFetchService: ApiFetchService
+	) {
+		super(_serverFetchService['_httpService']);
+	}
+
 	private readonly path = '/shared-entities';
 
 	/**
@@ -47,19 +65,42 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 	}
 
 	/**
+	 * Get the current workspace/organization details
+	 * @returns The organization details
+	 */
+	private async getWorkspaceDetails(): Promise<IOrganization> {
+		try {
+			const organization: IOrganization = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `/organization/${getCurrentOrganizationSlug()}`
+				})
+			).data;
+
+			return organization;
+		} catch (error: any) {
+			throw new BadRequestException(
+				'Failed to retrieve workspace details'
+			);
+		}
+	}
+
+	/**
 	 * Publish the project deploy boards
 	 * @param projectId - The ID of the project
 	 * @param input - The project deploy boards create input
-	 * @returns The shared entity
+	 * @returns The deploy board response in Plane format
 	 */
 	async create(
 		projectId: ID,
 		input: IProjectDeployBoardsCreateInput
-	): Promise<any> {
+	): Promise<IProjectDeployBoardResponse> {
 		try {
+			// Create the shared entity input
 			const sharedEntityCreateInput =
 				projectDeployBoardsCreateInputTransformer(projectId, input);
 
+			// Create the shared entity
 			const sharedEntity: ISharedEntity = (
 				await this.apiFetch({
 					method: 'POST',
@@ -68,7 +109,39 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ sharedEntity });
+			// Get project and workspace details for the response
+			const [project, workspace] = await Promise.all([
+				this._projectService.getExternalProject(projectId),
+				this.getWorkspaceDetails()
+			]);
+
+			// Transform to Plane's expected format
+			return transformSharedEntityToDeployBoardResponse(
+				sharedEntity,
+				project,
+				workspace.profile_link || getCurrentOrganizationSlug(),
+				workspace.name,
+				workspace.id
+			);
+		} catch (error: any) {
+			console.log(error.response?.data || error);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Get the shared entity by token
+	 * @param token - The token of the shared entity
+	 * @returns The shared entity
+	 */
+	async getSharedEntityByToken(token: string): Promise<ISharedEntity> {
+		try {
+			const sharedEntity: ISharedEntity = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/token/${token}`
+				})
+			).data;
 
 			return sharedEntity;
 		} catch (error: any) {

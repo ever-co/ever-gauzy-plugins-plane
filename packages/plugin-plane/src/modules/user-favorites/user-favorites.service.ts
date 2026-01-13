@@ -100,7 +100,10 @@ export class UserFavoritesService extends ApiFetchService {
 						: entityData.project_id || entityData.project
 			});
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -186,7 +189,10 @@ export class UserFavoritesService extends ApiFetchService {
 			// Return transformed favorites
 			return enrichedFavorites;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -204,7 +210,10 @@ export class UserFavoritesService extends ApiFetchService {
 
 			return favorites.items.map((favorite) => favorite.entityId);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -226,7 +235,10 @@ export class UserFavoritesService extends ApiFetchService {
 
 			return deleted;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 		}
 	}
 }

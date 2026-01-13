@@ -47,7 +47,10 @@ export class ReactionsService extends ApiFetchService {
 
 			return reaction;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -76,7 +79,10 @@ export class ReactionsService extends ApiFetchService {
 
 			return reactions.items;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -104,7 +110,10 @@ export class ReactionsService extends ApiFetchService {
 
 			return reaction;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

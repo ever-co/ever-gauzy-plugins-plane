@@ -87,7 +87,9 @@ export class AuthService extends ApiFetchService {
 			}
 			return { existing: true, status: CheckUserExistEnum.CREDENTIALS };
 		} catch (error: any) {
-			console.log(error.response.data);
+			this.logger.warn(
+				`Failed to check existing user: ${error?.response?.data?.message || error.message}`
+			);
 			return { existing: false, status: CheckUserExistEnum.MAGIC_CODE };
 		}
 	}
@@ -156,7 +158,10 @@ export class AuthService extends ApiFetchService {
 				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
 			);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to handle sign in',
+				error instanceof Error ? error.stack : String(error)
+			);
 		}
 	}
 
@@ -249,7 +254,10 @@ export class AuthService extends ApiFetchService {
 
 			return lastWorkspaceResponse;
 		} catch (error: any) {
-			console.log('Magic Signin Error', error);
+			this.logger.error(
+				`Magic Signin Error: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -295,7 +303,10 @@ export class AuthService extends ApiFetchService {
 				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
 			);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to handle magic sign in',
+				error instanceof Error ? error.stack : String(error)
+			);
 		}
 	}
 
@@ -324,7 +335,10 @@ export class AuthService extends ApiFetchService {
 
 			return tenant;
 		} catch (error: any) {
-			console.log('Tenant Onboard Error', error);
+			this.logger.error(
+				`Tenant Onboard Error: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -354,7 +368,10 @@ export class AuthService extends ApiFetchService {
 
 			return response;
 		} catch (error: any) {
-			console.log('Refresh Token error', error);
+			this.logger.error(
+				`Refresh Token error: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -447,15 +464,17 @@ export class AuthService extends ApiFetchService {
 					employee.organizationId
 				);
 			} catch (error: any) {
-				console.log(
-					'Failed to create employee settingg',
-					error.response
+				this.logger.warn(
+					`Failed to create employee settings: ${error?.response?.data?.message || error.message}`
 				);
 			}
 
 			return employee;
 		} catch (error: any) {
-			// console.log(error);
+			this.logger.error(
+				`Failed to create employee: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

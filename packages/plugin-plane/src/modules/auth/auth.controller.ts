@@ -4,6 +4,7 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
+	Logger,
 	Post,
 	Query,
 	Req,
@@ -27,6 +28,8 @@ import { WorkspaceSigninEmailVerifyDTO } from './dto';
 @ApiTags('Authentication routes')
 @Controller()
 export class AuthController {
+	private readonly logger = new Logger(AuthController.name);
+
 	constructor(private readonly _authService: AuthService) {}
 
 	@HttpCode(HttpStatus.OK)
@@ -177,7 +180,10 @@ export class AuthController {
 							result.token
 						);
 					} catch (error: any) {
-						console.log('Error when creating new Tenant...', error);
+						this.logger.error(
+							'Error when creating new Tenant',
+							error instanceof Error ? error.stack : String(error)
+						);
 					}
 
 					// 4. Refresh the token using the refresh token for organization creation purpose
@@ -200,8 +206,8 @@ export class AuthController {
 								tenant.id
 							);
 					} catch (error) {
-						console.log(
-							'Error when creating new default Organization...',
+						this.logger.error(
+							'Error when creating new default Organization',
 							error
 						);
 					}
@@ -218,7 +224,10 @@ export class AuthController {
 							tenant.id
 						);
 					} catch (error) {
-						console.log('Error when creating Employee...', error);
+						this.logger.error(
+							'Error when creating Employee',
+							error instanceof Error ? error.stack : String(error)
+						);
 					}
 
 					// 7. Refresh the token again to include the new employee
@@ -241,7 +250,10 @@ export class AuthController {
 			);
 		} catch (error: any) {
 			// Log any errors that occur during the sign-up process
-			console.log(error.response);
+			this.logger.error(
+				`Sign-up error: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 		}
 	}
 

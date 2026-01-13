@@ -48,7 +48,10 @@ export class EmployeePropertiesService extends ApiFetchService {
 
 			return employeeSetting;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -79,7 +82,10 @@ export class EmployeePropertiesService extends ApiFetchService {
 
 			return employeeSetting;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -103,7 +109,10 @@ export class EmployeePropertiesService extends ApiFetchService {
 
 			return employeeSetting.items[0];
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

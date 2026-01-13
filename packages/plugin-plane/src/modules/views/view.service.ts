@@ -91,7 +91,10 @@ export class IssueViewService extends ApiFetchService {
 
 			return issueViewTransformer(view);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -133,7 +136,10 @@ export class IssueViewService extends ApiFetchService {
 
 			return issueViewTransformer(view, favoriteIds);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -167,7 +173,10 @@ export class IssueViewService extends ApiFetchService {
 			// Return the transformed views
 			return issueViewTransformer(views.items, favoriteIds);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -190,7 +199,10 @@ export class IssueViewService extends ApiFetchService {
 
 			return issueViewTransformer(view, favoriteIds);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

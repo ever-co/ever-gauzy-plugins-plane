@@ -85,7 +85,10 @@ export class InvitationService extends ApiFetchService {
 
 			return invitations;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -134,7 +137,10 @@ export class InvitationService extends ApiFetchService {
 
 			return Array.isArray(transformed) ? transformed : [transformed];
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -171,7 +177,10 @@ export class InvitationService extends ApiFetchService {
 			});
 			return Array.isArray(transformed) ? transformed[0] : transformed;
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -209,7 +218,10 @@ export class InvitationService extends ApiFetchService {
 			}
 			return { message: '' };
 		} catch (error: any) {
-			console.log({ error });
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -234,7 +246,10 @@ export class InvitationService extends ApiFetchService {
 				})
 			).data;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

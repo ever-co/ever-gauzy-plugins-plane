@@ -12,6 +12,12 @@ import { getActivityLogsQuery } from '../../config';
 export class ActivityService extends ApiFetchService {
 	private readonly path = '/activity-log';
 
+	/**
+	 * Finds all activity logs for a given issue activity find input.
+	 * @param options - The options for the activity log find input.
+	 * @returns A promise that resolves to an array of activity logs.
+	 * @throws {BadRequestException} If the API request fails.
+	 */
 	async findAll(options: IIssueActivityFindInput): Promise<IActivityLog[]> {
 		try {
 			const query = qs.stringify(getActivityLogsQuery(options));
@@ -22,7 +28,10 @@ export class ActivityService extends ApiFetchService {
 
 			return activityLogs.items;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

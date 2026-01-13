@@ -33,7 +33,10 @@ export class NotificationService extends ApiFetchService {
 			});
 			return response.data;
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -59,7 +62,10 @@ export class NotificationService extends ApiFetchService {
 
 			return notifications.items;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -85,7 +91,10 @@ export class NotificationService extends ApiFetchService {
 			});
 			return response.data;
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -104,7 +113,10 @@ export class NotificationService extends ApiFetchService {
 			});
 			return response.data;
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

@@ -34,7 +34,10 @@ export class WidgetService extends ApiFetchService {
 
 			return widgetTransformer(dashboardWidget);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -62,7 +65,10 @@ export class WidgetService extends ApiFetchService {
 
 			return widgetTransformer(dashboardWidget);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

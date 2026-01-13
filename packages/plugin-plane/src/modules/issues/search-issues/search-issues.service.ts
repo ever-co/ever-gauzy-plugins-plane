@@ -114,7 +114,10 @@ export class SearchIssuesService extends ApiFetchService {
 
 			return parentableIssuesTransformer(filteredIssues);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException('Parent could not be found');
 		}
 	}

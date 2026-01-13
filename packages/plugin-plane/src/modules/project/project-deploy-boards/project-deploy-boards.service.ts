@@ -53,13 +53,14 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ sharedProject });
-
 			return isEmpty(sharedProject.items[0]?.sharedOptions)
 				? DEFAULT_PROJECT_DEPLOY_BOARDS_PROPERTIES
 				: sharedProject.items[0]?.sharedOptions;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -124,7 +125,10 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 				workspace.id
 			);
 		} catch (error: any) {
-			console.log(error.response?.data || error);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -145,7 +149,10 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 
 			return sharedEntity;
 		} catch (error: any) {
-			console.log(error.response.data);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

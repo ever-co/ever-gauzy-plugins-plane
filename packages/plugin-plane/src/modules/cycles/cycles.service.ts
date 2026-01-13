@@ -101,7 +101,10 @@ export class CyclesService extends ApiFetchService {
 			// Return the transformed sprint
 			return cycleTransformer(sprint);
 		} catch (error: any) {
-			console.log({ failed: error.response.data.message });
+			this.logger.error(
+				`Failed: ${error?.response?.data?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -137,7 +140,10 @@ export class CyclesService extends ApiFetchService {
 
 			return cycleTransformer(sprint, favoriteIds);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -172,7 +178,10 @@ export class CyclesService extends ApiFetchService {
 			// Return the transformed sprints
 			return cycleTransformer(sprints.items, favoriteIds);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -197,7 +206,10 @@ export class CyclesService extends ApiFetchService {
 
 			return cycleTransformer(sprint, favoriteIds);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -231,7 +243,10 @@ export class CyclesService extends ApiFetchService {
 
 			return { message: 'success' };
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -251,7 +266,10 @@ export class CyclesService extends ApiFetchService {
 				false
 			);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -287,7 +305,10 @@ export class CyclesService extends ApiFetchService {
 			return cycleIssueTransformer(allIssues);
 		} catch (error: any) {
 			// Log the error and throw a BadRequestException
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -321,7 +342,10 @@ export class CyclesService extends ApiFetchService {
 			}
 			return { status: true };
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -413,7 +437,10 @@ export class CyclesService extends ApiFetchService {
 
 				return employeeSettingSerializer(cycleMemberSetting);
 			} catch (error) {
-				console.log(error);
+				this.logger.error(
+					'Operation failed',
+					error instanceof Error ? error.stack : String(error)
+				);
 				throw new BadRequestException(
 					'Failed to find or create new view properties'
 				);
@@ -491,7 +518,10 @@ export class CyclesService extends ApiFetchService {
 			// Serialize and return the updated/created employee setting
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -527,7 +557,10 @@ export class CyclesService extends ApiFetchService {
 
 			return cycleAnalyticsData(sprint);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -579,7 +612,10 @@ export class CyclesService extends ApiFetchService {
 				unstarted_issues: unstartedIssues
 			};
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

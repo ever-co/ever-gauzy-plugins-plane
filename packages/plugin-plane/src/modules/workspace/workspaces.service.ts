@@ -36,7 +36,10 @@ export class WorkspacesService extends ApiFetchService {
 
 			return workspaceTransformer(organization);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(
 				error?.response?.data?.message || 'Failed to create workspace'
 			);

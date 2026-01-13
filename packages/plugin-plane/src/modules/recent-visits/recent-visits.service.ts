@@ -40,7 +40,10 @@ export class RecentVisitsService extends ApiFetchService {
 
 			return recentVisitTransformer(recentVisits.items);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

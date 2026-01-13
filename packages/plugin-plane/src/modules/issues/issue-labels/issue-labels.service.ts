@@ -41,7 +41,10 @@ export class IssueLabelsService extends ApiFetchService {
 
 			return issueLabelsTransformer(labels.items, projectId);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException();
 		}
 	}

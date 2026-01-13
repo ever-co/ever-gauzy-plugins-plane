@@ -34,7 +34,10 @@ export class DraftIssuesService extends ApiFetchService {
 				is_draft: this.is_draft // Ensures the issue is marked as a draft
 			});
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -58,7 +61,10 @@ export class DraftIssuesService extends ApiFetchService {
 				this.is_draft
 			);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -80,7 +86,10 @@ export class DraftIssuesService extends ApiFetchService {
 
 			return nonGroupedIssues(tasks.items);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -96,7 +105,10 @@ export class DraftIssuesService extends ApiFetchService {
 				this.is_draft
 			);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}

@@ -78,7 +78,10 @@ export class CommentsService extends ApiFetchService {
 
 			return comment;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -114,7 +117,10 @@ export class CommentsService extends ApiFetchService {
 
 			return comment;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -137,7 +143,10 @@ export class CommentsService extends ApiFetchService {
 
 			return comments.items;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -165,7 +174,10 @@ export class CommentsService extends ApiFetchService {
 
 			return comment;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -223,7 +235,10 @@ export class CommentsService extends ApiFetchService {
 				? transformedReaction[0]
 				: transformedReaction;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -258,7 +273,10 @@ export class CommentsService extends ApiFetchService {
 
 			return { project, workspace, actor };
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -299,7 +317,10 @@ export class CommentsService extends ApiFetchService {
 
 			return commentReactions;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

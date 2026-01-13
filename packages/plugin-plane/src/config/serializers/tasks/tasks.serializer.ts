@@ -161,7 +161,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		id: issue.id,
 		name: issue.title,
 		start_date: issue.startDate,
-		targe_date: issue.dueDate,
+		target_date: issue.dueDate,
 		sequence_id: issue.number,
 		project__name: issue.project.name,
 		project__identifier:
@@ -446,7 +446,7 @@ export function groupIssuesByManyToManyCriteria(
 
 /**
  * @description - Group issues by state ID for Kanban and list Layouts
- * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Tasks to be trasnformed and grouped
+ * @param {Array<{ issue: ITask, issueLinks: any }>} issuesWithLinks - Tasks to be transformed and grouped
  * @returns Tranformed and grouped by state Issues
  */
 export function groupIssuesByStateId(
@@ -672,7 +672,7 @@ export function groupIssuesByModule(
 
 /**
  * @description - Group Issue by Target Date for Calendar Layout display
- * @param {ITask[]} issues - Tasks to be trasnformed and grouped
+ * @param {ITask[]} issues - Tasks to be transformed and grouped
  * @returns Tranformed and grouped by target date Issues
  */
 export function groupIssuesByTargetDate(issues: ITask[]) {
@@ -713,7 +713,7 @@ export function groupIssuesByTargetDate(issues: ITask[]) {
 
 /**
  * @description - Transform issues for spreadsheet (Table) Layout view
- * @param {ITask[]} issues - Tasks to be trasnformed
+ * @param {ITask[]} issues - Tasks to be transformed
  * @returns Tranformed by target date Issues
  */
 export function nonGroupedIssues(issues: ITask[]) {

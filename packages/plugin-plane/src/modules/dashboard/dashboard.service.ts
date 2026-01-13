@@ -40,7 +40,10 @@ export class DashboardService extends ApiFetchService {
 
 			return dashboard;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -57,7 +60,10 @@ export class DashboardService extends ApiFetchService {
 			await this._widgetService.update(id, { options: input.filters });
 			return { message: 'successfully updated' };
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -85,7 +91,7 @@ export class DashboardService extends ApiFetchService {
 
 			return dashboard.items[0];
 		} catch (error: any) {
-			// console.log(error.response);
+			// this.logger.error(`Operation failed: ${error?.response?.data?.message || error.message}`, error.stack);
 			throw new BadRequestException(error);
 		}
 	}

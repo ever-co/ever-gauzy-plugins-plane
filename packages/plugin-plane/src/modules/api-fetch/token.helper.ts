@@ -1,6 +1,9 @@
 import { decode } from 'jsonwebtoken';
+import { Logger } from '@nestjs/common';
 import { IDecodedToken } from '@plane-plugin/models';
 import { ApiFetchService } from './api-fetch.service';
+
+const logger = new Logger('TokenHelper');
 
 /**
  * Decode a JWT token and return the payload
@@ -11,7 +14,10 @@ export function decodeToken(token: string): IDecodedToken | null {
 	try {
 		return decode(token) as IDecodedToken;
 	} catch (error) {
-		console.error('Error decoding token:', error);
+		logger.error(
+			'Error decoding token',
+			error instanceof Error ? error.stack : String(error)
+		);
 		return null;
 	}
 }

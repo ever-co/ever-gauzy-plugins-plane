@@ -26,7 +26,10 @@ export class WorkItemsService extends ApiFetchService {
 
 			return issueTransformer(response.data.items[0]);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

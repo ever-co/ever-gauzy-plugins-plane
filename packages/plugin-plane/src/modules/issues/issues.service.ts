@@ -272,7 +272,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issueTransformer(issue, reactions, links, isSubscribed);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to find issue: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -308,7 +311,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issueTransformer(issue);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to create issue: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -341,7 +347,9 @@ export class IssuesService extends ApiFetchService {
 					state = await this._stateSerive.getOne(input.state_id);
 				}
 			} catch (error: any) {
-				console.log(error.response);
+				this.logger.warn(
+					`Failed to fetch state: ${error?.response?.data?.message || error.message}`
+				);
 			}
 
 			// Retrieve the existing issue and external issue details simultaneously
@@ -404,8 +412,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
-			console.log(error.response);
-			console.log(error);
+			this.logger.error(
+				`Failed to update issue: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -454,7 +464,10 @@ export class IssuesService extends ApiFetchService {
 				state_distribution: stateDistribution
 			};
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to update relational issue parent: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -592,7 +605,10 @@ export class IssuesService extends ApiFetchService {
 							)
 					);
 				} catch (error) {
-					console.error('Error filtering issues:', error);
+					this.logger.error(
+						'Error filtering issues by mentions',
+						error instanceof Error ? error.stack : String(error)
+					);
 				}
 			}
 
@@ -668,9 +684,10 @@ export class IssuesService extends ApiFetchService {
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}
 		} catch (error: any) {
-			// Log the error for debugging purposes
-			console.log(error);
-			// Throw a BadRequestException to indicate something went wrong
+			this.logger.error(
+				`Failed to get all issues by project: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -703,7 +720,10 @@ export class IssuesService extends ApiFetchService {
 
 			return { sub_issues, state_distribution: stateDistribution };
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find issue children',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -738,7 +758,10 @@ export class IssuesService extends ApiFetchService {
 
 			return tasks.items?.map((task) => issueTransformer(task));
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find all issues',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -765,7 +788,10 @@ export class IssuesService extends ApiFetchService {
 
 			return tasks.map((task) => issueTransformer(task));
 		} catch (error: any) {
-			console.log(error.response.data);
+			this.logger.error(
+				`Failed to find issues by employee: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -789,7 +815,10 @@ export class IssuesService extends ApiFetchService {
 				relation_type
 			);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to create issue relations',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -808,7 +837,10 @@ export class IssuesService extends ApiFetchService {
 		try {
 			return await this._issueRelationService.delete(id, input);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to delete issue relation: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -823,7 +855,10 @@ export class IssuesService extends ApiFetchService {
 		try {
 			return await this._issueRelationService.findRelationsByIssueId(id);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find issue relations',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -902,7 +937,10 @@ export class IssuesService extends ApiFetchService {
 				? transformedComment[0]
 				: transformedComment;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to create comment',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -972,7 +1010,10 @@ export class IssuesService extends ApiFetchService {
 				? transformedComment[0]
 				: transformedComment;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to update comment: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1049,7 +1090,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issueComments;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to get issue comments',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1303,7 +1347,10 @@ export class IssuesService extends ApiFetchService {
 				? transformedReaction[0]
 				: transformedReaction;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to create reaction',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1354,7 +1401,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issueReactions;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to find issue reactions: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1399,7 +1449,10 @@ export class IssuesService extends ApiFetchService {
 			}
 			return await this.findIssueActivity(id, projectId);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				`Failed to find activity: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1454,7 +1507,10 @@ export class IssuesService extends ApiFetchService {
 
 			return { issue, project, workspace, actor };
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to get issue comment details',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1499,7 +1555,10 @@ export class IssuesService extends ApiFetchService {
 				? transformedLink[0]
 				: transformedLink;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to create link',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1543,7 +1602,10 @@ export class IssuesService extends ApiFetchService {
 				? transformedLink[0]
 				: transformedLink;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to update link',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1586,7 +1648,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issueLinks;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to find issue links: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1610,7 +1675,10 @@ export class IssuesService extends ApiFetchService {
 
 			return issues.items?.map((issue) => issueTransformer(issue));
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to find view issues: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1676,7 +1744,10 @@ export class IssuesService extends ApiFetchService {
 				project_identifier: issue.project.code
 			};
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to get issue meta',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

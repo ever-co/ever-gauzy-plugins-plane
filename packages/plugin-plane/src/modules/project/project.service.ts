@@ -66,7 +66,10 @@ export class ProjectService extends ApiFetchService {
 
 			return projects.items;
 		} catch (error: any) {
-			console.log(error.reponse);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -93,7 +96,10 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse(projects, favoriteIds, memberReturnType);
 		} catch (error: any) {
-			console.log(error.reponse);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -125,7 +131,10 @@ export class ProjectService extends ApiFetchService {
 
 			return projects;
 		} catch (error: any) {
-			console.log(error.reponse);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -153,7 +162,10 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse(employeeProjects, favoriteIds);
 		} catch (error: any) {
-			console.log(error.reponse);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -213,7 +225,10 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse([project], favoriteIds)[0] as IProject;
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -245,7 +260,10 @@ export class ProjectService extends ApiFetchService {
 				}
 			});
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 		}
 	}
 
@@ -291,7 +309,10 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse([project])[0] as IProject;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -345,7 +366,10 @@ export class ProjectService extends ApiFetchService {
 			// Transform the response to match the expected IProject format
 			return getProjectsResponse([updatedProject])[0] as IProject;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadGatewayException(error);
 		}
 	}
@@ -404,7 +428,10 @@ export class ProjectService extends ApiFetchService {
 
 			return getProjectsResponse([updatedProject])[0];
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -481,7 +508,10 @@ export class ProjectService extends ApiFetchService {
 
 				return employeeSettingSerializer(moduleMemberSetting);
 			} catch (error) {
-				console.log(error);
+				this.logger.error(
+					'Operation failed',
+					error instanceof Error ? error.stack : String(error)
+				);
 				throw new BadRequestException(
 					'Failed to find or create new view properties'
 				);
@@ -561,7 +591,10 @@ export class ProjectService extends ApiFetchService {
 			// Serialize and return the updated/created employee setting.
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

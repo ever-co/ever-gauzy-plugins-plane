@@ -49,7 +49,10 @@ export class UserService extends ApiFetchService {
 
 			return userMeTransformer(user);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -75,7 +78,10 @@ export class UserService extends ApiFetchService {
 
 			return userProfileTransformer(user);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -102,7 +108,10 @@ export class UserService extends ApiFetchService {
 
 			return await this.getMyProfile(token, tenantId);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -123,7 +132,10 @@ export class UserService extends ApiFetchService {
 
 			return this.getMe();
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -147,7 +159,10 @@ export class UserService extends ApiFetchService {
 
 			return userSettingsTranformer(user);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -172,7 +187,10 @@ export class UserService extends ApiFetchService {
 
 			return organizationsTranformer(userOrganizations.items);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			return [];
 		}
 	}
@@ -206,7 +224,10 @@ export class UserService extends ApiFetchService {
 
 			return projectRoles;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}

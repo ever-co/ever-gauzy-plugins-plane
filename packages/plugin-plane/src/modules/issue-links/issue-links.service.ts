@@ -47,7 +47,10 @@ export class IssueLinksService extends ApiFetchService {
 
 			return link;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -90,7 +93,10 @@ export class IssueLinksService extends ApiFetchService {
 
 			return link;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -116,7 +122,10 @@ export class IssueLinksService extends ApiFetchService {
 
 			return links.items;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -148,7 +157,10 @@ export class IssueLinksService extends ApiFetchService {
 
 			return link;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -183,7 +195,10 @@ export class IssueLinksService extends ApiFetchService {
 
 			return links;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException();
 		}
 	}

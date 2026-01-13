@@ -113,7 +113,10 @@ export class IssueRelationsService extends ApiFetchService {
 
 			return createdRelations;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -162,7 +165,10 @@ export class IssueRelationsService extends ApiFetchService {
 
 			return issueRelations.items;
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -208,7 +214,10 @@ export class IssueRelationsService extends ApiFetchService {
 
 			return relatedIssues;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -289,7 +298,7 @@ export class IssueRelationsService extends ApiFetchService {
 					path: `${this.path}/${inverseRelationToDelete.id}/soft`
 				});
 			} catch (inverseError) {
-				console.error(
+				this.logger.error(
 					'Failed to delete the inverse relation. Attempting to restore the main relation.'
 				);
 
@@ -313,7 +322,10 @@ export class IssueRelationsService extends ApiFetchService {
 
 			return { success: true };
 		} catch (error) {
-			console.error('Failed to delete relations:', error);
+			this.logger.error(
+				'Failed to delete relations',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException('One or more deletions failed.');
 		}
 	}

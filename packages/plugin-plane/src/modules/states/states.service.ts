@@ -61,11 +61,12 @@ export class StatesService extends ApiFetchService {
 				})
 			).data;
 
-			console.log({ state });
-
 			return getStatesTransformer([state])[0] as IState;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -103,7 +104,10 @@ export class StatesService extends ApiFetchService {
 			).data;
 			return getStatesTransformer(states.items);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new InternalServerErrorException(error);
 		}
 	}

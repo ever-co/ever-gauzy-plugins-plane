@@ -1,8 +1,11 @@
 import * as cheerio from 'cheerio';
 import slugify from 'slugify';
+import { Logger } from '@nestjs/common';
 import { ID, IssueOrderByField } from '@plane-plugin/models';
 import { Request, Response } from 'express';
 import { EXTERNAL_API_MODE, MAX_TOKEN_COOKIE_SIZE } from '../constants';
+
+const logger = new Logger('SharedUtils');
 
 /**
  * Convert slug back to a readable string
@@ -101,7 +104,10 @@ export function extractEmployeeMentionIds(commentHtml: string): ID[] {
 		// Remove duplicates by converting to a Set and back to an array
 		return [...new Set(mentionIds)];
 	} catch (error) {
-		console.error('Error extracting mention IDs:', error);
+		logger.error(
+			'Error extracting mention IDs',
+			error instanceof Error ? error.stack : String(error)
+		);
 		return [];
 	}
 }

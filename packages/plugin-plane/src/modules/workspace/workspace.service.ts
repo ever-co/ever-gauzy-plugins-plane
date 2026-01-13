@@ -160,7 +160,10 @@ export class WorkspaceService extends ApiFetchService {
 						)
 					).flat();
 				} catch (error: any) {
-					// console.log(error.response);
+					this.logger.error(
+						`Failed to create widget: ${error?.response?.data?.message || error.message}`,
+						error.stack
+					);
 					throw new BadRequestException(error.response);
 				}
 			}
@@ -171,7 +174,10 @@ export class WorkspaceService extends ApiFetchService {
 				widgets: transformedWidgets
 			};
 		} catch (error: any) {
-			// console.log(error.response);
+			this.logger.error(
+				`Failed to get dashboard: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -271,9 +277,8 @@ export class WorkspaceService extends ApiFetchService {
 
 			return memberPropertiesSerializer(memberSetting, employeeId);
 		} catch (error) {
-			console.warn(
-				'Failed to retrieve settings, creating new ones...',
-				error
+			this.logger.warn(
+				'Failed to retrieve settings, creating new ones...'
 			);
 
 			try {
@@ -284,9 +289,11 @@ export class WorkspaceService extends ApiFetchService {
 				);
 				return memberPropertiesSerializer(memberSetting, employeeId);
 			} catch (creationError) {
-				console.error(
+				this.logger.error(
 					'Failed to create new view properties',
-					creationError
+					creationError instanceof Error
+						? creationError.stack
+						: String(creationError)
 				);
 				throw new BadRequestException(
 					'Failed to find or create new view properties'
@@ -346,9 +353,10 @@ export class WorkspaceService extends ApiFetchService {
 
 			return organizationMembersTransformer(organization);
 		} catch (error) {
-			console.log('Error while retrieving workspace members: ', {
-				error
-			});
+			this.logger.error(
+				'Error while retrieving workspace members',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -386,7 +394,10 @@ export class WorkspaceService extends ApiFetchService {
 				(a, b) => b.active_issue_count - a.active_issue_count
 			);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find recent collaborators',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -509,8 +520,10 @@ export class WorkspaceService extends ApiFetchService {
 				{ state: 'cancelled', count: 0 } // Assuming 0 cancelled issues as not specified
 			];
 		} catch (error: any) {
-			// Log error and throw BadRequestException
-			console.log(error.response?.data ?? error);
+			this.logger.error(
+				`Failed to get assigned issues by state: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -549,8 +562,10 @@ export class WorkspaceService extends ApiFetchService {
 			// Get the tasks counts grouped by priority
 			return issuesByPriority(tasks);
 		} catch (error: any) {
-			// Log the error and throw a BadRequestException
-			console.log(error.response?.data ?? error);
+			this.logger.error(
+				`Failed to find assigned issues by priority: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -573,8 +588,10 @@ export class WorkspaceService extends ApiFetchService {
 				'modules'
 			]);
 		} catch (error) {
-			// Log the error and throw a BadRequestException
-			console.log(error);
+			this.logger.error(
+				'Failed to find projects',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -595,8 +612,10 @@ export class WorkspaceService extends ApiFetchService {
 			// Return the first 5 project IDs
 			return projects.map((project) => project.id).slice(0, 4);
 		} catch (error) {
-			// Log the error and throw a BadRequestException
-			console.log(error);
+			this.logger.error(
+				'Failed to find recent projects',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -729,7 +748,10 @@ export class WorkspaceService extends ApiFetchService {
 
 			return activities;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find recent issue activity',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -830,7 +852,10 @@ export class WorkspaceService extends ApiFetchService {
 			// Filter and transform tasks based on issue type
 			return this.filterAndTransformTasks(tasks, issue_type);
 		} catch (error: any) {
-			console.error(error.response);
+			this.logger.error(
+				`Failed to get issues: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -905,7 +930,10 @@ export class WorkspaceService extends ApiFetchService {
 				upcoming_cycles: []
 			};
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to find user work summary: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -939,7 +967,10 @@ export class WorkspaceService extends ApiFetchService {
 				results: activities
 			};
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				`Failed to find user recent activity: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -970,7 +1001,10 @@ export class WorkspaceService extends ApiFetchService {
 				userId
 			);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				`Failed to find user projects data: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1061,7 +1095,10 @@ export class WorkspaceService extends ApiFetchService {
 
 			return userWorkNonGroupedIssues(issuesWithLinks);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find user grouped issue assigned',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1109,7 +1146,10 @@ export class WorkspaceService extends ApiFetchService {
 
 			return getStatesTransformer(states.flat());
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find workspace states',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1140,7 +1180,10 @@ export class WorkspaceService extends ApiFetchService {
 				? transformedModules
 				: [transformedModules];
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find workspace modules',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1173,7 +1216,10 @@ export class WorkspaceService extends ApiFetchService {
 				? transformedSprints
 				: [transformedSprints];
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find workspace cycles',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1208,7 +1254,10 @@ export class WorkspaceService extends ApiFetchService {
 
 			return labels;
 		} catch (error) {
-			console.error(error);
+			this.logger.error(
+				'Failed to find workspace labels',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1315,7 +1364,10 @@ export class WorkspaceService extends ApiFetchService {
 				}
 			};
 		} catch (error: any) {
-			console.log(error.respoonse);
+			this.logger.error(
+				`Failed to find global entities by search: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -1437,7 +1489,10 @@ export class WorkspaceService extends ApiFetchService {
 				referer
 			);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Failed to find view issues: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error.response);
 		}
 	}
@@ -1497,7 +1552,10 @@ export class WorkspaceService extends ApiFetchService {
 				results
 			};
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				`Failed to find user notifications: ${error?.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1519,7 +1577,10 @@ export class WorkspaceService extends ApiFetchService {
 
 			return unreadNotificationData(userNotifications);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Failed to find unread notifications',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -1632,7 +1693,10 @@ export class WorkspaceService extends ApiFetchService {
 				? transformedNotification[0]
 				: transformedNotification;
 		} catch (error) {
-			console.error(error);
+			this.logger.error(
+				'Failed to toggle notification status',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

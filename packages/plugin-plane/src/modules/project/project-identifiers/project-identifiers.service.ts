@@ -48,7 +48,10 @@ export class ProjectIdentifiersService extends ApiFetchService {
 
 			return { exists: 0, identifiers: [] };
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

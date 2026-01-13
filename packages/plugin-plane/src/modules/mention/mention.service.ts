@@ -18,7 +18,10 @@ export class MentionService extends ApiFetchService {
 
 			return mentions.items;
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

@@ -38,12 +38,14 @@ import { InvitationModule } from './invitation/invitation.module';
 import { WorkItemsModule } from './work-items/work-items.module';
 import { SidebarPreferencesModule } from './sidebar-preferences/sidebar-preferences.module';
 import { RecentVisitsModule } from './recent-visits/recent-visits.module';
+import { LoggerModule } from './logger';
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true
 		}),
+		LoggerModule,
 		GlobalHttpModule,
 		ApiFetchModule,
 		AuthModule,

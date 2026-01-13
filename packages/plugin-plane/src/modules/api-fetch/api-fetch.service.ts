@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@plane-plugin/models';
 import { EXTERNAL_BASE_API_URL } from '../../config';
@@ -8,17 +8,43 @@ import { getCurrentTenantId } from './token.helper';
 @Injectable()
 export class ApiFetchService {
 	private static token: string;
+	private _logger: Logger;
 
 	constructor(private readonly _httpService: HttpService) {}
 
+	/**
+	 * Lazy-initialized logger that automatically uses the child class name as context.
+	 * This allows all services extending ApiFetchService to have a properly contextualized logger
+	 * without manual instantiation.
+	 */
+	protected get logger(): Logger {
+		if (!this._logger) {
+			this._logger = new Logger(this.constructor.name);
+		}
+		return this._logger;
+	}
+
+	/**
+	 * Set the token for the API fetch service
+	 * @param token - The token to set
+	 */
 	setToken(token: string) {
 		ApiFetchService.token = token;
 	}
 
+	/**
+	 * Get the token for the API fetch service
+	 * @returns The token
+	 */
 	static getToken(): string {
 		return ApiFetchService.token;
 	}
 
+	/**
+	 * Fetch data from the API
+	 * @param configs - The configurations for the API fetch
+	 * @returns The data from the API
+	 */
 	async apiFetch(configs: IServerFetchInputs) {
 		const {
 			method,

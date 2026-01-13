@@ -70,7 +70,10 @@ export class IntakeIssuesService extends ApiFetchService {
 
 			return intakeIssueTranformer(screeningTask);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -125,7 +128,10 @@ export class IntakeIssuesService extends ApiFetchService {
 				return intakeIssueTranformer(intakeIssue);
 			}
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -176,7 +182,10 @@ export class IntakeIssuesService extends ApiFetchService {
 				results: intakeIssueTranformer(filteredIssues)
 			};
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -204,7 +213,10 @@ export class IntakeIssuesService extends ApiFetchService {
 
 			return intakeIssueTranformer(intakeIssue, task);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}

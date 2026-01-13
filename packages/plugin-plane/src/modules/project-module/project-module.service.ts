@@ -86,7 +86,10 @@ export class ProjectModuleService extends ApiFetchService {
 			// Return the transformed module, including the managerId if lead is found
 			return modulesTransformer(projectModule, []);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -121,7 +124,10 @@ export class ProjectModuleService extends ApiFetchService {
 			// Return the transformed modules
 			return modulesTransformer(modules.items, favoriteIds);
 		} catch (error: any) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -147,7 +153,10 @@ export class ProjectModuleService extends ApiFetchService {
 			// Return the transformed module using `modulesTransformer`
 			return modulesTransformer(module, favoriteIds);
 		} catch (error) {
-			console.log(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException();
 		}
 	}
@@ -214,7 +223,10 @@ export class ProjectModuleService extends ApiFetchService {
 			return modulesTransformer(module, favoriteIds);
 		} catch (error) {
 			// Log the error and throw a BadRequestException
-			console.error(error);
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
 			throw new BadRequestException(error);
 		}
 	}
@@ -270,7 +282,10 @@ export class ProjectModuleService extends ApiFetchService {
 
 				return employeeSettingSerializer(moduleMemberSetting);
 			} catch (error) {
-				console.log(error);
+				this.logger.error(
+					'Operation failed',
+					error instanceof Error ? error.stack : String(error)
+				);
 				throw new BadRequestException(
 					'Failed to find or create new view properties'
 				);
@@ -346,7 +361,10 @@ export class ProjectModuleService extends ApiFetchService {
 			// Serialize and return the updated/created employee setting.
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
-			console.log(error.response);
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
 			throw new BadRequestException(error);
 		}
 	}

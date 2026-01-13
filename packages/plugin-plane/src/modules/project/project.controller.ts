@@ -141,7 +141,7 @@ export class ProjectController {
 	 * @description - Add other members to project
 	 * @param {ID} id - The project ID
 	 * @param {IProjectMember[]} input - New Members to be added
-	 * @returns A promise resoved after members assigned to projec
+	 * @returns A promise resolved after members assigned to project
 	 * @memberof ProjectController
 	 */
 	@HttpCode(HttpStatus.OK)

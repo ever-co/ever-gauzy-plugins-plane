@@ -192,7 +192,7 @@ export class IssuesController {
 	 * @param {ID} entityId - Issue ID for creating comment
 	 * @param {ID} projectId - Project ID for returning project data
 	 * @param {CreateIssueCommentDTO} input - Body request
-	 * @returns A promise resoved to comment created and returned related data
+	 * @returns A promise resolved to comment created and returned related data
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.CREATED)
@@ -492,7 +492,7 @@ export class IssuesController {
 	 * @description Add issue to Module
 	 * @param {ID} id - Issue ID for asssign module
 	 * @param {IIssueCreateInput} input - data for updating issue
-	 * @returns A promise resoved to updated Issue
+	 * @returns A promise resolved to updated Issue
 	 * @memberof IssuesController
 	 */
 	@HttpCode(HttpStatus.CREATED)

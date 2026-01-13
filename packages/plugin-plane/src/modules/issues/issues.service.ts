@@ -883,7 +883,7 @@ export class IssuesService extends ApiFetchService {
 	 * @param {ID} entityId - Issue ID for creating comment
 	 * @param {ID} projectId - Project ID for returning project data
 	 * @param {ICreateCommentInput} input - Body request
-	 * @returns A promise resoved to comment created and returned related data
+	 * @returns A promise resolved to comment created and returned related data
 	 * @memberof IssuesService
 	 */
 	async createComment(
@@ -914,7 +914,7 @@ export class IssuesService extends ApiFetchService {
 				await this.getIssueCommentDetails(
 					entityId,
 					task.projectId,
-					comment.employee.id,
+					comment.employee?.id,
 					task,
 					task.project
 				);

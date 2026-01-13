@@ -377,7 +377,7 @@ export class ProjectService extends ApiFetchService {
 	/**
 	 * @description - Add other members to project
 	 * @param {ID} id - The project ID
-	 * @returns A promise resoved after members assigned to projec
+	 * @returns A promise resolved after members assigned to project
 	 * @memberof ProjectService
 	 */
 	async assignMembersToProject(

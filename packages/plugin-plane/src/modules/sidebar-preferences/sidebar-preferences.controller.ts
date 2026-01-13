@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SidebarPreferencesService } from './sirebar-preferences.service';
+import { SidebarPreferencesService } from './sidebar-preferences.service';
 
 @ApiTags('Sidebar preferences routes')
 @Controller('sidebar-preferences')

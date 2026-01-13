@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { SidebarPreferencesService } from './sirebar-preferences.service';
-import { SidebarPreferencesController } from './sirebar-preferences.controller';
+import { SidebarPreferencesService } from './sidebar-preferences.service';
+import { SidebarPreferencesController } from './sidebar-preferences.controller';
 
 @Module({
 	providers: [SidebarPreferencesService],

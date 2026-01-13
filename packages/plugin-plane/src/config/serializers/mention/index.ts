@@ -1,1 +1,1 @@
-export * from './mention.serialzer';
+export * from './mention.serializer';

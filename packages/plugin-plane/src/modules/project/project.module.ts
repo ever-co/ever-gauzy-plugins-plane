@@ -6,6 +6,7 @@ import { IssuesModule } from '../issues/issues.module';
 import { IssueLabelsModule } from '../issues/issue-labels/issue-labels.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
 import { ProjectService } from './project.service';
+import { ProjectDeployBoardsService } from './project-deploy-boards/project-deploy-boards.service';
 import { ProjectController } from './project.controller';
 import { SearchIssuesModule } from '../issues/search-issues/search-issues.module';
 import { ProjectIdentifiersModule } from './project-identifiers/project-identifiers.module';
@@ -53,7 +54,7 @@ import { EmployeePropertiesModule } from '../employee-properties/employee-proper
 		ProjectIdentifiersModule,
 		EmployeePropertiesModule
 	],
-	providers: [ProjectService],
+	providers: [ProjectService, ProjectDeployBoardsService],
 	controllers: [ProjectController],
 	exports: [ProjectService]
 })

@@ -20,3 +20,4 @@ export * from './user';
 export * from './user-favorites';
 export * from './views';
 export * from './workspace-organization';
+export * from './analytics';

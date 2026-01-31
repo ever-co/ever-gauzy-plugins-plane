@@ -1,11 +1,11 @@
 import {
-    ChartXAxisProperty,
-    IAdvanceAnalyticsChartResponse,
-    IAdvanceAnalyticsResponse,
-    IChartDataItem,
-    ITask,
-    IWorkItemInsightRow,
-    TaskStatusEnum
+	ChartXAxisProperty,
+	IAdvanceAnalyticsChartResponse,
+	IAdvanceAnalyticsResponse,
+	IChartDataItem,
+	ITask,
+	IWorkItemInsightRow,
+	TaskStatusEnum
 } from '@plane-plugin/models';
 import { sluggify } from '../../utils/shared.utils';
 
@@ -177,97 +177,136 @@ export function transformToWorkItemStats(
 }
 
 /**
- * X-Axis field mapping (Plane property -> Gauzy task field)
- */
-const xAxisFieldMapping: Record<
-	ChartXAxisProperty,
-	{ key: string; name: string }
-> = {
-	[ChartXAxisProperty.PRIORITY]: { key: 'priority', name: 'priority' },
-	[ChartXAxisProperty.STATES]: { key: 'taskStatusId', name: 'status' },
-	[ChartXAxisProperty.STATE_GROUPS]: { key: 'status', name: 'status' },
-	[ChartXAxisProperty.ASSIGNEES]: { key: 'members', name: 'members' },
-	[ChartXAxisProperty.LABELS]: { key: 'tags', name: 'tags' },
-	[ChartXAxisProperty.CYCLES]: {
-		key: 'organizationSprintId',
-		name: 'organizationSprint'
-	},
-	[ChartXAxisProperty.MODULES]: { key: 'modules', name: 'modules' },
-	[ChartXAxisProperty.CREATED_AT]: { key: 'createdAt', name: 'createdAt' },
-	[ChartXAxisProperty.COMPLETED_AT]: {
-		key: 'resolvedAt',
-		name: 'resolvedAt'
-	},
-	[ChartXAxisProperty.CREATED_BY]: {
-		key: 'createdByUserId',
-		name: 'createdByUserId'
-	},
-	[ChartXAxisProperty.START_DATE]: { key: 'startDate', name: 'startDate' },
-	[ChartXAxisProperty.TARGET_DATE]: { key: 'dueDate', name: 'dueDate' },
-	[ChartXAxisProperty.ESTIMATE_POINTS]: {
-		key: 'estimate',
-		name: 'estimate'
-	},
-	[ChartXAxisProperty.WORK_ITEM_TYPES]: {
-		key: 'issueType',
-		name: 'issueType'
-	},
-	[ChartXAxisProperty.PROJECTS]: { key: 'projectId', name: 'project' },
-	[ChartXAxisProperty.EPICS]: { key: 'parentId', name: 'parent' }
-};
-
-/**
  * Get a task's value for a given x-axis property
  */
 function getTaskXAxisValue(
 	task: ITask,
 	xAxis: ChartXAxisProperty
 ): { key: string; name: string }[] {
-	const fieldInfo = xAxisFieldMapping[xAxis];
-	if (!fieldInfo) return [{ key: 'none', name: 'None' }];
-
-	const value = (task as any)[fieldInfo.key];
-
-	// Handle null/undefined
-	if (value === null || value === undefined) {
-		return [{ key: 'none', name: 'None' }];
-	}
-
-	// Handle arrays (members, tags, modules)
-	if (Array.isArray(value)) {
-		if (value.length === 0) {
-			return [{ key: 'none', name: 'None' }];
-		}
-		return value.map((item) => ({
-			key: item.id || String(item),
-			name: item.name || item.fullName || item.title || String(item)
-		}));
-	}
-
-	// Handle dates
-	if (xAxis === ChartXAxisProperty.CREATED_AT || 
-		xAxis === ChartXAxisProperty.COMPLETED_AT ||
-		xAxis === ChartXAxisProperty.START_DATE ||
-		xAxis === ChartXAxisProperty.TARGET_DATE) {
-		const date = new Date(value);
-		const dateStr = date.toISOString().split('T')[0];
-		return [{ key: dateStr, name: dateStr }];
-	}
-
-	// Handle priority
-	if (xAxis === ChartXAxisProperty.PRIORITY) {
-		const priority = value || 'none';
-		return [{ key: priority, name: priority }];
-	}
-
-	// Handle state groups
+	// Handle STATE_GROUPS first - uses computed state group, not a direct field
 	if (xAxis === ChartXAxisProperty.STATE_GROUPS) {
 		const group = getStateGroup(task);
 		return [{ key: group, name: group }];
 	}
 
-	// Default: use value as string
-	return [{ key: String(value), name: String(value) }];
+	// Handle ASSIGNEES - need proper format with employee ID as key
+	if (xAxis === ChartXAxisProperty.ASSIGNEES) {
+		const members = task.members;
+		if (!members || members.length === 0) {
+			return [{ key: 'None', name: 'None' }];
+		}
+		return members.map((member) => {
+			// Try to get display name from various sources
+			let displayName = 'None';
+			
+			// 1. Check employee.fullName
+			if (member.fullName) {
+				displayName = member.fullName;
+			}
+			// 2. Check employee.user.firstName + lastName
+			else if (member.user?.firstName || member.user?.lastName) {
+				displayName = [member.user.firstName, member.user.lastName]
+					.filter(Boolean)
+					.join(' ');
+			}
+			// 3. Check employee.user.fullName
+			else if (member.user?.fullName) {
+				displayName = member.user.fullName;
+			}
+			// 4. Check employee.user.email
+			else if (member.user?.email) {
+				displayName = member.user.email;
+			}
+			
+			return {
+				key: member.id || 'None',
+				name: displayName
+			};
+		});
+	}
+
+	// Handle STATES - use taskStatus
+	if (xAxis === ChartXAxisProperty.STATES) {
+		const statusId = task.taskStatusId || task.taskStatus?.id;
+		const statusName = task.taskStatus?.name || task.status || 'None';
+		if (!statusId) {
+			return [{ key: 'None', name: 'None' }];
+		}
+		return [{ key: statusId, name: statusName }];
+	}
+
+	// Handle LABELS
+	if (xAxis === ChartXAxisProperty.LABELS) {
+		const tags = task.tags;
+		if (!tags || tags.length === 0) {
+			return [{ key: 'None', name: 'None' }];
+		}
+		return tags.map((tag) => ({
+			key: tag.id || 'None',
+			name: tag.name || 'None'
+		}));
+	}
+
+	// Handle MODULES
+	if (xAxis === ChartXAxisProperty.MODULES) {
+		const modules = task.modules;
+		if (!modules || modules.length === 0) {
+			return [{ key: 'None', name: 'None' }];
+		}
+		return modules.map((mod) => ({
+			key: mod.id || 'None',
+			name: mod.name || 'None'
+		}));
+	}
+
+	// Handle CYCLES
+	if (xAxis === ChartXAxisProperty.CYCLES) {
+		const sprintId = task.organizationSprintId;
+		const sprintName = (task as ITask).organizationSprint?.name;
+		if (!sprintId) {
+			return [{ key: 'None', name: 'None' }];
+		}
+		return [{ key: sprintId, name: sprintName || sprintId }];
+	}
+
+	// Handle PRIORITY
+	if (xAxis === ChartXAxisProperty.PRIORITY) {
+		const priority = task.priority || 'none';
+		return [{ key: priority, name: priority }];
+	}
+
+	// Handle dates
+	if (xAxis === ChartXAxisProperty.CREATED_AT) {
+		if (!task.createdAt) return [{ key: 'None', name: 'None' }];
+		const dateStr = new Date(task.createdAt).toISOString().split('T')[0];
+		return [{ key: dateStr, name: dateStr }];
+	}
+	if (xAxis === ChartXAxisProperty.COMPLETED_AT) {
+		if (!task.resolvedAt) return [{ key: 'None', name: 'None' }];
+		const dateStr = new Date(task.resolvedAt).toISOString().split('T')[0];
+		return [{ key: dateStr, name: dateStr }];
+	}
+	if (xAxis === ChartXAxisProperty.START_DATE) {
+		if (!task.startDate) return [{ key: 'None', name: 'None' }];
+		const dateStr = new Date(task.startDate).toISOString().split('T')[0];
+		return [{ key: dateStr, name: dateStr }];
+	}
+	if (xAxis === ChartXAxisProperty.TARGET_DATE) {
+		if (!task.dueDate) return [{ key: 'None', name: 'None' }];
+		const dateStr = new Date(task.dueDate).toISOString().split('T')[0];
+		return [{ key: dateStr, name: dateStr }];
+	}
+
+	// Handle CREATED_BY
+	if (xAxis === ChartXAxisProperty.CREATED_BY) {
+		const creatorId = task.createdByUserId;
+		if (!creatorId) return [{ key: 'None', name: 'None' }];
+		// We don't have creator name in task, use ID
+		return [{ key: creatorId, name: creatorId }];
+	}
+
+	// Default fallback for unknown x_axis
+	return [{ key: 'None', name: 'None' }];
 }
 
 /**

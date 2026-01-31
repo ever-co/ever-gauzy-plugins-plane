@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import { ICreateStateInput } from '@plane-plugin/models';
 
 export class CreateStateDto implements ICreateStateInput {
@@ -8,10 +8,10 @@ export class CreateStateDto implements ICreateStateInput {
 	@IsNotEmpty()
 	name: string;
 
-	@ApiProperty({ type: () => String })
+	@ApiPropertyOptional({ type: () => String })
 	@IsString()
-	@IsNotEmpty()
-	description: string;
+	@IsOptional()
+	description?: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()

@@ -1,27 +1,27 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
-    AnalyticsType,
-    ChartXAxisProperty,
-    IAdvanceAnalyticsChartResponse,
-    IAdvanceAnalyticsResponse,
-    ID,
-    IPagination,
-    ITask,
-    IWorkItemInsightRow
+	AnalyticsType,
+	ChartXAxisProperty,
+	IAdvanceAnalyticsChartResponse,
+	IAdvanceAnalyticsResponse,
+	ID,
+	IPagination,
+	ITask,
+	IWorkItemInsightRow
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import {
-    AdvanceAnalyticsChartsQueryDto,
-    AdvanceAnalyticsQueryDto,
-    AdvanceAnalyticsStatsQueryDto
+	AdvanceAnalyticsChartsQueryDto,
+	AdvanceAnalyticsQueryDto,
+	AdvanceAnalyticsStatsQueryDto
 } from './dto';
 import {
-    buildChartData,
-    buildWorkItemCompletionChart,
-    transformToAdvanceAnalytics,
-    transformToWorkItemStats
+	buildChartData,
+	buildWorkItemCompletionChart,
+	transformToAdvanceAnalytics,
+	transformToWorkItemStats
 } from '../../config/serializers/analytics';
 import { getTaskQuery } from '../../config';
 
@@ -59,7 +59,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 			}
 
 			const query = qs.stringify(
-				getTaskQuery(projectId, options, ['members', 'tags', 'taskStatus'], null, false)
+				getTaskQuery(projectId, options, ['members.user', 'tags', 'taskStatus', 'organizationSprint', 'modules'], null, false)
 			);
 
 			const tasks: IPagination<ITask> = (

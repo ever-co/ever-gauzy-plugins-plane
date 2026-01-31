@@ -15,7 +15,11 @@ import { IssueViewModule } from '../views/view.module';
 import { CyclesModule } from '../cycles/cycles.module';
 import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
-import { AdvanceAnalyticsModule } from '../advance-analytics/advance-analytics.module';
+import {
+    AdvanceAnalyticsModule,
+    AdvanceAnalyticsStatsModule,
+    AdvanceAnalyticsChartsModule
+} from '../advance-analytics/advance-analytics.module';
 
 @Module({
 	imports: [
@@ -51,11 +55,11 @@ import { AdvanceAnalyticsModule } from '../advance-analytics/advance-analytics.m
 					},
 					{
 						path: '/:projectId/advance-analytics-stats',
-						module: AdvanceAnalyticsModule
+						module: AdvanceAnalyticsStatsModule
 					},
 					{
 						path: '/:projectId/advance-analytics-charts',
-						module: AdvanceAnalyticsModule
+						module: AdvanceAnalyticsChartsModule
 					}
 				]
 			}

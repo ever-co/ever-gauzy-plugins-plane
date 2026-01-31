@@ -39,6 +39,11 @@ import { WorkItemsModule } from './work-items/work-items.module';
 import { SidebarPreferencesModule } from './sidebar-preferences/sidebar-preferences.module';
 import { RecentVisitsModule } from './recent-visits/recent-visits.module';
 import { LoggerModule } from './logger';
+import {
+    AdvanceAnalyticsModule,
+    AdvanceAnalyticsStatsModule,
+    AdvanceAnalyticsChartsModule
+} from './advance-analytics/advance-analytics.module';
 
 @Module({
 	imports: [
@@ -78,7 +83,10 @@ import { LoggerModule } from './logger';
 		WorkspacesModule,
 		WorkItemsModule,
 		SidebarPreferencesModule,
-		RecentVisitsModule
+		RecentVisitsModule,
+		AdvanceAnalyticsModule,
+		AdvanceAnalyticsStatsModule,
+		AdvanceAnalyticsChartsModule
 	],
 	providers: [
 		{

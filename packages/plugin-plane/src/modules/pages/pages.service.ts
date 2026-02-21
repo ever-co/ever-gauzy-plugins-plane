@@ -22,7 +22,7 @@ export class PagesService extends ApiFetchService {
 	 */
 	async findAll(projectId?: ID): Promise<IPage[]> {
 		try {
-			const path = projectId ? `${this.path}/by-project/${projectId}` : this.path;
+			const path = projectId ? `${this.path}/project/${projectId}` : this.path;
 			const query = qs.stringify(getPagesQuery(projectId));
 			const response = await this.apiFetch({ method: 'GET', path, query });
 			const items: Record<string, any>[] = response.data?.items ?? response.data ?? [];
@@ -204,11 +204,12 @@ export class PagesService extends ApiFetchService {
 	 */
 	async updateDescription(id: ID, payload: any): Promise<any> {
 		try {
-			// Proxy to the standard PUT endpoint which handles descriptionBinary via CQRS
+			// Proxy to the standard PUT endpoint which handles all the fields
+			const body = updatePageInputTransformer(payload);
 			const response = await this.apiFetch({
 				method: 'PUT',
 				path: `${this.path}/${id}`,
-				body: payload
+				body
 			});
 			return response.data;
 		} catch (error) {
@@ -303,6 +304,70 @@ export class PagesService extends ApiFetchService {
 			});
 		} catch (error) {
 			this.logger.error('Pages.restoreVersion failed', error instanceof Error ? error.stack : String(error));
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetch favorite pages for a project.
+	 * (Note: Mapping to Gauzy favorites if available, or empty for now)
+	 */
+	async fetchFavorites(projectId: ID): Promise<IPage[]> {
+		try {
+			// Plane expects a list of favorite pages. 
+			// For now, we return empty as we don't have a dedicated M2M for favorites in Gauzy's HelpCenterArticle yet.
+			// Ideally this would filter by a "isFavorite" or similar flag if we had one.
+			return [];
+		} catch (error) {
+			this.logger.error('Pages.fetchFavorites failed', error instanceof Error ? error.stack : String(error));
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Add page to favorites.
+	 */
+	async addToFavorites(id: ID): Promise<void> {
+		try {
+			// Mocking for now as Gauzy doesn't have a direct "favorites" for help center articles.
+		} catch (error) {
+			this.logger.error('Pages.addToFavorites failed', error instanceof Error ? error.stack : String(error));
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Remove page from favorites.
+	 */
+	async removeFromFavorites(id: ID): Promise<void> {
+		try {
+			// Mocking for now.
+		} catch (error) {
+			this.logger.error('Pages.removeFromFavorites failed', error instanceof Error ? error.stack : String(error));
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Fetch user mentions for a page.
+	 */
+	async fetchUserMentions(projectId: ID): Promise<any[]> {
+		try {
+			// Plane expects people who can be mentioned in the page.
+			// We can return project members.
+			const response = await this.apiFetch({
+				method: 'GET',
+				path: `/organization-project/${projectId}`,
+				query: 'relations[0]=members.employee.user'
+			});
+			const project = response.data;
+			return (project?.members || []).map((m: any) => ({
+				id: m.employee?.user?.id,
+				display_name: m.employee?.user?.name || m.employee?.user?.email,
+				avatar_url: m.employee?.user?.image
+			}));
+		} catch (error) {
+			this.logger.error('Pages.fetchUserMentions failed', error instanceof Error ? error.stack : String(error));
 			throw new BadRequestException(error);
 		}
 	}

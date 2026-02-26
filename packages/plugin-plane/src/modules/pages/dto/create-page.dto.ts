@@ -3,7 +3,8 @@ import { ID } from '@plane-plugin/models';
 
 export class CreatePageDTO {
 	@IsString()
-	name: string;
+	@IsOptional()
+	name?: string;
 
 	@IsOptional()
 	@IsString()

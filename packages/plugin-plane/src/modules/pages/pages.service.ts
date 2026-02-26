@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import qs from 'qs';
-import { ID, IPage } from '@plane-plugin/models';
+import { ID, IHelpCenterArticle, IPage, IPagination } from '@plane-plugin/models';
 import {
 	articleToPage, createPageInputTransformer,
 	getPagesQuery,
@@ -24,10 +24,16 @@ export class PagesService extends ApiFetchService {
 		try {
 			const path = projectId ? `${this.path}/project/${projectId}` : this.path;
 			const query = qs.stringify(getPagesQuery(projectId));
-			const response = await this.apiFetch({ method: 'GET', path, query });
-			const items: Record<string, any>[] = response.data?.items ?? response.data ?? [];
-			return items.map(articleToPage);
+			const articles: IPagination<IHelpCenterArticle> = (await this.apiFetch({ method: 'GET', path, query })).data;
+			if (!articles.items) {
+				return [];
+			}
+
+			return articles.items.map(articleToPage);
 		} catch (error) {
+			if (error instanceof NotFoundException || (error as any)?.response?.status === 404) {
+				return [];
+			}
 			this.logger.error('Pages.findAll failed', error instanceof Error ? error.stack : String(error));
 			throw new BadRequestException(error);
 		}

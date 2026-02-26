@@ -28,7 +28,7 @@ export interface IPage {
 }
 
 export interface ICreatePageInput {
-	name: string;
+	name?: string;
 	description?: string;
 	description_html?: string;
 	description_json?: any;

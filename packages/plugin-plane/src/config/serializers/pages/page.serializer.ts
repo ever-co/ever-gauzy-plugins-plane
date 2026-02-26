@@ -12,7 +12,7 @@ export function createPageInputTransformer(
 	input: ICreatePageInput
 ): Record<string, any> {
 	return {
-		name: input.name,
+		name: input.name || 'Untitled Page',
 		description: input.description,
 		descriptionHtml: input.description_html,
 		descriptionJson: input.description_json,

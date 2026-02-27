@@ -12,19 +12,22 @@ export interface IPage {
 	description_json?: any;
 	access?: number; // 0 = public, 1 = private
 	is_locked?: boolean;
+	is_favorite?: boolean;
 	archived_at?: string | null;
 	color?: string;
 	parent?: ID | null;
 	owned_by?: ID;
 	workspace?: ID;
-	projects?: ID[];
-	labels?: ID[];
+	project_ids?: ID[];
+	label_ids?: ID[];
+	logo_props?: any;
 	sort_order?: number;
 	external_id?: string | null;
 	created_at?: Date;
 	updated_at?: Date;
 	created_by?: ID;
 	updated_by?: ID;
+	deleted_at?: Date | null;
 }
 
 export interface ICreatePageInput {

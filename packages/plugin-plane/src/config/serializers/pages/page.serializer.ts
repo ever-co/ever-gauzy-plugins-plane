@@ -10,19 +10,21 @@ import { getCurrentOrganizationSlug } from '../../credentials';
  */
 export function createPageInputTransformer(
 	input: ICreatePageInput,
-	categoryId?: string
+	categoryId?: string,
+	projectId?: string
 ): Record<string, any> {
 	return {
 		name: input.name || 'Untitled Page',
-		description: input.description,
-		descriptionHtml: input.description_html,
+		description: input.description ?? '',
+		descriptionHtml: input.description_html ?? '<p></p>',
 		descriptionJson: input.description_json,
 		privacy: input.access === 1,
 		color: input.color ?? null,
 		parentId: input.parent ?? null,
 		index: input.sort_order ?? 0,
 		organizationId: getCurrentOrganizationSlug(),
-		...(categoryId ? { categoryId } : {})
+		...(categoryId ? { categoryId } : {}),
+		...(projectId ? { projects: [{ id: projectId }] } : {})
 	};
 }
 
@@ -65,21 +67,26 @@ export function articleToPage(article: Record<string, any>): IPage {
 		description_json: article['descriptionJson'],
 		access: article['privacy'] ? 1 : 0,
 		is_locked: article['isLocked'] ?? false,
+		is_favorite: false,
 		archived_at: article['archivedAt'] ?? null,
 		color: article['color'],
 		parent: article['parentId'] ?? null,
 		owned_by: article['ownedById'],
 		workspace: article['organizationId'],
-		projects: (article['projects'] ?? []).map((p: any) =>
+		project_ids: (article['projects'] ?? []).map((p: any) =>
 			typeof p === 'string' ? p : p?.id
 		),
-		labels: (article['tags'] ?? []).map((t: any) =>
+		label_ids: (article['tags'] ?? []).map((t: any) =>
 			typeof t === 'string' ? t : t?.id
 		),
+		logo_props: undefined,
 		sort_order: article['index'],
 		external_id: article['externalId'] ?? null,
 		created_at: article['createdAt'],
-		updated_at: article['updatedAt']
+		updated_at: article['updatedAt'],
+		created_by: article['ownedById'],
+		updated_by: article['ownedById'],
+		deleted_at: article['deletedAt'] ?? null
 	};
 }
 

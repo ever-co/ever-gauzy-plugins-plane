@@ -8,8 +8,10 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post
+	Post,
+	Res
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ID, IPage } from '@plane-plugin/models';
 import { PagesService } from './pages.service';
 import { CreatePageDTO, UpdatePageDTO } from './dto';
@@ -81,8 +83,11 @@ export class PagesController {
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create page' })
 	@Post('pages')
-	async create(@Body() input: CreatePageDTO): Promise<IPage> {
-		return this._pagesService.create(input);
+	async create(
+		@Param('projectId') projectId: ID,
+		@Body() input: CreatePageDTO
+	): Promise<IPage> {
+		return this._pagesService.create(input, projectId);
 	}
 
 	/**
@@ -207,8 +212,17 @@ export class PagesController {
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get page description binary' })
 	@Get('pages/:pageId/description')
-	async getDescriptionBinary(@Param('pageId') id: ID): Promise<any> {
-		return this._pagesService.getDescriptionBinary(id);
+	async getDescriptionBinary(
+		@Param('pageId') id: ID,
+		@Res() res: Response
+	): Promise<void> {
+		const data = await this._pagesService.getDescriptionBinary(id);
+		res.setHeader('Content-Type', 'application/octet-stream');
+		if (data && data.byteLength > 0) {
+			res.send(Buffer.from(data));
+		} else {
+			res.send(Buffer.alloc(0));
+		}
 	}
 
 	/**

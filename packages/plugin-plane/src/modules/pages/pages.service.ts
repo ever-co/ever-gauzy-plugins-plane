@@ -3,9 +3,9 @@ import qs from 'qs';
 import { ID, IHelpCenterArticle, IPage, IPagination } from '@plane-plugin/models';
 import { getCurrentOrganizationSlug } from '../../config/credentials';
 import {
-    articleToPage, createPageInputTransformer,
-    getPagesQuery,
-    updatePageInputTransformer
+	articleToPage, createPageInputTransformer,
+	getPagesQuery,
+	updatePageInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { CreatePageDTO, UpdatePageDTO } from './dto';
@@ -138,10 +138,10 @@ export class PagesService extends ApiFetchService {
 	/**
 	 * Create a new page.
 	 */
-	async create(input: CreatePageDTO): Promise<IPage> {
+	async create(input: CreatePageDTO, projectId?: ID): Promise<IPage> {
 		try {
 			const categoryId = await this.getOrCreateDefaultCategory();
-			const body = createPageInputTransformer(input, categoryId);
+			const body = createPageInputTransformer(input, categoryId, projectId);
 			const response = await this.apiFetch({ method: 'POST', path: this.path, body });
 			return articleToPage(response.data);
 		} catch (error) {

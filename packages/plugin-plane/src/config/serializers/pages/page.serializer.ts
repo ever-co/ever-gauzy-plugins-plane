@@ -41,6 +41,7 @@ export function updatePageInputTransformer(
 	if (input.description !== undefined) result['description'] = input.description;
 	if (input.description_html !== undefined) result['descriptionHtml'] = input.description_html;
 	if (input.description_json !== undefined) result['descriptionJson'] = input.description_json;
+	if (input.description_binary !== undefined) result['descriptionBinary'] = input.description_binary;
 	if (input.access !== undefined) result['privacy'] = input.access === 1;
 	if (input.color !== undefined) result['color'] = input.color;
 	if (input.parent !== undefined) result['parentId'] = input.parent ?? null;

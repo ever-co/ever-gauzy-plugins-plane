@@ -274,17 +274,41 @@ export class PagesService extends ApiFetchService {
 
 	/**
 	 * Update page description (supports binary/live editor).
+	 *
+	 * The live server sends `description_binary` as base64 and `description_html`/`description_json` as text.
+	 * We split the update into two calls:
+	 *  1. PUT :id/binary-description — raw octet-stream bytes → stored correctly as Uint8Array in Gauzy
+	 *  2. PUT :id — JSON body for description_html and description_json
+	 *
+	 * This avoids JSON-serialization issues (Buffer → JSON → Uint8Array doesn't work reliably).
 	 */
 	async updateDescription(id: ID, payload: any): Promise<any> {
 		try {
-			// Proxy to the standard PUT endpoint which handles all the fields
-			const body = updatePageInputTransformer(payload);
-			const response = await this.apiFetch({
-				method: 'PUT',
-				path: `${this.path}/${id}`,
-				body
-			});
-			return response.data;
+			// 1. Upload raw binary via the dedicated octet-stream endpoint
+			if (payload.description_binary != null) {
+				const binaryBuffer = Buffer.from(payload.description_binary, 'base64');
+				await this.apiFetch({
+					method: 'PUT',
+					path: `${this.path}/${id}/binary-description`,
+					body: binaryBuffer as any,
+					customHeaders: { 'Content-Type': 'application/octet-stream' }
+				});
+			}
+
+			// 2. Update metadata (html + json) via regular JSON endpoint
+			const metaBody: Record<string, any> = {};
+			if (payload.description_html !== undefined) metaBody['descriptionHtml'] = payload.description_html;
+			if (payload.description_json !== undefined) metaBody['descriptionJson'] = payload.description_json;
+
+			if (Object.keys(metaBody).length > 0) {
+				const response = await this.apiFetch({
+					method: 'PUT',
+					path: `${this.path}/${id}`,
+					body: metaBody
+				});
+				return response.data;
+			}
+			return null;
 		} catch (error) {
 			this.logger.error('Pages.updateDescription failed', error instanceof Error ? error.stack : String(error));
 			throw new BadRequestException(error);

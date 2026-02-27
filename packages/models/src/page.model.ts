@@ -35,6 +35,7 @@ export interface ICreatePageInput {
 	description?: string;
 	description_html?: string;
 	description_json?: any;
+	description_binary?: string;
 	access?: number;
 	color?: string;
 	parent?: ID | null;

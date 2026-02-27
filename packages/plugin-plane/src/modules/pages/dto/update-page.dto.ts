@@ -17,6 +17,10 @@ export class UpdatePageDTO {
 	@IsOptional()
 	description_json?: any;
 
+	@IsOptional()
+	@IsString()
+	description_binary?: string;
+
 	/** 0 = public, 1 = private */
 	@IsOptional()
 	@IsNumber()

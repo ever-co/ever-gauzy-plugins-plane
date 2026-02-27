@@ -1,21 +1,87 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import qs from 'qs';
 import { ID, IHelpCenterArticle, IPage, IPagination } from '@plane-plugin/models';
+import { getCurrentOrganizationSlug } from '../../config/credentials';
 import {
-	articleToPage, createPageInputTransformer,
-	getPagesQuery,
-	updatePageInputTransformer
+    articleToPage, createPageInputTransformer,
+    getPagesQuery,
+    updatePageInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { CreatePageDTO, UpdatePageDTO } from './dto';
 
 @Injectable()
 export class PagesService extends ApiFetchService {
+	/** In-memory cache for the default HelpCenter category ID */
+	private static defaultCategoryId: string | null = null;
+
 	constructor(private readonly _serverFetchService: ApiFetchService) {
 		super(_serverFetchService['_httpService']);
 	}
 
 	private readonly path = '/help-center-article';
+
+	/**
+	 * Get or lazily create a default "Pages" HelpCenter category.
+	 * The ID is cached as a static property for the process lifetime.
+	 * On restart, the existing category is found via GET and re-cached.
+	 */
+	private async getOrCreateDefaultCategory(): Promise<string> {
+		// Return from cache if available
+		if (PagesService.defaultCategoryId) {
+			return PagesService.defaultCategoryId;
+		}
+
+		try {
+			// Search for an existing "Pages" category in Gauzy
+			const query = qs.stringify({
+				data: JSON.stringify({
+					relations: [],
+					findInput: { name: 'Pages' }
+				})
+			});
+			const response = await this.apiFetch({
+				method: 'GET',
+				path: '/help-center',
+				query
+			});
+
+			const items = response.data?.items ?? [];
+			const existing = items.find((c: any) => c.name === 'Pages');
+
+			if (existing) {
+				PagesService.defaultCategoryId = existing.id;
+				this.logger.log(`Found existing default Pages category: ${existing.id}`);
+				return existing.id;
+			}
+
+			// Create a new default category
+			const created = await this.apiFetch({
+				method: 'POST',
+				path: '/help-center',
+				body: {
+					name: 'Pages',
+					flag: 'pages',
+					icon: 'book-open-outline',
+					privacy: 'eye-outline',
+					language: 'en',
+					color: '#3F76FF',
+					index: 0,
+					organizationId: getCurrentOrganizationSlug()
+				}
+			});
+
+			PagesService.defaultCategoryId = created.data.id;
+			this.logger.log(`Created default Pages category: ${created.data.id}`);
+			return created.data.id;
+		} catch (error) {
+			this.logger.error(
+				'Failed to get or create default category',
+				error instanceof Error ? error.stack : String(error)
+			);
+			throw new BadRequestException('Unable to resolve default Pages category');
+		}
+	}
 
 	/**
 	 * List all pages, optionally filtered by project.
@@ -74,7 +140,8 @@ export class PagesService extends ApiFetchService {
 	 */
 	async create(input: CreatePageDTO): Promise<IPage> {
 		try {
-			const body = createPageInputTransformer(input);
+			const categoryId = await this.getOrCreateDefaultCategory();
+			const body = createPageInputTransformer(input, categoryId);
 			const response = await this.apiFetch({ method: 'POST', path: this.path, body });
 			return articleToPage(response.data);
 		} catch (error) {

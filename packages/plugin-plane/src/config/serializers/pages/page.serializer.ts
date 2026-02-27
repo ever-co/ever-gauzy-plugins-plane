@@ -9,7 +9,8 @@ import { getCurrentOrganizationSlug } from '../../credentials';
  * (plain object sent as JSON via HTTP).
  */
 export function createPageInputTransformer(
-	input: ICreatePageInput
+	input: ICreatePageInput,
+	categoryId?: string
 ): Record<string, any> {
 	return {
 		name: input.name || 'Untitled Page',
@@ -20,7 +21,8 @@ export function createPageInputTransformer(
 		color: input.color ?? null,
 		parentId: input.parent ?? null,
 		index: input.sort_order ?? 0,
-		organizationId: getCurrentOrganizationSlug()
+		organizationId: getCurrentOrganizationSlug(),
+		...(categoryId ? { categoryId } : {})
 	};
 }
 

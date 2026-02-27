@@ -21,3 +21,4 @@ export * from './user-favorites';
 export * from './views';
 export * from './workspace-organization';
 export * from './analytics';
+export * from './pages';

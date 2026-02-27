@@ -54,6 +54,7 @@ export class ApiFetchService {
 			customHeaders,
 			bearer_token,
 			tenantId,
+			responseType,
 			init
 		} = configs;
 
@@ -89,7 +90,8 @@ export class ApiFetchService {
 						headers: {
 							...headers,
 							...customHeaders
-						}
+						},
+						responseType
 					})
 				);
 
@@ -100,7 +102,8 @@ export class ApiFetchService {
 						headers: {
 							...headers,
 							...customHeaders
-						}
+						},
+						responseType
 					})
 				);
 
@@ -111,7 +114,20 @@ export class ApiFetchService {
 						headers: {
 							...headers,
 							...customHeaders
-						}
+						},
+						responseType
+					})
+				);
+
+			case 'PATCH':
+				return await firstValueFrom(
+					this._httpService.patch(endPoint, body, {
+						...(init || {}),
+						headers: {
+							...headers,
+							...customHeaders
+						},
+						responseType
 					})
 				);
 
@@ -122,7 +138,8 @@ export class ApiFetchService {
 						headers: {
 							...headers,
 							...customHeaders
-						}
+						},
+						responseType
 					})
 				);
 			default:

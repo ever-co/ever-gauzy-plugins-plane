@@ -44,6 +44,7 @@ import {
     AdvanceAnalyticsStatsModule,
     AdvanceAnalyticsChartsModule
 } from './advance-analytics/advance-analytics.module';
+import { PagesModule } from './pages/pages.module';
 
 @Module({
 	imports: [
@@ -86,7 +87,8 @@ import {
 		RecentVisitsModule,
 		AdvanceAnalyticsModule,
 		AdvanceAnalyticsStatsModule,
-		AdvanceAnalyticsChartsModule
+		AdvanceAnalyticsChartsModule,
+		PagesModule
 	],
 	providers: [
 		{

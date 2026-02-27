@@ -30,3 +30,4 @@ export * from './state.model';
 export * from './user.model';
 export * from './view.model';
 export * from './workspace.model';
+export * from './page.model';

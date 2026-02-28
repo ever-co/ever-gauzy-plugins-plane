@@ -24,6 +24,8 @@ export class WorkItemsService extends ApiFetchService {
 				query
 			});
 
+			console.log({ issues: response.data.items });
+
 			return issueTransformer(response.data.items[0]);
 		} catch (error) {
 			this.logger.error(

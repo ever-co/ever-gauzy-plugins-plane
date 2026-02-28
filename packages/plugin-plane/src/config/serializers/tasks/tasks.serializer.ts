@@ -115,7 +115,8 @@ export function issueTransformer(
 		parent_id: issue?.parentId,
 		project__identifier:
 			issue?.project?.code ||
-			issue?.project?.name?.slice(0, 4).toUpperCase(),
+			issue.prefix ||
+			issue?.project?.name?.slice(0, 5).toUpperCase(),
 		parent: {
 			id: issue?.parent?.id,
 			project_id: issue?.parent?.projectId,
@@ -166,6 +167,7 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		project__name: issue.project.name,
 		project__identifier:
 			issue.project.code ||
+			issue.prefix ||
 			issue.project.name.slice(0, 4).toLocaleUpperCase(),
 		project_id: issue.projectId,
 		workspace__slug: getCurrentOrganizationSlug(),

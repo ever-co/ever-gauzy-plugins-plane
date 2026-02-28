@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
 	IsBoolean,
 	IsDate,
@@ -24,6 +24,7 @@ export class CreateIssueDTO implements IIssueCreateInput {
 	description_html?: string;
 
 	@ApiPropertyOptional({ type: () => String })
+	@Transform(({ value }) => value || undefined)
 	@IsUUID()
 	@IsOptional()
 	state_id?: ID;
@@ -35,6 +36,7 @@ export class CreateIssueDTO implements IIssueCreateInput {
 	completed_at?: Date;
 
 	@ApiPropertyOptional({ type: () => String })
+	@Transform(({ value }) => value || undefined)
 	@IsUUID()
 	@IsOptional()
 	estimate_point?: string;
@@ -63,11 +65,13 @@ export class CreateIssueDTO implements IIssueCreateInput {
 	sequence_id?: number;
 
 	@ApiPropertyOptional({ type: () => String })
+	@Transform(({ value }) => value || undefined)
 	@IsUUID()
 	@IsOptional()
 	project_id?: ID;
 
 	@ApiPropertyOptional({ type: () => String })
+	@Transform(({ value }) => value || undefined)
 	@IsUUID()
 	@IsOptional()
 	parent_id?: ID;
@@ -78,11 +82,13 @@ export class CreateIssueDTO implements IIssueCreateInput {
 	is_draft?: boolean;
 
 	@ApiPropertyOptional({ type: () => String })
+	@Transform(({ value }) => value || undefined)
 	@IsUUID()
 	@IsOptional()
 	type_id?: string;
 
 	@ApiPropertyOptional({ type: () => String })
+	@Transform(({ value }) => value || undefined)
 	@IsUUID()
 	@IsOptional()
 	cycle_id?: string;

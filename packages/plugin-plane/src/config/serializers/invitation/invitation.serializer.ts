@@ -1,16 +1,16 @@
 import {
-	ICreateEmailInvitesInput,
-	ICreateWorkspaceInvitationInput,
-	ID,
-	IInvitation,
-	IInvite,
-	InvitationTypeEnum,
-	InviteStatusEnum
+    ICreateEmailInvitesInput,
+    ICreateWorkspaceInvitationInput,
+    ID,
+    IInvitation,
+    IInvite,
+    InvitationTypeEnum,
+    InviteStatusEnum
 } from '@plane-plugin/models';
 import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
 import {
-	roleTransformer,
-	workspaceTransformer
+    roleTransformer,
+    workspaceTransformer
 } from '../workspace-organization';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { CLIENT_BASE_URL } from '../../constants';
@@ -51,7 +51,7 @@ export function createBulkWorkspaceInvitationInputTransformer(
 		startedWorkOn: new Date(),
 		invitationExpirationPeriod: 'Never',
 		organizationId: getCurrentOrganizationSlug(),
-		callbackUrl: `${CLIENT_BASE_URL}/workspace-invitations`,
+		callbackUrl: `${CLIENT_BASE_URL()}/workspace-invitations`,
 		queryParams: {
 			invitation_id: 'token',
 			email: 'email',

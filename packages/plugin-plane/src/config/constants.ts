@@ -1,18 +1,18 @@
 import { IWidget } from '@plane-plugin/models';
 
-export const CLIENT_BASE_URL =
+export const CLIENT_BASE_URL = () =>
 	process.env.CLIENT_BASE_URL ?? 'http://localhost:3000';
 
-export const CLIENT_SPACE_URL =
+export const CLIENT_SPACE_URL = () =>
 	process.env.CLIENT_SPACE_URL ?? 'http://localhost:3001';
 
-export const CLIENT_ADMIN_URL =
+export const CLIENT_ADMIN_URL = () =>
 	process.env.CLIENT_ADMIN_URL ?? 'http://localhost:3002';
 
-export const CLIENT_URLS = [
-	CLIENT_BASE_URL,
-	CLIENT_SPACE_URL,
-	CLIENT_ADMIN_URL
+export const CLIENT_URLS = () => [
+	CLIENT_BASE_URL(),
+	CLIENT_SPACE_URL(),
+	CLIENT_ADMIN_URL()
 ];
 
 export const MAX_TOKEN_COOKIE_SIZE = 3999;

@@ -10,7 +10,7 @@ export async function bootstrap() {
 
 	// Enable CORS
 	app.enableCors({
-		origin: CLIENT_URLS,
+		origin: CLIENT_URLS(),
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
@@ -41,7 +41,7 @@ export async function bootstrap() {
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);
-	SwaggerModule.setup('api', app, document);
+	SwaggerModule.setup('docs', app, document);
 
 	app.useGlobalPipes(new ValidationPipe());
 

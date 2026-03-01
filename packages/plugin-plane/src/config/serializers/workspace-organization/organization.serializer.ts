@@ -5,24 +5,25 @@ import { extractMemberIds } from '../projects';
 import { actorDetailsTransformer } from '../user';
 import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
-	IRole,
-	ITask,
-	IWorkspaceUserInfo,
-	RolesEnum,
-	TaskPriorityEnum,
-	IUserPriorityDistribution,
-	IUserProjectData,
-	ID,
-	IUserProjectsDataResponse,
-	IUserProfileData,
-	EmployeeSettingTypeEnum,
-	BaseEntityEnum,
-	IEmployeeSetting,
-	IOrganization,
-	ICreateWorkSpace,
-	IOrganizationCreateInput,
-	CurrenciesEnum,
-	IWorkspaceInfo
+    IRole,
+    ITask,
+    IWorkspaceUserInfo,
+    RolesEnum,
+    TaskPriorityEnum,
+    IUserPriorityDistribution,
+    IUserProjectData,
+    ID,
+    IUserProjectsDataResponse,
+    IUserProfileData,
+    EmployeeSettingTypeEnum,
+    BaseEntityEnum,
+    IEmployeeSetting,
+    IEmployee,
+    IOrganization,
+    ICreateWorkSpace,
+    IOrganizationCreateInput,
+    CurrenciesEnum,
+    IWorkspaceInfo
 } from '@plane-plugin/models';
 
 const organizationRelations = [
@@ -146,6 +147,69 @@ export function organizationMembersTransformer(
 				display_properties: defaultDisplayProperties
 			},
 			issue_props,
+			is_active: member.isActive
+		};
+	});
+}
+
+/**
+ * Helper function to build query for the /employee/members endpoint.
+ * Returns query params with organizationId and tenantId.
+ */
+export function getEmployeeMembersQuery(
+	organizationId: string,
+	tenantId: string
+): Record<string, string> {
+	return {
+		organizationId,
+		tenantId
+	};
+}
+
+/**
+ * Transforms an array of employees (from GET /employee/members) into workspace user info objects.
+ *
+ * This is the alternative to organizationMembersTransformer that works with the
+ * /employee/members endpoint, which doesn't require ORG_EMPLOYEES_VIEW or ORG_USERS_VIEW
+ * permissions (only ORG_MEMBERS_VIEW, available to EMPLOYEE role).
+ *
+ * Trade-offs vs organizationMembersTransformer:
+ * - user.role is not available → defaults to MEMBER (15)
+ * - employee.settings are not available → returns empty view_props/default_props
+ *
+ * @param employees - Array of employees from the /employee/members response.
+ * @param organizationId - The organization ID for workspace info.
+ * @param organizationName - Optional organization name for workspace info.
+ * @returns An array of workspace user info objects.
+ */
+export function employeeMembersTransformer(
+	employees: IEmployee[],
+	organizationId: string,
+	organizationName?: string
+): IWorkspaceUserInfo[] {
+	const members = employees ?? [];
+
+	return members.map((member) => {
+		return {
+			id: member.userId,
+			member: actorDetailsTransformer(member),
+			workspace: {
+				id: organizationId,
+				name: organizationName || organizationId,
+				slug: organizationId
+			},
+			created_at: member.createdAt,
+			updated_at: member.updatedAt,
+			deleted_at: member.deletedAt,
+			role: member.user?.role
+				? roleTransformer(member.user.role)
+				: 15, // Default to MEMBER if role not available
+			company_role: member.user?.role
+				? roleTransformer(member.user.role)
+				: 15,
+			view_props: {},
+			default_props: {},
+			issue_props: undefined,
 			is_active: member.isActive
 		};
 	});

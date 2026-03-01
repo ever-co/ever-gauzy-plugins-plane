@@ -1,81 +1,79 @@
 import {
-	BadRequestException,
-	forwardRef,
-	Inject,
-	Injectable
+    BadRequestException,
+    forwardRef,
+    Inject,
+    Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-	BaseEntityEnum,
-	DashboardIssueTypeEnum,
-	DashboardWigetQueryEnum,
-	ID,
-	IIssue,
-	IOrganization,
-	IRecentCollaborator,
-	ITask,
-	IWorkspaceUserInfo,
-	TaskStatusEnum,
-	IUserStatsResponse,
-	IUserProjectsDataResponse,
-	IssueGroupByEnum,
-	IIssueFindInput,
-	IModule,
-	ICycle,
-	IIssueLabel,
-	IssueOrderByField,
-	IIssueCreateInput,
-	IIssueUpdateInput,
-	EmployeeSettingTypeEnum,
-	IGlobalEntitiesResponse,
-	IGlabalEntitiesFindInput,
-	IEntitySearchFindInput,
-	IUnreadNotificationResponse,
-	INotificationResponse,
-	INotification,
-	IEmployeeSetting,
-	IProject,
-	IIssueLink,
-	ICreateIssueLink
+    BaseEntityEnum,
+    DashboardIssueTypeEnum,
+    DashboardWigetQueryEnum,
+    ID,
+    IIssue, IRecentCollaborator,
+    ITask,
+    IWorkspaceUserInfo,
+    TaskStatusEnum,
+    IUserStatsResponse,
+    IUserProjectsDataResponse,
+    IssueGroupByEnum,
+    IIssueFindInput,
+    IModule,
+    ICycle,
+    IIssueLabel,
+    IssueOrderByField,
+    IIssueCreateInput,
+    IIssueUpdateInput,
+    EmployeeSettingTypeEnum,
+    IGlobalEntitiesResponse,
+    IGlabalEntitiesFindInput,
+    IEntitySearchFindInput,
+    IUnreadNotificationResponse,
+    INotificationResponse,
+    INotification,
+    IEmployeeSetting,
+    IProject,
+    IIssueLink,
+    ICreateIssueLink
 } from '@plane-plugin/models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
-	currentEmployeeId,
-	cycleTransformer,
-	dashboardTransformer,
-	DEFAULT_DASHBOARD_WIDGETS,
-	getCurrentOrganizationSlug,
-	currentUserId,
-	extractWorkspaceViewIdFromReferer,
-	getProjectsResponse,
-	getStatesTransformer,
-	getTaskCounts,
-	groupIssuesByLabel,
-	groupIssuesByPriority,
-	groupIssuesByProjectId,
-	groupIssuesByStateGroup,
-	issueActivityLogTransformer,
-	issueFilterSplitter,
-	issueLabelsTransformer,
-	issueLinkTransformer,
-	issuesByPriority,
-	issueTransformer,
-	MEMBER_DEFAULT_VIEW_PROPS,
-	modulesTransformer,
-	userIssuesByPriority,
-	userWorkNonGroupedIssues,
-	userWorkProjectsTransformer,
-	widgetTargetDateTransformer,
-	widgetTransformer,
-	currentTenantId,
-	memberPropertiesSerializer,
-	notificationTranformer,
-	unreadNotificationData,
-	isNotEmpty
+    currentEmployeeId,
+    cycleTransformer,
+    dashboardTransformer,
+    DEFAULT_DASHBOARD_WIDGETS,
+    getCurrentOrganizationSlug,
+    currentUserId,
+    extractWorkspaceViewIdFromReferer,
+    getProjectsResponse,
+    getStatesTransformer,
+    getTaskCounts,
+    groupIssuesByLabel,
+    groupIssuesByPriority,
+    groupIssuesByProjectId,
+    groupIssuesByStateGroup,
+    issueActivityLogTransformer,
+    issueFilterSplitter,
+    issueLabelsTransformer,
+    issueLinkTransformer,
+    issuesByPriority,
+    issueTransformer,
+    MEMBER_DEFAULT_VIEW_PROPS,
+    modulesTransformer,
+    userIssuesByPriority,
+    userWorkNonGroupedIssues,
+    userWorkProjectsTransformer,
+    widgetTargetDateTransformer,
+    widgetTransformer,
+    currentTenantId,
+    memberPropertiesSerializer,
+    notificationTranformer,
+    unreadNotificationData,
+    isNotEmpty
 } from '../../config';
 import {
-	getOrganizationQuery,
-	organizationMembersTransformer
+    getEmployeeMembersQuery,
+    employeeMembersTransformer
 } from '../../config';
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
@@ -342,16 +340,22 @@ export class WorkspaceService extends ApiFetchService {
 	 */
 	async getWorkspaceMembers(): Promise<IWorkspaceUserInfo[]> {
 		try {
-			const query = qs.stringify(getOrganizationQuery);
-			const organization: IOrganization = (
+			const organizationId = getCurrentOrganizationSlug();
+			const tenantId = currentTenantId();
+			const query = qs.stringify(getEmployeeMembersQuery(organizationId, tenantId));
+
+			const response = (
 				await this.apiFetch({
 					method: 'GET',
-					path: `/organization/${getCurrentOrganizationSlug()}`,
+					path: '/employee/members',
 					query
 				})
 			).data;
 
-			return organizationMembersTransformer(organization);
+			return employeeMembersTransformer(
+				response.items,
+				organizationId
+			);
 		} catch (error) {
 			this.logger.error(
 				'Error while retrieving workspace members',

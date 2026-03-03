@@ -45,6 +45,7 @@ import {
     AdvanceAnalyticsChartsModule
 } from './advance-analytics/advance-analytics.module';
 import { PagesModule } from './pages/pages.module';
+import { FileAssetsModule } from './file-assets/file-assets.module';
 
 @Module({
 	imports: [
@@ -89,7 +90,8 @@ import { PagesModule } from './pages/pages.module';
 		AdvanceAnalyticsModule,
 		AdvanceAnalyticsStatsModule,
 		AdvanceAnalyticsChartsModule,
-		PagesModule
+		PagesModule,
+		FileAssetsModule
 	],
 	providers: [
 		{

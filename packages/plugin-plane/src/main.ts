@@ -29,8 +29,9 @@ export async function bootstrap() {
 			'api/dashboard/:id/:dashboardEndpoint',
 			'api/dashboard/:id/:dashboardEndpoint/:endPointParam',
 			'api/workspace-slug-check',
-			'api/workspaces'
-		] // Exclude all the routes starting with /auth, /users, /timezones /dashboard and /instances from the global prefix
+			'api/workspaces',
+			'api/assets/(.*)'
+		] // Exclude all the routes starting with /auth, /users, /timezones /dashboard /instances and /assets from the global prefix
 	});
 
 	const config = new DocumentBuilder()

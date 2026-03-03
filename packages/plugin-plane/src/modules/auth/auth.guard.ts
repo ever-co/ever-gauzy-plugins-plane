@@ -1,8 +1,8 @@
 import {
-	Injectable,
-	CanActivate,
-	ExecutionContext,
-	SetMetadata
+    Injectable,
+    CanActivate,
+    ExecutionContext,
+    SetMetadata
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request, Response } from 'express';
@@ -16,10 +16,10 @@ export class AuthGuard implements CanActivate {
 
 	canActivate(context: ExecutionContext): boolean {
 		// Check if route is marked as public
-		const isPublic = this.reflector.get<boolean>(
-			IS_PUBLIC_KEY,
-			context.getHandler()
-		);
+		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+			context.getHandler(),
+			context.getClass(),
+		]);
 
 		if (isPublic) {
 			return true;

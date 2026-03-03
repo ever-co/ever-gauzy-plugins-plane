@@ -186,11 +186,12 @@ export class AuthController {
 						);
 					}
 
-					// 4. Refresh the token using the refresh token for organization creation purpose
-					let refrechedToken = await this._authService.refreshToken(
-						result.refresh_token,
-						result.token
-					);
+					// 4. Re-login to get fresh tokens with new tenant/role context
+					// (the original refresh_token JWT is now stale after onboardTenant changed user's tenantId/roleId)
+					let freshLogin = await this._authService.signIn({
+						email: user.email,
+						password: data.password
+					});
 
 					// 5. Create an organization for the tenant
 					let organization: IOrganization;
@@ -202,7 +203,7 @@ export class AuthController {
 									currency: CurrenciesEnum.USD,
 									tenantId: tenant.id
 								},
-								refrechedToken.token,
+								freshLogin.token,
 								tenant.id
 							);
 					} catch (error) {
@@ -220,7 +221,7 @@ export class AuthController {
 								organizationId: organization.id,
 								tenantId: tenant.id
 							},
-							refrechedToken.token,
+							freshLogin.token,
 							tenant.id
 						);
 					} catch (error) {
@@ -230,18 +231,18 @@ export class AuthController {
 						);
 					}
 
-					// 7. Refresh the token again to include the new employee
-					refrechedToken = await this._authService.refreshToken(
-						result.refresh_token,
-						result.token
-					);
+					// 7. Re-login again to get tokens that include the new employee context
+					freshLogin = await this._authService.signIn({
+						email: user.email,
+						password: data.password
+					});
 
 					// 8. Split the token into chunks and set cookies for the user
 					clearTokenChuncks(req, res);
-					sendTokenChunks(refrechedToken.token, res);
+					sendTokenChunks(freshLogin.token, res);
 
 					// 9. Redirect the user to the onboarding page
-					return res.redirect(`${req.headers.referer}/onboarding`);
+					return res.redirect(`${req.headers.referer}onboarding`);
 				}
 			}
 			// 10. Redirect to error page if user registration fails

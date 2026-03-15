@@ -107,9 +107,7 @@ Lightweight application runner for production deployments.
 
    # Configs
 
-   EXTERNAL_BASE_API_URL=https://your-gauzy-api.com/api # Hosted gauzy API
-   EXTERNAL_BASE_LOCAL_API_URL=http://localhost:3000/api # Local gauzy API
-   EXECUTION_MODE=develop  # Change to develop if want to use local Gauzy API
+   EXTERNAL_BASE_API_URL=http://localhost:5500/api # Point to your Gauzy API (local or hosted)
 
    # Auth and API KEYS
    API_KEY='YOUR_GENERATED_GAUZY_API_KEY'
@@ -224,11 +222,6 @@ yarn format               # Format code with Prettier
 2. **Code Quality**: Ensure ESLint and Prettier compliance
 4. **Documentation**: Update relevant documentation
 5. **Build Verification**: Ensure successful build before PR
-
-### Environment Modes
-
-- **Development**: `EXECUTION_MODE=develop` - Uses local Gauzy API URLs
-- **Production**: `EXECUTION_MODE=production` - Uses production Gauzy API URLs
 
 ## 🤝 Contributing
 

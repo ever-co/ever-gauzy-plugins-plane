@@ -3,7 +3,7 @@ import slugify from 'slugify';
 import { Logger } from '@nestjs/common';
 import { ID, IssueOrderByField } from '@plane-plugin/models';
 import { Request, Response } from 'express';
-import { EXTERNAL_API_MODE, MAX_TOKEN_COOKIE_SIZE } from '../constants';
+import { MAX_TOKEN_COOKIE_SIZE } from '../constants';
 
 const logger = new Logger('SharedUtils');
 
@@ -155,7 +155,7 @@ export function sendTokenChunks(token: string, response: Response) {
 	tokenChunks.forEach((chunk, index) => {
 		response.cookie(`auth-proxy-plane-token-${index}`, chunk, {
 			httpOnly: true, // Ensure cookie is inaccessible to JavaScript
-			secure: EXTERNAL_API_MODE() === 'production', // Use secure cookies in production
+			secure: true, // Use secure cookies in production
 			sameSite: 'strict' // Restrict cookie to same-site requests
 		});
 	});
@@ -179,7 +179,7 @@ export function clearTokenChuncks(request: Request, response: Response) {
 		// Clear the cookie with matching name
 		response.clearCookie(cookieName, {
 			httpOnly: true, // Ensure cookie is inaccessible to JavaScript
-			secure: EXTERNAL_API_MODE() === 'production', // Use secure cookies in production
+			secure: true, // Use secure cookies in production
 			sameSite: 'strict' // Restrict cookie to same-site requests
 		});
 		index++;

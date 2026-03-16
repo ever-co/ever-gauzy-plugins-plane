@@ -7,11 +7,15 @@
     "email": "ever@ever.co",
     "url": "https://ever.co"
   },
-  "private": true,
   "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -33,7 +37,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.0",
-    "@ever-gauzy/plugin-integration-plane-models": "*",
+    "@ever-gauzy/plugin-integration-plane-models": "^0.0.1",
     "axios": "^1.13.5",
     "cheerio": "^1.0.0",
     "class-transformer": "^0.5.1",
@@ -90,6 +94,13 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ever-co/ever-gauzy-plugins-plane"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "packageManager": "yarn@1.22.21"
 }

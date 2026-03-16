@@ -19,7 +19,7 @@ import {
 	IPagination,
 	IUpdateUserPropertiesInput,
 	IUserViewProperties
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createCycleInputTransformer,
 	currentEmployeeId,

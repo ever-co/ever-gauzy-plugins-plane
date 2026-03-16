@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { ICreateModuleInput } from '@plane-plugin/models';
+import { ICreateModuleInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { CreateModuleDTO } from './create-module.dto';
 
 export class UpdateModuleDTO

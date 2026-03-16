@@ -5,7 +5,7 @@ import {
 	IUnreadNotificationResponse,
 	IEmployeeNotification,
 	EmployeeNotificationTypeEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { actorDetailsTransformer } from '../user';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { issueTransformer } from '../tasks';

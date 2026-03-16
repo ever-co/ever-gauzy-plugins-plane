@@ -16,7 +16,7 @@ import {
 	ICycleIssuesResponse,
 	ICycleProgress,
 	ID
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { CyclesService } from './cycles.service';
 import { CreateCycleDTO, CycleDTO, UpdateCycleDTO } from './dto';
 

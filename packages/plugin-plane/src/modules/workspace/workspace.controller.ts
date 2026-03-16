@@ -27,7 +27,7 @@ import {
 	IModule,
 	INotification,
 	IUserStatsResponse
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 
 @ApiTags('Workspaces routes')

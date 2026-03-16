@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { ICreateWorkspaceInvitationInput } from '@plane-plugin/models';
+import { ICreateWorkspaceInvitationInput } from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * DTO for creating a single workspace invitation.

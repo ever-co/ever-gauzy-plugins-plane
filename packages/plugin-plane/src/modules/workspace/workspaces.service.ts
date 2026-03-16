@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { ICreateWorkSpace } from '@plane-plugin/models';
+import { ICreateWorkSpace } from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createOrganizationInputTransformer,
 	workspaceTransformer

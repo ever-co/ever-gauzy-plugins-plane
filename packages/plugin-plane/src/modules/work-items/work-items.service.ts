@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { IIssue } from '@plane-plugin/models';
+import { IIssue } from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	getTaskByIdentifierQuery,
 	issueTransformer

@@ -9,7 +9,7 @@ import {
 	ITask,
 	ProjectModuleStatusEnum,
 	TaskStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { deslugify } from '../../utils';

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { IUserProfile } from '@plane-plugin/models';
+import { IUserProfile } from '@ever-gauzy/plugin-integration-plane-models';
 
 @ApiTags('User routes')
 @Controller()

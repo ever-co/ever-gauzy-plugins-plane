@@ -10,7 +10,7 @@ import {
 	Patch,
 	Post
 } from '@nestjs/common';
-import { ID, IProjectDeployBoardsCreateInput } from '@plane-plugin/models';
+import { ID, IProjectDeployBoardsCreateInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { ProjectService } from './project.service';
 import { ProjectDeployBoardsService } from './project-deploy-boards/project-deploy-boards.service';
 import { CreateProjectDTO, ProjectMemberDTO } from './dto';

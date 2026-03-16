@@ -6,7 +6,7 @@ import {
 	IFavoriteCreateInput,
 	IFavoriteData,
 	IFavoriteFindInput
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { currentTenantId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 

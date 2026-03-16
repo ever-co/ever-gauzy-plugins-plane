@@ -5,7 +5,7 @@ import {
 	ITaskStatus,
 	ITaskStatusCreateInput,
 	TaskStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	currentTenantId,
 	getCurrentOrganizationSlug

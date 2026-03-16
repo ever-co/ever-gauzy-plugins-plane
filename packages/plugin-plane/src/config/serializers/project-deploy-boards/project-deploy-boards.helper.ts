@@ -5,7 +5,7 @@ import {
     IProjectDeployBoardsCreateInput,
     ISharedEntity,
     IShareRule
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * Transform the shared entity response to the Plane deploy board format

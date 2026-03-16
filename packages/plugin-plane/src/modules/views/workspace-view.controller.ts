@@ -10,7 +10,7 @@ import {
 	Patch,
 	Post
 } from '@nestjs/common';
-import { ID, IView } from '@plane-plugin/models';
+import { ID, IView } from '@ever-gauzy/plugin-integration-plane-models';
 import { IssueViewService } from './view.service';
 import { CreateViewDTO, UpdateViewDTO } from './dto';
 

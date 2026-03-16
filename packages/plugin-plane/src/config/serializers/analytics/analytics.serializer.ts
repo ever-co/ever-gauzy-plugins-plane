@@ -6,7 +6,7 @@ import {
 	ITask,
 	IWorkItemInsightRow,
 	TaskStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { sluggify } from '../../utils/shared.utils';
 
 /**

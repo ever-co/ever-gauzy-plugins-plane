@@ -11,7 +11,7 @@ import {
 	ITask,
 	OrganizationSprintStatusEnum,
 	TaskStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import moment from 'moment';
 import {
 	currentEmployeeId,

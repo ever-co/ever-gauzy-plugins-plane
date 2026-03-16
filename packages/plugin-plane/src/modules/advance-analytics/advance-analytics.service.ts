@@ -9,7 +9,7 @@ import {
 	IPagination,
 	ITask,
 	IWorkItemInsightRow
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { ProjectService } from '../project/project.service';
 import {

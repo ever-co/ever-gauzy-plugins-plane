@@ -9,7 +9,7 @@ import {
 	IsString,
 	IsUUID
 } from 'class-validator';
-import { ID, IIssueCreateInput, TaskPriorityEnum } from '@plane-plugin/models';
+import { ID, IIssueCreateInput, TaskPriorityEnum } from '@ever-gauzy/plugin-integration-plane-models';
 import { NonePriorityToUndefined } from '../../../config';
 
 export class CreateIssueDTO implements IIssueCreateInput {

@@ -19,7 +19,7 @@ import {
 	IUpdateProjectInput,
 	IUpdateUserPropertiesInput,
 	IUserViewProperties
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	assignMembersToProjectTransformer,
 	createProjectInputTransformer,

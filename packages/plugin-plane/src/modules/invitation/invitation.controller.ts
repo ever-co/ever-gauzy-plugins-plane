@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ID, IInvitationAcceptInput } from '@plane-plugin/models';
+import { ID, IInvitationAcceptInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { InvitationService } from './invitation.service';
 import { CreateInvitationDTO } from './dto';
 import { Public } from '../auth/auth.guard';

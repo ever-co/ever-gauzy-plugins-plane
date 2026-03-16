@@ -6,7 +6,7 @@ import {
 	ISubscriptionCreateInput,
 	ISubscriptionFindInput,
 	SubscriptionTypeEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { currentUserId } from '../../credentials';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 

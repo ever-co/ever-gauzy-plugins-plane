@@ -1,0 +1,76 @@
+name: Publish to NPM
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    # Only run if the tag (or manual trigger) is on main
+    if: github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Block if the tag doesn't point to a commit on main
+      - name: Verify tag is on main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_COMMIT=$(git rev-list -n 1 "$GITHUB_REF")
+          if ! git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
+            echo "::error::Tag must be on the main branch. Aborting."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build
+        run: yarn build
+
+      - name: Prepare models package
+        working-directory: packages/models
+        run: |
+          mkdir -p dist
+          cp -r ../../dist/packages/models/src/* dist/
+          if [ -n "$VERSION" ]; then
+            npm version "$VERSION" --no-git-tag-version
+          fi
+
+      - name: Publish models
+        working-directory: packages/models
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Prepare api package
+        working-directory: packages/plugin-plane
+        run: |
+          mkdir -p dist
+          cp -r ../../dist/packages/plugin-plane/src/* dist/
+          if [ -n "$VERSION" ]; then
+            npm version "$VERSION" --no-git-tag-version
+          fi
+
+      - name: Publish api
+        working-directory: packages/plugin-plane
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,4 +1,4 @@
-import { IEmployee } from '@plane-plugin/models';
+import { IEmployee } from '@ever-gauzy/plugin-integration-plane-models';
 
 export function actorDetailsTransformer(actor: IEmployee) {
 	return {

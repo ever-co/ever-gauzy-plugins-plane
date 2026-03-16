@@ -1,4 +1,4 @@
-import { IActivityLog, IOrganizationProjectModule } from '@plane-plugin/models';
+import { IActivityLog, IOrganizationProjectModule } from '@ever-gauzy/plugin-integration-plane-models';
 import { manyToManyFieldActivityTransformer } from './many-to-many-field-activity.helper';
 
 export function modulesActivityTransformer(activityLog: IActivityLog) {

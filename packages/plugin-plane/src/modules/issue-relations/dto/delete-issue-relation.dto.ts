@@ -1,6 +1,6 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { IDeleteRelationInput } from '@plane-plugin/models';
+import { IDeleteRelationInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { CreateIssueRelationDTO } from './create-issue-relation.dto';
 
 export class DeleteIssueRelationDTO

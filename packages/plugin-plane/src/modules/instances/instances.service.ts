@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { PlaneConfigRegistry } from '../../plane-config.registry';
 
 @Injectable()
 export class InstancesService {
-	constructor(private readonly _configService: ConfigService) {}
 	getDefaultInstance() {
 		return {
 			id: 'f94d4bf8-35b6-4543-9b6f-ca2072a9582e',
@@ -62,17 +61,17 @@ export class InstancesService {
 			is_test: false,
 			is_saml_enabled: false,
 			saml_provider_name: '',
-			github_app_name: this._configService.get('GITHUB_APP_NAME'),
-			slack_client_id: this._configService.get('SLACK_CLIENT_ID'),
-			posthog_api_key: this._configService.get('POSTHOG_KEY'),
-			posthog_host: this._configService.get('POSTHOG_HOST'),
+			github_app_name: PlaneConfigRegistry.githubAppName,
+			slack_client_id: PlaneConfigRegistry.slackClientId,
+			posthog_api_key: PlaneConfigRegistry.posthogKey,
+			posthog_host: PlaneConfigRegistry.posthogHost,
 			has_unsplash_configured: true,
 			has_openai_configured: true,
 			file_size_limit: 5242880.0,
 			is_smtp_configured: true,
-			admin_base_url: this._configService.get('CLIENT_ADMIN_URL'),
-			space_base_url: this._configService.get('CLIENT_SPACE_URL'),
-			app_base_url: this._configService.get('APP_BASE_URL')
+			admin_base_url: PlaneConfigRegistry.clientAdminUrl,
+			space_base_url: PlaneConfigRegistry.clientSpaceUrl,
+			app_base_url: PlaneConfigRegistry.appBaseUrl
 		};
 	}
 }

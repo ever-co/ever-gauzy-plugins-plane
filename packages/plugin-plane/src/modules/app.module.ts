@@ -1,109 +1,37 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
-import { ApiFetchModule } from './api-fetch/api-fetch.module';
-import { AuthModule } from './auth/auth.module';
-import { InstancesModule } from './instances/instances.module';
-import { UserModule } from './user/user.module';
-import { WorkspaceModule } from './workspace/workspace.module';
-import { StatesModule } from './states/states.module';
-import { IssuesModule } from './issues/issues.module';
-import { GlobalHttpModule } from './http.module';
-import { IssueLabelsModule } from './issues/issue-labels/issue-labels.module';
-import { ProjectModule } from './project/project.module';
-import { IssueRelationsModule } from './issue-relations/issue-relations.module';
-import { ProjectModuleModule } from './project-module/project-module.module';
-import { CommentsModule } from './comments/comments.module';
-import { UserFavoritesModule } from './user-favorites/user-favorites.module';
-import { ReactionsModule } from './reactions/reactions.module';
-import { IssueViewModule } from './views/view.module';
-import { WorkspaceIssueViewModule } from './views/workspace-view.module';
-import { IssueLinksModule } from './issue-links/issue-links.module';
-import { CyclesModule } from './cycles/cycles.module';
-import { ActivityModule } from './activity/activity.module';
-import { DashboardModule } from './dashboard/dashboard.module';
-import { SubscriptionModule } from './subscription/subscription.module';
-import { IntakeIssuesModule } from './issues/intake-issues/intake-issues.module';
-import { EmployeePropertiesModule } from './employee-properties/employee-properties.module';
-import { MentionModule } from './mention/mention.module';
-import { TokenMiddleware } from './api-fetch/token.middleware';
-import { WorkspaceMiddleware } from './workspace/workspace.middleware';
-import { AuthGuard } from './auth/auth.guard';
-import { TimezonesModule } from './timezones/timezones.module';
-import { NotificationModule } from './notification/notification.module';
-import { WorkspaceSlugModule } from './workspace-slug/workspace-slug.module';
-import { WorkspacesModule } from './workspace/workspaces.module';
-import { InvitationModule } from './invitation/invitation.module';
-import { WorkItemsModule } from './work-items/work-items.module';
-import { SidebarPreferencesModule } from './sidebar-preferences/sidebar-preferences.module';
-import { RecentVisitsModule } from './recent-visits/recent-visits.module';
-import { LoggerModule } from './logger';
-import {
-    AdvanceAnalyticsModule,
-    AdvanceAnalyticsStatsModule,
-    AdvanceAnalyticsChartsModule
-} from './advance-analytics/advance-analytics.module';
-import { PagesModule } from './pages/pages.module';
-import { FileAssetsModule } from './file-assets/file-assets.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PlaneProxyModule } from '../plane-proxy.module';
+import { PlanePluginOptions } from '../plane-plugin-options.interface';
 
+/**
+ * Standalone application module.
+ * Used when running the proxy as an independent NestJS process (apps/api-plane).
+ * Loads configuration from PLANE_* environment variables via ConfigModule.
+ */
 @Module({
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
 			envFilePath: ['.env', '../../.env']
 		}),
-		LoggerModule,
-		GlobalHttpModule,
-		ApiFetchModule,
-		AuthModule,
-		InstancesModule,
-		UserModule,
-		WorkspaceModule,
-		StatesModule,
-		IssuesModule,
-		IssueLabelsModule,
-		ProjectModule,
-		IssueRelationsModule,
-		ProjectModuleModule,
-		CommentsModule,
-		UserFavoritesModule,
-		ReactionsModule,
-		IssueViewModule,
-		InvitationModule,
-		WorkspaceIssueViewModule,
-		IssueLinksModule,
-		CyclesModule,
-		ActivityModule,
-		DashboardModule,
-		SubscriptionModule,
-		IntakeIssuesModule,
-		EmployeePropertiesModule,
-		MentionModule,
-		TimezonesModule,
-		NotificationModule,
-		WorkspaceSlugModule,
-		WorkspacesModule,
-		WorkItemsModule,
-		SidebarPreferencesModule,
-		RecentVisitsModule,
-		AdvanceAnalyticsModule,
-		AdvanceAnalyticsStatsModule,
-		AdvanceAnalyticsChartsModule,
-		PagesModule,
-		FileAssetsModule
-	],
-	providers: [
-		{
-			provide: APP_GUARD,
-			useClass: AuthGuard
-		}
+		PlaneProxyModule.forRootAsync({
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: (config: ConfigService): PlanePluginOptions => ({
+				externalBaseApiUrl: config.get<string>('GAUZY_API_BASE_URL', ''),
+				clientBaseUrl: config.get<string>('PLANE_CLIENT_BASE_URL', 'http://localhost:3000'),
+				clientAdminUrl: config.get<string>('PLANE_CLIENT_ADMIN_URL', 'http://localhost:3001'),
+				clientSpaceUrl: config.get<string>('PLANE_CLIENT_SPACE_URL', 'http://localhost:3002'),
+				appBaseUrl: config.get<string>('PLANE_APP_BASE_URL'),
+				apiKey: config.get<string>('GAUZY_API_KEY'),
+				apiSecret: config.get<string>('GAUZY_API_SECRET'),
+				apiToken: config.get<string>('PLANE_API_TOKEN'),
+				githubAppName: config.get<string>('PLANE_GITHUB_APP_NAME'),
+				slackClientId: config.get<string>('PLANE_SLACK_CLIENT_ID'),
+				posthogKey: config.get<string>('PLANE_POSTHOG_KEY'),
+				posthogHost: config.get<string>('PLANE_POSTHOG_HOST')
+			})
+		})
 	]
 })
-export class AppModule implements NestModule {
-	configure(consumer: MiddlewareConsumer) {
-		consumer
-			.apply(cookieParser(), TokenMiddleware, WorkspaceMiddleware)
-			.forRoutes('*');
-	}
-}
+export class AppModule {}

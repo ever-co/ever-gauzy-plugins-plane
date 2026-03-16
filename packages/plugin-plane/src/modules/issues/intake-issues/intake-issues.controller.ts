@@ -10,7 +10,7 @@ import {
 	Query
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID, IIntakeIssueCreateInput } from '@plane-plugin/models';
+import { ID, IIntakeIssueCreateInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { IntakeIssuesService } from './intake-issues.service';
 
 @ApiTags('Inbox issues')

@@ -14,7 +14,7 @@ import {
 	ITask,
 	ITaskLinkedIssue,
 	IWorkspaceInfo
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';
 import { getProjectsResponse } from '../projects';
 import { assigneesActivityTransformer } from './assignees-activities.serializer';

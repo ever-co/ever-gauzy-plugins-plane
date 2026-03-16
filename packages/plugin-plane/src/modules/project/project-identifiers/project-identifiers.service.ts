@@ -4,7 +4,7 @@ import {
 	IOrganizationProject,
 	IPagination,
 	IProjectIdentifierResponse
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { getProjectByIdentifiersQuery } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 

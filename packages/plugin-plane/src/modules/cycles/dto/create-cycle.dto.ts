@@ -1,6 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
 import { CycleDTO } from './cycle.dto';
-import { ICycle } from '@plane-plugin/models';
+import { ICycle } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateCycleDTO
 	extends OmitType(CycleDTO, ['id'])

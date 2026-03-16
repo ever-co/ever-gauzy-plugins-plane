@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsOptional } from 'class-validator';
-import { IPasswordInput } from '@plane-plugin/models';
+import { IPasswordInput } from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * User password input DTO validation

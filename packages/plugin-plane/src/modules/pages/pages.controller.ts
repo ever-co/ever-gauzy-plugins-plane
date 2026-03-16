@@ -12,7 +12,7 @@ import {
 	Res
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ID, IPage } from '@plane-plugin/models';
+import { ID, IPage } from '@ever-gauzy/plugin-integration-plane-models';
 import { PagesService } from './pages.service';
 import { CreatePageDTO, UpdatePageDTO } from './dto';
 

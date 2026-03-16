@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { ICreateIssueLink } from '@plane-plugin/models';
+import { ICreateIssueLink } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateIssueLinkDTO implements ICreateIssueLink {
 	@ApiProperty({ type: () => String })

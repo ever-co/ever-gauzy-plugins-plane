@@ -13,7 +13,7 @@ import {
 	IPagination,
 	IssueRelationTypeEnum,
 	ITaskLinkedIssue
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createdIssueRelationTranformer,
 	createIssueRelationInputTranformer,

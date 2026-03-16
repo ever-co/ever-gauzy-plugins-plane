@@ -8,7 +8,7 @@ import {
 	Param,
 	Post
 } from '@nestjs/common';
-import { ID, IReactionData } from '@plane-plugin/models';
+import { ID, IReactionData } from '@ever-gauzy/plugin-integration-plane-models';
 import { CreateIssueReactionDTO } from '../issues/dto';
 import { CommentsService } from './comments.service';
 

@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RecentVisitsService } from './recent-visits.service';
-import { IRecentVisit } from '@plane-plugin/models';
+import { IRecentVisit } from '@ever-gauzy/plugin-integration-plane-models';
 
 @Controller('recent-visits')
 export class RecentVisitsController {

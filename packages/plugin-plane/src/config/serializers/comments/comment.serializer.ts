@@ -1,4 +1,5 @@
 import {
+	ActorTypeEnum,
 	BaseEntityEnum,
 	IComment,
 	ICommentCreateInput,
@@ -11,10 +12,9 @@ import {
 	IOrganizationProject,
 	IReactionData,
 	IWorkspaceInfo
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
-import { ActorTypeEnum } from 'packages/models/src/imports/base-entity.model';
 import { extractEmployeeMentionIds } from '../../utils';
 import { actorDetailsTransformer } from '../user';
 

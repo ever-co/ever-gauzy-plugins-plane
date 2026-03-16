@@ -11,7 +11,7 @@ import {
 	IsUUID
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CycleStatusEnum, ICycle, ID } from '@plane-plugin/models';
+import { CycleStatusEnum, ICycle, ID } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CycleDTO implements ICycle {
 	@ApiPropertyOptional({ type: () => String })

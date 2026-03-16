@@ -13,7 +13,7 @@ import {
 	ICreateModuleInput,
 	ID,
 	ProjectModuleStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateModuleDTO implements ICreateModuleInput {
 	@ApiProperty({ type: () => String })

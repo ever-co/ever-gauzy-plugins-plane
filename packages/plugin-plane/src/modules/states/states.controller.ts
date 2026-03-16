@@ -9,7 +9,7 @@ import {
 	Post
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ID } from '@plane-plugin/models';
+import { ID } from '@ever-gauzy/plugin-integration-plane-models';
 import { StatesService } from './states.service';
 import { CreateStateDto } from './dto';
 

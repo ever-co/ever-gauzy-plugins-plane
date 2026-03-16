@@ -1,4 +1,4 @@
-import { ID, IIssueLabel, ITag } from '@plane-plugin/models';
+import { ID, IIssueLabel, ITag } from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../../query-params.serializers';
 import { currentTenantId } from '../../../credentials';
 

@@ -6,10 +6,10 @@ export class CreateIssueLinkDTO implements ICreateIssueLink {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	title: string;
+	title!: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	url: string;
+	url!: string;
 }

@@ -6,7 +6,7 @@ export class CreateStateDto implements ICreateStateInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	name: string;
+	name!: string;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsString()
@@ -16,10 +16,10 @@ export class CreateStateDto implements ICreateStateInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	group: string;
+	group!: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	color: string;
+	color!: string;
 }

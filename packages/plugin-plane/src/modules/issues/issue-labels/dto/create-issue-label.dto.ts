@@ -6,10 +6,10 @@ export class CreateIssueLabelDTO implements ICreateIssueLabelInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	name: string;
+	name!: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	color: string;
+	color!: string;
 }

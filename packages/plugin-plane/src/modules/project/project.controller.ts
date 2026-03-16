@@ -226,7 +226,7 @@ export class ProjectController {
 	@Delete(':id/archive')
 	async unarchive(@Param('id') id: ID): Promise<any> {
 		return await this._projectService.update(id, {
-			archived_at: null
+			archived_at: undefined
 		});
 	}
 

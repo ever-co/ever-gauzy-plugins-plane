@@ -10,10 +10,10 @@ export class CreateIssueRelationDTO implements ICreateIssueRelationInput {
 	@ApiProperty({ type: () => Array })
 	@IsArray()
 	@IsNotEmpty()
-	issues: ID[];
+	issues!: ID[];
 
 	@ApiProperty({ type: () => String, enum: IssueRelationTypeEnum })
 	@IsEnum(IssueRelationTypeEnum)
 	@IsNotEmpty()
-	relation_type: IssueRelationTypeEnum;
+	relation_type!: IssueRelationTypeEnum;
 }

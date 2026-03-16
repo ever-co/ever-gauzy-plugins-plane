@@ -12,20 +12,20 @@ export class CreateWorkspaceDTO implements ICreateWorkSpace {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty({ message: 'Name is required' })
-	name: string;
+	name!: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsOptional()
-	organization_size: string;
+	organization_size!: string;
 
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsOptional()
-	slug: string;
+	slug!: string;
 
 	@ApiProperty({ type: () => Array })
 	@IsArray()
 	@IsOptional()
-	members: ID[];
+	members!: ID[];
 }

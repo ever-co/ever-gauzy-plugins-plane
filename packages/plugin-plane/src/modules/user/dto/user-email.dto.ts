@@ -9,5 +9,5 @@ export class UserEmailDTO implements IEmailInput {
 	@ApiProperty({ type: () => String })
 	@IsNotEmpty()
 	@IsEmail()
-	readonly email: string;
+	readonly email!: string;
 }

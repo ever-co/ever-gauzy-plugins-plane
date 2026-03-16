@@ -5,5 +5,5 @@ export class IncludeTeamsDTO {
 	@ApiPropertyOptional({ type: () => Boolean })
 	@IsOptional()
 	@IsBoolean()
-	readonly includeTeams: boolean;
+	readonly includeTeams!: boolean;
 }

@@ -159,7 +159,7 @@ const transformIssueActivityLog = (
 				 * and store them in the global state. If the API is called multiple times, a new ID will be generated,
 				 * which is not yet in the state and thus will be added.
 				 */
-				id: activityLog.id + index + `${field}`,
+				id: activityLog.id! + index + `${field}`,
 				...activityDetails,
 				verb: 'updated',
 				field:
@@ -177,19 +177,19 @@ const transformIssueActivityLog = (
 
 	// Handle task status updates
 	if (updatedFields?.includes('taskStatusId')) {
-		const { previousEntity, updatedEntity } =
-			statusActivityTransformer(activityLog);
+		const statusResult = statusActivityTransformer(activityLog)!;
+		const { previousEntity, updatedEntity } = statusResult;
 
 		activities.push({
-			id: activityLog.id + previousEntity,
+			id: activityLog.id! + previousEntity!,
 			...activityDetails,
 			verb: 'updated',
 			field: 'state',
 			comment: 'updated the state to',
 			old_value: oldStatusValue,
-			new_value: activityLog.data['status'],
-			old_identifier: previousEntity,
-			new_identifier: updatedEntity
+			new_value: activityLog.data!['status'],
+			old_identifier: (previousEntity ?? null) as any,
+			new_identifier: (updatedEntity ?? null) as any
 		});
 	}
 
@@ -200,7 +200,7 @@ const transformIssueActivityLog = (
 			updatedEntity,
 			previousParentName,
 			updatedParentName
-		} = parentActivityTransformer(activityLog, parentTasks);
+		} = parentActivityTransformer(activityLog, parentTasks)!;
 
 		const oldValue = previousParentName || previousEntity;
 		const newValue = updatedParentName || updatedEntity;
@@ -220,7 +220,7 @@ const transformIssueActivityLog = (
 
 	// Handle changes in assignees
 	if (updatedFields?.includes('members')) {
-		const { added, removed } = assigneesActivityTransformer(activityLog);
+		const { added, removed } = assigneesActivityTransformer(activityLog)!;
 
 		if (added) {
 			const { members: addedMembers, verb: addedVerb } = added;
@@ -274,7 +274,7 @@ const transformIssueActivityLog = (
 
 			addedTags.map((tag: ITag, i: number) =>
 				activities.push({
-					id: activityLog.id + tag.id + i,
+					id: activityLog.id! + tag.id! + i,
 					...activityDetails,
 					verb: 'updated',
 					field: 'labels',
@@ -292,14 +292,14 @@ const transformIssueActivityLog = (
 
 			removedTags.map((tag: ITag, i: number) =>
 				activities.push({
-					id: activityLog.id + tag.id + removedTags.length + i,
+					id: activityLog.id! + tag.id! + removedTags.length + i,
 					...activityDetails,
 					verb: 'updated',
 					field: 'labels',
 					comment: `${removedVerb} label `,
 					old_value: tag.name,
-					new_value: null,
-					old_identifier: tag.id,
+					new_value: undefined as any,
+					old_identifier: tag.id! as any,
 					new_identifier: null
 				})
 			);
@@ -315,7 +315,7 @@ const transformIssueActivityLog = (
 
 			addedModules.map((module: IOrganizationProjectModule, i: number) =>
 				activities.push({
-					id: activityLog.id + module.id + i,
+					id: activityLog.id! + module.id! + i,
 					...activityDetails,
 					verb: addedVerb,
 					field: 'modules',
@@ -335,8 +335,8 @@ const transformIssueActivityLog = (
 				(module: IOrganizationProjectModule, i: number) =>
 					activities.push({
 						id:
-							activityLog.id +
-							module.id +
+							activityLog.id! +
+							module.id! +
 							removedModules.length +
 							i,
 						...activityDetails,
@@ -344,8 +344,8 @@ const transformIssueActivityLog = (
 						field: 'modules',
 						comment: `removed this issue from module ${module.name}`,
 						old_value: module.name,
-						new_value: null,
-						old_identifier: module.id,
+						new_value: undefined as any,
+						old_identifier: module.id! as any,
 						new_identifier: null
 					})
 			);
@@ -353,7 +353,7 @@ const transformIssueActivityLog = (
 	}
 
 	// Filter out activities without a defined field
-	return activities?.filter((log) => log.field !== undefined);
+	return activities?.filter((log) => log.field !== undefined) as unknown as IIssueActivity[];
 };
 
 /**
@@ -394,7 +394,7 @@ export function issueLinksActivities(
 
 		// Build the activity object containing information about the change to the link
 		return {
-			id: activityLog.id + link.id + i,
+			id: activityLog.id! + link.id! + i,
 			...activityDetails,
 			verb,
 			field: 'link',
@@ -402,14 +402,14 @@ export function issueLinksActivities(
 			old_value:
 				verb === 'created'
 					? null
-					: (activityLog.previousValues[i]['link'] as any),
+					: (activityLog.previousValues![i]['link'] as any),
 			new_value: link.url,
 			old_identifier: null,
 			new_identifier: link.id
 		};
 	});
 
-	return activities;
+	return activities as unknown as IIssueActivity[];
 }
 
 export function issueRelationActivities(
@@ -453,17 +453,17 @@ export function issueRelationActivities(
 			old_value:
 				verb === 'created'
 					? ''
-					: projectCode + '-' + taskLinkedIssue.taskFrom.number,
+					: projectCode + '-' + taskLinkedIssue.taskFrom!.number,
 			new_value:
 				verb === 'created'
-					? projectCode + '-' + taskLinkedIssue.taskFrom.number
+					? projectCode + '-' + taskLinkedIssue.taskFrom!.number
 					: '',
 			old_identifier: taskLinkedIssue.id,
 			new_identifier: taskLinkedIssue.id
 		};
 	});
 
-	return activities;
+	return activities as unknown as IIssueActivity[];
 }
 
 /**
@@ -548,7 +548,7 @@ export function activityLogFieldTransformer(field: keyof ITask): keyof IIssue {
 		modules: 'module_ids'
 	};
 
-	return issueFieldsMap[field];
+	return issueFieldsMap[field]!;
 }
 
 export function getActivityLogsQuery(

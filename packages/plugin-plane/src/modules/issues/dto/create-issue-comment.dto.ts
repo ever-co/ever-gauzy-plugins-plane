@@ -6,5 +6,5 @@ export class CreateIssueCommentDTO implements ICreateCommentInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	comment_html: string;
+	comment_html!: string;
 }

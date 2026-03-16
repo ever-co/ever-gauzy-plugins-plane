@@ -196,7 +196,7 @@ export class CyclesService extends ApiFetchService {
 	 */
 	async findOne(id?: ID, projectId?: ID): Promise<ICycle | ICycle[]> {
 		try {
-			const sprint = await this.getExternalSprint(id, projectId);
+			const sprint = await this.getExternalSprint(id!, projectId);
 
 			// Search for user favorites
 			const favoriteIds =
@@ -262,7 +262,7 @@ export class CyclesService extends ApiFetchService {
 		try {
 			return await this._issueService.update(
 				issueId,
-				{ cycle_id: null },
+				{ cycle_id: undefined },
 				false
 			);
 		} catch (error: any) {
@@ -330,8 +330,8 @@ export class CyclesService extends ApiFetchService {
 			// Check for date overlaps using moment.js
 			const hasOverlap = this.checkForDateOverlap(
 				cycles,
-				input.start_date,
-				input.end_date
+				input.start_date!,
+				input.end_date!
 			);
 
 			if (hasOverlap) {
@@ -409,7 +409,7 @@ export class CyclesService extends ApiFetchService {
 			// Attempt to find existing user properties for the cycle
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: currentEmployeeId()!,
 					entity: BaseEntityEnum.OrganizationSprint,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -431,8 +431,8 @@ export class CyclesService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: currentEmployeeId() },
-						employeeId: currentEmployeeId()
+						employee: { id: currentEmployeeId() ?? undefined },
+						employeeId: currentEmployeeId()!
 					});
 
 				return employeeSettingSerializer(cycleMemberSetting);
@@ -475,7 +475,7 @@ export class CyclesService extends ApiFetchService {
 			// Find existing employee settings for the given cycle
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: currentEmployeeId()!,
 					entity: BaseEntityEnum.OrganizationSprint,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -489,7 +489,7 @@ export class CyclesService extends ApiFetchService {
 				>;
 
 				memberSetting = await this._employeePropertiesService.update(
-					memberSetting.id,
+					memberSetting.id!,
 					{
 						...memberSetting,
 						data: {
@@ -510,8 +510,8 @@ export class CyclesService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeId() },
-					employeeId: currentEmployeeId()
+					employee: { id: currentEmployeeId() ?? undefined },
+					employeeId: currentEmployeeId()!
 				});
 			}
 

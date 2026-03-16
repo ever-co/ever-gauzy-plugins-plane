@@ -136,7 +136,7 @@ export class AuthController {
 	@Public()
 	async signout(@Res() res: Response, @Req() req: Request) {
 		clearTokenChuncks(req, res);
-		return res.redirect(req.headers.referer);
+		return res.redirect(req.headers.referer!);
 	}
 
 	@HttpCode(HttpStatus.OK)
@@ -163,22 +163,22 @@ export class AuthController {
 
 			if (user) {
 				// 2. If registration is successful, sign in the user for onboarding process
-				const result = await this._authService.signIn({
-					email: user?.email,
-					password: data.password
-				});
+			const result = await this._authService.signIn({
+				email: user!.email!,
+				password: data.password
+			});
 
-				if (result.user) {
-					// 3. Onboard the tenant using the user's email as the tenant name
-					let tenant: ITenant;
+			if (result!.user) {
+				// 3. Onboard the tenant using the user's email as the tenant name
+				let tenant!: ITenant;
 
-					try {
-						tenant = await this._authService.onboardTenant(
-							{
-								name: data.email.split('@')[0]
-							},
-							result.token
-						);
+				try {
+					tenant = await this._authService.onboardTenant(
+						{
+							name: data.email.split('@')[0]
+						},
+						result!.token!
+					);
 					} catch (error: any) {
 						this.logger.error(
 							'Error when creating new Tenant',
@@ -188,23 +188,23 @@ export class AuthController {
 
 					// 4. Re-login to get fresh tokens with new tenant/role context
 					// (the original refresh_token JWT is now stale after onboardTenant changed user's tenantId/roleId)
-					let freshLogin = await this._authService.signIn({
-						email: user.email,
-						password: data.password
-					});
+				let freshLogin = await this._authService.signIn({
+					email: user!.email!,
+					password: data.password
+				});
 
 					// 5. Create an organization for the tenant
-					let organization: IOrganization;
+					let organization!: IOrganization;
 					try {
 						organization =
 							await this._authService.signUpCreateOrganization(
 								{
 									name: data.email.split('@')[0],
 									currency: CurrenciesEnum.USD,
-									tenantId: tenant.id
-								},
-								freshLogin.token,
-								tenant.id
+						tenantId: tenant.id
+					},
+					freshLogin!.token!,
+					tenant.id
 							);
 					} catch (error) {
 						this.logger.error(
@@ -219,10 +219,10 @@ export class AuthController {
 							{
 								userId: user.id,
 								organizationId: organization.id,
-								tenantId: tenant.id
+								tenantId: tenant!.id
 							},
-							freshLogin.token,
-							tenant.id
+							freshLogin!.token,
+							tenant!.id
 						);
 					} catch (error) {
 						this.logger.error(
@@ -232,14 +232,14 @@ export class AuthController {
 					}
 
 					// 7. Re-login again to get tokens that include the new employee context
-					freshLogin = await this._authService.signIn({
-						email: user.email,
-						password: data.password
+				freshLogin = await this._authService.signIn({
+					email: user!.email!,
+					password: data.password
 					});
 
 					// 8. Split the token into chunks and set cookies for the user
 					clearTokenChuncks(req, res);
-					sendTokenChunks(freshLogin.token, res);
+					sendTokenChunks(freshLogin!.token, res);
 
 					// 9. Redirect the user to the onboarding page
 					return res.redirect(`${req.headers.referer}onboarding`);

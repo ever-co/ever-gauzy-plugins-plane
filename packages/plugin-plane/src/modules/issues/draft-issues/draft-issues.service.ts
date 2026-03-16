@@ -79,8 +79,8 @@ export class DraftIssuesService extends ApiFetchService {
 		try {
 			const tasks = await this._issueService.findAllExternal(
 				{},
-				null,
-				null,
+				undefined,
+				undefined,
 				true
 			);
 

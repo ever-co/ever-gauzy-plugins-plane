@@ -106,8 +106,8 @@ export class InvitationController {
 		@Body() input: IInvitationAcceptInput
 	) {
 		return await this._issueViewService.acceptOrReject({
-			token,
-			...input
+			...input,
+			token
 		});
 	}
 

@@ -19,7 +19,7 @@ export function employeeSettingSerializer(
 		(employeeSetting?.data as Record<string, any>) || {};
 
 	return {
-		id: employeeSetting?.id,
+		id: employeeSetting?.id!,
 		created_at: employeeSetting?.createdAt,
 		updated_at: employeeSetting?.updatedAt,
 		deleted_at: employeeSetting?.deletedAt,
@@ -32,15 +32,15 @@ export function employeeSettingSerializer(
 		project:
 			employeeSetting?.entity === BaseEntityEnum.OrganizationProject
 				? employeeSetting?.entityId
-				: null,
+				: undefined,
 		module:
 			employeeSetting?.entity === BaseEntityEnum.OrganizationProjectModule
 				? employeeSetting?.entityId
-				: null,
+				: undefined,
 		cycle:
 			employeeSetting?.entity === BaseEntityEnum.OrganizationSprint
 				? employeeSetting?.entityId
-				: null,
+				: undefined,
 		workspace: employeeSetting?.organizationId,
 		user: employeeSetting?.employeeId
 	};

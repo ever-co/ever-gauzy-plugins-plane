@@ -189,7 +189,7 @@ export class IssueLinksService extends ApiFetchService {
 		try {
 			const links = await this.findAll(
 				BaseEntityEnum.Organization,
-				null,
+				undefined,
 				getCurrentOrganizationSlug()
 			);
 

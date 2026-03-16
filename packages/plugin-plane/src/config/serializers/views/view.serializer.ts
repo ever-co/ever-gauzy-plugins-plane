@@ -184,7 +184,7 @@ export function updateViewInputTransformer(
 		rich_filters: {},
 		display_filters: {},
 		display_properties: {},
-		name: view.name
+		name: view.name!
 	};
 
 	// Merge partial `view` with default values
@@ -211,7 +211,7 @@ export function issueViewTransformer(
 	favoriteIds?: ID[]
 ): IView | IView[] {
 	const transformIssueView = (taskView: ITaskView): IView => {
-		const isFavorite = favoriteIds?.includes(taskView.id);
+		const isFavorite = favoriteIds?.includes(taskView.id!);
 
 		return {
 			id: taskView.id,

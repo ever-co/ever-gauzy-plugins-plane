@@ -77,10 +77,10 @@ export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
 export function createStateInputTransformer(
 	input: ICreateStateInput
 ): ITaskStatusCreateInput {
-	const template = mapGroupToTemplate(input.group);
+	const template = mapGroupToTemplate(input.group!);
 	return {
-		name: input.name,
-		value: input.name.toLocaleLowerCase(),
+		name: input.name!,
+		value: input.name!.toLocaleLowerCase(),
 		description: input.description,
 		color: input.color,
 		template,

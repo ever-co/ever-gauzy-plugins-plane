@@ -142,22 +142,22 @@ export function createCycleInputTransformer(
 	const { name, description, project_id, start_date, end_date } = cycle;
 
 	// Calculate the cycle length
-	const length = calculateDaysBetween(start_date, end_date);
+	const length = calculateDaysBetween(start_date!, end_date!);
 
 	// Determine the current status of the cycle
-	const status = determineCycleStatus(start_date, end_date);
+	const status = determineCycleStatus(start_date!, end_date!);
 
 	return {
 		name,
 		goal: description,
-		startDate: new Date(start_date),
-		endDate: new Date(end_date),
+		startDate: new Date(start_date!),
+		endDate: new Date(end_date!),
 		status,
 		length,
 		projectId: project_id,
 		organizationId: getCurrentOrganizationSlug(),
-		managerIds: [currentEmployeeId()], // TODO : Change this and retrive it from authorization Request Header or Body Request
-		memberIds: [currentEmployeeId()] // TODO : Change this and get it from Request
+		managerIds: [currentEmployeeId()!], // TODO : Change this and retrive it from authorization Request Header or Body Request
+		memberIds: [currentEmployeeId()!] // TODO : Change this and get it from Request
 	};
 }
 
@@ -180,10 +180,10 @@ export function updateCycleInputTransformer(
 	} = cycle;
 
 	// Calculate the cycle length
-	const length = calculateDaysBetween(start_date, end_date);
+	const length = calculateDaysBetween(start_date!, end_date!);
 
 	// Determine the status of the cycle
-	const status = cycleStatusToSprintStatus(cycleStatus);
+	const status = cycleStatusToSprintStatus(cycleStatus!);
 
 	return {
 		memberIds: cycle.assignee_ids,
@@ -192,7 +192,7 @@ export function updateCycleInputTransformer(
 		endDate: end_date,
 		name,
 		length,
-		managerIds: [cycle.owned_by_id],
+		managerIds: [cycle.owned_by_id!],
 		sprintProgress: cycle.progress_snapshot,
 		projectId: project_id,
 		status
@@ -210,8 +210,8 @@ export function cycleTransformer(
 	favoriteIds?: ID[]
 ): ICycle | ICycle[] {
 	const transformCycle = (sprint: IOrganizationSprint): ICycle => {
-		const isFavorite = favoriteIds?.includes(sprint.id);
-		const status = sprintStatusToCycleStatus(sprint.status);
+		const isFavorite = favoriteIds?.includes(sprint.id!);
+		const status = sprintStatusToCycleStatus(sprint.status!);
 		const { completedIssues } = getTaskCounts(
 			retrieveCycleTotalTasks(sprint)
 		);
@@ -228,19 +228,19 @@ export function cycleTransformer(
 			progress_snapshot: sprint.sprintProgress as Record<string, any>,
 			is_favorite: isFavorite,
 			total_issues:
-				sprint.toSprintTaskHistories?.length > 0
-					? sprint.toSprintTaskHistories?.length
+				sprint.toSprintTaskHistories!.length > 0
+					? sprint.toSprintTaskHistories!.length
 					: sprint.tasks?.length,
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
 			owned_by_id: sprint.members?.find((member) => member.roleId)
 				?.employeeId,
-			created_by: currentEmployeeId(), // TODO: Make this consistent and add to external API
+			created_by: currentEmployeeId() ?? undefined, // TODO: Make this consistent and add to external API
 			project_id: sprint.projectId,
 			workspace_id: sprint.organizationId,
 			view_props: {},
 			logo_props: {},
-			assignee_ids: sprint.members?.map((member) => member.employeeId),
+			assignee_ids: sprint.members?.map((member) => member.employeeId) as string[],
 			external_id: null,
 			external_source: null
 		};
@@ -301,8 +301,8 @@ export function getSprintsQuery(
 
 export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 	return {
-		grouped_by: null,
-		sub_grouped_by: null,
+		grouped_by: undefined,
+		sub_grouped_by: undefined,
 		total_count: issues.length,
 		next_cursor: '30:1:0',
 		prev_cursor: '30:-1:1',
@@ -346,16 +346,16 @@ export function retrieveCycleTotalTasks(sprint: IOrganizationSprint): ITask[] {
 	return Array.from(
 		new Set(
 			[...currentTasks, ...previousTasks, ...(sprint.tasks ?? [])].map(
-				(task) => task.id
+				(task) => task!.id
 			)
 		)
 	).map((taskId) => {
 		// Find the task from either the current or previous tasks list
 		return (
-			currentTasks.find((task) => task.id === taskId) ||
-			previousTasks.find((task) => task.id === taskId)
+			currentTasks.find((task) => task!.id === taskId) ||
+			previousTasks.find((task) => task!.id === taskId)
 		);
-	});
+	}) as ITask[];
 }
 
 /**
@@ -404,7 +404,7 @@ export function cycleAnalyticsData(
 
 	// Process assignees
 	const assigneeMap = new Map();
-	sprint.members.forEach((member) => {
+	sprint.members!.forEach((member) => {
 		assigneeMap.set(member.employeeId, {
 			display_name: member.employee?.fullName || member.employee?.name,
 			assignee_id: member.employeeId,
@@ -435,8 +435,8 @@ export function cycleAnalyticsData(
 	// Calculate statistics
 	tasks.forEach((task) => {
 		const isCompleted =
-			task?.taskStatus.name === TaskStatusEnum.COMPLETED ||
-			task?.taskStatus.name === TaskStatusEnum.DONE;
+			task?.taskStatus!.name === TaskStatusEnum.COMPLETED ||
+			task?.taskStatus!.name === TaskStatusEnum.DONE;
 
 		// Handle unassigned tasks
 		if (!task?.members?.length) {
@@ -488,8 +488,8 @@ export function cycleAnalyticsData(
 			const dateStr = current.format('YYYY-MM-DD');
 			const remainingTasks = tasks.filter(
 				(task) =>
-					(task?.taskStatus.name !== TaskStatusEnum.COMPLETED &&
-						task?.taskStatus.name !== TaskStatusEnum.DONE) ||
+					(task?.taskStatus!.name !== TaskStatusEnum.COMPLETED &&
+						task?.taskStatus!.name !== TaskStatusEnum.DONE) ||
 					moment(task.resolvedAt).isAfter(current)
 			).length;
 			completionChart[dateStr] = remainingTasks;

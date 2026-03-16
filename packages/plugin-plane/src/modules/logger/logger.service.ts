@@ -100,6 +100,6 @@ export class LoggerService implements NestLoggerService {
 	 * @returns Stack trace string or error string representation
 	 */
 	static getErrorStack(error: any): string {
-		return error instanceof Error ? error.stack : String(error);
+		return error instanceof Error ? error.stack! : String(error);
 	}
 }

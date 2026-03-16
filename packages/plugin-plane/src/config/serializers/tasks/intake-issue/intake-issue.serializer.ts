@@ -67,13 +67,13 @@ export function createIntakeIssueInputTransformer(
 ): IScreeningTaskCreateInput {
 	// Extract employee IDs mentioned in the issue description
 	const mentionedEmployeeIds = extractEmployeeMentionIds(
-		input.issue.description_html
+		input.issue!.description_html!
 	);
 
 	// Map employee IDs to user IDs
 	const mentionedUserIds = employees
-		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
-		.map((employee) => employee.userId) // Map to corresponding user IDs
+		?.filter(({ id }) => mentionedEmployeeIds.includes(id!)) // Filter only employees who are mentioned
+		.map((employee) => employee.userId!) // Map to corresponding user IDs
 		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
 
 	return {
@@ -81,7 +81,7 @@ export function createIntakeIssueInputTransformer(
 			{ ...input.issue, project_id: projectId },
 			status
 		),
-		taskId: input.issue.id ?? uuidv4(),
+		taskId: input.issue!.id ?? uuidv4(),
 		organizationId: getCurrentOrganizationSlug(),
 		mentionUserIds: mentionedUserIds ?? [],
 		onHoldUntil: input.snoozed_till
@@ -118,7 +118,7 @@ export function updateIntakeIssueInputTransformer(
 				acc[screeningKey] = value;
 			}
 
-			acc['status'] = intakeStatusToScreeningStatusMap(input.status);
+			acc['status'] = intakeStatusToScreeningStatusMap(input.status!);
 			acc['organizationId'] = getCurrentOrganizationSlug();
 
 			return acc;
@@ -149,7 +149,7 @@ export function intakeIssueTranformer(
 					linkedIssue.action ===
 					TaskRelatedIssuesRelationEnum.DUPLICATES
 			) ??
-			task?.linkedIssues.find(
+			task?.linkedIssues!.find(
 				(linkedIssue) =>
 					linkedIssue.action ===
 					TaskRelatedIssuesRelationEnum.DUPLICATES
@@ -157,11 +157,11 @@ export function intakeIssueTranformer(
 		return {
 			id: screeningTask?.id,
 			status: screeningStatusToIntakeStatusMap(screeningTask?.status),
-			duplicate_to: duplicatedTask?.taskFrom.id ?? null,
+			duplicate_to: duplicatedTask?.taskFrom!.id ?? undefined,
 			duplicate_issue_detail: duplicatedTask?.taskFrom
 				? issueTransformer(duplicatedTask?.taskFrom)
-				: null,
-			snoozed_till: screeningTask?.onHoldUntil ?? null,
+				: undefined,
+			snoozed_till: screeningTask?.onHoldUntil ?? undefined,
 			source: 'IN_APP',
 			issue: issueTransformer(screeningTask?.task ?? task),
 			created_by: screeningTask?.creatorId // Adjust this to return employee ID

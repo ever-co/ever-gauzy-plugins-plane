@@ -204,18 +204,18 @@ export class UserService extends ApiFetchService {
 			const employeeId = currentEmployeeId();
 			const employeeProjects =
 				await this._projectService.getExternalProjectsByEmployee(
-					employeeId,
+					employeeId!,
 					['members.employee.user.role', 'members.role']
 				);
 
 			const projectRoles = employeeProjects.reduce(
 				(acc, project) => {
-					const member = project.members.find(
+					const member = project.members!.find(
 						(member) => member.employeeId === employeeId
 					);
 
 					if (member) {
-						acc[project.id] = member.isManager ? 20 : 15;
+						acc[project.id!] = member.isManager ? 20 : 15;
 					}
 					return acc;
 				},

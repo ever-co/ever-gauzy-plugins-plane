@@ -41,7 +41,7 @@ export class AuthGuard implements CanActivate {
 		const token = tokenChunks.join('');
 
 		if (!token) {
-			response.redirect(request.headers.referer);
+			response.redirect(request.headers.referer!);
 			return false;
 		}
 

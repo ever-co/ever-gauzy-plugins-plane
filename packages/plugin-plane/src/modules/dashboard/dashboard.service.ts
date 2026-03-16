@@ -57,7 +57,7 @@ export class DashboardService extends ApiFetchService {
 	 */
 	async updateDashboardWidget(id?: ID, input?: any): Promise<any> {
 		try {
-			await this._widgetService.update(id, { options: input.filters });
+			await this._widgetService.update(id!, { options: input.filters });
 			return { message: 'successfully updated' };
 		} catch (error: any) {
 			this.logger.error(

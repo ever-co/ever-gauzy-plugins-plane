@@ -51,7 +51,7 @@ export class NotificationService extends ApiFetchService {
 		options?: Partial<IEmployeeNotification>
 	): Promise<IEmployeeNotification[]> {
 		try {
-			const query = qs.stringify(getEmployeeNotificationsQuery(options));
+			const query = qs.stringify(getEmployeeNotificationsQuery(options!));
 			const notifications: IPagination<IEmployeeNotification> = (
 				await this.apiFetch({
 					method: 'GET',
@@ -83,7 +83,7 @@ export class NotificationService extends ApiFetchService {
 		options?: IEmployeeNotification
 	): Promise<IEmployeeNotification> {
 		try {
-			const query = qs.stringify(getEmployeeNotificationsQuery(options));
+			const query = qs.stringify(getEmployeeNotificationsQuery(options!));
 			const response = await this.apiFetch({
 				method: 'GET',
 				path: `${this.path}/${id}`,

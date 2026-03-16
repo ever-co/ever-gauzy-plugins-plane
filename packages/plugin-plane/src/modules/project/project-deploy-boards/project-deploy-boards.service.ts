@@ -55,7 +55,7 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 
 			return isEmpty(sharedProject.items[0]?.sharedOptions)
 				? DEFAULT_PROJECT_DEPLOY_BOARDS_PROPERTIES
-				: sharedProject.items[0]?.sharedOptions;
+				: sharedProject.items[0]?.sharedOptions as JsonData;
 		} catch (error) {
 			this.logger.error(
 				'Operation failed',
@@ -121,8 +121,8 @@ export class ProjectDeployBoardsService extends ApiFetchService {
 				sharedEntity,
 				project,
 				workspace.profile_link || getCurrentOrganizationSlug(),
-				workspace.name,
-				workspace.id
+				workspace.name!,
+				workspace.id!
 			);
 		} catch (error: any) {
 			this.logger.error(

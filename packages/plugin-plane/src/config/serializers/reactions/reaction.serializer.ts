@@ -24,23 +24,23 @@ export function reactionTransformer(
 		return {
 			id: reaction.id,
 			reaction: reaction.emoji,
-			actor_detail: actorDetailsTransformer(reaction.employee),
+			actor_detail: actorDetailsTransformer(reaction.employee!),
 			created_at: reaction.createdAt,
 			updated_at: reaction.updatedAt,
 			deleted_at: reaction.deletedAt,
 			created_by: reaction.employeeId,
-			updated_by: null,
+			updated_by: undefined,
 			project: project.id,
 			workspace: workspace_detail.id,
 			actor: reaction.employeeId,
 			issue:
-				reaction.entity === ReactionEntityEnum.Task
+				(reaction.entity === ReactionEntityEnum.Task
 					? reaction.entityId
-					: null,
+					: null) ?? undefined,
 			comment:
-				reaction.entity === ReactionEntityEnum.Comment
+				(reaction.entity === ReactionEntityEnum.Comment
 					? reaction.entityId
-					: null
+					: null) ?? undefined
 		};
 	};
 

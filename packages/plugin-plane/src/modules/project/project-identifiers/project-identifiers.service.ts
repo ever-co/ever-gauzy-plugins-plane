@@ -37,7 +37,7 @@ export class ProjectIdentifiersService extends ApiFetchService {
 			if (projects.items.length > 0) {
 				const identifiers = projects.items.map((project, id) => ({
 					id,
-					name: project.code.toLocaleUpperCase(),
+					name: project.code!.toLocaleUpperCase(),
 					project: project.id
 				}));
 				return {

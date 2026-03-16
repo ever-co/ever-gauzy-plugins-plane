@@ -47,10 +47,10 @@ export class SearchIssuesService extends ApiFetchService {
 						'project',
 						'taskStatus'
 					],
-					null,
-					false
-				)
-			);
+				undefined,
+				false
+			)
+		);
 
 			const issues: IPagination<ITask> = (
 				await this.apiFetch({
@@ -76,7 +76,7 @@ export class SearchIssuesService extends ApiFetchService {
 				const isNotSelf = issue.id !== issue_id;
 				const matchesSearch =
 					!search ||
-					issue.title.toLowerCase().includes(search.toLowerCase());
+					issue.title!.toLowerCase().includes(search.toLowerCase());
 
 				// If searching for children (`sub_issue`), only include issues with no parent
 				if (sub_issue) {
@@ -100,7 +100,7 @@ export class SearchIssuesService extends ApiFetchService {
 
 				// Filter issues that should be in relation with current. Exclude those who are already linked
 				if (issue_relation) {
-					const isAlreadyLinked = linkedIssuesIds.has(issue.id);
+					const isAlreadyLinked = linkedIssuesIds.has(issue.id!);
 					return isNotSelf && matchesSearch && !isAlreadyLinked;
 				}
 

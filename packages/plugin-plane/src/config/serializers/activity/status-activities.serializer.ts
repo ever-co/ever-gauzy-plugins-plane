@@ -11,12 +11,12 @@ export function statusActivityTransformer(activityLog: IActivityLog) {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
 	// Check if 'taskStatusId' is included in the updated fields.
-	if (!updatedFields.includes('taskStatusId')) {
+	if (!updatedFields!.includes('taskStatusId')) {
 		return;
 	}
 
 	// Find the updated status from the updated values.
-	const updatedStatus = updatedValues.find(
+	const updatedStatus = updatedValues!.find(
 		(value) => 'taskStatusId' in value
 	);
 	const updatedEntity = updatedStatus
@@ -24,7 +24,7 @@ export function statusActivityTransformer(activityLog: IActivityLog) {
 		: undefined;
 
 	// Find the previous status from the previous values.
-	const previousStatus = previousValues.find(
+	const previousStatus = previousValues!.find(
 		(value) => 'taskStatusId' in value
 	);
 	const previousEntity = previousStatus

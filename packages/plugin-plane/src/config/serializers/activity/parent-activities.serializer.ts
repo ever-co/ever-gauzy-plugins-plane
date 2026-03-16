@@ -14,12 +14,12 @@ export function parentActivityTransformer(
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
 	// Check if 'parentId' is included in the updated fields.
-	if (!updatedFields.includes('parentId')) {
+	if (!updatedFields!.includes('parentId')) {
 		return;
 	}
 
 	// Find the updated parent from the updated values.
-	const updatedParent: any = updatedValues.find(
+	const updatedParent: any = updatedValues!.find(
 		(value) => 'parentId' in value
 	);
 	const updatedEntity: any = updatedParent
@@ -27,7 +27,7 @@ export function parentActivityTransformer(
 		: undefined;
 
 	// Find the previous parent from the previous values.
-	const previousParent = previousValues.find((value) => 'parentId' in value);
+	const previousParent = previousValues!.find((value) => 'parentId' in value);
 	const previousEntity: any = previousParent
 		? previousParent['parentId']
 		: undefined;

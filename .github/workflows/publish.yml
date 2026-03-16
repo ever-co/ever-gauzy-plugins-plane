@@ -41,7 +41,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build from root tsconfig
-        run: npx tsc -p tsconfig.json || true
+        run: |
+          npx tsc -p tsconfig.json > /dev/null 2>&1 || true
+          if [ ! -f dist/packages/plugin-plane/src/index.js ]; then
+            echo "::error::Build failed - compiled output not found"
+            exit 1
+          fi
+          echo "Build OK - output files verified"
 
       - name: Prepare models package
         working-directory: packages/models

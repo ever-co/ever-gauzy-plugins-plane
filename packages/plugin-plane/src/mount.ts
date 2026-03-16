@@ -42,7 +42,7 @@ export function mountPlaneProxy(
 	const clientSpaceUrl = options?.clientSpaceUrl || process.env.PLANE_CLIENT_SPACE_URL || 'http://localhost:3002';
 	const externalBaseApiUrl =
 		options?.externalBaseApiUrl ||
-		process.env.PLANE_PROXY_GAUZY_API_URL ||
+		process.env.GAUZY_API_BASE_URL ||
 		`http://localhost:${process.env.API_PORT || 3000}/api`;
 
 	const clientOrigins = [clientBaseUrl, clientAdminUrl, clientSpaceUrl].filter(Boolean);
@@ -106,8 +106,8 @@ export function mountPlaneProxy(
 				clientBaseUrl,
 				clientAdminUrl,
 				clientSpaceUrl,
-				apiKey: options?.apiKey || process.env.PLANE_API_KEY,
-				apiSecret: options?.apiSecret || process.env.PLANE_API_SECRET,
+				apiKey: options?.apiKey || process.env.GAUZY_API_KEY,
+				apiSecret: options?.apiSecret || process.env.GAUZY_API_SECRET,
 				appBaseUrl: options?.appBaseUrl || process.env.PLANE_APP_BASE_URL,
 				apiToken: options?.apiToken || process.env.PLANE_API_TOKEN,
 				githubAppName: options?.githubAppName || process.env.PLANE_GITHUB_APP_NAME,

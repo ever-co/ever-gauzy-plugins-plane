@@ -13,7 +13,7 @@ import {
 	ITaskView,
 	IUpdateViewInput,
 	IView
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createViewInputTransformer,
 	getCurrentOrganizationSlug,

@@ -5,7 +5,7 @@ import {
     IAdvanceAnalyticsResponse,
     ID,
     IWorkItemInsightRow
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { AdvanceAnalyticsService } from './advance-analytics.service';
 import {
     AdvanceAnalyticsChartsQueryDto,

@@ -7,7 +7,7 @@ import {
 	Param,
 	Query
 } from '@nestjs/common';
-import { ID, IParentableIssuesQueryParams } from '@plane-plugin/models';
+import { ID, IParentableIssuesQueryParams } from '@ever-gauzy/plugin-integration-plane-models';
 import { SearchIssuesService } from './search-issues.service';
 
 @Controller()

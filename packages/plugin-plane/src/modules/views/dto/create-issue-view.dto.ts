@@ -11,7 +11,7 @@ import {
 	IDisplayProperties,
 	IViewPropsDisplayFilters,
 	IViewPropsFilters
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateViewDTO implements ICreateViewInput {
 	@ApiProperty({ type: () => String })

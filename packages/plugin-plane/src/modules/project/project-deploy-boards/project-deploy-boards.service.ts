@@ -13,7 +13,7 @@ import {
 	IProjectDeployBoardsCreateInput,
 	ISharedEntity,
 	JsonData
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 import {
 	DEFAULT_PROJECT_DEPLOY_BOARDS_PROPERTIES,

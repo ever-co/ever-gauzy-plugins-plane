@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { IUserTokenInput } from '@plane-plugin/models';
+import { IUserTokenInput } from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * User token input DTO validation

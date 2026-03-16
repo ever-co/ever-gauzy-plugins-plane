@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { IServerFetchInputs } from '@plane-plugin/models';
+import { IServerFetchInputs } from '@ever-gauzy/plugin-integration-plane-models';
 import { PlaneConfigRegistry } from '../../plane-config.registry';
 import { getCurrentTenantId } from './token.helper';
 

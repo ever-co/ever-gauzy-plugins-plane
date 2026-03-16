@@ -1,4 +1,4 @@
-import { IActivityLog } from '@plane-plugin/models';
+import { IActivityLog } from '@ever-gauzy/plugin-integration-plane-models';
 export interface ILog {
 	added: {
 		verb: string;

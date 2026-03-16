@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import qs from 'qs';
-import { IMention, IMentionFindInput, IPagination } from '@plane-plugin/models';
+import { IMention, IMentionFindInput, IPagination } from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { getMentionsQuery } from '../../config';
 

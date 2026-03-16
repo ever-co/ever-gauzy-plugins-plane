@@ -9,7 +9,7 @@ import {
 	IsOptional,
 	IsString
 } from 'class-validator';
-import { ICreateProjectInput, ID } from '@plane-plugin/models';
+import { ICreateProjectInput, ID } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateProjectDTO implements ICreateProjectInput {
 	@ApiPropertyOptional({ type: () => String })

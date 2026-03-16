@@ -1,4 +1,4 @@
-import { IMentionFindInput } from '@plane-plugin/models';
+import { IMentionFindInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 export function getMentionsQuery(

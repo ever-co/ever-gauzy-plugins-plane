@@ -5,7 +5,7 @@ import {
 	IDashboard,
 	IDashboardCreateInput,
 	IPagination
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { getDashboardQuery } from '../../config/serializers/dashboard';
 import { WidgetService } from './widget.service';

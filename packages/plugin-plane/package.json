@@ -1,5 +1,5 @@
 {
-  "name": "@gauzy/plugin-plane",
+  "name": "@ever-gauzy/plugin-integration-plane-api",
   "version": "0.0.1",
   "description": "Ever Plane Proxy - A Proxy API connecting Ever Gauzy APIs to Plane frontend",
   "author": {
@@ -33,7 +33,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.0",
-    "@plane-plugin/models": "*",
+    "@ever-gauzy/plugin-integration-plane-models": "*",
     "axios": "^1.13.5",
     "cheerio": "^1.0.0",
     "class-transformer": "^0.5.1",

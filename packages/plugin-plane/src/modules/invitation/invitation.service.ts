@@ -12,7 +12,7 @@ import {
 	IPagination,
 	IRole,
 	RolesEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { decodeToken } from '../api-fetch/token.helper';
 import {

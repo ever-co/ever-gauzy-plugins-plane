@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
-import { ICreateStateInput } from '@plane-plugin/models';
+import { ICreateStateInput } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateStateDto implements ICreateStateInput {
 	@ApiProperty({ type: () => String })

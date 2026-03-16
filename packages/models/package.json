@@ -1,5 +1,5 @@
 {
-  "name": "@plane-plugin/models",
+  "name": "@ever-gauzy/plugin-integration-plane-models",
   "version": "0.0.1",
   "description": "Ever Plane Proxy - Models and interfaces",
   "author": {

@@ -6,7 +6,7 @@ import {
 	IDashboardWidgetCreateInput,
 	IDashboardWidgetUpdateInput,
 	IWidget
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { widgetTransformer } from '../../config';
 
 @Injectable()

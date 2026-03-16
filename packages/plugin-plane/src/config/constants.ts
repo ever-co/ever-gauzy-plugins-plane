@@ -1,4 +1,4 @@
-import { IWidget } from '@plane-plugin/models';
+import { IWidget } from '@ever-gauzy/plugin-integration-plane-models';
 import { PlaneConfigRegistry } from '../plane-config.registry';
 
 export const CLIENT_BASE_URL = () => PlaneConfigRegistry.clientBaseUrl;

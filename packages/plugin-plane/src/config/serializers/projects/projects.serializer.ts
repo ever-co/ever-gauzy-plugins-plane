@@ -6,7 +6,7 @@ import {
 	IProject,
 	IProjectMember,
 	IUpdateProjectInput
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import {
 	currentEmployeeId,

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ICreateWorkSpace, ID } from '@plane-plugin/models';
+import { ICreateWorkSpace, ID } from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * Data Transfer Object (DTO) for creating a workspace.

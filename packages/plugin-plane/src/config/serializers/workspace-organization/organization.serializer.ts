@@ -24,7 +24,7 @@ import {
 	IOrganizationCreateInput,
 	CurrenciesEnum,
 	IWorkspaceInfo
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 const organizationRelations = [
 	'employees',

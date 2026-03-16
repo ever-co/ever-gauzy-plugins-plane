@@ -12,7 +12,7 @@ import {
 	IOrganizationProject,
 	IReactionData,
 	IWorkspaceInfo
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
 import { extractEmployeeMentionIds } from '../../utils';

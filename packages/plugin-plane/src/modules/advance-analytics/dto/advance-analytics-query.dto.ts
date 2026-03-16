@@ -4,7 +4,7 @@ import {
     ChartXAxisProperty,
     ChartYAxisMetric,
     DateFilter
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * Query DTO for /advance-analytics endpoint

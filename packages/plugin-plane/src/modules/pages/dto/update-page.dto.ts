@@ -1,5 +1,5 @@
 import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
-import { ID } from '@plane-plugin/models';
+import { ID } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class UpdatePageDTO {
 	@IsOptional()

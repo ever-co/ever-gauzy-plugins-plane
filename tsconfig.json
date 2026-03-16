@@ -5,8 +5,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "paths": {
-      "@gauzy/plugin-plane": ["packages/plugin-plane/src"],
-      "@plane-plugin/models": ["packages/models/src"]
+      "@ever-gauzy/plugin-integration-plane-api": ["packages/plugin-plane/src"],
+      "@ever-gauzy/plugin-integration-plane-models": ["packages/models/src"]
     },
     "outDir": "./dist",
     "module": "commonjs",

@@ -1,6 +1,6 @@
 import { decode } from 'jsonwebtoken';
 import { Logger } from '@nestjs/common';
-import { IDecodedToken } from '@plane-plugin/models';
+import { IDecodedToken } from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from './api-fetch.service';
 
 const logger = new Logger('TokenHelper');

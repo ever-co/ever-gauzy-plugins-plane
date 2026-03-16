@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty } from 'class-validator';
-import { IEmailInput } from '@plane-plugin/models';
+import { IEmailInput } from '@ever-gauzy/plugin-integration-plane-models';
 
 /**
  * User email input DTO validation

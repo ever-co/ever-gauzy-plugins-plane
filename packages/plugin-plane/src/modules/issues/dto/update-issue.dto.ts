@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsUUID } from 'class-validator';
-import { ID, IIssueUpdateInput } from '@plane-plugin/models';
+import { ID, IIssueUpdateInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { CreateIssueDTO } from './create-issue.dto';
 
 export class UpdateIssueDTO

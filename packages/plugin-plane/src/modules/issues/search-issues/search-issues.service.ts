@@ -7,7 +7,7 @@ import {
 	IPagination,
 	IParentableIssuesQueryParams,
 	ITask
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { getTaskQuery, parentableIssuesTransformer } from '../../../config';
 import { ApiFetchService } from '../../api-fetch/api-fetch.service';
 

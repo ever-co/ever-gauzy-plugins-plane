@@ -22,7 +22,7 @@ import {
 	ITaskUpdateInput,
 	TaskPriorityEnum,
 	TaskStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { stateGroup } from './statuses';
 import { currentTenantId, getCurrentOrganizationSlug } from '../../credentials';

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
-import { IProjectMember } from '@plane-plugin/models';
+import { IProjectMember } from '@ever-gauzy/plugin-integration-plane-models';
 
 export class ProjectMemberDTO implements IProjectMember {
 	@ApiPropertyOptional({ type: () => String })

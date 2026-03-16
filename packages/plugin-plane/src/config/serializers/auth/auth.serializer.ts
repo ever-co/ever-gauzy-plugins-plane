@@ -1,7 +1,7 @@
 import {
 	IUserRegisterInput,
 	IUserRegistrationInput
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 export function registerInputTranformer(
 	input: IUserRegisterInput

@@ -10,7 +10,7 @@ import {
 	Patch,
 	Post
 } from '@nestjs/common';
-import { ID, IModule } from '@plane-plugin/models';
+import { ID, IModule } from '@ever-gauzy/plugin-integration-plane-models';
 import { ProjectModuleService } from './project-module.service';
 import { CreateModuleDTO, UpdateModuleDTO } from './dto';
 

@@ -13,7 +13,7 @@ import {
 	IFavorite,
 	IFavoriteData,
 	IPagination
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	apiFavoriteEntityToProxy,
 	createFavoriteInputTransformer,

@@ -22,7 +22,7 @@ import {
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
 	ISubscriber
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { IssuesService } from './issues.service';
 import {
 	CreateIssueCommentDTO,

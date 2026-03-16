@@ -6,7 +6,7 @@ import {
 	IPagination,
 	IReaction,
 	ReactionEntityEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createReactionInputTransformer,
 	getCurrentOrganizationSlug,

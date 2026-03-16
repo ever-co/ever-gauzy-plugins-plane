@@ -3,7 +3,6 @@ import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import FormData from 'form-data';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileAssetsService {
@@ -13,8 +12,7 @@ export class FileAssetsService {
 	private pendingUploads = new Map<string, any>();
 	
 	constructor(
-		private readonly apiFetchService: ApiFetchService,
-		private configService: ConfigService
+		private readonly apiFetchService: ApiFetchService
 	) {}
 
 	/**

@@ -1,9 +1,9 @@
 import { Logger } from '@nestjs/common';
 import { bootstrap } from './main';
-import { EXTERNAL_BASE_API_URL } from './config';
+import { PlaneConfigRegistry } from './plane-config.registry';
 
 const logger = new Logger('Bootstrap');
 
 bootstrap().then(() => {
-	logger.log(`API Running and listening to ${EXTERNAL_BASE_API_URL()}`);
+	logger.log(`API Running and listening to ${PlaneConfigRegistry.externalBaseApiUrl}`);
 });

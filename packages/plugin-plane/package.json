@@ -10,7 +10,7 @@
   "private": true,
   "license": "MIT",
   "exports": {
-    ".": "./src/main.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "build": "nest build",

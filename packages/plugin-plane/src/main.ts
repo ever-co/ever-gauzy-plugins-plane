@@ -3,14 +3,14 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './modules/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
-import { CLIENT_URLS } from './config/constants';
+import { PlaneConfigRegistry } from './plane-config.registry';
 
 export async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
-	// Enable CORS
+	// Enable CORS for the client URLs
 	app.enableCors({
-		origin: CLIENT_URLS(),
+		origin: PlaneConfigRegistry.clientUrls,
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
@@ -31,7 +31,7 @@ export async function bootstrap() {
 			'api/workspace-slug-check',
 			'api/workspaces',
 			'api/assets/(.*)'
-		] // Exclude all the routes starting with /auth, /users, /timezones /dashboard /instances and /assets from the global prefix
+		]
 	});
 
 	const config = new DocumentBuilder()

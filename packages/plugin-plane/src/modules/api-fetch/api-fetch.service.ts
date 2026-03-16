@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@plane-plugin/models';
-import { EXTERNAL_BASE_API_URL } from '../../config';
+import { PlaneConfigRegistry } from '../../plane-config.registry';
 import { getCurrentTenantId } from './token.helper';
 
 @Injectable()
@@ -58,7 +58,7 @@ export class ApiFetchService {
 			init
 		} = configs;
 
-		const apiUrl = EXTERNAL_BASE_API_URL();
+		const apiUrl = PlaneConfigRegistry.externalBaseApiUrl;
 		let endPoint = apiUrl + path;
 
 		if (query) {

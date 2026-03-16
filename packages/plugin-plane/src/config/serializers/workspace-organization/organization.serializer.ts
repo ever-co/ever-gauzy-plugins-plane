@@ -3,27 +3,27 @@ import { employeeSettingSerializer } from '../employee-properties';
 import { getTaskCounts } from '../modules';
 import { extractMemberIds } from '../projects';
 import { actorDetailsTransformer } from '../user';
-import { IOrganizationProject } from './../../../../../models/src/imports/organization-projects.model';
 import {
-    IRole,
-    ITask,
-    IWorkspaceUserInfo,
-    RolesEnum,
-    TaskPriorityEnum,
-    IUserPriorityDistribution,
-    IUserProjectData,
-    ID,
-    IUserProjectsDataResponse,
-    IUserProfileData,
-    EmployeeSettingTypeEnum,
-    BaseEntityEnum,
-    IEmployeeSetting,
-    IEmployee,
-    IOrganization,
-    ICreateWorkSpace,
-    IOrganizationCreateInput,
-    CurrenciesEnum,
-    IWorkspaceInfo
+	IRole,
+	ITask,
+	IWorkspaceUserInfo,
+	RolesEnum,
+	TaskPriorityEnum,
+	IUserPriorityDistribution,
+	IUserProjectData,
+	ID,
+	IOrganizationProject,
+	IUserProjectsDataResponse,
+	IUserProfileData,
+	EmployeeSettingTypeEnum,
+	BaseEntityEnum,
+	IEmployeeSetting,
+	IEmployee,
+	IOrganization,
+	ICreateWorkSpace,
+	IOrganizationCreateInput,
+	CurrenciesEnum,
+	IWorkspaceInfo
 } from '@plane-plugin/models';
 
 const organizationRelations = [

@@ -1,4 +1,5 @@
 import {
+	ActorTypeEnum,
 	BaseEntityEnum,
 	IComment,
 	ICommentCreateInput,
@@ -14,7 +15,6 @@ import {
 } from '@plane-plugin/models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getProjectsResponse } from '../projects';
-import { ActorTypeEnum } from 'packages/models/src/imports/base-entity.model';
 import { extractEmployeeMentionIds } from '../../utils';
 import { actorDetailsTransformer } from '../user';
 

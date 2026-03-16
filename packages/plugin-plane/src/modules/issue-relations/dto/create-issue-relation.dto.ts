@@ -4,7 +4,7 @@ import {
 	ICreateIssueRelationInput,
 	ID,
 	IssueRelationTypeEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateIssueRelationDTO implements ICreateIssueRelationInput {
 	@ApiProperty({ type: () => Array })

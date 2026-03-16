@@ -7,7 +7,7 @@ import {
 	ITaskLinkedIssue,
 	ITaskLinkedIssueCreateInput,
 	TaskRelatedIssuesRelationEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../../query-params.serializers';
 
 const issueRelationToTypeMap = {

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import qs from 'qs';
-import { ID, IHelpCenterArticle, IPage, IPagination } from '@plane-plugin/models';
+import { ID, IHelpCenterArticle, IPage, IPagination } from '@ever-gauzy/plugin-integration-plane-models';
 import { getCurrentOrganizationSlug } from '../../config/credentials';
 import {
 	articleToPage, createPageInputTransformer,

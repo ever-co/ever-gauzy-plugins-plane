@@ -3,7 +3,7 @@ import {
 	ID,
 	IProjectDeployBoardsCreateInput,
 	ISharedEntityCreateInput
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getCurrentOrganizationSlug } from '../../credentials';
 import { PROJECT_DEPLOY_BOARDS_SHARE_RULES } from './project-deploy-boards.helper';

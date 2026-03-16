@@ -9,7 +9,7 @@ import {
 	IReactionData,
 	IWorkspaceInfo,
 	ReactionEntityEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { actorDetailsTransformer } from '../user';
 

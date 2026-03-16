@@ -12,7 +12,7 @@ import {
 	ICreateFavoriteInput,
 	ID,
 	IFavoriteEntityData
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 
 export class CreateFavoriteDTO implements ICreateFavoriteInput {
 	@ApiProperty({ type: () => String })

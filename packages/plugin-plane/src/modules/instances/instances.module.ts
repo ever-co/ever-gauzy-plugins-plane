@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { InstancesService } from './instances.service';
 import { InstancesController } from './instances.controller';
-import { ConfigService } from '@nestjs/config';
 
 @Module({
 	imports: [
@@ -10,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 			{ path: '/api/instances', module: InstancesModule }
 		])
 	],
-	providers: [InstancesService, ConfigService],
+	providers: [InstancesService],
 	controllers: [InstancesController]
 })
 export class InstancesModule {}

@@ -5,7 +5,7 @@ import {
 	IEmployeeNotificationUpdateInput,
 	IPagination,
 	IEmployeeNotification
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { getEmployeeNotificationsQuery } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 

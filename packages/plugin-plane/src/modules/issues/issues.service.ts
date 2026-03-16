@@ -37,7 +37,7 @@ import {
 	ITaskDateFilterInput,
 	ReactionEntityEnum,
 	TaskStatusEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createIssueInputTransformer,
 	currentUserId,

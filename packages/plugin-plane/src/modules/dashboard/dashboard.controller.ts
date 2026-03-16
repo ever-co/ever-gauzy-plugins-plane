@@ -7,7 +7,7 @@ import {
 	Patch
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ID } from '@plane-plugin/models';
+import { ID } from '@ever-gauzy/plugin-integration-plane-models';
 import { DashboardService } from './dashboard.service';
 
 @Controller()

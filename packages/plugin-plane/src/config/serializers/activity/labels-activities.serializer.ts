@@ -1,4 +1,4 @@
-import { IActivityLog, ITag } from '@plane-plugin/models';
+import { IActivityLog, ITag } from '@ever-gauzy/plugin-integration-plane-models';
 import { manyToManyFieldActivityTransformer } from './many-to-many-field-activity.helper';
 
 export function labelsActivityTransformer(activityLog: IActivityLog) {

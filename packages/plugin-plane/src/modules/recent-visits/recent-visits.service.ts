@@ -4,7 +4,7 @@ import {
 	IEmployeeRecentVisit,
 	IPagination,
 	IRecentVisit
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { currentEmployeeId, getEmployeeRecentVisitsQuery } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { recentVisitTransformer } from '../../config/serializers/recent-visits/recent-visits.serializer';

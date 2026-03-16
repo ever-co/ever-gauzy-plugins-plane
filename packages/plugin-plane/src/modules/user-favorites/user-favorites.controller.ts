@@ -9,7 +9,7 @@ import {
 	Param,
 	Post
 } from '@nestjs/common';
-import { ID, IFavoriteData } from '@plane-plugin/models';
+import { ID, IFavoriteData } from '@ever-gauzy/plugin-integration-plane-models';
 import { UserFavoritesService } from './user-favorites.service';
 import { CreateFavoriteDTO } from './dto';
 

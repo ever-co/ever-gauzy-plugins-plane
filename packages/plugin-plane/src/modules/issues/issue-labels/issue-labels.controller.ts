@@ -10,7 +10,7 @@ import {
 	Post
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
-import { ID } from '@plane-plugin/models';
+import { ID } from '@ever-gauzy/plugin-integration-plane-models';
 import { IssueLabelsService } from './issue-labels.service';
 import { CreateIssueLabelDTO, UpdateIssueLabelDTO } from './dto';
 

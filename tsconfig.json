@@ -5,8 +5,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "paths": {
-      "@gauzy/plugin-plane": ["packages/plugin-plane/src"],
-      "@plane-plugin/models": ["packages/models/src"]
+      "@ever-gauzy/plugin-integration-plane-api": ["packages/plugin-plane/src"],
+      "@ever-gauzy/plugin-integration-plane-models": ["packages/models/src"]
     },
     "outDir": "./dist",
     "module": "commonjs",
@@ -14,6 +14,7 @@
     "lib": ["es2020", "dom", "es2018", "esnext.array"],
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "declaration": true,
     "skipLibCheck": true,
     "strict": true,
     "sourceMap": true,

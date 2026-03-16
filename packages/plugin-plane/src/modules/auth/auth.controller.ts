@@ -18,7 +18,7 @@ import {
 	ITenant,
 	IUserLoginInput,
 	IUserRegisterInput
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { AuthService } from './auth.service';
 import { clearTokenChuncks, sendTokenChunks } from '../../config';
 import { Public } from './auth.guard';

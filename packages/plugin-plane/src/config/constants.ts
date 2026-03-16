@@ -1,27 +1,17 @@
-import { IWidget } from '@plane-plugin/models';
+import { IWidget } from '@ever-gauzy/plugin-integration-plane-models';
+import { PlaneConfigRegistry } from '../plane-config.registry';
 
-export const CLIENT_BASE_URL = () =>
-	process.env.CLIENT_BASE_URL ?? 'http://localhost:3000';
+export const CLIENT_BASE_URL = () => PlaneConfigRegistry.clientBaseUrl;
 
-export const CLIENT_SPACE_URL = () =>
-	process.env.CLIENT_SPACE_URL ?? 'http://localhost:3001';
+export const CLIENT_SPACE_URL = () => PlaneConfigRegistry.clientSpaceUrl;
 
-export const CLIENT_ADMIN_URL = () =>
-	process.env.CLIENT_ADMIN_URL ?? 'http://localhost:3002';
+export const CLIENT_ADMIN_URL = () => PlaneConfigRegistry.clientAdminUrl;
 
-export const CLIENT_URLS = () => [
-	CLIENT_BASE_URL(),
-	CLIENT_SPACE_URL(),
-	CLIENT_ADMIN_URL()
-];
+export const CLIENT_URLS = () => PlaneConfigRegistry.clientUrls;
 
 export const MAX_TOKEN_COOKIE_SIZE = 3999;
 
-/* 
- * External API base URL
- */
-export const EXTERNAL_BASE_API_URL = () =>
-	process.env.EXTERNAL_BASE_API_URL;
+export const EXTERNAL_BASE_API_URL = () => PlaneConfigRegistry.externalBaseApiUrl;
 
 /**
  * The default view props for the member

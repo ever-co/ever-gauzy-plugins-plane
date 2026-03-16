@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import slugify from 'slugify';
 import { Logger } from '@nestjs/common';
-import { ID, IssueOrderByField } from '@plane-plugin/models';
+import { ID, IssueOrderByField } from '@ever-gauzy/plugin-integration-plane-models';
 import { Request, Response } from 'express';
 import { MAX_TOKEN_COOKIE_SIZE } from '../constants';
 

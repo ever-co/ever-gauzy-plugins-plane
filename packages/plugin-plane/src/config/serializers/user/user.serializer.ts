@@ -6,7 +6,7 @@ import {
 	IUserOrganization,
 	IUserProfile,
 	RolesEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { currentTenantId, currentUserId } from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
 import { roleTransformer } from '../workspace-organization';

@@ -1,4 +1,4 @@
-import { ICreatePageInput, ID, IPage, IUpdatePageInput } from '@plane-plugin/models';
+import { ICreatePageInput, ID, IPage, IUpdatePageInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 import { getCurrentOrganizationSlug } from '../../credentials';
 

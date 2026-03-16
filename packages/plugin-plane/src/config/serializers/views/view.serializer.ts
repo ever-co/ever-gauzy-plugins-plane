@@ -12,7 +12,7 @@ import {
 	TaskPriorityEnum,
 	TaskStatusEnum,
 	VisibilityLevelEnum
-} from '@plane-plugin/models';
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 /**

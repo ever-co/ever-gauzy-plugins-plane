@@ -32,6 +32,11 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Authenticate to NPM
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - run: yarn install --frozen-lockfile
 
       - name: Set version from tag
@@ -40,47 +45,33 @@ jobs:
           VERSION="${GITHUB_REF#refs/tags/v}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Build from root tsconfig
+      - name: Build
         run: |
           npx tsc -p tsconfig.json > /dev/null 2>&1 || true
-          if [ ! -f dist/packages/plugin-plane/src/index.js ]; then
-            echo "::error::Build failed - compiled output not found"
-            exit 1
-          fi
-          echo "Build OK - output files verified"
+          test -f dist/packages/plugin-plane/src/index.js && echo "Build OK" || { echo "::error::Build failed"; exit 1; }
 
-      - name: Prepare models package
+      - name: Prepare and publish models
         working-directory: packages/models
         run: |
           mkdir -p dist
           cp -r ../../dist/packages/models/src/* dist/
           if [ -n "$VERSION" ]; then
             CURRENT=$(node -p "require('./package.json').version")
-            if [ "$CURRENT" != "$VERSION" ]; then
-              npm version "$VERSION" --no-git-tag-version
-            fi
+            [ "$CURRENT" != "$VERSION" ] && npm version "$VERSION" --no-git-tag-version || true
           fi
-
-      - name: Publish models
-        working-directory: packages/models
-        run: npm publish
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Prepare api package
+      - name: Prepare and publish api
         working-directory: packages/plugin-plane
         run: |
           mkdir -p dist
           cp -r ../../dist/packages/plugin-plane/src/* dist/
           if [ -n "$VERSION" ]; then
             CURRENT=$(node -p "require('./package.json').version")
-            if [ "$CURRENT" != "$VERSION" ]; then
-              npm version "$VERSION" --no-git-tag-version
-            fi
+            [ "$CURRENT" != "$VERSION" ] && npm version "$VERSION" --no-git-tag-version || true
           fi
-
-      - name: Publish api
-        working-directory: packages/plugin-plane
-        run: npm publish
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

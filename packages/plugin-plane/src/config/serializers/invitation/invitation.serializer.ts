@@ -74,9 +74,9 @@ export function invitationTransformer(
 ): IInvitation | IInvitation[] {
 	const transformInvitation = (invitation: IInvite): IInvitation => {
 		return {
-			id: invitation.id,
+			id: invitation.id!,
 			deleted_at: invitation.deletedAt,
-			workspace: workspaceTransformer(invitation.organization),
+			workspace: workspaceTransformer(invitation.organization!),
 			invite_link: `/workspace-invitations/?invitation_id=${invitation.id}&email=${invitation.email}&slug=${invitation.organizationId}`,
 			created_at: invitation.createdAt,
 			updated_at: invitation.updatedAt,
@@ -84,8 +84,8 @@ export function invitationTransformer(
 			accepted: invitationStatusTransformer(invitation.status),
 			token: invitation.token,
 			message: '',
-			responded_at: null, // First set to null and after probably use invitation.actionDate
-			role: roleTransformer(invitation.role),
+			responded_at: undefined, // First set to undefined and after probably use invitation.actionDate
+			role: roleTransformer(invitation.role!),
 			created_by: invitation.createdByUserId,
 			updated_by: invitation.updatedByUserId
 		};

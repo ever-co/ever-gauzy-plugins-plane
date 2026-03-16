@@ -8,7 +8,7 @@ import { getCurrentTenantId } from './token.helper';
 @Injectable()
 export class ApiFetchService {
 	private static token: string;
-	private _logger: Logger;
+	private _logger!: Logger;
 
 	constructor(private readonly _httpService: HttpService) {}
 
@@ -85,62 +85,62 @@ export class ApiFetchService {
 		switch (method) {
 			case 'GET':
 				return await firstValueFrom(
-					this._httpService.get(endPoint, {
-						...(init || {}),
-						headers: {
-							...headers,
-							...customHeaders
-						},
-						responseType
-					})
+				this._httpService.get(endPoint, {
+					...(init || {}),
+					headers: {
+						...headers,
+						...customHeaders
+					},
+					responseType
+				} as any)
 				);
 
 			case 'POST':
 				return await firstValueFrom(
-					this._httpService.post(endPoint, body, {
-						...(init || {}),
-						headers: {
-							...headers,
-							...customHeaders
-						},
-						responseType
-					})
+				this._httpService.post(endPoint, body, {
+					...(init || {}),
+					headers: {
+						...headers,
+						...customHeaders
+					},
+					responseType
+				} as any)
 				);
 
 			case 'PUT':
 				return await firstValueFrom(
-					this._httpService.put(endPoint, body, {
-						...(init || {}),
-						headers: {
-							...headers,
-							...customHeaders
-						},
-						responseType
-					})
+				this._httpService.put(endPoint, body, {
+					...(init || {}),
+					headers: {
+						...headers,
+						...customHeaders
+					},
+					responseType
+				} as any)
 				);
 
 			case 'PATCH':
 				return await firstValueFrom(
-					this._httpService.patch(endPoint, body, {
-						...(init || {}),
-						headers: {
-							...headers,
-							...customHeaders
-						},
-						responseType
-					})
+				this._httpService.patch(endPoint, body, {
+					...(init || {}),
+					headers: {
+						...headers,
+						...customHeaders
+					},
+					responseType
+				} as any)
 				);
 
 			case 'DELETE':
 				return await firstValueFrom(
-					this._httpService.delete(endPoint, {
-						...(init || {}),
-						headers: {
-							...headers,
-							...customHeaders
-						},
-						responseType
-					})
+				this._httpService.delete(endPoint, {
+					...(init || {}),
+					headers: {
+						...headers,
+						...customHeaders
+					},
+					responseType
+				} as any)
 				);
 			default:
 				throw new BadRequestException('Method not accepted');

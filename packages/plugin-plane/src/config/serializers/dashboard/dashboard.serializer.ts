@@ -14,7 +14,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  */
 
 export function dashboardTransformer(dashboard: IDashboard): IHomeDashboard {
-	const widgets = widgetTransformer(dashboard.widgets);
+	const widgets = widgetTransformer(dashboard.widgets!);
 	return {
 		id: dashboard.id,
 		created_at: dashboard.createdAt,
@@ -26,8 +26,8 @@ export function dashboardTransformer(dashboard: IDashboard): IHomeDashboard {
 		type_identifier: dashboard.identifier,
 		logo_props: {},
 		created_by: dashboard.creatorId,
-		updated_by: null,
-		owned_by: null,
+		updated_by: undefined,
+		owned_by: undefined,
 		widgets: Array.isArray(widgets) ? widgets : [widgets]
 	};
 }
@@ -74,7 +74,7 @@ export function getDashboardQuery(
 	};
 
 	if (!dashboard_type) {
-		query['where[identifier]'] = dashboard_type;
+		query['where[identifier]'] = dashboard_type!;
 	}
 
 	query['relations[0]'] = 'widgets';

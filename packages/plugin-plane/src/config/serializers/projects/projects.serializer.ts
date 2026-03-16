@@ -26,7 +26,7 @@ export function extractMemberIds(members?: MemberInput[]): MemberId[] {
 
 	return members.map((member): MemberId => {
 		const employeeId =
-			typeof member === 'string' ? member : member.member_id;
+			typeof member === 'string' ? member : member.member_id!;
 		return { employeeId };
 	});
 }
@@ -36,7 +36,7 @@ export function getProjectsResponse(
 	favoriteIds?: ID[],
 	memberReturnType: 'ids' | 'objects' = 'ids'
 ): Partial<IProject>[] {
-	return projects?.map((project) => {
+	return (projects?.map((project) => {
 		// Retrieve current member
 		const employeeId = currentEmployeeId();
 		const currentMember = (project?.members ?? []).find(
@@ -48,9 +48,9 @@ export function getProjectsResponse(
 		if (memberReturnType === 'objects') {
 			members = Array.isArray(project?.members)
 				? project.members.map((member) => ({
-						member__display_name: member.employee.fullName,
+						member__display_name: member.employee!.fullName,
 						member__id: member.employeeId,
-						member__avatar_url: member.employee.user.imageUrl
+						member__avatar_url: member.employee!.user!.imageUrl
 					}))
 				: [];
 		} else {
@@ -60,7 +60,7 @@ export function getProjectsResponse(
 				: []; // If `project.members` is undefined, set `members` to an empty array
 		}
 
-		const isFavorite = favoriteIds?.includes(project.id);
+		const isFavorite = favoriteIds?.includes(project.id!);
 
 		// Ensure safe access to `project.members` to find the first manager
 		const manager = Array.isArray(project?.members)
@@ -125,7 +125,7 @@ export function getProjectsResponse(
 			estimate: null, // To add for external API
 			default_state: null // To add for external API
 		};
-	});
+	})) as Partial<IProject>[];
 }
 
 /**
@@ -141,8 +141,8 @@ export function getProjectsResponse(
 export function createProjectInputTransformer(
 	input: ICreateProjectInput | IUpdateProjectInput
 ): IOrganizationProjectCreateInput {
-	let memberIds = [];
-	let managerIds = [];
+	let memberIds: MemberId[] = [];
+	let managerIds: ID[] = [];
 
 	if (input.members) {
 		memberIds = extractMemberIds(input.members);
@@ -161,8 +161,8 @@ export function createProjectInputTransformer(
 		imageUrl: input.cover_image,
 		public: input.network === 0 ? false : true,
 		defaultAssigneeId: input.default_assignee,
-		memberIds: memberIds.length > 0 ? memberIds : [currentEmployeeId()],
-		managerIds: managerIds.length > 0 ? managerIds : [currentEmployeeId()],
+		memberIds: (memberIds.length > 0 ? memberIds : [currentEmployeeId()]) as string[],
+		managerIds: (managerIds.length > 0 ? managerIds : [currentEmployeeId()]) as string[],
 		tenantId: currentTenantId(),
 		organizationId: getCurrentOrganizationSlug()
 	};
@@ -172,7 +172,7 @@ export function createProjectInputTransformer(
 			data.archivedAt = input.archived_at;
 			data.isArchived = true;
 		} else {
-			data.archivedAt = null;
+			data.archivedAt = undefined;
 			data.isArchived = false;
 		}
 	}
@@ -192,7 +192,7 @@ export function assignMembersToProjectTransformer(
 	const memberIds = projectMembers.map((member) =>
 		typeof member === 'string' ? member : member.member_id
 	);
-	return memberIds;
+	return memberIds as string[];
 }
 
 /**
@@ -252,7 +252,7 @@ export const findEmployeeProjectsQuery = (
 	};
 
 	// Add relations to the baseQuery
-	relations.forEach((relation, i) => {
+	relations!.forEach((relation, i) => {
 		query[`relations[${i}]`] = relation;
 	});
 

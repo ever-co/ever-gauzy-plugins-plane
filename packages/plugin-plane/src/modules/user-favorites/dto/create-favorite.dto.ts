@@ -18,17 +18,17 @@ export class CreateFavoriteDTO implements ICreateFavoriteInput {
 	@ApiProperty({ type: () => String })
 	@IsUUID()
 	@IsNotEmpty()
-	entity_identifier: ID;
+	entity_identifier!: ID;
 
 	@ApiProperty({ type: () => String, enum: FavoriteEntityTypeEnum })
 	@IsEnum(FavoriteEntityTypeEnum)
 	@IsNotEmpty()
-	entity_type: FavoriteEntityTypeEnum;
+	entity_type!: FavoriteEntityTypeEnum;
 
 	@ApiPropertyOptional({ type: () => Boolean })
 	@IsBoolean()
 	@IsOptional()
-	is_folder: boolean;
+	is_folder!: boolean;
 
 	@ApiPropertyOptional()
 	@IsUUID()
@@ -38,7 +38,7 @@ export class CreateFavoriteDTO implements ICreateFavoriteInput {
 	@ApiProperty({ type: () => String })
 	@IsUUID()
 	@IsNotEmpty()
-	project_id: string;
+	project_id!: string;
 
 	@ApiProperty({ type: () => Object })
 	@IsObject()

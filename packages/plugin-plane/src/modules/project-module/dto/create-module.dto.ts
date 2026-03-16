@@ -19,7 +19,7 @@ export class CreateModuleDTO implements ICreateModuleInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	name: string;
+	name!: string;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsString()
@@ -56,7 +56,7 @@ export class CreateModuleDTO implements ICreateModuleInput {
 	@ApiProperty({ type: () => String })
 	@IsUUID()
 	@IsNotEmpty()
-	project_id: ID;
+	project_id!: ID;
 
 	@ApiPropertyOptional({ type: () => Array })
 	@IsArray()

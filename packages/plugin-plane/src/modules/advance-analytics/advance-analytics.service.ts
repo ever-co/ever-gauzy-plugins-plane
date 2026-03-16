@@ -59,7 +59,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 			}
 
 			const query = qs.stringify(
-				getTaskQuery(projectId, options, ['members.user', 'tags', 'taskStatus', 'organizationSprint', 'modules'], null, false)
+				getTaskQuery(projectId, options, ['members.user', 'tags', 'taskStatus', 'organizationSprint', 'modules'], undefined, false)
 			);
 
 			const tasks: IPagination<ITask> = (

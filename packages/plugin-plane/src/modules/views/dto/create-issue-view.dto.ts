@@ -17,7 +17,7 @@ export class CreateViewDTO implements ICreateViewInput {
 	@ApiProperty({ type: () => String })
 	@IsNotEmpty()
 	@IsString()
-	name: string;
+	name!: string;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsOptional()

@@ -68,7 +68,7 @@ export class InvitationService extends ApiFetchService {
 
 					const body = createBulkWorkspaceInvitationInputTransformer(
 						email,
-						role.id
+						role.id!
 					);
 
 					const invitation: ICreateEmailInvitesOutput = (
@@ -154,11 +154,11 @@ export class InvitationService extends ApiFetchService {
 	 */
 	async findOne(options?: Partial<IInvite>): Promise<IInvitation | null> {
 		try {
-			const email = decodeToken(options?.token)?.email;
-			const cleanEmail = sanitizeEmail(email);
+			const email = decodeToken(options?.token!)?.email;
+			const cleanEmail = sanitizeEmail(email!);
 
 			const query = qs.stringify(
-				getInvitationByTokenQuery(options?.token, cleanEmail)
+				getInvitationByTokenQuery(options!.token!, cleanEmail)
 			);
 
 			const invitationsRes: IInvite = (
@@ -171,9 +171,9 @@ export class InvitationService extends ApiFetchService {
 
 			const transformed = invitationTransformer({
 				...invitationsRes,
-				id: options.token,
+				id: options!.token!,
 				status: InviteStatusEnum.INVITED,
-				token: options.token
+				token: options!.token!
 			});
 			return Array.isArray(transformed) ? transformed[0] : transformed;
 		} catch (error: any) {

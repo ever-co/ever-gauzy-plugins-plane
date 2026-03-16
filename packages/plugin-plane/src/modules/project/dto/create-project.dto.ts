@@ -25,7 +25,7 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	identifier: string;
+	identifier!: string;
 
 	@ApiPropertyOptional({ type: () => Object })
 	@IsObject()
@@ -40,12 +40,12 @@ export class CreateProjectDTO implements ICreateProjectInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	name: string;
+	name!: string;
 
 	@ApiProperty({ type: () => Number })
 	@IsNumber()
 	@IsNotEmpty()
-	network: number;
+	network!: number;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsString()

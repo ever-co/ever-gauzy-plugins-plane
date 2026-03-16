@@ -46,7 +46,7 @@ export function createIssueRelationInputTranformer(
 	taskFromId: ID
 ): ITaskLinkedIssueCreateInput {
 	return {
-		action: getTaskRelatedIssueRelation(relation_type),
+		action: getTaskRelatedIssueRelation(relation_type)!,
 		taskFromId,
 		taskToId
 	};
@@ -58,10 +58,10 @@ export function createdIssueRelationTranformer(
 ): ICreatedIssueRelation {
 	return {
 		id: linkedIssue.taskFromId,
-		relation_type: getIssueRelationType(linkedIssue.action),
-		name: issue?.title,
+		relation_type: getIssueRelationType(linkedIssue.action)!,
+		name: issue?.title!,
 		sequence_id: 0, // TODO : Search usecase
-		project_id: issue?.projectId // Best to be consistent
+		project_id: issue?.projectId! // Best to be consistent
 	};
 }
 
@@ -117,18 +117,18 @@ export function issueRelationTransformer(
 ): IIssueRelation[] {
 	return linkedIssues?.map((linkedIssue) => {
 		return {
-			id: linkedIssue.taskFrom.id,
+			id: linkedIssue.taskFrom!.id,
 			relation_type: getIssueRelationType(linkedIssue.action),
-			issue_id: linkedIssue.taskFrom.id,
-			related_issue_id: linkedIssue.taskTo.id,
-			name: linkedIssue.taskFrom.title,
-			sequence_id: linkedIssue.taskFrom.number,
-			project_id: linkedIssue.taskFrom.projectId, // Should be consistent
+			issue_id: linkedIssue.taskFrom!.id,
+			related_issue_id: linkedIssue.taskTo!.id,
+			name: linkedIssue.taskFrom!.title,
+			sequence_id: linkedIssue.taskFrom!.number,
+			project_id: linkedIssue.taskFrom!.projectId, // Should be consistent
 			workspace_id: linkedIssue.organizationId,
 			created_at: linkedIssue.createdAt,
 			updated_at: linkedIssue.updatedAt,
 			created_by_id: null, // To update
 			updated_by_id: null // To update
 		};
-	});
+	}) as unknown as IIssueRelation[];
 }

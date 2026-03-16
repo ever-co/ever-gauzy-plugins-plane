@@ -66,9 +66,9 @@ export function modulesTransformer(
 			startedIssues,
 			unstartedIssues,
 			backlogIssues
-		} = getTaskCounts(projectModule?.tasks);
+		} = getTaskCounts(projectModule?.tasks!);
 
-		const isFavorite = favoriteIds?.includes(projectModule?.id);
+		const isFavorite = favoriteIds?.includes(projectModule?.id!);
 		const leadId = projectModule?.members?.filter(
 			(member) => member.isManager && member.roleId
 		)[0]?.employeeId;
@@ -109,10 +109,10 @@ export function modulesTransformer(
 	};
 
 	if (Array.isArray(modules)) {
-		return modules.map(transformModule);
+		return modules.map(transformModule) as IModule[];
 	}
 
-	return transformModule(modules);
+	return transformModule(modules) as IModule;
 }
 
 export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
@@ -121,9 +121,9 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 	const labelMap = new Map<string, any>();
 
 	tasks?.forEach((task) => {
-		task.tags.forEach((label) => {
-			if (!labelMap.has(label.id)) {
-				labelMap.set(label.id, {
+		task.tags!.forEach((label) => {
+			if (!labelMap.has(label.id!)) {
+				labelMap.set(label.id!, {
 					label_name: label.name,
 					color: label.color,
 					label_id: label.id,
@@ -133,12 +133,12 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 				});
 			}
 
-			const labelData = labelMap.get(label.id);
+			const labelData = labelMap.get(label.id!);
 			labelData.total_issues += 1;
 
 			if (
-				task.status.toLocaleLowerCase() === 'completed' ||
-				task.status.toLocaleLowerCase() === 'done'
+				task.status!.toLocaleLowerCase() === 'completed' ||
+				task.status!.toLocaleLowerCase() === 'done'
 			) {
 				labelData.completed_issues += 1;
 			} else {
@@ -158,14 +158,14 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		let pendingIssues = 0;
 
 		(tasks ?? []).forEach((task) => {
-			if (task.members.some((assignee) => assignee.id === member.id)) {
+			if (task.members!.some((assignee) => assignee.id === member.id)) {
 				// Increment the total issues number
 				totalIssues++;
 
 				// Check if the task is completed or still pending
 				if (
-					task.status.toLocaleLowerCase() === 'completed' ||
-					task.status.toLocaleLowerCase() === 'done'
+					task.status!.toLocaleLowerCase() === 'completed' ||
+					task.status!.toLocaleLowerCase() === 'done'
 				) {
 					completedIssues++;
 				} else {
@@ -207,7 +207,7 @@ export function createModuleInputTransformer(
 	managerId?: ID
 ): IOrganizationProjectModuleCreateInput {
 	return {
-		name: module.name,
+		name: module.name!,
 		description: module.description,
 		status: module.status as ProjectModuleStatusEnum,
 		startDate: module.start_date,
@@ -265,11 +265,11 @@ export const getModulesQuery = (
  */
 export function completionChartMapping(module: IOrganizationProjectModule) {
 	// Format startDate and targetDate to YYYY-MM-DD
-	const startDate: CompletionDateType = module.startDate
-		?.toString()
+	const startDate: CompletionDateType = module.startDate!
+		.toString()
 		.split('T')[0];
-	const targetDate: CompletionDateType = module.endDate
-		?.toString()
+	const targetDate: CompletionDateType = module.endDate!
+		.toString()
 		.split('T')[0];
 
 	const chart: ICompletionChart = {};
@@ -293,7 +293,7 @@ export function completionChartMapping(module: IOrganizationProjectModule) {
 	(module.tasks ?? []).forEach((task) => {
 		const completedAt: CompletionDateType = task.resolvedAt
 			?.toString()
-			.split('T')[0];
+			.split('T')[0]!;
 		if (completedAt && chart.hasOwnProperty(completedAt)) {
 			chart[completedAt]! += 1; // Increment the value for the corresponding date
 		}

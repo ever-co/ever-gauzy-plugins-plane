@@ -41,16 +41,16 @@ export function getEmployeeRecentVisitsQuery(
  */
 export function issueRecentVisitTransformer(task: ITask): IIssueRecentVisit {
 	return {
-		id: task.id,
-		name: task.title,
-		state: task.taskStatusId,
-		priority: task.priority,
-		assignees: task.members.map((member) => member.id),
+		id: task.id!,
+		name: task.title!,
+		state: task.taskStatusId!,
+		priority: task.priority!,
+		assignees: task.members!.map((member) => member.id) as string[],
 		type: task.taskType?.name,
-		sequence_id: task.number,
-		project_id: task.projectId,
+		sequence_id: task.number!,
+		project_id: task.projectId!,
 		project_identifier:
-			task.project?.code || task.project?.name?.slice(0, 4).toUpperCase(),
+			(task.project?.code || task.project?.name?.slice(0, 4).toUpperCase())!,
 		is_epic: task.taskType?.name === TaskTypeEnum.EPIC
 	};
 }
@@ -65,7 +65,7 @@ export function projectRecentVisitTransformer(
 	project: IOrganizationProject
 ): IProjectRecentVisit {
 	return {
-		id: project.id,
+		id: project.id!,
 		name: project.name,
 		logo_props: {
 			emoji: {
@@ -74,8 +74,8 @@ export function projectRecentVisitTransformer(
 			},
 			in_use: 'emoji'
 		},
-		project_members: project.members.map((member) => member.id),
-		identifier: project.code || project.name?.slice(0, 4).toUpperCase()
+		project_members: project.members!.map((member) => member.id) as string[],
+		identifier: (project.code || project.name?.slice(0, 4).toUpperCase())!
 	};
 }
 
@@ -117,10 +117,10 @@ export function recentVisitTransformer(
 
 		// Return the transformed recent visit
 		return {
-			id: recentVisit.id,
+			id: recentVisit.id!,
 			entity_name: entityName,
 			entity_identifier: recentVisit.entityId,
-			entity_data: entityData,
+			entity_data: entityData!,
 			visited_at: recentVisit.visitedAt
 		};
 	};

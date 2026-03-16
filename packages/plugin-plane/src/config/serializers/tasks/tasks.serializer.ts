@@ -64,7 +64,7 @@ export const taskRelations = [
 export function issueAssigneesIds(issue: ITask): ID[] {
 	const assignees = issue?.members;
 
-	return assignees?.map((member) => member.id);
+	return assignees?.map((member) => member.id) as string[];
 }
 
 /**
@@ -78,7 +78,7 @@ export function issueAssigneesIds(issue: ITask): ID[] {
 export function issueLabelsIds(issue: ITask): ID[] {
 	const labels = issue?.tags;
 
-	return labels?.map((tag) => tag.id);
+	return labels?.map((tag) => tag.id) as string[];
 }
 
 /**
@@ -106,7 +106,7 @@ export function issueTransformer(
 		state_id: issue?.taskStatusId,
 		sort_order: 65535.0, // TODO : Research usecase and add to API
 		completed_at: issue?.resolvedAt,
-		estimate_point: null, // TODO : Research usecase and add to API
+		estimate_point: undefined, // TODO : Research usecase and add to API
 		priority: issue?.priority?.toLocaleLowerCase() as TaskPriorityEnum,
 		start_date: issue?.startDate,
 		target_date: issue?.dueDate,
@@ -119,8 +119,8 @@ export function issueTransformer(
 			issue?.project?.name?.slice(0, 5).toUpperCase(),
 		parent: {
 			id: issue?.parent?.id,
-			project_id: issue?.parent?.projectId,
-			type_id: issue?.parent?.taskTypeId,
+			project_id: issue?.parent?.projectId!,
+			type_id: issue?.parent?.taskTypeId!,
 			sequence_id: issue?.parent?.number
 		},
 		created_at: issue?.createdAt,
@@ -130,7 +130,7 @@ export function issueTransformer(
 		is_draft: issue?.isDraft,
 		is_subscribed,
 		archived_at: issue?.archivedAt,
-		state__group: stateGroup(issue?.taskStatus),
+		state__group: stateGroup(issue?.taskStatus!),
 		type_id: issue?.taskTypeId,
 		description_html: issue?.description ?? '<p></p>',
 		cycle_id: issue?.organizationSprintId,
@@ -139,9 +139,9 @@ export function issueTransformer(
 		sub_issues_count: issue?.children?.length,
 		assignee_ids: issueAssigneesIds(issue),
 		label_ids: issueLabelsIds(issue),
-		module_ids: issue?.modules?.map(({ id }) => id),
+		module_ids: issue?.modules?.map(({ id }) => id) as string[] | undefined,
 		issue_reactions: reactions || [],
-		issue_relation: issueRelationTransformer(issue?.linkedIssues) || [],
+		issue_relation: issueRelationTransformer(issue?.linkedIssues!) || [],
 		issue_link: links || [],
 		cycle: issue?.organizationSprint,
 		workspace__slug: issue?.tenant?.name?.toLocaleLowerCase()
@@ -164,15 +164,15 @@ export function parentableIssuesTransformer(issues: ITask[]) {
 		start_date: issue.startDate,
 		target_date: issue.dueDate,
 		sequence_id: issue.number,
-		project__name: issue.project.name,
+		project__name: issue.project!.name,
 		project__identifier:
-			issue.project.code ||
+			issue.project!.code ||
 			issue.prefix ||
-			issue.project.name.slice(0, 4).toLocaleUpperCase(),
+			issue.project!.name.slice(0, 4).toLocaleUpperCase(),
 		project_id: issue.projectId,
 		workspace__slug: getCurrentOrganizationSlug(),
 		state__name: issue.taskStatus?.name,
-		state__group: stateGroup(issue.taskStatus),
+		state__group: stateGroup(issue.taskStatus!),
 		state__color: issue.taskStatus?.color,
 		type_id: issue.taskTypeId
 	}));
@@ -185,18 +185,18 @@ export function getGroupKeyForCriteria(
 ): string | string[] {
 	switch (criteria) {
 		case IssueGroupByEnum.ASSIGNEE_ID:
-			return issue.members?.map((member) => member.id) || ['None'];
+			return (issue.members?.map((member) => member.id) || ['None']) as string[];
 		case IssueGroupByEnum.CREATED_BY:
 			const creator = employees?.find(
 				(emp) => emp.userId === issue.createdByUserId
 			);
-			return creator ? creator.id : 'None';
+			return creator ? creator.id as string : 'None';
 		case IssueGroupByEnum.CYCLE_ID:
 			return issue.organizationSprintId || 'None';
 		case IssueGroupByEnum.LABEL_ID:
-			return issue.tags?.map((tag) => tag.id) || ['None'];
+			return (issue.tags?.map((tag) => tag.id) || ['None']) as string[];
 		case IssueGroupByEnum.MODULE_ID:
-			return issue.modules?.map((module) => module.id) || ['None'];
+			return (issue.modules?.map((module) => module.id) || ['None']) as string[];
 		case IssueGroupByEnum.PRIORITY:
 			return issue.priority || 'none';
 		case IssueGroupByEnum.PROJECT_ID:
@@ -204,7 +204,7 @@ export function getGroupKeyForCriteria(
 		case IssueGroupByEnum.STATE:
 			return issue.taskStatusId || 'none';
 		case IssueGroupByEnum.STATE_GROUP:
-			return issue.taskStatus ? stateGroup(issue.taskStatus) : 'none';
+			return issue.taskStatus ? stateGroup(issue.taskStatus) as string : 'none';
 		default:
 			return 'none';
 	}
@@ -458,9 +458,9 @@ export function groupIssuesByStateId(
 ) {
 	return groupIssues(
 		issuesWithLinks,
-		(issue) => issue.taskStatusId, // Define the group by state ID
+		(issue) => issue.taskStatusId!, // Define the group by state ID
 		'state_id',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -479,9 +479,9 @@ export function groupIssuesByStateGroup(
 ): Record<string, any> {
 	return groupIssues(
 		issuesWithLinks,
-		(issue) => stateGroup(issue.taskStatus), // Define the group by state
+		(issue) => stateGroup(issue.taskStatus!)!, // Define the group by state
 		'state__group',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby,
 		{ total_count: 5, next_cursor: '30:1:0', prev_cursor: '30:-1:1' } // Specific values for initial accumulator.
 	);
@@ -505,7 +505,7 @@ export function groupIssuesByPriority(
 		issuesWithLinks,
 		(issue) => issue.priority || 'none', // Define the group by priority
 		'priority',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -528,7 +528,7 @@ export function groupIssuesByProjectId(
 		issuesWithLinks,
 		(issue) => issue.projectId || 'none', // Define the group by project Id
 		'project_id',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -551,7 +551,7 @@ export function groupIssuesByCycleId(
 		issuesWithLinks,
 		(issue) => issue.organizationSprintId || 'None', // Define the group by sprint Id
 		'cycle_id',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -571,13 +571,13 @@ export function groupIssuesByCreatorId(
 	return groupIssues(
 		issuesWithLinks,
 		(issue) => {
-			const member = employees.find(
+			const member = employees!.find(
 				(member) => member.userId === issue.createdByUserId
 			);
 			return member?.id || 'None';
 		},
 		'created_by',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -627,7 +627,7 @@ export function groupIssuesByLabel(
 	return groupIssuesByManyToManyCriteria(
 		issuesWithLinks,
 		'tags',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -647,7 +647,7 @@ export function groupIssuesByAssignee(
 	return groupIssuesByManyToManyCriteria(
 		issuesWithLinks,
 		'members',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -667,7 +667,7 @@ export function groupIssuesByModule(
 	return groupIssuesByManyToManyCriteria(
 		issuesWithLinks,
 		'modules',
-		(issue) => getGroupKeyForCriteria(issue, subGroupby, employees),
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
 		subGroupby
 	);
 }
@@ -682,16 +682,16 @@ export function groupIssuesByTargetDate(issues: ITask[]) {
 		(acc, item) => {
 			const targetDate = item.dueDate?.toString().split('T')[0];
 
-			if (!acc.results[targetDate]) {
-				acc.results[targetDate] = {
+			if (!acc.results[targetDate!]) {
+				acc.results[targetDate!] = {
 					results: [],
 					total_results: 0
 				};
 			}
 			const issue = issueTransformer(item);
 
-			acc.results[targetDate].results.push(issue);
-			acc.results[targetDate].total_results++;
+			acc.results[targetDate!].results.push(issue);
+			acc.results[targetDate!].total_results++;
 
 			acc.total_results++;
 			return acc;
@@ -981,7 +981,7 @@ export const getTaskQuery = (
 	}
 
 	if (creatorId) {
-		query['where[createdByUserId]'] = options.creatorId;
+		query['where[createdByUserId]'] = options!.creatorId;
 	}
 
 	// Handle priority__in filter
@@ -1217,7 +1217,7 @@ export function createIssueInputTransformer(
 
 	// Extract employee IDs mentioned in the issue description
 	const mentionedEmployeeIds = extractEmployeeMentionIds(
-		issue?.description_html
+		issue?.description_html!
 	);
 
 	return {
@@ -1232,7 +1232,7 @@ export function createIssueInputTransformer(
 		members,
 		organizationSprintId: issue?.cycle_id,
 		parentId: issue?.parent_id,
-		taskStatusId: issue?.state_id?.length > 0 ? issue?.state_id : null,
+		taskStatusId: issue?.state_id?.length! > 0 ? issue?.state_id : undefined,
 		tenantId: currentTenantId(),
 		organizationId: getCurrentOrganizationSlug(),
 		...(issue.priority !== ('none' as TaskPriorityEnum) && {
@@ -1294,13 +1294,13 @@ export function updateIssueInputTransformer(
 					status.toLowerCase() === TaskStatusEnum.COMPLETED ||
 					status.toLowerCase() === TaskStatusEnum.DONE
 						? new Date()
-						: null;
+						: undefined;
 			}
 			acc['organizationId'] = getCurrentOrganizationSlug();
 
 			if (issue.module_ids || issue.modules) {
 				acc['modules'] = modules
-					?.filter((module) => modulesIds.includes(module.id))
+					?.filter((module) => modulesIds!.includes(module.id!))
 					?.map((module) => ({ id: module.id, name: module.name }));
 			}
 
@@ -1312,14 +1312,14 @@ export function updateIssueInputTransformer(
 	// Add tags only if label_ids is defined
 	if (issue.label_ids) {
 		transformedInput.tags = tags
-			?.filter((tag) => issue.label_ids.includes(tag.id))
+			?.filter((tag) => issue.label_ids!.includes(tag.id!))
 			?.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
 	}
 
 	// Add members only if assignee_ids is defined
 	if (issue.assignee_ids) {
 		transformedInput.members = members
-			?.filter((member) => issue.assignee_ids.includes(member.id))
+			?.filter((member) => issue.assignee_ids!.includes(member.id!))
 			?.map((employee) => ({
 				id: employee.id,
 				fullName: employee.fullName,
@@ -1354,19 +1354,19 @@ export function getTaskDistribution(tasks: ITask[]) {
 		const category = statusMap[status];
 
 		if (category) {
-			stateDistribution[category].push(task.id);
+			stateDistribution[category].push(task.id!);
 		}
 
-		if (task.taskStatus.isTodo) {
-			stateDistribution['unstarted'].push(task.id);
+		if (task.taskStatus!.isTodo) {
+			stateDistribution['unstarted'].push(task.id!);
 		}
 
-		if (task.taskStatus.isInProgress) {
-			stateDistribution['started'].push(task.id);
+		if (task.taskStatus!.isInProgress) {
+			stateDistribution['started'].push(task.id!);
 		}
 
-		if (task.taskStatus.isDone) {
-			stateDistribution['completed'].push(task.id);
+		if (task.taskStatus!.isDone) {
+			stateDistribution['completed'].push(task.id!);
 		}
 	});
 

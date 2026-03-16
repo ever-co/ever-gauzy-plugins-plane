@@ -11,18 +11,18 @@ export function assigneesActivityTransformer(activityLog: IActivityLog) {
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
 	// Check if 'members' field was updated
-	if (!updatedFields.includes('members')) {
+	if (!updatedFields!.includes('members')) {
 		return null;
 	}
 
 	// Retrieve updated members from updatedValues
-	const updatedEntities = updatedValues.find((value) => 'members' in value);
+	const updatedEntities = updatedValues!.find((value) => 'members' in value);
 	const updatedMembers = updatedEntities
 		? (updatedEntities['members'] as any)
 		: [];
 
 	// Retrieve previous members from previousValues
-	const previousEntities = previousValues.find((value) => 'members' in value);
+	const previousEntities = previousValues!.find((value) => 'members' in value);
 	const previousMembers = previousEntities
 		? (previousEntities['members'] as any)
 		: [];

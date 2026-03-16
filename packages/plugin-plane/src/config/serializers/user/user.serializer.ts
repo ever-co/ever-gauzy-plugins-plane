@@ -49,10 +49,10 @@ export function organizationsTranformer(
 	userOrganizations: IUserOrganization[]
 ) {
 	return userOrganizations.map((userOrganization) => {
-		const organization = userOrganization?.organization;
-		const owner = userOrganization?.organization.employees?.find(
+		const organization = userOrganization?.organization!;
+		const owner = userOrganization?.organization!.employees?.find(
 			(employee) => {
-				const employeeRole = employee.user.role.name;
+				const employeeRole = employee.user!.role!.name;
 				return (
 					employeeRole === RolesEnum.SUPER_ADMIN ||
 					employeeRole === RolesEnum.ADMIN ||
@@ -63,7 +63,7 @@ export function organizationsTranformer(
 
 		return {
 			id: organization?.id,
-			owner: actorDetailsTransformer(owner),
+			owner: actorDetailsTransformer(owner!),
 			total_members: organization?.totalEmployees,
 			// total_issues: organization.tasks.length,
 			created_at: organization?.createdAt,
@@ -74,7 +74,7 @@ export function organizationsTranformer(
 			name: organization?.name,
 			logo: organization?.imageUrl,
 			slug: organization?.id,
-			role: roleTransformer(userOrganization?.user.role),
+			role: roleTransformer(userOrganization?.user!.role!),
 			organization_size: organization?.minimumProjectSize || '11-50'
 			// created_by: organization.createdBy,
 			// updated_by: organization.updatedBy
@@ -89,10 +89,10 @@ export function organizationsTranformer(
  */
 export function userMeTransformer(user: IUser) {
 	return {
-		id: user?.employee.id,
+		id: user?.employee!.id,
 		avatar: user?.imageUrl,
 		cover_image: null,
-		date_joined: user?.employee.startedWorkOn,
+		date_joined: user?.employee!.startedWorkOn,
 		display_name: user?.name,
 		email: user?.email,
 		first_name: user?.firstName,
@@ -132,8 +132,8 @@ export function userProfileTransformer(user: IUser): IUserProfile {
 		billing_address_country: 'INDIA',
 		billing_address: 'My Billing address',
 		has_billing_address: true,
-		company_name: user.tenant.name,
-		user: user.employee?.id
+		company_name: user.tenant!.name,
+		user: user.employee!.id
 	};
 }
 
@@ -157,15 +157,15 @@ export function updateUserProfileInputTranformer(
 
 export function userSettingsTranformer(user: IUser) {
 	return {
-		id: user.employee.id,
+		id: user.employee!.id,
 		email: user.email,
 		workspace: {
 			last_workspace_id: user.lastOrganizationId,
 			last_workspace_slug: user.lastOrganizationId,
 			fallback_workspace_id:
-				user.defaultOrganizationId ?? user.employee.organizationId,
+				user.defaultOrganizationId ?? user.employee!.organizationId,
 			fallback_workspace_slug:
-				user.defaultOrganizationId ?? user.employee.organizationId,
+				user.defaultOrganizationId ?? user.employee!.organizationId,
 			invites: user.invites
 		}
 	};
@@ -196,7 +196,7 @@ export function memberPropertiesSerializer(
 		created_at: memberSetting?.createdAt,
 		updated_at: memberSetting?.updatedAt,
 		deleted_at: memberSetting?.deletedAt,
-		role: roleTransformer(memberSetting?.employee.user.role),
+		role: roleTransformer(memberSetting?.employee!.user!.role!),
 		company_role: '',
 		view_props: {
 			...employeeSettingSerializer(memberSetting)
@@ -215,7 +215,7 @@ export function memberPropertiesSerializer(
 		workspace_info: {
 			id: memberSetting?.organizationId,
 			slug: memberSetting?.organizationId,
-			name: memberSetting?.organization.name
+			name: memberSetting?.organization!.name
 		},
 		member: employeeId
 	};

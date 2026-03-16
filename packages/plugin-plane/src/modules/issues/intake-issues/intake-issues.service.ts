@@ -46,7 +46,7 @@ export class IntakeIssuesService extends ApiFetchService {
 		projectId: ID
 	): Promise<IIntakeIssue | IIntakeIssue[]> {
 		try {
-			const { state_id } = input.issue;
+			const { state_id } = input.issue!;
 
 			// Set default status
 			let state: IState = { name: TaskStatusEnum.BACKLOG };

@@ -457,7 +457,7 @@ export class AuthService extends ApiFetchService {
 						data: settingViewProps,
 						defaultData: settingViewProps,
 						employee: { id: employee.id },
-						employeeId: employee.id
+						employeeId: employee.id!
 					},
 					token,
 					tenantId,

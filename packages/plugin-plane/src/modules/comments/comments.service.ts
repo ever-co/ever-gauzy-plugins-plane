@@ -215,14 +215,14 @@ export class CommentsService extends ApiFetchService {
 			const reaction = await this._reactionService.create(
 				input,
 				ReactionEntityEnum.Comment,
-				entityId
+				entityId!
 			);
 
 			// Reaction details
-			const { project, workspace } = await this.getCommentReactionDetails(
-				projectId,
-				reaction.employeeId
-			);
+		const { project, workspace } = await this.getCommentReactionDetails(
+			projectId,
+			reaction.employeeId!
+		);
 
 			// Transform Reaction
 			const transformedReaction = reactionTransformer(
@@ -263,12 +263,12 @@ export class CommentsService extends ApiFetchService {
 			const workspace = {
 				name: tenant?.name,
 				id: tenant?.id,
-				slug: tenant?.name.toLowerCase()
+				slug: tenant!.name!.toLowerCase()
 			};
 
 			// Find actor by userId
-			const actor = project.members.find(
-				(member) => member.employee.userId === creatorId
+			const actor = project.members!.find(
+				(member) => member.employee!.userId === creatorId
 			)?.employee;
 
 			return { project, workspace, actor };
@@ -300,7 +300,7 @@ export class CommentsService extends ApiFetchService {
 					const { project, workspace } =
 						await this.getCommentReactionDetails(
 							projectId,
-							reaction.employeeId
+							reaction.employeeId!
 						);
 
 					const transformedReaction = reactionTransformer(

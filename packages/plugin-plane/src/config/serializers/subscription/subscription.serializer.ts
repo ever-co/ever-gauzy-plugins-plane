@@ -24,7 +24,7 @@ import { baseGetItemsWhereQuery } from '../query-params.serializers';
  */
 export function createSubscriptionTransformer(
 	entityId: ID,
-	userId: ID = currentUserId()
+	userId: ID = currentUserId()!
 ): ISubscriptionCreateInput {
 	return {
 		entity: BaseEntityEnum.Task,
@@ -48,12 +48,12 @@ export function subscriptionTransformer(
 	const transformSubscription = (
 		subscription: ISubscription
 	): ISubscriber => ({
-		id: subscription.id,
+		id: subscription.id!,
 		created_at: subscription.createdAt,
 		updated_at: subscription.updatedAt,
 		deleted_at: subscription.deletedAt,
 		created_by: subscription.userId,
-		updated_by: null,
+		updated_by: undefined,
 		project: projectId,
 		workspace: subscription.organizationId,
 		issue: subscription.entityId,

@@ -151,7 +151,7 @@ export class ProjectService extends ApiFetchService {
 	async getEmployeeProjects(relations?: string[]): Promise<IProject[]> {
 		try {
 			const employeeProjects = await this.getExternalProjectsByEmployee(
-				currentEmployeeId(),
+				currentEmployeeId()!,
 				relations
 			);
 
@@ -250,7 +250,7 @@ export class ProjectService extends ApiFetchService {
 			return members?.map((member) => {
 				if (typeof member !== 'string') {
 					return {
-						id: member.employee?.user.id || member.employee?.userId,
+						id: member.employee?.user!.id || member.employee?.userId,
 						original_role: member.isManager ? 20 : 15,
 						member: member.employeeId,
 						role: member.isManager ? 20 : 15,
@@ -258,12 +258,13 @@ export class ProjectService extends ApiFetchService {
 						project: project.id
 					};
 				}
-			});
+			}) as IGetProjectMembersResponse[];
 		} catch (error) {
 			this.logger.error(
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
+			return undefined as any;
 		}
 	}
 
@@ -291,7 +292,7 @@ export class ProjectService extends ApiFetchService {
 			if (error instanceof BadRequestException) {
 				throw error;
 			}
-			return;
+			return undefined as any;
 		}
 
 		// Construct the body request
@@ -456,14 +457,14 @@ export class ProjectService extends ApiFetchService {
 			]);
 
 			// Retrieve current member information from the project
-			const memberInfos = project.members.find(
+			const memberInfos = project.members!.find(
 				(member) => member.employeeId === employeeId
 			);
 
 			// Construct and return the response object
 			return {
-				member: memberInfos.employeeId,
-				role: memberInfos.isManager ? 20 : 15
+				member: memberInfos!.employeeId,
+				role: memberInfos!.isManager ? 20 : 15
 			};
 		} catch (error) {
 			throw new BadRequestException(error);
@@ -483,7 +484,7 @@ export class ProjectService extends ApiFetchService {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: currentEmployeeId()!,
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -502,8 +503,8 @@ export class ProjectService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: currentEmployeeId() },
-						employeeId: currentEmployeeId()
+						employee: { id: currentEmployeeId() ?? undefined },
+						employeeId: currentEmployeeId()!
 					});
 
 				return employeeSettingSerializer(moduleMemberSetting);
@@ -546,7 +547,7 @@ export class ProjectService extends ApiFetchService {
 			// Find existing employee settings for the given project
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: currentEmployeeId()!,
 					entity: BaseEntityEnum.OrganizationProject,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -559,7 +560,7 @@ export class ProjectService extends ApiFetchService {
 					any
 				>;
 				memberSetting = await this._employeePropertiesService.update(
-					memberSetting.id,
+					memberSetting.id!,
 					{
 						...memberSetting,
 						data: {
@@ -584,8 +585,8 @@ export class ProjectService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeId() },
-					employeeId: currentEmployeeId()
+					employee: { id: currentEmployeeId() ?? undefined },
+					employeeId: currentEmployeeId()!
 				});
 			}
 			// Serialize and return the updated/created employee setting.

@@ -31,18 +31,18 @@ export function manyToManyFieldActivityTransformer<T>(
 	const { updatedFields, updatedValues, previousValues } = activityLog;
 
 	// Check if the field was updated
-	if (!updatedFields.includes(fieldName)) {
-		return null;
+	if (!updatedFields!.includes(fieldName)) {
+		return { added: null, removed: null };
 	}
 
 	// Retrieve updated items from 'updatedValues'
-	const updatedEntities = updatedValues.find((value) => fieldName in value);
+	const updatedEntities = updatedValues!.find((value) => fieldName in value);
 	const updatedItems = updatedEntities
 		? (updatedEntities[fieldName] as T[])
 		: [];
 
 	// Retrieve previous items from 'previousValues'
-	const previousEntities = previousValues.find((value) => fieldName in value);
+	const previousEntities = previousValues!.find((value) => fieldName in value);
 	const previousItems = previousEntities
 		? (previousEntities[fieldName] as T[])
 		: [];

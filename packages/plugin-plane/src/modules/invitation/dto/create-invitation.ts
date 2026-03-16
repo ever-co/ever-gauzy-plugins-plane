@@ -13,7 +13,7 @@ export class CreateInvitationDTO implements ICreateWorkspaceInvitationInput {
 	})
 	@IsString()
 	@IsNotEmpty()
-	email: string;
+	email!: string;
 
 	@ApiProperty({
 		type: () => Number,
@@ -22,5 +22,5 @@ export class CreateInvitationDTO implements ICreateWorkspaceInvitationInput {
 	})
 	@IsNumber()
 	@IsNotEmpty()
-	role: number;
+	role!: number;
 }

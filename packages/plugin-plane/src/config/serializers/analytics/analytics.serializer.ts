@@ -161,8 +161,8 @@ export function transformToWorkItemStats(
 
 		result.push({
 			display_name: data.displayName,
-			assignee_id: assigneeId === 'unassigned' ? null : assigneeId,
-			avatar_url: data.avatarUrl || null,
+			assignee_id: assigneeId === 'unassigned' ? undefined : assigneeId,
+			avatar_url: data.avatarUrl || undefined,
 			cancelled_work_items: counts.cancelled,
 			completed_work_items: counts.completed,
 			backlog_work_items: counts.backlog,

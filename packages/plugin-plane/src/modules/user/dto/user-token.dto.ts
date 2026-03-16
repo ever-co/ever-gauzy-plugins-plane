@@ -9,5 +9,5 @@ export class UserTokenDTO implements IUserTokenInput {
 	@ApiProperty({ type: () => String })
 	@IsNotEmpty()
 	@IsString()
-	readonly token: string;
+	readonly token!: string;
 }

@@ -194,8 +194,8 @@ export class ProjectModuleService extends ApiFetchService {
 
 			// Identify the lead (manager) if lead_id is provided in input
 			const lead = input.lead_id
-				? project.members.find(
-						(member) => member.employee.id === input.lead_id
+				? project.members!.find(
+						(member) => member.employee!.id === input.lead_id
 					)
 				: undefined;
 
@@ -256,7 +256,7 @@ export class ProjectModuleService extends ApiFetchService {
 		try {
 			const memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: currentEmployeeId()!,
 					entity: BaseEntityEnum.OrganizationProjectModule,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -276,8 +276,8 @@ export class ProjectModuleService extends ApiFetchService {
 						settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 						data: MEMBER_DEFAULT_VIEW_PROPS,
 						defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-						employee: { id: currentEmployeeId() },
-						employeeId: currentEmployeeId()
+						employee: { id: currentEmployeeId() ?? undefined },
+						employeeId: currentEmployeeId()!
 					});
 
 				return employeeSettingSerializer(moduleMemberSetting);
@@ -316,7 +316,7 @@ export class ProjectModuleService extends ApiFetchService {
 			// Find existing employee settings for the given project module
 			let memberSetting =
 				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId(),
+					employeeId: currentEmployeeId()!,
 					entity: BaseEntityEnum.OrganizationProjectModule,
 					entityId: id,
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
@@ -329,7 +329,7 @@ export class ProjectModuleService extends ApiFetchService {
 					any
 				>;
 				memberSetting = await this._employeePropertiesService.update(
-					memberSetting.id,
+					memberSetting.id!,
 					{
 						...memberSetting,
 						data: {
@@ -354,8 +354,8 @@ export class ProjectModuleService extends ApiFetchService {
 					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
 					data: MEMBER_DEFAULT_VIEW_PROPS,
 					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeId() },
-					employeeId: currentEmployeeId()
+					employee: { id: currentEmployeeId() ?? undefined },
+					employeeId: currentEmployeeId()!
 				});
 			}
 			// Serialize and return the updated/created employee setting.

@@ -35,6 +35,7 @@ import {
 	ISubscriber,
 	ITask,
 	ITaskDateFilterInput,
+	IEmployee,
 	ReactionEntityEnum,
 	TaskStatusEnum
 } from '@ever-gauzy/plugin-integration-plane-models';
@@ -114,7 +115,7 @@ export class IssuesService extends ApiFetchService {
 		isDraft?: boolean
 	): Promise<ITask> {
 		const query = qs.stringify(
-			getTaskQuery(null, {}, relations, null, isDraft)
+			getTaskQuery(undefined, {}, relations, undefined, isDraft)
 		);
 		return (
 			await this.apiFetch({
@@ -142,7 +143,7 @@ export class IssuesService extends ApiFetchService {
 	): Promise<IPagination<ITask>> {
 		try {
 			const query = qs.stringify(
-				getTaskQuery(null, options, relations, orderByField, isDraft)
+				getTaskQuery(undefined, options, relations, orderByField, isDraft)
 			);
 
 			return (
@@ -174,7 +175,7 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Build query for task retrieval
 			const query = qs.stringify(
-				getTaskQuery(null, {}, relations, orderByField, false)
+				getTaskQuery(undefined, {}, relations, orderByField, false)
 			);
 
 			// Fetch tasks for the authenticated employee
@@ -255,7 +256,7 @@ export class IssuesService extends ApiFetchService {
 					entityId: id,
 					entity: ReactionEntityEnum.Task
 				},
-				issue.projectId,
+				issue.projectId!,
 				isDraft
 			);
 
@@ -263,12 +264,12 @@ export class IssuesService extends ApiFetchService {
 			const subscriptions = await this._subscriptionService.findAll({
 				entity: BaseEntityEnum.Task,
 				entityId: issue.id,
-				userId: currentUserId()
+				userId: currentUserId() ?? undefined
 			});
 			const isSubscribed = subscriptions && subscriptions.length > 0;
 
 			// Find issue links
-			const links = await this.findIssueLinks(id, issue.projectId, issue);
+			const links = await this.findIssueLinks(id, issue.projectId!, issue);
 
 			return issueTransformer(issue, reactions, links, isSubscribed);
 		} catch (error: any) {
@@ -293,7 +294,7 @@ export class IssuesService extends ApiFetchService {
 			// Set default status
 			let state: IState = { name: TaskStatusEnum.BACKLOG };
 			if (state_id && state_id.length > 0) {
-				state = await this._stateSerive.getOne(input.state_id);
+				state = await this._stateSerive.getOne(input.state_id!);
 			}
 
 			const body = createIssueInputTransformer(
@@ -344,7 +345,7 @@ export class IssuesService extends ApiFetchService {
 
 			try {
 				if (input.state_id) {
-					state = await this._stateSerive.getOne(input.state_id);
+					state = await this._stateSerive.getOne(input.state_id!);
 				}
 			} catch (error: any) {
 				this.logger.warn(
@@ -355,7 +356,7 @@ export class IssuesService extends ApiFetchService {
 			// Retrieve the existing issue and external issue details simultaneously
 			const [issue, externalIssue] = await Promise.all([
 				this.findOne(id, isDraft),
-				this.getExternalIssue(id, null, isDraft)
+				this.getExternalIssue(id, undefined, isDraft)
 			]);
 
 			if (!issue) {
@@ -365,7 +366,7 @@ export class IssuesService extends ApiFetchService {
 			// Find labels
 			const labelResult =
 				await this._issueLabelService.getProjectIssueLabels(
-					issue.project_id
+					issue.project_id!
 				);
 			const labels: IIssueLabel[] = Array.isArray(labelResult)
 				? labelResult
@@ -373,7 +374,7 @@ export class IssuesService extends ApiFetchService {
 
 			// Find project
 			const project = await this._projectService.getExternalProject(
-				issue.project_id,
+				issue.project_id!,
 				['modules', 'members.employee']
 			);
 
@@ -390,10 +391,10 @@ export class IssuesService extends ApiFetchService {
 			const body = updateIssueInputTransformer(
 				input,
 				state?.name as TaskStatusEnum,
-				project.members?.map((member) => member.employee),
+				project.members?.map((member) => member.employee) as IEmployee[] | undefined,
 				labels,
-				Array.from(modules),
-				project.modules
+			Array.from(modules) as string[],
+			project.modules
 			);
 
 			const task = (
@@ -408,7 +409,7 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 
-			const updatedTask = await this.getExternalIssue(task.id, null);
+			const updatedTask = await this.getExternalIssue(task.id, undefined);
 
 			return issueTransformer(updatedTask);
 		} catch (error: any) {
@@ -439,7 +440,7 @@ export class IssuesService extends ApiFetchService {
 				(sub_issue_ids ?? []).map(async (issueId) => {
 					const issue = await this.getExternalIssue(
 						issueId,
-						null,
+						undefined,
 						false
 					);
 
@@ -493,8 +494,8 @@ export class IssuesService extends ApiFetchService {
 		try {
 			// Extract the view ID from the referer if it exists
 			const viewId =
-				extractViewIdFromReferer(referer) ??
-				extractWorkspaceViewIdFromReferer(referer);
+				extractViewIdFromReferer(referer!) ??
+				extractWorkspaceViewIdFromReferer(referer!);
 
 			// Destructure options for group_by and module if provided
 			const {
@@ -506,11 +507,11 @@ export class IssuesService extends ApiFetchService {
 				start_date,
 				target_date,
 				type
-			} = options;
+			} = options!;
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
-				getTaskQuery(projectId, options, null, null, false)
+				getTaskQuery(projectId, options, undefined, undefined, false)
 			);
 
 			let path = '';
@@ -598,10 +599,10 @@ export class IssuesService extends ApiFetchService {
 					issues = issues.filter(
 						(task) =>
 							taskIds.has(task.id) &&
-							task.members.some(
+							task.members!.some(
 								(member) =>
-									mentionIds.includes(member.id) &&
-									mentionedUserIds.has(member.userId)
+									mentionIds.includes(member.id!) &&
+									mentionedUserIds.has(member.userId!)
 							)
 					);
 				} catch (error) {
@@ -631,10 +632,10 @@ export class IssuesService extends ApiFetchService {
 			);
 
 			const project = await this._projectService.getExternalProject(
-				projectId,
+				projectId!,
 				['members.employee']
 			);
-			const employees = project.members.map((member) => member.employee);
+			const employees = project.members!.map((member) => member.employee) as IEmployee[];
 			switch (group_by) {
 				case IssueGroupByEnum.STATE:
 					return groupIssuesByStateId(
@@ -709,14 +710,14 @@ export class IssuesService extends ApiFetchService {
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}
-			if (issue.children.length > 0) {
+			if (issue.children!.length > 0) {
 				const children = issue.children;
-				children.forEach((task) =>
+				children!.forEach((task) =>
 					sub_issues.push(issueTransformer(task))
 				);
 			}
 
-			const stateDistribution = getTaskDistribution(issue.children);
+			const stateDistribution = getTaskDistribution(issue.children!);
 
 			return { sub_issues, state_distribution: stateDistribution };
 		} catch (error) {
@@ -745,7 +746,7 @@ export class IssuesService extends ApiFetchService {
 	): Promise<IIssue[]> {
 		try {
 			const query = qs.stringify(
-				getTaskQuery(null, options, relations, null, isDraft)
+				getTaskQuery(undefined, options, relations, undefined, isDraft)
 			);
 
 			const tasks: IPagination<ITask> = (
@@ -898,9 +899,9 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
-			const projectMembers = task.project.members.map(
+			const projectMembers = task.project!.members!.map(
 				(member) => member.employee
-			);
+			) as IEmployee[];
 
 			// Create comment
 			const comment = await this._commentService.create(
@@ -913,8 +914,8 @@ export class IssuesService extends ApiFetchService {
 			const { issue, project, workspace } =
 				await this.getIssueCommentDetails(
 					entityId,
-					task.projectId,
-					comment.employee?.id,
+					task.projectId!,
+					comment.employee?.id!,
 					task,
 					task.project
 				);
@@ -922,14 +923,14 @@ export class IssuesService extends ApiFetchService {
 			const transformedComment = issueCommentTrasnsformer(
 				comment,
 				issue,
-				project,
+				project!,
 				workspace,
 				[], // On creation, comment has no reaction yet
-				project.members
-					.map((member) => member.employee)
+				project!.members!
+					.map((member) => member.employee!)
 					.filter(
 						(employee) =>
-							employee.userId === comment.createdByUserId
+							employee!.userId === comment.createdByUserId
 					)[0]
 			);
 
@@ -981,7 +982,7 @@ export class IssuesService extends ApiFetchService {
 				await this.getIssueCommentDetails(
 					updatedComment.entityId,
 					projectId,
-					updatedComment.employeeId
+					updatedComment.employeeId!
 				);
 
 			const reactions = await this._commentService.findCommentReactions(
@@ -995,14 +996,14 @@ export class IssuesService extends ApiFetchService {
 			const transformedComment = issueCommentTrasnsformer(
 				updatedComment,
 				issue,
-				project,
+				project!,
 				workspace,
 				reactions,
-				project.members
-					.map((member) => member.employee)
+				project!.members!
+					.map((member) => member.employee!)
 					.filter(
 						(employee) =>
-							employee.userId === comment.createdByUserId
+							employee!.userId === comment.createdByUserId
 					)[0]
 			);
 
@@ -1043,14 +1044,14 @@ export class IssuesService extends ApiFetchService {
 			const comments = await this._commentService.findAll(options);
 
 			const task = await this.getExternalIssue(
-				options.entityId,
+				options.entityId!,
 				['project.members.employee.user.role', 'project.organization'],
 				false
 			);
 
-			const projectMembers = task.project.members.map(
+			const projectMembers = task.project!.members!.map(
 				(member) => member.employee
-			);
+			) as IEmployee[];
 
 			const issueComments: IIssueComment[] = await Promise.all(
 				(comments ?? []).map(async (comment) => {
@@ -1065,21 +1066,21 @@ export class IssuesService extends ApiFetchService {
 
 					const { issue, project, workspace } =
 						await this.getIssueCommentDetails(
-							options.entityId,
+							options.entityId!,
 							projectId,
-							comment.employeeId,
+							comment.employeeId!,
 							task,
 							task.project
 						);
 					const transformedComment = issueCommentTrasnsformer(
 						comment,
 						issue,
-						project,
+						project!,
 						workspace,
 						reactions,
 						projectMembers.filter(
 							(employee) =>
-								employee.userId === comment.createdByUserId
+								employee!.userId === comment.createdByUserId
 						)[0]
 					);
 					return Array.isArray(transformedComment)
@@ -1117,9 +1118,9 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
-			const projectEmployees = task.project.members.map(
+			const projectEmployees = task.project!.members!.map(
 				(member) => member.employee
-			);
+			) as IEmployee[];
 
 			// Collect all the IDs of parents mentioned in the logs
 			const parentIds = new Set<string>();
@@ -1151,7 +1152,7 @@ export class IssuesService extends ApiFetchService {
 				);
 
 				parents.items.forEach((parent) => {
-					parentTasks.set(parent.id, parent);
+					parentTasks.set(parent.id!, parent);
 				});
 			}
 
@@ -1161,7 +1162,7 @@ export class IssuesService extends ApiFetchService {
 						await this.getIssueCommentDetails(
 							id,
 							projectId,
-							activityLog.employeeId,
+							activityLog.employeeId!,
 							task,
 							task.project
 						);
@@ -1177,23 +1178,23 @@ export class IssuesService extends ApiFetchService {
 						updatedSprintObj &&
 						updatedSprintObj.organizationSprintId
 					) {
-						updatedSprint = task.taskSprintHistories.find(
-							(sprint) =>
-								sprint.toSprintId ===
-								updatedSprintObj.organizationSprintId
-						)?.toSprint;
-					}
+					updatedSprint = (task.taskSprintHistories!.find(
+						(sprint) =>
+							sprint.toSprintId ===
+							updatedSprintObj.organizationSprintId
+					)?.toSprint ?? null) as any;
+				}
 
-					const transformedActivityLogs = issueActivityLogTransformer(
-						activityLog,
-						issue,
-						actor,
-						project,
+				const transformedActivityLogs = issueActivityLogTransformer(
+					activityLog,
+					issue,
+					actor!,
+					project!,
 						workspace,
-						updatedSprint ? updatedSprint : task.organizationSprint,
+						updatedSprint ? updatedSprint : task.organizationSprint!,
 						projectEmployees.filter(
 							(employee) =>
-								employee.userId === activityLog.createdByUserId
+								employee!.userId === activityLog.createdByUserId
 						)[0],
 						projectEmployees,
 						parentTasks
@@ -1224,7 +1225,7 @@ export class IssuesService extends ApiFetchService {
 								await this.getIssueCommentDetails(
 									id,
 									projectId,
-									log.employeeId,
+									log.employeeId!,
 									task,
 									task.project
 								);
@@ -1233,12 +1234,12 @@ export class IssuesService extends ApiFetchService {
 								logs,
 								link,
 								issue,
-								actor,
-								project,
+								actor!,
+								project!,
 								workspace,
 								projectEmployees.filter(
 									(employee) =>
-										employee.userId === log.createdByUserId
+										employee!.userId === log.createdByUserId
 								)[0]
 							);
 						})
@@ -1264,7 +1265,7 @@ export class IssuesService extends ApiFetchService {
 								await this.getIssueCommentDetails(
 									id,
 									projectId,
-									log.employeeId,
+									log.employeeId!,
 									task,
 									task.project
 								);
@@ -1273,12 +1274,12 @@ export class IssuesService extends ApiFetchService {
 								logs,
 								issueRelation,
 								issue,
-								actor,
-								project,
+								actor!,
+								project!,
 								workspace,
 								projectEmployees.filter(
 									(employee) =>
-										employee.userId === log.createdByUserId
+										employee!.userId === log.createdByUserId
 								)[0]
 							);
 						})
@@ -1331,7 +1332,7 @@ export class IssuesService extends ApiFetchService {
 			const { project, workspace } = await this.getIssueCommentDetails(
 				entityId,
 				projectId,
-				reaction.employeeId,
+				reaction.employeeId!,
 				task,
 				task.project
 			);
@@ -1339,7 +1340,7 @@ export class IssuesService extends ApiFetchService {
 			// Transform Reaction
 			const transformedReaction = reactionTransformer(
 				reaction,
-				project,
+				project!,
 				workspace
 			);
 
@@ -1369,7 +1370,7 @@ export class IssuesService extends ApiFetchService {
 	): Promise<any> {
 		try {
 			const task = await this.getExternalIssue(
-				options.entityId,
+				options.entityId!,
 				['project.members.employee.user.role', 'project.organization'],
 				isDraft
 			);
@@ -1380,16 +1381,16 @@ export class IssuesService extends ApiFetchService {
 				(reactions ?? []).map(async (reaction) => {
 					const { project, workspace } =
 						await this.getIssueCommentDetails(
-							options.entityId,
+							options.entityId!,
 							projectId,
-							reaction.employeeId,
+							reaction.employeeId!,
 							task,
 							task.project
 						);
 
 					const transformedReaction = reactionTransformer(
 						reaction,
-						project,
+						project!,
 						workspace
 					);
 
@@ -1480,7 +1481,7 @@ export class IssuesService extends ApiFetchService {
 
 			// remote issue to find creator member if no task provided
 			if (!task) {
-				task = await this.getExternalIssue(id, null, false);
+				task = await this.getExternalIssue(id, undefined, false);
 			}
 
 			// Commented issue
@@ -1543,7 +1544,7 @@ export class IssuesService extends ApiFetchService {
 			const { actor, project } = await this.getIssueCommentDetails(
 				id,
 				projectId,
-				link.employeeId,
+				link.employeeId!,
 				task,
 				task.project
 			);
@@ -1583,7 +1584,7 @@ export class IssuesService extends ApiFetchService {
 			const link = await this._issueLinkService.update(
 				id,
 				issueId,
-				null,
+				'' as any,
 				input,
 				BaseEntityEnum.Task
 			);
@@ -1592,7 +1593,7 @@ export class IssuesService extends ApiFetchService {
 			const { actor, project } = await this.getIssueCommentDetails(
 				issueId,
 				projectId,
-				link.employeeId
+				link.employeeId!
 			);
 
 			// Transform Link
@@ -1630,7 +1631,7 @@ export class IssuesService extends ApiFetchService {
 						await this.getIssueCommentDetails(
 							id,
 							projectId,
-							link.employeeId,
+							link.employeeId!,
 							issue,
 							issue.project
 						);
@@ -1719,7 +1720,7 @@ export class IssuesService extends ApiFetchService {
 		return await this._subscriptionService.unsubscribe({
 			entity: BaseEntityEnum.Task,
 			entityId: issueId,
-			userId: currentUserId()
+			userId: currentUserId() ?? undefined
 		});
 	}
 
@@ -1740,8 +1741,8 @@ export class IssuesService extends ApiFetchService {
 			}
 
 			return {
-				sequence_id: issue.number,
-				project_identifier: issue.project.code
+				sequence_id: issue.number!,
+				project_identifier: issue.project!.code!
 			};
 		} catch (error) {
 			this.logger.error(

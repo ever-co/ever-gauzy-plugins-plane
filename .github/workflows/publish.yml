@@ -46,9 +46,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build
-        run: |
-          npx tsc -p tsconfig.json > /dev/null 2>&1 || true
-          test -f dist/packages/plugin-plane/src/index.js && echo "Build OK" || { echo "::error::Build failed"; exit 1; }
+        run: npx tsc -p tsconfig.json
 
       - name: Prepare and publish models
         working-directory: packages/models

@@ -10,5 +10,5 @@ export class DeleteIssueRelationDTO
 	@ApiProperty({ type: () => String })
 	@IsUUID()
 	@IsNotEmpty()
-	related_issue: string;
+	related_issue!: string;
 }

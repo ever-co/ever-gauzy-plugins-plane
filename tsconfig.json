@@ -28,5 +28,5 @@
     "useDefineForClassFields": false
   },
   "include": ["packages/**/*", "apps/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.e2e-spec.ts", "**/test/**"]
 }

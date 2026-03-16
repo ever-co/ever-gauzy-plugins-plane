@@ -56,8 +56,8 @@ export function issueCommentTrasnsformer(
 			external_source: null,
 			external_id: null,
 			created_by: comment.createdByUserId,
-			updated_by: null,
-			project: project.id,
+		updated_by: undefined,
+		project: project.id,
 			workspace: workspace_detail.id,
 			issue: issue.id,
 			actor: comment.employeeId || employee.id
@@ -93,8 +93,8 @@ export function createCommentInputTransformer(
 
 	// Map employee IDs to user IDs
 	const mentionUserIds = employees
-		?.filter(({ id }) => mentionedEmployeeIds.includes(id)) // Filter only employees who are mentioned
-		.map((employee) => employee.userId) // Map to corresponding user IDs
+		?.filter(({ id }) => mentionedEmployeeIds.includes(id!)) // Filter only employees who are mentioned
+		.map((employee) => employee.userId!) // Map to corresponding user IDs
 		.filter((userId): userId is ID => !!userId); // Ensure user IDs are valid (non-null/undefined)
 
 	return {

@@ -189,7 +189,7 @@ export class IssueViewService extends ApiFetchService {
 	 */
 	async findOne(id?: ID, projectId?: ID): Promise<IView | IView[]> {
 		try {
-			const view = await this.getExternalView(id, projectId);
+			const view = await this.getExternalView(id!, projectId);
 
 			// Search for user favorites
 			const favoriteIds =

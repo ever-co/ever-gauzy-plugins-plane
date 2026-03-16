@@ -22,7 +22,7 @@ export class CycleDTO implements ICycle {
 	@ApiPropertyOptional({ type: () => String })
 	@IsOptional()
 	@IsString()
-	name: string;
+	name!: string;
 
 	@ApiPropertyOptional({ type: () => String })
 	@IsOptional()
@@ -44,7 +44,7 @@ export class CycleDTO implements ICycle {
 	@ApiPropertyOptional({ enum: CycleStatusEnum })
 	@IsEnum(CycleStatusEnum)
 	@IsOptional()
-	status: CycleStatusEnum;
+	status!: CycleStatusEnum;
 
 	@ApiPropertyOptional({ type: () => Number })
 	@IsOptional()

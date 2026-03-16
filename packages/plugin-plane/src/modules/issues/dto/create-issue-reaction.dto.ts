@@ -6,5 +6,5 @@ export class CreateIssueReactionDTO implements ICreateReactionInput {
 	@ApiProperty({ type: () => String })
 	@IsString()
 	@IsNotEmpty()
-	reaction: string;
+	reaction!: string;
 }

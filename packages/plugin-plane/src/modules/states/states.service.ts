@@ -102,6 +102,7 @@ export class StatesService extends ApiFetchService {
 					query
 				})
 			).data;
+
 			return getStatesTransformer(states.items);
 		} catch (error) {
 			this.logger.error(

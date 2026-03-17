@@ -1,3 +1,5 @@
+import type * as http from 'http';
+
 export const PLANE_PLUGIN_OPTIONS = Symbol('PLANE_PLUGIN_OPTIONS');
 
 export interface PlanePluginOptions {
@@ -61,6 +63,25 @@ export interface PlanePluginOptions {
 	 */
 	posthogHost?: string;
 }
+
+/**
+ * Callback that resolves tenant-specific configuration per incoming request.
+ * Provided by the host application (e.g. Gauzy plugin) when mounting the proxy.
+ * The host reads apiKey, apiSecret, clientUrls, etc. from its database
+ * based on the tenant identified in the request.
+ */
+export type ResolveConfigFn = (
+	req: http.IncomingMessage
+) => PlanePluginOptions | Promise<PlanePluginOptions>;
+
+/**
+ * Extracts a tenant identifier from the incoming request.
+ * Used as the cache key when `cacheTtl` is enabled.
+ * Return `undefined` to skip caching for a given request.
+ */
+export type ExtractTenantIdFn = (
+	req: http.IncomingMessage
+) => string | undefined;
 
 export interface PlanePluginAsyncOptions {
 	imports?: any[];

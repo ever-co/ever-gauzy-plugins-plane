@@ -47,6 +47,7 @@ export enum TaskStatusEnum {
 	BLOCKED = 'blocked',
 	DONE = 'done',
 	COMPLETED = 'completed',
+	CANCELLED = 'cancelled',
 	CUSTOM = 'custom'
 }
 

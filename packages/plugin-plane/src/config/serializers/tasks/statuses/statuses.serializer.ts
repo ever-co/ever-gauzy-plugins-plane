@@ -19,26 +19,37 @@ function capitalizeWords(word: string) {
 }
 
 /**
- * From external API, transform template to group
+ * From external API, transform template to group.
+ * Gauzy does not persist the template field — it only stores the workflow flags
+ * (isTodo, isInProgress, isDone). We first try an exact match on template/value,
+ * then fall back to those flags so the group survives page reloads.
  */
 export function stateGroup(state: ITaskStatus) {
 	const templateOrValue = state?.template || state?.value;
 
-	if (!templateOrValue) return undefined;
-
 	const groupMapping: { [key: string]: string } = {
-		[TaskStatusEnum.BACKLOG]: TaskStatusEnum.BACKLOG,
+		[TaskStatusEnum.BACKLOG]: 'backlog',
 		'to-do': 'unstarted',
 		[TaskStatusEnum.OPEN]: 'unstarted',
 		[TaskStatusEnum.IN_PROGRESS]: 'started',
 		[TaskStatusEnum.READY_FOR_REVIEW]: 'started',
 		[TaskStatusEnum.IN_REVIEW]: 'started',
 		[TaskStatusEnum.BLOCKED]: 'started',
-		[TaskStatusEnum.DONE]: TaskStatusEnum.COMPLETED,
-		[TaskStatusEnum.COMPLETED]: TaskStatusEnum.COMPLETED
+		[TaskStatusEnum.DONE]: 'completed',
+		[TaskStatusEnum.COMPLETED]: 'completed',
+		[TaskStatusEnum.CANCELLED]: 'cancelled'
 	};
 
-	return groupMapping[templateOrValue] || TaskStatusEnum.CUSTOM;
+	if (templateOrValue && groupMapping[templateOrValue]) {
+		return groupMapping[templateOrValue];
+	}
+
+	// Derive group from persisted workflow flags
+	if (state?.isInProgress) return 'started';
+	if (state?.isDone) return 'completed';
+	if (state?.isTodo) return 'unstarted';
+
+	return TaskStatusEnum.CUSTOM;
 }
 
 // Transform group to template
@@ -47,12 +58,13 @@ export const mapGroupToTemplate = (group: string): TaskStatusEnum => {
 	const groupToTemplateMapping: { [key: string]: TaskStatusEnum } = {
 		backlog: TaskStatusEnum.BACKLOG,
 		unstarted: TaskStatusEnum.OPEN,
-		started: TaskStatusEnum.IN_PROGRESS, // Default for 'started' group
+		started: TaskStatusEnum.IN_PROGRESS,
 		completed: TaskStatusEnum.COMPLETED,
+		cancelled: TaskStatusEnum.CANCELLED,
 		custom: TaskStatusEnum.CUSTOM
 	};
 
-	return groupToTemplateMapping[group] || TaskStatusEnum.CUSTOM; // if not found, return 'custom'
+	return groupToTemplateMapping[group] || TaskStatusEnum.CUSTOM;
 };
 
 export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {

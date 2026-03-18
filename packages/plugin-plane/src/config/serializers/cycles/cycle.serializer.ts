@@ -228,9 +228,9 @@ export function cycleTransformer(
 			progress_snapshot: sprint.sprintProgress as Record<string, any>,
 			is_favorite: isFavorite,
 			total_issues:
-				sprint.toSprintTaskHistories!.length > 0
+				(sprint.toSprintTaskHistories?.length ?? 0) > 0
 					? sprint.toSprintTaskHistories!.length
-					: sprint.tasks?.length,
+					: sprint.tasks?.length ?? 0,
 			completed_issues: completedIssues,
 			sub_issues: 0, // TODO : Search how it's mapped
 			owned_by_id: sprint.members?.find((member) => member.roleId)
@@ -265,6 +265,18 @@ export const cycleRelations = [
 	'members',
 	'members.employee',
 	'members.employee.user'
+];
+
+/**
+ * Cycle relations including task members (assignees) for cycle-issues endpoint.
+ * Use these relations when fetching cycle issues to ensure assignee_ids are populated.
+ */
+export const cycleIssueRelations = [
+	...cycleRelations,
+	'toSprintTaskHistories.task.members',
+	'fromSprintTaskHistories.task.members',
+	'tasks.members',
+	'taskSprints.task.members'
 ];
 
 /**
@@ -334,28 +346,43 @@ export function cycleIssueTransformer(issues: IIssue[]): ICycleIssuesResponse {
 export function retrieveCycleTotalTasks(sprint: IOrganizationSprint): ITask[] {
 	// Get the current sprint tasks from the sprint's toSprintTaskHistories
 	const currentTasks = (sprint.toSprintTaskHistories ?? [])
-		.filter((history) => history?.task) // Ensure task exists
-		.map((history) => history.task); // Transform tasks
+		.filter((history) => history?.task)
+		.map((history) => history.task);
 
 	// Get the previous sprint tasks from the sprint's fromSprintTaskHistories
 	const previousTasks = (sprint.fromSprintTaskHistories ?? [])
-		.filter((history) => history?.task) // Ensure task exists
-		.map((history) => history.task); // Transform tasks
+		.filter((history) => history?.task)
+		.map((history) => history.task);
 
-	// Combine both current and previous tasks, ensuring uniqueness based on task ID
-	return Array.from(
+	// Get tasks from direct relation and taskSprints join table
+	const directTasks = sprint.tasks ?? [];
+	const taskSprintTasks = (sprint.taskSprints ?? [])
+		.filter((ts) => ts?.task)
+		.map((ts) => ts.task);
+
+	// Combine all sources and deduplicate by task ID.
+	// Priority: currentTasks > previousTasks > directTasks > taskSprintTasks
+	const allTaskIds = Array.from(
 		new Set(
-			[...currentTasks, ...previousTasks, ...(sprint.tasks ?? [])].map(
-				(task) => task!.id
-			)
+			[
+				...currentTasks,
+				...previousTasks,
+				...directTasks,
+				...taskSprintTasks
+			].map((task) => task!.id)
 		)
-	).map((taskId) => {
-		// Find the task from either the current or previous tasks list
-		return (
-			currentTasks.find((task) => task!.id === taskId) ||
-			previousTasks.find((task) => task!.id === taskId)
-		);
-	}) as ITask[];
+	);
+
+	return allTaskIds
+		.map((taskId) => {
+			return (
+				currentTasks.find((task) => task!.id === taskId) ||
+				previousTasks.find((task) => task!.id === taskId) ||
+				directTasks.find((task) => task!.id === taskId) ||
+				taskSprintTasks.find((task) => task!.id === taskId)
+			);
+		})
+		.filter(Boolean) as ITask[];
 }
 
 /**
@@ -402,9 +429,9 @@ export function cycleAnalyticsData(
 		pending_issues: 0
 	};
 
-	// Process assignees
+	// Build assignee map: sprint.members first, then add task assignees not yet in map
 	const assigneeMap = new Map();
-	sprint.members!.forEach((member) => {
+	(sprint.members ?? []).forEach((member) => {
 		assigneeMap.set(member.employeeId, {
 			display_name: member.employee?.fullName || member.employee?.name,
 			assignee_id: member.employeeId,
@@ -412,6 +439,30 @@ export function cycleAnalyticsData(
 			total_issues: 0,
 			completed_issues: 0,
 			pending_issues: 0
+		});
+	});
+	tasks.forEach((task) => {
+		task?.members?.forEach((member) => {
+			const id = member.id ?? (member as any).employeeId ?? (member as any).employee?.id;
+			if (id && !assigneeMap.has(id)) {
+				const user = (member as any).user;
+				const displayName =
+					member.fullName ||
+					(member as any).displayName ||
+					user?.fullName ||
+					(user?.firstName || user?.lastName
+						? [user?.firstName, user?.lastName].filter(Boolean).join(' ')
+						: null) ||
+					'Unknown';
+				assigneeMap.set(id, {
+					display_name: displayName,
+					assignee_id: id,
+					avatar_url: user?.imageUrl || '',
+					total_issues: 0,
+					completed_issues: 0,
+					pending_issues: 0
+				});
+			}
 		});
 	});
 
@@ -435,8 +486,8 @@ export function cycleAnalyticsData(
 	// Calculate statistics
 	tasks.forEach((task) => {
 		const isCompleted =
-			task?.taskStatus!.name === TaskStatusEnum.COMPLETED ||
-			task?.taskStatus!.name === TaskStatusEnum.DONE;
+			task?.taskStatus!.value === TaskStatusEnum.COMPLETED ||
+			task?.taskStatus!.value === TaskStatusEnum.DONE;
 
 		// Handle unassigned tasks
 		if (!task?.members?.length) {
@@ -455,8 +506,9 @@ export function cycleAnalyticsData(
 		}
 
 		// Update assignee stats
-		task?.members?.forEach((assigneeId) => {
-			const assignee = assigneeMap.get(assigneeId);
+		task?.members?.forEach((member) => {
+			const employeeId = member.id ?? (member as any).employeeId ?? (member as any).employee?.id;
+			const assignee = assigneeMap.get(employeeId);
 			if (assignee) {
 				assignee.total_issues++;
 				isCompleted
@@ -479,18 +531,34 @@ export function cycleAnalyticsData(
 
 	// Generate completion chart
 	const completionChart: Record<string, number> = {};
-	if (sprint.startDate && sprint.endDate) {
-		const start = moment(sprint.startDate);
-		const end = moment(sprint.endDate);
-		const current = start.clone();
+	const startDate = sprint.startDate ?? (sprint as any).start_date;
+	const endDate = sprint.endDate ?? (sprint as any).end_date;
+	let chartStart = startDate ? moment(startDate) : null;
+	let chartEnd = endDate ? moment(endDate) : null;
 
-		while (current.isSameOrBefore(end)) {
+	// Fallback: derive date range from tasks when sprint has no dates
+	if ((!chartStart || !chartEnd) && tasks.length > 0) {
+		const taskDates = tasks.flatMap((t) =>
+			[t.createdAt, t.updatedAt, t.resolvedAt, t.startDate, t.dueDate].filter(Boolean)
+		);
+		if (taskDates.length > 0) {
+			const validDates = taskDates.map((d) => moment(d)).filter((m) => m.isValid());
+			if (validDates.length > 0) {
+				chartStart = chartStart ?? moment.min(validDates);
+				chartEnd = chartEnd ?? moment.max(validDates);
+			}
+		}
+	}
+
+	if (chartStart && chartEnd && chartStart.isSameOrBefore(chartEnd)) {
+		const current = chartStart.clone();
+		while (current.isSameOrBefore(chartEnd)) {
 			const dateStr = current.format('YYYY-MM-DD');
 			const remainingTasks = tasks.filter(
 				(task) =>
-					(task?.taskStatus!.name !== TaskStatusEnum.COMPLETED &&
-						task?.taskStatus!.name !== TaskStatusEnum.DONE) ||
-					moment(task.resolvedAt).isAfter(current)
+					(task?.taskStatus?.value !== TaskStatusEnum.COMPLETED &&
+						task?.taskStatus?.value !== TaskStatusEnum.DONE) ||
+					(task.resolvedAt && moment(task.resolvedAt).isAfter(current))
 			).length;
 			completionChart[dateStr] = remainingTasks;
 			current.add(1, 'day');

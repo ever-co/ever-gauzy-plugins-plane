@@ -17,6 +17,7 @@ import {
 	ID,
 	IOrganizationSprint,
 	IPagination,
+	ITask,
 	IUpdateUserPropertiesInput,
 	IUserViewProperties
 } from '@ever-gauzy/plugin-integration-plane-models';
@@ -24,12 +25,14 @@ import {
 	createCycleInputTransformer,
 	currentEmployeeId,
 	cycleAnalyticsData,
+	cycleIssueRelations,
 	cycleIssueTransformer,
 	cycleRelations,
 	cycleTransformer,
 	employeeSettingSerializer,
 	getSprintsQuery,
 	getTaskCounts,
+	getTaskQuery,
 	issueTransformer,
 	MEMBER_DEFAULT_VIEW_PROPS,
 	retrieveCycleTotalTasks,
@@ -289,8 +292,12 @@ export class CyclesService extends ApiFetchService {
 		projectId: ID
 	): Promise<ICycleIssuesResponse> {
 		try {
-			// Retrieve the sprint (cycle) using the provided IDs
-			const cycle = await this.getExternalSprint(id, projectId);
+			// Retrieve the sprint (cycle) with task members for assignee_ids
+			const cycle = await this.getExternalSprint(
+				id,
+				projectId,
+				cycleIssueRelations
+			);
 
 			if (!cycle) {
 				throw new NotFoundException('Cycle not found.');
@@ -549,11 +556,41 @@ export class CyclesService extends ApiFetchService {
 				...cycleRelations,
 				'tasks.tags',
 				'tasks.taskStatus',
+				'tasks.members',
+				'tasks.members.user',
 				'toSprintTaskHistories.task.tags',
 				'toSprintTaskHistories.task.taskStatus',
+				'toSprintTaskHistories.task.members',
+				'toSprintTaskHistories.task.members.user',
 				'fromSprintTaskHistories.task.tags',
-				'fromSprintTaskHistories.task.taskStatus'
+				'fromSprintTaskHistories.task.taskStatus',
+				'fromSprintTaskHistories.task.members',
+				'fromSprintTaskHistories.task.members.user',
+				'taskSprints.task.tags',
+				'taskSprints.task.taskStatus',
+				'taskSprints.task.members',
+				'taskSprints.task.members.user'
 			]);
+
+			// Fallback: if sprint relations return no tasks, fetch from tasks API
+			if (retrieveCycleTotalTasks(sprint).length === 0) {
+				const taskQuery = getTaskQuery(
+					projectId,
+					{ cycle: cycleId },
+					['tags', 'members.user', 'taskStatus']
+				);
+				const taskResponse = (
+					await this.apiFetch({
+						method: 'GET',
+						path: '/tasks',
+						query: qs.stringify(taskQuery)
+					})
+				).data as IPagination<ITask>;
+				const fetchedTasks = taskResponse?.items ?? [];
+				if (fetchedTasks.length > 0) {
+					sprint.tasks = fetchedTasks;
+				}
+			}
 
 			return cycleAnalyticsData(sprint);
 		} catch (error: any) {

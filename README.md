@@ -511,12 +511,29 @@ The workflow also supports `workflow_dispatch` for manual runs from the GitHub A
 
 ---
 
+## ™️ Trademarks
+
+**Ever**® is a registered trademark of [Ever Co. LTD](https://ever.co).
+**Ever® Demand™**, **Ever® Gauzy™**, **Ever® Teams™**, **Ever® Rec™**, **Ever® Recu™**, **Ever® Cloc™**, **Ever® Works™** and **Ever® OpenSaaS™** are all trademarks of [Ever Co. LTD](https://ever.co).
+
+The trademarks may only be used with the written permission of Ever Co. LTD. and may not be used to promote or otherwise market competitive products or services.
+
+All other brand and product names are trademarks, registered trademarks, or service marks of their respective holders.
+
+## 🍺 Contribute
+
+-   Please give us :star: on Github, it **helps**!
+-   You are more than welcome to submit feature requests in the [separate repo](https://github.com/ever-co/feature-requests/issues)
+-   Pull requests are always welcome! Please base pull requests against the _develop_ branch and follow the [contributing guide](.github/CONTRIBUTING.md).
+
 ## License
 
 This project is licensed under the AGPLv3 License — see the [LICENSE](LICENSE) file for details.
 
-## About
+## ©️ Copyright
 
-Developed and maintained by [Ever Co. LTD](https://ever.co).
+#### Copyright © 2024-present, Ever Co. LTD. All rights reserved
 
-- [Ever Gauzy](https://github.com/ever-co/ever-gauzy) — The backend platform
+## 🔥 P.S
+
+-   [We are Hiring: remote TypeScript / NestJS / Angular developers](https://github.com/ever-co/jobs#available-positions)

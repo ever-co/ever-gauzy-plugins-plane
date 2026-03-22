@@ -16,6 +16,14 @@ Plane UI  ──►  Proxy APIs ──►  Ever Gauzy API
               (transform response)
 ```
 
+## ⚠️ Disclaimer
+
+This project is an **independent, community-driven integration** between [Ever® Gauzy™](https://gauzy.co) and [Plane](https://plane.so). It is **not affiliated with, endorsed by, or sponsored by Plane** or its maintainers in any way.
+
+This proxy is provided "as is" for the sole purpose of enabling interoperability between Ever® Gauzy™ and Plane. Use of the Plane name and any references to its APIs are solely for the purpose of describing the integration target.
+
+## Modes
+
 The proxy can run in two modes:
 
 | Mode | Description | Use case |
@@ -520,6 +528,8 @@ The workflow also supports `workflow_dispatch` for manual runs from the GitHub A
 **Ever® Demand™**, **Ever® Gauzy™**, **Ever® Teams™**, **Ever® Rec™**, **Ever® Recu™**, **Ever® Cloc™**, **Ever® Works™** and **Ever® OpenSaaS™** are all trademarks of [Ever Co. LTD](https://ever.co).
 
 The trademarks may only be used with the written permission of Ever Co. LTD. and may not be used to promote or otherwise market competitive products or services.
+
+[Plane](https://plane.so) is a trademark of **Plane Software, Inc.** (or its respective owner). This project's use of the name "Plane" is strictly for identification and interoperability purposes and does not imply any ownership, affiliation, or endorsement
 
 All other brand and product names are trademarks, registered trademarks, or service marks of their respective holders.
 

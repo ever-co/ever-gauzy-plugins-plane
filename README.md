@@ -8,10 +8,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue.svg)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-10.x-red.svg)](https://nestjs.com/)
 
-A proxy API that bridges [Plane](https://plane.so/) project management frontend with [Ever Gauzy](https://github.com/ever-co/ever-gauzy) backend services. It intercepts requests from Plane UI, transforms them to match the Gauzy API contract, forwards them, and transforms the responses back to the format Plane UI expects.
+A proxy that bridges [Plane](https://github.com/makeplane/plane) project management frontend with [Ever Gauzy](https://github.com/ever-co/ever-gauzy) backend services. It intercepts requests from Plane UI, transforms them to match the Gauzy API contract, forwards them, and transforms the responses back to the format Plane UI expects.
 
 ```
-Plane UI  ──►  Proxy  ──►  Ever Gauzy API
+Plane UI  ──►  Proxy APIs ──►  Ever Gauzy API
               (transform request)
               (transform response)
 ```

@@ -1,13 +1,17 @@
 {
   "name": "@ever-gauzy/plugin-integration-plane-api",
-  "version": "0.0.1",
-  "description": "Ever Plane Proxy - A Proxy API connecting Ever Gauzy APIs to Plane frontend",
+  "version": "0.1.0",
+  "description": "Ever Gauzy Plane Integration - A Proxy connecting Plane frontend to Ever Gauzy APIs",
   "author": {
     "name": "Ever Co. LTD",
     "email": "ever@ever.co",
     "url": "https://ever.co"
   },
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ever-co/ever-gauzy-plugins-plane"
+  },
+  "license": "AGPL-3.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -97,10 +101,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ever-co/ever-gauzy-plugins-plane"
   },
   "publishConfig": {
     "access": "public"

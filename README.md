@@ -1,11 +1,14 @@
-# Ever Gauzy — Plane Integration Proxy
+# Ever Gauzy Integration with Plane
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[uri_license]: https://www.gnu.org/licenses/agpl-3.0.html
+[uri_license_image]: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
+
+[![License: AGPL v3][uri_license_image]][uri_license]
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue.svg)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-10.x-red.svg)](https://nestjs.com/)
 
-A proxy API that bridges [Ever Gauzy](https://github.com/ever-co/ever-gauzy) backend services with the [Plane](https://plane.so/) project management frontend. It intercepts requests from Plane UI, transforms them to match the Gauzy API contract, forwards them, and transforms the responses back to the format Plane UI expects.
+A proxy API that bridges [Plane](https://plane.so/) project management frontend with [Ever Gauzy](https://github.com/ever-co/ever-gauzy) backend services. It intercepts requests from Plane UI, transforms them to match the Gauzy API contract, forwards them, and transforms the responses back to the format Plane UI expects.
 
 ```
 Plane UI  ──►  Proxy  ──►  Ever Gauzy API

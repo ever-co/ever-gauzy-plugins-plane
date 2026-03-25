@@ -63,7 +63,7 @@ export function notificationTranformer(
 							? 'assignees'
 							: 'None',
 					new_value: isAssignement
-						? `${employeeNotification.receiver!.fullName}`
+						? `${employeeNotification.receiver?.fullName}`
 						: 'In Progress',
 					old_value: 'None',
 					new_identifier: '72ba61b5-a1aa-4c19-9b61-b13278c637e3',
@@ -76,7 +76,7 @@ export function notificationTranformer(
 					? 'issue'
 					: '',
 			title: notificationTitle,
-			message: `${employeeNotification.sentBy!.fullName} ${employeeNotification.title}`,
+			message: `${employeeNotification.sentBy?.fullName} ${employeeNotification.title}`,
 			message_stripped: employeeNotification.message,
 			message_html: employeeNotification.message,
 			sender: '',

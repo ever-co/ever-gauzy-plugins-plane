@@ -104,7 +104,7 @@ export class ProjectModuleService extends ApiFetchService {
 		try {
 			// Build the query string once
 			const query = qs.stringify(
-				getModulesQuery(projectId, ['members.employee'])
+				getModulesQuery(projectId, ['members.employee', 'tasks.members', 'tasks.tags'])
 			);
 
 			const favoriteIds =
@@ -141,7 +141,7 @@ export class ProjectModuleService extends ApiFetchService {
 	async getModule(id: ID, projectId: ID) {
 		try {
 			const module = await this.getExternalModule(id, projectId, [
-				'members.employee'
+				'members.employee', 'members.employee', 'tasks.members', 'tasks.tags'
 			]);
 
 			// Favorites

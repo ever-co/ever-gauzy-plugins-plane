@@ -575,7 +575,6 @@ export class WorkspaceService extends ApiFetchService {
 		}
 	}
 
-	/*************  ✨ Windsurf Command ⭐  *************/
 	/**
 	 * Retrieves all projects for the authenticated employee.
 	 *
@@ -584,7 +583,6 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<IProject[]>} A promise that resolves to an array of projects.
 	 * @throws {BadRequestException} If an error occurs during project retrieval.
 	 */
-	/*******  e3fe4c94-518f-42c5-ad1c-6ca918f83028  *******/
 	async findProjects(): Promise<IProject[]> {
 		try {
 			return await this._projectService.getProjects([

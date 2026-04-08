@@ -44,11 +44,8 @@ import { WorkItemsModule } from './modules/work-items/work-items.module';
 import { SidebarPreferencesModule } from './modules/sidebar-preferences/sidebar-preferences.module';
 import { RecentVisitsModule } from './modules/recent-visits/recent-visits.module';
 import { LoggerModule } from './modules/logger';
-import {
-	AdvanceAnalyticsModule,
-	AdvanceAnalyticsStatsModule,
-	AdvanceAnalyticsChartsModule
-} from './modules/advance-analytics/advance-analytics.module';
+import { AdvanceAnalyticsModule } from './modules/advance-analytics/advance-analytics.module';
+import { WorkspaceAdvanceAnalyticsModule } from './modules/advance-analytics/workspace-advance-analytics.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { FileAssetsModule } from './modules/file-assets/file-assets.module';
 
@@ -88,8 +85,7 @@ const FEATURE_MODULES = [
 	SidebarPreferencesModule,
 	RecentVisitsModule,
 	AdvanceAnalyticsModule,
-	AdvanceAnalyticsStatsModule,
-	AdvanceAnalyticsChartsModule,
+	WorkspaceAdvanceAnalyticsModule,
 	PagesModule,
 	FileAssetsModule
 ];

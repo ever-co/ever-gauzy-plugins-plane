@@ -600,6 +600,102 @@ export class WorkspaceService extends ApiFetchService {
 	}
 
 	/**
+	 * Retrieves project analytics counts for all projects in the workspace.
+	 *
+	 * Matches Plane's ProjectStatsEndpoint which returns per-project statistics
+	 * using these valid fields: total_issues, completed_issues, total_members,
+	 * total_cycles, total_modules.
+	 *
+	 * @param {string} fields - Optional comma-separated list of fields to include
+	 * @param {string} project_ids - Optional comma-separated list of project IDs to filter
+	 * @returns {Promise<any[]>} Array of project analytics counts
+	 * @throws {BadRequestException} If an error occurs during retrieval.
+	 */
+	async getProjectStats(fields?: string, project_ids?: string): Promise<any[]> {
+		try {
+			// Valid fields matching Plane's ProjectStatsEndpoint
+			const validFields = new Set([
+				'total_issues',
+				'completed_issues',
+				'total_members',
+				'total_cycles',
+				'total_modules'
+			]);
+
+			// Parse requested fields, intersect with valid fields
+			const parsedFields = fields
+				? fields.split(',').map((f) => f.trim()).filter(Boolean)
+				: [];
+			const requestedFields = parsedFields.length > 0
+				? new Set(parsedFields.filter((f) => validFields.has(f)))
+				: validFields;
+
+			// Parse project IDs filter
+			const projectIdFilter = project_ids
+				? project_ids.split(',').map((id) => id.trim()).filter(Boolean)
+				: [];
+
+			// Fetch projects with relations needed for computing stats
+			const projects = await this._projectService.getExternalProjects([
+				'members',
+				'organizationSprints',
+				'modules',
+				'tasks.taskStatus'
+			]);
+
+			// Filter by project IDs if specified
+			const filteredProjects = projectIdFilter.length > 0
+				? projects.filter((p) => projectIdFilter.includes(p.id!))
+				: projects;
+
+			// Build per-project stats
+			return filteredProjects.map((project) => {
+				const tasks = project.tasks || [];
+				const members = project.members || [];
+				const cycles = project.organizationSprints || [];
+				const modules = project.modules || [];
+
+				const stats: Record<string, any> = { id: project.id };
+
+				if (requestedFields.has('total_issues')) {
+					stats.total_issues = tasks.length;
+				}
+
+				if (requestedFields.has('completed_issues')) {
+					stats.completed_issues = tasks.filter((task) => {
+						if (task.taskStatus?.isDone) return true;
+						const status = task.status?.toLowerCase();
+						return (
+							status === TaskStatusEnum.DONE.toLowerCase() ||
+							status === TaskStatusEnum.COMPLETED.toLowerCase()
+						);
+					}).length;
+				}
+
+				if (requestedFields.has('total_cycles')) {
+					stats.total_cycles = cycles.length;
+				}
+
+				if (requestedFields.has('total_modules')) {
+					stats.total_modules = modules.length;
+				}
+
+				if (requestedFields.has('total_members')) {
+					stats.total_members = members.length;
+				}
+
+				return stats;
+			});
+		} catch (error) {
+			this.logger.error(
+				'Failed to get project stats',
+				error instanceof Error ? error.stack : String(error)
+			);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
 	 * Retrieves the most recent project IDs.
 	 *
 	 * This function fetches all projects and returns the IDs of the first 5 recent projects.

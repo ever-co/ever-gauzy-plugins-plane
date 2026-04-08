@@ -37,6 +37,30 @@ export class WorkspaceController {
 
 	/*
 	|--------------------------------------------------------------------------
+	| PROJECT STATS ROUTES
+	|--------------------------------------------------------------------------
+	*/
+
+	/**
+	 * @description - Get project analytics counts for projects in the workspace
+	 * Returns stats like total_work_items, total_completed_work_items, total_cycles,
+	 * total_members, total_modules per project.
+	 * @param {string} fields - Comma-separated list of fields to include
+	 * @param {string} project_ids - Optional comma-separated list of project IDs to filter
+	 * @returns {Promise<any[]>} A promise resolving to an array of project analytics counts
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get project analytics counts' })
+	@Get('project-stats')
+	async getProjectStats(
+		@Query('fields') fields?: string,
+		@Query('project_ids') project_ids?: string
+	): Promise<any[]> {
+		return await this._workspaceService.getProjectStats(fields, project_ids);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
 	| DASHBOARD ROUTES
 	|--------------------------------------------------------------------------
 	*/

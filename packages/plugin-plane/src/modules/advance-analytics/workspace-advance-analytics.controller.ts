@@ -1,9 +1,11 @@
 import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IWorkItemInsightRow } from '@ever-gauzy/plugin-integration-plane-models';
 import { AdvanceAnalyticsService } from './advance-analytics.service';
 import {
 	AdvanceAnalyticsChartsQueryDto,
-	AdvanceAnalyticsQueryDto
+	AdvanceAnalyticsQueryDto,
+	AdvanceAnalyticsStatsQueryDto
 } from './dto';
 
 /**
@@ -35,6 +37,22 @@ export class WorkspaceAdvanceAnalyticsController {
 		@Query() query: AdvanceAnalyticsQueryDto
 	): Promise<any> {
 		return this._advanceAnalyticsService.getWorkspaceAdvanceAnalytics(tab, query);
+	}
+
+	/**
+	 * Get workspace-level advance analytics stats (table view).
+	 *
+	 * Matches Plane's AdvanceAnalyticsStatsEndpoint.get() — returns per-project
+	 * work item counts grouped by state group.
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get workspace advance analytics stats' })
+	@ApiResponse({ status: 200, description: 'Successfully retrieved workspace advance analytics stats' })
+	@Get('advance-analytics-stats')
+	async getWorkspaceAdvanceAnalyticsStats(
+		@Query() query: AdvanceAnalyticsStatsQueryDto
+	): Promise<IWorkItemInsightRow[]> {
+		return this._advanceAnalyticsService.getWorkspaceAdvanceAnalyticsStats(query);
 	}
 
 	/**

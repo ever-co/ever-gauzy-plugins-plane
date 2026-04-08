@@ -21,6 +21,7 @@ import {
 import {
 	buildChartData,
 	buildWorkItemCompletionChart,
+	getStateGroup,
 	transformToAdvanceAnalytics,
 	transformToWorkItemStats
 } from '../../config/serializers/analytics';
@@ -324,6 +325,92 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 		} catch (error: any) {
 			this.logger.error(
 				`Failed to get workspace advance analytics charts: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
+			throw new BadRequestException(error);
+		}
+	}
+
+	/**
+	 * Get workspace-level advance analytics stats (table view).
+	 *
+	 * Matches Plane's AdvanceAnalyticsStatsEndpoint.get_work_items_stats():
+	 * returns per-project work item counts grouped by state group.
+	 * [{project_id, project__name, cancelled_work_items, completed_work_items,
+	 *   backlog_work_items, un_started_work_items, started_work_items}]
+	 */
+	async getWorkspaceAdvanceAnalyticsStats(
+		query: AdvanceAnalyticsStatsQueryDto
+	): Promise<IWorkItemInsightRow[]> {
+		try {
+			if (query.type !== AnalyticsType.WORK_ITEMS) {
+				throw new BadRequestException('Invalid type. Expected: work-items');
+			}
+
+			const tasks = await this.getAllTasks();
+
+			// Group tasks by projectId and compute per-project counts
+			const projectMap = new Map<
+				string,
+				{ name: string; tasks: ITask[] }
+			>();
+
+			for (const task of tasks) {
+				const projectId = task.projectId || 'none';
+				if (!projectMap.has(projectId)) {
+					projectMap.set(projectId, { name: projectId, tasks: [] });
+				}
+				projectMap.get(projectId)!.tasks.push(task);
+			}
+
+			// Fetch project names
+			const projects = await this._projectService.getExternalProjects([]);
+			const projectNameMap = new Map<string, string>();
+			for (const project of projects) {
+				if (project.id) {
+					projectNameMap.set(project.id, project.name || project.id);
+				}
+			}
+
+			const result: IWorkItemInsightRow[] = [];
+
+			projectMap.forEach((data, projectId) => {
+				const counts = {
+					cancelled: 0,
+					completed: 0,
+					backlog: 0,
+					unstarted: 0,
+					started: 0
+				};
+
+				for (const task of data.tasks) {
+					const group = getStateGroup(task);
+					switch (group) {
+						case 'completed': counts.completed++; break;
+						case 'started': counts.started++; break;
+						case 'backlog': counts.backlog++; break;
+						case 'cancelled': counts.cancelled++; break;
+						default: counts.unstarted++; break;
+					}
+				}
+
+				result.push({
+					project_id: projectId,
+					project__name: projectNameMap.get(projectId) || projectId,
+					cancelled_work_items: counts.cancelled,
+					completed_work_items: counts.completed,
+					backlog_work_items: counts.backlog,
+					un_started_work_items: counts.unstarted,
+					started_work_items: counts.started
+				});
+			});
+
+			return result.sort((a, b) =>
+				(a.project__name || '').localeCompare(b.project__name || '')
+			);
+		} catch (error: any) {
+			this.logger.error(
+				`Failed to get workspace advance analytics stats: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
 			throw new BadRequestException(error);

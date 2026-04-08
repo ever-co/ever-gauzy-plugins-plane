@@ -147,9 +147,10 @@ export class AuthService extends ApiFetchService {
 					queryNextPath ||
 					`${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
 
-				const normalizedPath = redirectPath;
+				const baseUrl = (req.headers.referer || '').replace(/\/+$/, '');
+				const normalizedPath = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
 
-				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+				return res.redirect(`${baseUrl}${normalizedPath}`);
 			}
 			const nextPathParam = data.next_path
 				? `&next_path=${encodeURIComponent(data.next_path)}`
@@ -291,9 +292,10 @@ export class AuthService extends ApiFetchService {
 					queryNextPath ||
 					`${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
 
-				const normalizedPath = redirectPath;
+				const baseUrl = (req.headers.referer || '').replace(/\/+$/, '');
+				const normalizedPath = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
 
-				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+				return res.redirect(`${baseUrl}${normalizedPath}`);
 			}
 
 			const nextPathParam = data.next_path

@@ -16,9 +16,7 @@ import { CyclesModule } from '../cycles/cycles.module';
 import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
 import {
-    AdvanceAnalyticsModule,
-    AdvanceAnalyticsStatsModule,
-    AdvanceAnalyticsChartsModule
+    AdvanceAnalyticsModule
 } from '../advance-analytics/advance-analytics.module';
 
 @Module({
@@ -50,16 +48,8 @@ import {
 					},
 					{ path: '/:projectId/comments', module: CommentsModule },
 					{
-						path: '/:projectId/advance-analytics',
+						path: '/:projectId',
 						module: AdvanceAnalyticsModule
-					},
-					{
-						path: '/:projectId/advance-analytics-stats',
-						module: AdvanceAnalyticsStatsModule
-					},
-					{
-						path: '/:projectId/advance-analytics-charts',
-						module: AdvanceAnalyticsChartsModule
 					}
 				]
 			}

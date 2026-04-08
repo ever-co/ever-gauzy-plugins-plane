@@ -13,10 +13,22 @@ import { ProjectModuleModule } from '../project-module/project-module.module';
 import { IssueViewModule } from '../views/view.module';
 import { DashboardModule } from '../dashboard/dashboard.module';
 import { NotificationModule } from '../notification/notification.module';
+import { WorkspaceAdvanceAnalyticsModule } from '../advance-analytics/workspace-advance-analytics.module';
 
 @Module({
 	imports: [
-		RouterModule.register([{ path: '/', module: WorkspaceModule }]),
+		RouterModule.register([
+			{
+				path: '/',
+				module: WorkspaceModule,
+				children: [
+					{
+						path: '/',
+						module: WorkspaceAdvanceAnalyticsModule
+					}
+				]
+			}
+		]),
 		forwardRef(() => ProjectModule),
 		IssuesModule,
 		CyclesModule,
@@ -27,7 +39,8 @@ import { NotificationModule } from '../notification/notification.module';
 		DraftIssuesModule,
 		EmployeePropertiesModule,
 		DashboardModule,
-		NotificationModule
+		NotificationModule,
+		WorkspaceAdvanceAnalyticsModule
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

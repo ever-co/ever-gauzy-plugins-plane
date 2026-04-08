@@ -5,8 +5,8 @@ import { WorkspaceAdvanceAnalyticsController } from './workspace-advance-analyti
 
 /**
  * Module for workspace-level advance analytics routes.
- * Provides advance-analytics and advance-analytics-charts endpoints
- * at the workspace scope (without projectId).
+ * Provides advance-analytics, advance-analytics-stats, and advance-analytics-charts
+ * endpoints at the workspace scope (without projectId).
  */
 @Module({
 	imports: [forwardRef(() => ProjectModule)],

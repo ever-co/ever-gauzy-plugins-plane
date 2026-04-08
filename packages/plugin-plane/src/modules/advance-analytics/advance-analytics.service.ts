@@ -431,27 +431,25 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 	 * Each field is { count: number }.
 	 */
 	private async getOverviewData(): Promise<Record<string, { count: number }>> {
-		const [projects, tasks, members] = await Promise.all([
+		const [projects, tasks] = await Promise.all([
 			this._projectService.getExternalProjects([
-				'members',
+				'members.employee.user.role',
 				'organizationSprints'
 			]),
-			this.getAllTasks(),
-			this._projectService.getExternalProjects(['members.employee.user.role']).then(
-				(projs) => {
-					// Collect unique member IDs across all projects
-					const memberSet = new Set<string>();
-					projs.forEach((p) => {
-						p.members?.forEach((m) => {
-							if (typeof m !== 'string' && m.employeeId) {
-								memberSet.add(m.employeeId);
-							}
-						});
-					});
-					return memberSet.size;
-				}
-			)
+			this.getAllTasks()
 		]);
+
+		// Collect unique member IDs across all projects
+		const memberSet = new Set<string>();
+		projects.forEach((p) => {
+			p.members?.forEach((m) => {
+				if (typeof m !== 'string' && m.employeeId) {
+					memberSet.add(m.employeeId);
+				}
+			});
+		});
+
+		const totalMembers = memberSet.size;
 
 		// Count total cycles across all projects
 		const totalCycles = projects.reduce(
@@ -460,9 +458,9 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 		);
 
 		return {
-			total_users: { count: members },
+			total_users: { count: totalMembers },
 			total_admins: { count: 0 },
-			total_members: { count: members },
+			total_members: { count: totalMembers },
 			total_guests: { count: 0 },
 			total_projects: { count: projects.length },
 			total_work_items: { count: tasks.length },

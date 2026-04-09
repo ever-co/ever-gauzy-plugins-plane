@@ -287,7 +287,7 @@ export class PagesService extends ApiFetchService {
 			const body: Record<string, any> = {};
 
 			// Binary stays as base64 string — the Gauzy PATCH endpoint decodes it server-side
-			if (payload.description_binary != null) {
+			if (payload.description_binary !== undefined) {
 				body['descriptionBinary'] = payload.description_binary;
 			}
 			if (payload.description_html !== undefined) {

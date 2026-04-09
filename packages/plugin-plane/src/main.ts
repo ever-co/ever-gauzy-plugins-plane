@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './modules/app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { json } from 'express';
+import { json, urlencoded } from 'express';
 import cookieParser from 'cookie-parser';
 import { PlaneConfigRegistry } from './plane-config.registry';
 
@@ -18,7 +18,8 @@ export async function bootstrap() {
 	});
 
 	app.use(cookieParser());
-	app.use(json({ limit: '200mb' }));
+	app.use(json({ limit: '50mb' }));
+	app.use(urlencoded({ extended: true, limit: '50mb' }));
 	app.setGlobalPrefix('api/workspaces/:workspace_name', {
 		exclude: [
 			'auth/:authEndPoint',

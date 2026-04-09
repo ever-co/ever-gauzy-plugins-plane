@@ -65,9 +65,10 @@ export class ApiFetchService {
 			endPoint = `${apiUrl + path}?${query}`;
 		}
 
+		const isBinaryRequest = responseType === 'arraybuffer';
 		const headers: HeadersInit = {
-			'Content-Type': 'application/json',
-			Accept: 'application/json',
+			'Content-Type': isBinaryRequest ? 'application/octet-stream' : 'application/json',
+			Accept: isBinaryRequest ? 'application/octet-stream' : 'application/json',
 			Authorization: `Bearer ${bearer_token || ApiFetchService.token}`
 		};
 

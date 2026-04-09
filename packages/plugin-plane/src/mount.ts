@@ -231,8 +231,8 @@ export function mountPlaneProxy(
 				{ logger: ['error', 'warn', 'log'] }
 			);
 
-			proxyApp.use(json({ limit: '50mb' }));
-			proxyApp.use(urlencoded({ extended: true, limit: '50mb' }));
+			proxyApp.use(json({ limit: '200mb' }));
+			proxyApp.use(urlencoded({ extended: true, limit: '200mb' }));
 			proxyApp.use(cookieParser());
 
 			proxyApp.setGlobalPrefix('api/workspaces/:workspace_name', {

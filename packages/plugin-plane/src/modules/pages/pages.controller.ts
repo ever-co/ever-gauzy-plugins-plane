@@ -204,10 +204,12 @@ export class PagesController {
 		return this._pagesService.move(pageId, input.new_project_id);
 	}
 
-	// ─── Description / Binary (Live App) ───────────────────────────────
-
 	/**
 	 * GET /pages/:pageId/description/
+	 *
+	 * Returns the Y.js binary document state for the live editor.
+	 * Returns an empty buffer if no binary exists, which triggers
+	 * a clean HTML→binary conversion in the live server.
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get page description binary' })
@@ -218,15 +220,14 @@ export class PagesController {
 	): Promise<void> {
 		const data = await this._pagesService.getDescriptionBinary(id);
 		res.setHeader('Content-Type', 'application/octet-stream');
-		if (data && data.byteLength > 0) {
-			res.send(Buffer.from(data));
-		} else {
-			res.send(Buffer.alloc(0));
-		}
+		res.send(data && data.byteLength > 0 ? Buffer.from(data) : Buffer.alloc(0));
 	}
 
 	/**
 	 * PATCH /pages/:pageId/description/
+	 *
+	 * Receives binary (base64), HTML and JSON from the live server
+	 * and forwards them atomically to Gauzy.
 	 */
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Update page description' })

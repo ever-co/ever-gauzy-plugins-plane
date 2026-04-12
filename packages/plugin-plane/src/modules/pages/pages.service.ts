@@ -276,35 +276,32 @@ export class PagesService extends ApiFetchService {
 	 * Update page description (supports binary/live editor).
 	 *
 	 * The live server sends `description_binary` as base64 and `description_html`/`description_json` as text.
-	 * We split the update into two calls:
-	 *  1. PUT :id/binary-description — raw octet-stream bytes → stored correctly as Uint8Array in Gauzy
-	 *  2. PUT :id — JSON body for description_html and description_json
+	 * All three fields are sent in a single atomic PATCH to Gauzy's `/:id/description` endpoint,
+	 * which decodes the base64 binary server-side and performs a single update with one versioning cycle.
 	 *
-	 * This avoids JSON-serialization issues (Buffer → JSON → Uint8Array doesn't work reliably).
+	 * This replaces the previous 2-PUT approach (binary-description + metadata) that caused
+	 * double versioning, race conditions, and potential content duplication.
 	 */
 	async updateDescription(id: ID, payload: any): Promise<any> {
 		try {
-			// 1. Upload raw binary via the dedicated octet-stream endpoint
-			if (payload.description_binary != null) {
-				const binaryBuffer = Buffer.from(payload.description_binary, 'base64');
-				await this.apiFetch({
-					method: 'PUT',
-					path: `${this.path}/${id}/binary-description`,
-					body: binaryBuffer as any,
-					customHeaders: { 'Content-Type': 'application/octet-stream' }
-				});
+			const body: Record<string, any> = {};
+
+			// Binary stays as base64 string — the Gauzy PATCH endpoint decodes it server-side
+			if (payload.description_binary !== undefined) {
+				body['descriptionBinary'] = payload.description_binary;
+			}
+			if (payload.description_html !== undefined) {
+				body['descriptionHtml'] = payload.description_html;
+			}
+			if (payload.description_json !== undefined) {
+				body['descriptionJson'] = payload.description_json;
 			}
 
-			// 2. Update metadata (html + json) via regular JSON endpoint
-			const metaBody: Record<string, any> = {};
-			if (payload.description_html !== undefined) metaBody['descriptionHtml'] = payload.description_html;
-			if (payload.description_json !== undefined) metaBody['descriptionJson'] = payload.description_json;
-
-			if (Object.keys(metaBody).length > 0) {
+			if (Object.keys(body).length > 0) {
 				const response = await this.apiFetch({
-					method: 'PUT',
-					path: `${this.path}/${id}`,
-					body: metaBody
+					method: 'PATCH',
+					path: `${this.path}/${id}/description`,
+					body
 				});
 				return response.data;
 			}

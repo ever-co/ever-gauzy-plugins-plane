@@ -2,9 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './modules/app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { json, urlencoded } from 'express';
+import { json, urlencoded, Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import { PlaneConfigRegistry } from './plane-config.registry';
+import { RequestContextService } from './request-context';
 
 export async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -15,6 +16,15 @@ export async function bootstrap() {
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
+	});
+
+	// Wrap every request in AsyncLocalStorage for per-request token & workspace isolation.
+	// This MUST be registered before cookieParser / TokenMiddleware so the store
+	// is already active when downstream middleware writes to it.
+	app.use((_req: Request, _res: Response, next: NextFunction) => {
+		RequestContextService.store.run(RequestContextService.createContext(), () => {
+			next();
+		});
 	});
 
 	app.use(cookieParser());

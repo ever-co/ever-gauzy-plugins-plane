@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { RequestContextService } from '../../request-context';
 
 @Injectable()
 export class WorkspaceContextService {
@@ -16,6 +17,7 @@ export class WorkspaceContextService {
 	 * @param {string} slug - The workspace slug
 	 */
 	static setWorkspaceSlug(slug: string) {
+		RequestContextService.setWorkspaceSlug(slug);
 		WorkspaceContextService.workspaceSlug = slug;
 	}
 
@@ -24,10 +26,9 @@ export class WorkspaceContextService {
 	 * @returns {string} The current workspace slug
 	 */
 	static getCurrentWorkspaceSlug(): string {
-		if (!WorkspaceContextService.workspaceSlug) {
-			return '';
-		}
-		return WorkspaceContextService.workspaceSlug;
+		return RequestContextService.getWorkspaceSlug()
+			|| WorkspaceContextService.workspaceSlug
+			|| '';
 	}
 
 	/**

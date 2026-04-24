@@ -3,10 +3,12 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@ever-gauzy/plugin-integration-plane-models';
 import { PlaneConfigRegistry } from '../../plane-config.registry';
+import { RequestContextService } from '../../request-context';
 import { getCurrentTenantId } from './token.helper';
 
 @Injectable()
 export class ApiFetchService {
+	/** Fallback token for non-request contexts (tests, scripts). */
 	private static token: string;
 	private _logger!: Logger;
 
@@ -25,19 +27,23 @@ export class ApiFetchService {
 	}
 
 	/**
-	 * Set the token for the API fetch service
-	 * @param token - The token to set
+	 * Set the token for the API fetch service.
+	 * Writes to the per-request AsyncLocalStorage context when available,
+	 * and always updates the static fallback for non-request callers.
+	 * @param token - The JWT token to set
 	 */
 	setToken(token: string) {
+		RequestContextService.setToken(token);
 		ApiFetchService.token = token;
 	}
 
 	/**
-	 * Get the token for the API fetch service
-	 * @returns The token
+	 * Get the token for the API fetch service.
+	 * Reads from the per-request context first, falls back to the static token.
+	 * @returns The JWT token
 	 */
 	static getToken(): string {
-		return ApiFetchService.token;
+		return RequestContextService.getToken() || ApiFetchService.token;
 	}
 
 	/**
@@ -69,7 +75,7 @@ export class ApiFetchService {
 		const headers: HeadersInit = {
 			'Content-Type': isBinaryRequest ? 'application/octet-stream' : 'application/json',
 			Accept: isBinaryRequest ? 'application/octet-stream' : 'application/json',
-			Authorization: `Bearer ${bearer_token || ApiFetchService.token}`
+			Authorization: `Bearer ${bearer_token || ApiFetchService.getToken()}`
 		};
 
 		if (tenantId) {

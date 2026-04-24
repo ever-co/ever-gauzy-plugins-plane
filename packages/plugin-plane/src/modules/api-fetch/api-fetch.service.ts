@@ -3,10 +3,12 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@ever-gauzy/plugin-integration-plane-models';
 import { PlaneConfigRegistry } from '../../plane-config.registry';
+import { RequestContextService } from '../../request-context';
 import { getCurrentTenantId } from './token.helper';
 
 @Injectable()
 export class ApiFetchService {
+	/** Fallback token for non-request contexts (tests, scripts). */
 	private static token: string;
 	private _logger!: Logger;
 
@@ -25,18 +27,32 @@ export class ApiFetchService {
 	}
 
 	/**
-	 * Set the token for the API fetch service
-	 * @param token - The token to set
+	 * Set the token for the API fetch service.
+	 * Writes to the per-request AsyncLocalStorage context when available,
+	 * and always updates the static fallback for non-request callers.
+	 * @param token - The JWT token to set
 	 */
 	setToken(token: string) {
+		RequestContextService.setToken(token);
 		ApiFetchService.token = token;
 	}
 
 	/**
-	 * Get the token for the API fetch service
-	 * @returns The token
+	 * Get the token for the API fetch service.
+	 *
+	 * When inside a request context (ALS store active), returns the
+	 * request-scoped token — even if empty — to avoid leaking another
+	 * user's token via the static fallback.
+	 *
+	 * Falls back to the static token only when called outside a request
+	 * (tests, scripts, background jobs).
+	 *
+	 * @returns The JWT token
 	 */
 	static getToken(): string {
+		if (RequestContextService.hasActiveStore()) {
+			return RequestContextService.getToken();
+		}
 		return ApiFetchService.token;
 	}
 
@@ -69,7 +85,7 @@ export class ApiFetchService {
 		const headers: HeadersInit = {
 			'Content-Type': isBinaryRequest ? 'application/octet-stream' : 'application/json',
 			Accept: isBinaryRequest ? 'application/octet-stream' : 'application/json',
-			Authorization: `Bearer ${bearer_token || ApiFetchService.token}`
+			Authorization: `Bearer ${bearer_token || ApiFetchService.getToken()}`
 		};
 
 		if (tenantId) {

@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import { PlaneProxyModule } from './plane-proxy.module';
 import { PlanePluginOptions, ResolveConfigFn, ExtractTenantIdFn } from './plane-plugin-options.interface';
 import { PlaneConfigRegistry } from './plane-config.registry';
+import { RequestContextService } from './request-context';
 
 const DEFAULT_CACHE_TTL = 60_000; // 60 seconds
 
@@ -189,10 +190,14 @@ export function mountPlaneProxy(
 
 		if (tenantConfig) {
 			PlaneConfigRegistry.requestStore.run(tenantConfig, () => {
-				handlerRef.current!(req, res);
+				RequestContextService.store.run(RequestContextService.createContext(), () => {
+					handlerRef.current!(req, res);
+				});
 			});
 		} else {
-			handlerRef.current(req, res);
+			RequestContextService.store.run(RequestContextService.createContext(), () => {
+				handlerRef.current!(req, res);
+			});
 		}
 	}
 
@@ -218,7 +223,7 @@ export function mountPlaneProxy(
 				clientSpaceUrl: staticClientSpaceUrl,
 				apiKey: options?.apiKey || process.env.GAUZY_API_KEY,
 				apiSecret: options?.apiSecret || process.env.GAUZY_API_SECRET,
-				appBaseUrl: options?.appBaseUrl || process.env.PLANE_APP_BASE_URL,
+				appBaseUrl: options?.appBaseUrl || process.env.PLANE_CLIENT_BASE_URL,
 				apiToken: options?.apiToken || process.env.PLANE_API_TOKEN,
 				githubAppName: options?.githubAppName || process.env.PLANE_GITHUB_APP_NAME,
 				slackClientId: options?.slackClientId || process.env.PLANE_SLACK_CLIENT_ID,

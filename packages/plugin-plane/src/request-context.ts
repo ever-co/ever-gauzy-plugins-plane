@@ -25,6 +25,16 @@ export class RequestContextService {
 		return requestContextStore;
 	}
 
+	/**
+	 * Returns `true` when executing inside a request context
+	 * (i.e. `store.run()` has been called), even if the context values are empty.
+	 * Used by callers to distinguish "no token was set for this request"
+	 * from "we're not in a request at all" (tests, scripts).
+	 */
+	static hasActiveStore(): boolean {
+		return requestContextStore.getStore() !== undefined;
+	}
+
 	// ── Token ────────────────────────────────────────────────────────────
 
 	/**

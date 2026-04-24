@@ -26,9 +26,10 @@ export class WorkspaceContextService {
 	 * @returns {string} The current workspace slug
 	 */
 	static getCurrentWorkspaceSlug(): string {
-		return RequestContextService.getWorkspaceSlug()
-			|| WorkspaceContextService.workspaceSlug
-			|| '';
+		if (RequestContextService.hasActiveStore()) {
+			return RequestContextService.getWorkspaceSlug();
+		}
+		return WorkspaceContextService.workspaceSlug || '';
 	}
 
 	/**

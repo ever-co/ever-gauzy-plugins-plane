@@ -39,11 +39,21 @@ export class ApiFetchService {
 
 	/**
 	 * Get the token for the API fetch service.
-	 * Reads from the per-request context first, falls back to the static token.
+	 *
+	 * When inside a request context (ALS store active), returns the
+	 * request-scoped token — even if empty — to avoid leaking another
+	 * user's token via the static fallback.
+	 *
+	 * Falls back to the static token only when called outside a request
+	 * (tests, scripts, background jobs).
+	 *
 	 * @returns The JWT token
 	 */
 	static getToken(): string {
-		return RequestContextService.getToken() || ApiFetchService.token;
+		if (RequestContextService.hasActiveStore()) {
+			return RequestContextService.getToken();
+		}
+		return ApiFetchService.token;
 	}
 
 	/**

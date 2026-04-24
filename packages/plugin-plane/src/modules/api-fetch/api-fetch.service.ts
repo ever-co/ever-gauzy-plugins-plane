@@ -1,5 +1,16 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+	BadRequestException,
+	ForbiddenException,
+	HttpException,
+	Injectable,
+	InternalServerErrorException,
+	Logger,
+	NotFoundException,
+	UnauthorizedException,
+	UnprocessableEntityException
+} from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { IServerFetchInputs } from '@ever-gauzy/plugin-integration-plane-models';
 import { PlaneConfigRegistry } from '../../plane-config.registry';
@@ -54,6 +65,67 @@ export class ApiFetchService {
 			return RequestContextService.getToken();
 		}
 		return ApiFetchService.token;
+	}
+
+	/**
+	 * Extracts the real HTTP status and message from an upstream API error
+	 * and throws the corresponding NestJS HttpException.
+	 *
+	 * This preserves the original status code (401, 403, 404, 500 …)
+	 * instead of always returning 400 Bad Request.
+	 *
+	 * @param error - The caught error (AxiosError, HttpException, or unknown)
+	 * @throws {HttpException} Always — this method never returns.
+	 */
+	protected handleApiError(error: unknown): never {
+		// Already a NestJS HttpException (e.g. thrown by a nested service call)
+		if (error instanceof HttpException) {
+			throw error;
+		}
+
+		// Axios error with a response from the upstream API
+		if (isAxiosError(error) && error.response) {
+			const { status, data } = error.response;
+			const message =
+				data?.message || data?.error || error.message || 'Unknown upstream error';
+
+			this.logger.error(
+				`Upstream API error [${status}]: ${typeof message === 'string' ? message : JSON.stringify(message)}`,
+				error.stack
+			);
+
+			switch (status) {
+				case 401:
+					throw new UnauthorizedException(message);
+				case 403:
+					throw new ForbiddenException(message);
+				case 404:
+					throw new NotFoundException(message);
+				case 422:
+					throw new UnprocessableEntityException(message);
+				default:
+					if (status >= 500) {
+						throw new InternalServerErrorException(message);
+					}
+					throw new BadRequestException(message);
+			}
+		}
+
+		// Network error / timeout (no response received)
+		if (isAxiosError(error) && !error.response) {
+			this.logger.error(
+				`Upstream API unreachable: ${error.message}`,
+				error.stack
+			);
+			throw new InternalServerErrorException(
+				`Upstream API unreachable: ${error.message}`
+			);
+		}
+
+		// Unknown error
+		const msg = error instanceof Error ? error.message : String(error);
+		this.logger.error(`Unexpected error: ${msg}`);
+		throw new InternalServerErrorException(msg);
 	}
 
 	/**

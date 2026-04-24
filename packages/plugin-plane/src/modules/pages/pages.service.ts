@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import qs from 'qs';
 import { ID, IHelpCenterArticle, IPage, IPagination } from '@ever-gauzy/plugin-integration-plane-models';
 import { getCurrentOrganizationSlug } from '../../config/credentials';
@@ -97,11 +98,10 @@ export class PagesService extends ApiFetchService {
 
 			return articles.items.map(articleToPage);
 		} catch (error) {
-			if (error instanceof NotFoundException || (error as any)?.response?.status === 404) {
+			if (error instanceof NotFoundException || (isAxiosError(error) && error.response?.status === 404)) {
 				return [];
 			}
-			this.logger.error('Pages.findAll failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -113,8 +113,7 @@ export class PagesService extends ApiFetchService {
 			const pages = await this.findAll(projectId);
 			return pages.filter((page) => page.archived_at !== null);
 		} catch (error) {
-			this.logger.error('Pages.findArchived failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -130,8 +129,7 @@ export class PagesService extends ApiFetchService {
 			const response = await this.apiFetch({ method: 'GET', path: `${this.path}/${id}`, query });
 			return articleToPage(response.data);
 		} catch (error) {
-			this.logger.error('Pages.findOne failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -145,8 +143,7 @@ export class PagesService extends ApiFetchService {
 			const response = await this.apiFetch({ method: 'POST', path: this.path, body });
 			return articleToPage(response.data);
 		} catch (error) {
-			this.logger.error('Pages.create failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -158,8 +155,7 @@ export class PagesService extends ApiFetchService {
 			const body = updatePageInputTransformer(input);
 			await this.apiFetch({ method: 'PUT', path: `${this.path}/${id}`, body });
 		} catch (error) {
-			this.logger.error('Pages.update failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -170,8 +166,7 @@ export class PagesService extends ApiFetchService {
 		try {
 			await this.apiFetch({ method: 'DELETE', path: `${this.path}/${id}` });
 		} catch (error) {
-			this.logger.error('Pages.delete failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -186,8 +181,7 @@ export class PagesService extends ApiFetchService {
 				body: { archivedAt: new Date().toISOString() }
 			});
 		} catch (error) {
-			this.logger.error('Pages.archive failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -202,8 +196,7 @@ export class PagesService extends ApiFetchService {
 				body: { archivedAt: null }
 			});
 		} catch (error) {
-			this.logger.error('Pages.unarchive failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -218,8 +211,7 @@ export class PagesService extends ApiFetchService {
 				body: { isLocked: true }
 			});
 		} catch (error) {
-			this.logger.error('Pages.lock failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -234,8 +226,7 @@ export class PagesService extends ApiFetchService {
 				body: { isLocked: false }
 			});
 		} catch (error) {
-			this.logger.error('Pages.unlock failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -250,8 +241,7 @@ export class PagesService extends ApiFetchService {
 			});
 			return articleToPage(response.data);
 		} catch (error) {
-			this.logger.error('Pages.duplicate failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -267,8 +257,7 @@ export class PagesService extends ApiFetchService {
 			});
 			return response.data;
 		} catch (error) {
-			this.logger.error('Pages.getDescriptionBinary failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -307,8 +296,7 @@ export class PagesService extends ApiFetchService {
 			}
 			return null;
 		} catch (error) {
-			this.logger.error('Pages.updateDescription failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -323,8 +311,7 @@ export class PagesService extends ApiFetchService {
 				body: { privacy: access === 'public' }
 			});
 		} catch (error) {
-			this.logger.error('Pages.updateAccess failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -339,8 +326,7 @@ export class PagesService extends ApiFetchService {
 				body: { projectIds: [newProjectId] }
 			});
 		} catch (error) {
-			this.logger.error('Pages.move failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -360,8 +346,7 @@ export class PagesService extends ApiFetchService {
 			});
 			return response.data?.items ?? response.data ?? [];
 		} catch (error) {
-			this.logger.error('Pages.fetchAllVersions failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -376,8 +361,7 @@ export class PagesService extends ApiFetchService {
 			});
 			return response.data;
 		} catch (error) {
-			this.logger.error('Pages.fetchVersionById failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -397,8 +381,7 @@ export class PagesService extends ApiFetchService {
 				}
 			});
 		} catch (error) {
-			this.logger.error('Pages.restoreVersion failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -413,8 +396,7 @@ export class PagesService extends ApiFetchService {
 			// Ideally this would filter by a "isFavorite" or similar flag if we had one.
 			return [];
 		} catch (error) {
-			this.logger.error('Pages.fetchFavorites failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -425,8 +407,7 @@ export class PagesService extends ApiFetchService {
 		try {
 			// Mocking for now as Gauzy doesn't have a direct "favorites" for help center articles.
 		} catch (error) {
-			this.logger.error('Pages.addToFavorites failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -437,8 +418,7 @@ export class PagesService extends ApiFetchService {
 		try {
 			// Mocking for now.
 		} catch (error) {
-			this.logger.error('Pages.removeFromFavorites failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -461,8 +441,7 @@ export class PagesService extends ApiFetchService {
 				avatar_url: m.employee?.user?.image
 			}));
 		} catch (error) {
-			this.logger.error('Pages.fetchUserMentions failed', error instanceof Error ? error.stack : String(error));
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

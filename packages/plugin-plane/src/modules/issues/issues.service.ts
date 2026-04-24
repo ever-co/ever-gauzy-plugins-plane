@@ -154,7 +154,7 @@ export class IssuesService extends ApiFetchService {
 				})
 			).data;
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -189,7 +189,7 @@ export class IssuesService extends ApiFetchService {
 
 			return tasks;
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -221,7 +221,7 @@ export class IssuesService extends ApiFetchService {
 
 			return tasks.items;
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -277,7 +277,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to find issue: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -316,7 +316,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to create issue: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -417,7 +417,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to update issue: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -469,7 +469,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to update relational issue parent: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -689,7 +689,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to get all issues by project: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException();
+			this.handleApiError(error);
 		}
 	}
 
@@ -725,7 +725,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to find issue children',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException();
+			this.handleApiError(error);
 		}
 	}
 
@@ -763,7 +763,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to find all issues',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -793,7 +793,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to find issues by employee: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -820,7 +820,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to create issue relations',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -842,7 +842,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to delete issue relation: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -860,7 +860,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to find issue relations',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException();
+			this.handleApiError(error);
 		}
 	}
 
@@ -942,7 +942,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to create comment',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException();
+			this.handleApiError(error);
 		}
 	}
 
@@ -1015,7 +1015,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to update comment: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1095,7 +1095,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to get issue comments',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1297,7 +1297,7 @@ export class IssuesService extends ApiFetchService {
 
 			return flattenedActivities.filter(Boolean);
 		} catch (error: any) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1352,7 +1352,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to create reaction',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1406,7 +1406,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to find issue reactions: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1454,7 +1454,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to find activity: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1512,7 +1512,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to get issue comment details',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1560,7 +1560,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to create link',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1607,7 +1607,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to update link',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1653,7 +1653,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to find issue links: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1680,7 +1680,7 @@ export class IssuesService extends ApiFetchService {
 				`Failed to find view issues: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1749,7 +1749,7 @@ export class IssuesService extends ApiFetchService {
 				'Failed to get issue meta',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

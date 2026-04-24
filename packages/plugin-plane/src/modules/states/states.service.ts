@@ -39,7 +39,7 @@ export class StatesService extends ApiFetchService {
 
 			return getStatesTransformer([state])[0] as IState;
 		} catch (error: any) {
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -67,7 +67,7 @@ export class StatesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -109,7 +109,7 @@ export class StatesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new InternalServerErrorException(error);
+			this.handleApiError(error);
 		}
 	}
 }

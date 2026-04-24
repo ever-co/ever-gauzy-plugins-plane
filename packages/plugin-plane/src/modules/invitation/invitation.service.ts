@@ -89,7 +89,7 @@ export class InvitationService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -141,7 +141,7 @@ export class InvitationService extends ApiFetchService {
 				`findAll failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -181,7 +181,7 @@ export class InvitationService extends ApiFetchService {
 				`findOne failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -232,7 +232,7 @@ export class InvitationService extends ApiFetchService {
 				`acceptOrReject failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -260,7 +260,7 @@ export class InvitationService extends ApiFetchService {
 				`delete failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

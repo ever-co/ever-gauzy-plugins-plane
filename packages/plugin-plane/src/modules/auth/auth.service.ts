@@ -188,7 +188,7 @@ export class AuthService extends ApiFetchService {
 
 			return user;
 		} catch (error: any) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -212,7 +212,7 @@ export class AuthService extends ApiFetchService {
 
 			return { key: `${DEFAULT_MAGIC_GENERATE_PREFIX}${input.email}` };
 		} catch (error: any) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -261,7 +261,7 @@ export class AuthService extends ApiFetchService {
 				`Magic Signin Error: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -344,7 +344,7 @@ export class AuthService extends ApiFetchService {
 				`Tenant Onboard Error: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -377,7 +377,7 @@ export class AuthService extends ApiFetchService {
 				`Refresh Token error: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -480,7 +480,7 @@ export class AuthService extends ApiFetchService {
 				`Failed to create employee: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 

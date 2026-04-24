@@ -1,7 +1,5 @@
 import {
-	BadRequestException,
-	Injectable,
-	InternalServerErrorException
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -63,10 +61,6 @@ export class StatesService extends ApiFetchService {
 
 			return getStatesTransformer([state])[0] as IState;
 		} catch (error) {
-			this.logger.error(
-				'Operation failed',
-				error instanceof Error ? error.stack : String(error)
-			);
 			this.handleApiError(error);
 		}
 	}
@@ -105,10 +99,6 @@ export class StatesService extends ApiFetchService {
 
 			return getStatesTransformer(states.items);
 		} catch (error) {
-			this.logger.error(
-				'Operation failed',
-				error instanceof Error ? error.stack : String(error)
-			);
 			this.handleApiError(error);
 		}
 	}

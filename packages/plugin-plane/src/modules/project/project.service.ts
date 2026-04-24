@@ -70,7 +70,7 @@ export class ProjectService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -100,7 +100,7 @@ export class ProjectService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -135,7 +135,7 @@ export class ProjectService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -166,7 +166,7 @@ export class ProjectService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -229,7 +229,7 @@ export class ProjectService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -314,7 +314,7 @@ export class ProjectService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -433,7 +433,7 @@ export class ProjectService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -467,7 +467,7 @@ export class ProjectService extends ApiFetchService {
 				role: memberInfos!.isManager ? 20 : 15
 			};
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -596,7 +596,7 @@ export class ProjectService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -619,7 +619,7 @@ export class ProjectService extends ApiFetchService {
 				})
 			).data;
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

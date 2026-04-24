@@ -68,7 +68,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to fetch all tasks: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -111,7 +111,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to fetch tasks: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -142,7 +142,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to get advance analytics: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -171,7 +171,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to get advance analytics stats: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -232,7 +232,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to get advance analytics charts: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -275,7 +275,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to get workspace advance analytics: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -327,7 +327,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to get workspace advance analytics charts: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -413,7 +413,7 @@ export class AdvanceAnalyticsService extends ApiFetchService {
 				`Failed to get workspace advance analytics stats: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 

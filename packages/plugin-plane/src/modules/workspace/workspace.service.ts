@@ -163,7 +163,7 @@ export class WorkspaceService extends ApiFetchService {
 						`Failed to create widget: ${error?.response?.data?.message || error.message}`,
 						error.stack
 					);
-					throw new BadRequestException(error.response);
+					this.handleApiError(error);
 				}
 			}
 
@@ -177,7 +177,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to get dashboard: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -362,7 +362,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Error while retrieving workspace members',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -403,7 +403,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find recent collaborators',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -529,7 +529,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to get assigned issues by state: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -571,7 +571,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find assigned issues by priority: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -595,7 +595,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find projects',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -691,7 +691,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to get project stats',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -715,7 +715,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find recent projects',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -851,7 +851,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find recent issue activity',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -955,7 +955,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to get issues: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1033,7 +1033,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user work summary: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1070,7 +1070,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user recent activity: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1104,7 +1104,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user projects data: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1198,7 +1198,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find user grouped issue assigned',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1249,7 +1249,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace states',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1283,7 +1283,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace modules',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1319,7 +1319,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace cycles',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1357,7 +1357,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace labels',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1467,7 +1467,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find global entities by search: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1548,7 +1548,7 @@ export class WorkspaceService extends ApiFetchService {
 					)
 			};
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1592,7 +1592,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find view issues: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1655,7 +1655,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user notifications: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1680,7 +1680,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find unread notifications',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1796,7 +1796,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to toggle notification status',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 

@@ -205,6 +205,10 @@ export function getGroupKeyForCriteria(
 			return issue.taskStatusId || 'none';
 		case IssueGroupByEnum.STATE_GROUP:
 			return issue.taskStatus ? stateGroup(issue.taskStatus) as string : 'none';
+		case IssueGroupByEnum.TARGET_DATE:
+			return issue.dueDate?.toString().split('T')[0] || 'None';
+		case IssueGroupByEnum.START_DATE:
+			return issue.startDate?.toString().split('T')[0] || 'None';
 		default:
 			return 'none';
 	}
@@ -674,42 +678,43 @@ export function groupIssuesByModule(
 
 /**
  * @description - Group Issue by Target Date for Calendar Layout display
- * @param {ITask[]} issues - Tasks to be transformed and grouped
- * @returns Tranformed and grouped by target date Issues
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Tasks with links to be transformed and grouped
+ * @param {IssueGroupByEnum} subGroupby - Optional sub-grouping criteria
+ * @param {IEmployee[]} employees - Optional employees for sub-grouping
+ * @returns Transformed and grouped by target date Issues
  */
-export function groupIssuesByTargetDate(issues: ITask[]) {
-	return issues.reduce(
-		(acc, item) => {
-			const targetDate = item.dueDate?.toString().split('T')[0];
+export function groupIssuesByTargetDate(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.dueDate?.toString().split('T')[0] || 'None',
+		'target_date',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
+		subGroupby
+	);
+}
 
-			if (!acc.results[targetDate!]) {
-				acc.results[targetDate!] = {
-					results: [],
-					total_results: 0
-				};
-			}
-			const issue = issueTransformer(item);
-
-			acc.results[targetDate!].results.push(issue);
-			acc.results[targetDate!].total_results++;
-
-			acc.total_results++;
-			return acc;
-		},
-		{
-			grouped_by: 'target_date',
-			sub_grouped_by: null,
-			total_count: issues.length,
-			next_cursor: '30:1:0',
-			prev_cursor: '30:-1:1',
-			next_page_results: false,
-			prev_page_results: false,
-			count: issues.length,
-			total_pages: 1,
-			total_results: issues.length,
-			extra_stats: null,
-			results: {}
-		}
+/**
+ * @description - Group Issue by Start Date for Calendar Layout display
+ * @param {{ issue: ITask; issueLinks: any }[]} issuesWithLinks - Tasks with links to be transformed and grouped
+ * @param {IssueGroupByEnum} subGroupby - Optional sub-grouping criteria
+ * @param {IEmployee[]} employees - Optional employees for sub-grouping
+ * @returns Transformed and grouped by start date Issues
+ */
+export function groupIssuesByStartDate(
+	issuesWithLinks: { issue: ITask; issueLinks: any }[],
+	subGroupby?: IssueGroupByEnum,
+	employees?: IEmployee[]
+) {
+	return groupIssues(
+		issuesWithLinks,
+		(issue) => issue.startDate?.toString().split('T')[0] || 'None',
+		'start_date',
+		(issue) => getGroupKeyForCriteria(issue, subGroupby!, employees),
+		subGroupby
 	);
 }
 
@@ -736,8 +741,41 @@ export function nonGroupedIssues(issues: ITask[]) {
 }
 
 /**
- * Normalizes filter structure from {"and": [...]} format to a flat object
- * @param filters - Filter object that may contain an "and" array structure
+ * Merges a single condition into a flat accumulator.
+ * For duplicate keys, values are merged as comma-separated (multi-value = OR within same field).
+ */
+function mergeConditionIntoFlat(
+	acc: Record<string, any>,
+	key: string,
+	value: any
+): void {
+	if (acc[key] !== undefined) {
+		// Existing value — merge
+		const existing = typeof acc[key] === 'string' && acc[key].includes(',')
+			? acc[key].split(',')
+			: [acc[key]];
+		const incoming = Array.isArray(value)
+			? value.map(String)
+			: typeof value === 'string' && value.includes(',')
+				? value.split(',')
+				: [value];
+		const merged = [...new Set([...existing, ...incoming])];
+		acc[key] = merged.length === 1 ? merged[0] : merged.join(',');
+	} else {
+		// Handle array values from JSON filters (e.g. {"start_date__range": ["2025-01-01", "2025-03-31"]})
+		acc[key] = Array.isArray(value) ? value.join(',') : value;
+	}
+}
+
+/**
+ * Recursively flattens a filter tree with "and"/"or"/"not" operators into a flat object.
+ *
+ * Since the Gauzy API is flat (no logical operators), the best approximation is:
+ * - "and" conditions on the SAME key: impossible to represent, last wins (AND across different keys is natural)
+ * - "or" conditions on the SAME key: merged into multi-value (filters[field][0], [1], etc.)
+ * - "not" conditions: currently not supported by the Gauzy API, ignored with a warning
+ *
+ * @param filters - Filter object that may contain "and"/"or"/"not" structures
  * @returns Normalized flat filter object
  */
 function normalizeFilters(filters: any): Record<string, any> {
@@ -745,106 +783,45 @@ function normalizeFilters(filters: any): Record<string, any> {
 		return {};
 	}
 
-	// If filters has an "and" array, merge all conditions into a flat object
+	const result: Record<string, any> = {};
+
+	// Handle "and" array — merge all children into the flat result
 	if (Array.isArray(filters.and)) {
-		const normalizedFilters: Record<string, any> = {};
-		// Temporary storage for date values that need to be merged
-		const startDateValues: string[] = [];
-		const targetDateValues: string[] = [];
-
-		filters.and.forEach((condition: Record<string, any>) => {
+		for (const condition of filters.and) {
 			if (condition && typeof condition === 'object') {
-				Object.keys(condition).forEach((key) => {
-					const value = condition[key];
-
-					// Special handling for date filters - collect all values
-					if (
-						key === 'start_date__exact' ||
-						key === 'start_date__range'
-					) {
-						const dates =
-							typeof value === 'string' && value.includes(',')
-								? value.split(',')
-								: [value];
-						startDateValues.push(...dates);
-						return;
-					}
-
-					if (
-						key === 'target_date__exact' ||
-						key === 'target_date__range'
-					) {
-						const dates =
-							typeof value === 'string' && value.includes(',')
-								? value.split(',')
-								: [value];
-						targetDateValues.push(...dates);
-						return;
-					}
-
-					// If key already exists, merge values
-					if (normalizedFilters[key]) {
-						// Convert existing value to array if it's not already
-						const existingValues = Array.isArray(
-							normalizedFilters[key]
-						)
-							? normalizedFilters[key]
-							: [normalizedFilters[key]];
-
-						// Handle new value - split if it's a comma-separated string
-						const newValues =
-							typeof value === 'string' && value.includes(',')
-								? value.split(',')
-								: [value];
-
-						// Merge and deduplicate
-						const mergedConditions = [
-							...existingValues,
-							...newValues
-						];
-						normalizedFilters[key] =
-							mergedConditions.length === 1
-								? mergedConditions[0]
-								: mergedConditions.join(',');
-					} else {
-						// First occurrence - keep as is (string with commas or single value)
-						normalizedFilters[key] = value;
-					}
-				});
+				const nested = normalizeFilters(condition);
+				for (const [key, value] of Object.entries(nested)) {
+					mergeConditionIntoFlat(result, key, value);
+				}
 			}
-		});
-
-		// Merge all start date values into a single key (deduplicate)
-		if (startDateValues.length > 0) {
-			const uniqueStartDates = [...new Set(startDateValues)];
-			normalizedFilters.start_date__exact =
-				uniqueStartDates.length === 1
-					? uniqueStartDates[0]
-					: uniqueStartDates.join(',');
-			normalizedFilters.start_date__range =
-				uniqueStartDates.length === 1
-					? uniqueStartDates[0]
-					: uniqueStartDates.join(',');
 		}
-
-		// Merge all target date values into a single key (deduplicate)
-		if (targetDateValues.length > 0) {
-			const uniqueTargetDates = [...new Set(targetDateValues)];
-			normalizedFilters.target_date__exact =
-				uniqueTargetDates.length === 1
-					? uniqueTargetDates[0]
-					: uniqueTargetDates.join(',');
-			normalizedFilters.target_date__range =
-				uniqueTargetDates.length === 1
-					? uniqueTargetDates[0]
-					: uniqueTargetDates.join(',');
-		}
-
-		return normalizedFilters;
+		return result;
 	}
 
-	// If filters is already a flat object, return as is
-	return filters;
+	// Handle "or" array — merge values of same keys (multi-value = OR within a field)
+	if (Array.isArray(filters.or)) {
+		for (const condition of filters.or) {
+			if (condition && typeof condition === 'object') {
+				const nested = normalizeFilters(condition);
+				for (const [key, value] of Object.entries(nested)) {
+					mergeConditionIntoFlat(result, key, value);
+				}
+			}
+		}
+		return result;
+	}
+
+	// Handle "not" — skip with no-op (Gauzy API does not support negation)
+	if (filters.not && typeof filters.not === 'object') {
+		return result;
+	}
+
+	// Leaf object — copy all keys as-is
+	for (const [key, value] of Object.entries(filters)) {
+		mergeConditionIntoFlat(result, key, value);
+	}
+
+	return result;
 }
 
 /**
@@ -924,8 +901,8 @@ export const getTaskQuery = (
 		}
 	}
 
-	if (created_by || filters.created_by__in) {
-		const createdByValue = created_by || filters.created_by__in;
+	if (created_by || creatorId || filters.created_by__in || filters.created_by_id__in) {
+		const createdByValue = created_by || creatorId || filters.created_by__in || filters.created_by_id__in;
 		if (createdByValue && createdByValue.includes(',')) {
 			const creators = issueFilterSplitter(createdByValue);
 			creators.forEach((creator, i) => {
@@ -980,10 +957,6 @@ export const getTaskQuery = (
 		}
 	}
 
-	if (creatorId) {
-		query['where[createdByUserId]'] = options!.creatorId;
-	}
-
 	// Handle priority__in filter
 	if (filters.priority__in) {
 		const priorities = issueFilterSplitter(filters.priority__in);
@@ -1008,32 +981,74 @@ export const getTaskQuery = (
 		});
 	}
 
-	// Handle date filters - merge all start_date values into one array
-	const allStartDates: string[] = [];
-	if (filters.start_date__exact) {
-		allStartDates.push(...issueFilterSplitter(filters.start_date__exact));
-	}
-	if (filters.start_date__range) {
-		allStartDates.push(...issueFilterSplitter(filters.start_date__range));
-	}
-	if (allStartDates.length > 0) {
-		allStartDates.forEach((date, i) => {
-			query[`filters[startDates][${i}]`] = new Date(date);
+	// Handle subscriber_id__in filter (new — parity with Plane's IssueFilterSet)
+	if (filters.subscriber_id__in) {
+		const subscribers = issueFilterSplitter(filters.subscriber_id__in);
+		subscribers.forEach((sub, i) => {
+			query[`filters[subscriberIds][${i}]`] = sub;
 		});
 	}
 
-	// Handle date filters - merge all target_date values into one array
-	const allTargetDates: string[] = [];
+	// Handle project_id__in filter (new — for workspace-level views)
+	if (filters.project_id__in) {
+		const projectIds = issueFilterSplitter(filters.project_id__in);
+		projectIds.forEach((pid, i) => {
+			query[`filters[projectIds][${i}]`] = pid;
+		});
+	}
+
+	// Handle start_date filters — keep __exact and __range separate
+	if (filters.start_date__exact) {
+		const exactDates = issueFilterSplitter(filters.start_date__exact);
+		exactDates.forEach((date, i) => {
+			query[`filters[startDates][${i}]`] = new Date(date);
+		});
+	}
+	if (filters.start_date__range) {
+		const rangeDates = issueFilterSplitter(filters.start_date__range);
+		if (rangeDates.length >= 2) {
+			// Range = BETWEEN two dates
+			query[`filters[startDateFrom]`] = new Date(rangeDates[0]);
+			query[`filters[startDateTo]`] = new Date(rangeDates[1]);
+		} else if (rangeDates.length === 1) {
+			query[`filters[startDates][0]`] = new Date(rangeDates[0]);
+		}
+	}
+
+	// Handle target_date filters — keep __exact and __range separate
 	if (filters.target_date__exact) {
-		allTargetDates.push(...issueFilterSplitter(filters.target_date__exact));
-	}
-	if (filters.target_date__range) {
-		allTargetDates.push(...issueFilterSplitter(filters.target_date__range));
-	}
-	if (allTargetDates.length > 0) {
-		allTargetDates.forEach((date, i) => {
+		const exactDates = issueFilterSplitter(filters.target_date__exact);
+		exactDates.forEach((date, i) => {
 			query[`filters[dueDates][${i}]`] = new Date(date);
 		});
+	}
+	if (filters.target_date__range) {
+		const rangeDates = issueFilterSplitter(filters.target_date__range);
+		if (rangeDates.length >= 2) {
+			// Range = BETWEEN two dates
+			query[`filters[dueDateFrom]`] = new Date(rangeDates[0]);
+			query[`filters[dueDateTo]`] = new Date(rangeDates[1]);
+		} else if (rangeDates.length === 1) {
+			query[`filters[dueDates][0]`] = new Date(rangeDates[0]);
+		}
+	}
+
+	// Handle created_at filters (new — parity with Plane's IssueFilterSet)
+	if (filters.created_at__range) {
+		const rangeDates = issueFilterSplitter(filters.created_at__range);
+		if (rangeDates.length >= 2) {
+			query[`filters[createdAtFrom]`] = new Date(rangeDates[0]);
+			query[`filters[createdAtTo]`] = new Date(rangeDates[1]);
+		}
+	}
+
+	// Handle updated_at filters (new — parity with Plane's IssueFilterSet)
+	if (filters.updated_at__range) {
+		const rangeDates = issueFilterSplitter(filters.updated_at__range);
+		if (rangeDates.length >= 2) {
+			query[`filters[updatedAtFrom]`] = new Date(rangeDates[0]);
+			query[`filters[updatedAtTo]`] = new Date(rangeDates[1]);
+		}
 	}
 
 	if (typeof isDraft !== 'undefined') {
@@ -1272,7 +1287,10 @@ export function updateIssueInputTransformer(
 		type_id: 'taskTypeId'
 	};
 
-	// TODO : Include mention here
+	// Extract mentions from description_html (if provided in this update)
+	const mentionedEmployeeIds = issue?.description_html
+		? extractEmployeeMentionIds(issue.description_html)
+		: undefined;
 
 	// Include only user provided flelds in the final request
 	const transformedInput: ITaskUpdateInput = Object.entries(
@@ -1325,6 +1343,11 @@ export function updateIssueInputTransformer(
 				fullName: employee.fullName,
 				userId: employee.userId
 			}));
+	}
+
+	// Add mentions if description_html was updated and contains mention components
+	if (mentionedEmployeeIds !== undefined) {
+		transformedInput.mentionEmployeeIds = mentionedEmployeeIds;
 	}
 
 	return transformedInput;

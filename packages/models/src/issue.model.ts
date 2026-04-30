@@ -67,8 +67,8 @@ export type IIssueUpdateInput = IIssue;
 export interface IIssueFindInput {
 	issues?: string;
 
-	// Users/assigneers/collaborators
-	creatorId?: ID;
+	// Users/assignees/collaborators
+	creatorId?: string;
 	created_by?: string;
 	assignees?: string;
 	subscriber?: string;
@@ -94,6 +94,8 @@ export interface IIssueFindInput {
 	// Dates
 	start_date?: string;
 	target_date?: string;
+	created_at?: string;
+	updated_at?: string;
 
 	// Labels
 	labels?: string;
@@ -117,6 +119,7 @@ export enum IssueGroupByEnum {
 	PROJECT_ID = 'project_id',
 	STATE = 'state_id',
 	STATE_GROUP = 'state__group',
+	START_DATE = 'start_date',
 	TARGET_DATE = 'target_date'
 }
 

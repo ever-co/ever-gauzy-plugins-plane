@@ -56,6 +56,9 @@ import {
 	groupIssuesByLabel,
 	groupIssuesByModule,
 	groupIssuesByPriority,
+	groupIssuesByProjectId,
+	groupIssuesByStartDate,
+	groupIssuesByStateGroup,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
 	issueActivityLogTransformer,
@@ -643,8 +646,24 @@ export class IssuesService extends ApiFetchService {
 						sub_group_by,
 						employees
 					); // Group issues by their state
+				case IssueGroupByEnum.STATE_GROUP:
+					return groupIssuesByStateGroup(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their state group (backlog/unstarted/started/completed/cancelled)
 				case IssueGroupByEnum.TARGET_DATE:
-					return groupIssuesByTargetDate(issues); // Group issues by their target date
+					return groupIssuesByTargetDate(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their target date
+				case IssueGroupByEnum.START_DATE:
+					return groupIssuesByStartDate(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their start date
 				case IssueGroupByEnum.PRIORITY:
 					return groupIssuesByPriority(
 						issuesWithLinks,
@@ -681,6 +700,12 @@ export class IssuesService extends ApiFetchService {
 						sub_group_by,
 						employees
 					); // Group issues by their creator
+				case IssueGroupByEnum.PROJECT_ID:
+					return groupIssuesByProjectId(
+						issuesWithLinks,
+						sub_group_by,
+						employees
+					); // Group issues by their project (workspace-level views)
 				default:
 					return nonGroupedIssues(issues); // Return issues as they are if no group_by is specified
 			}

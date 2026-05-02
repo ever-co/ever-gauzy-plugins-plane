@@ -29,6 +29,7 @@ export interface IModule {
 	completed_estimate_points?: number;
 	total_estimate_points?: number;
 	member_ids?: string[];
+	archived_at?: Date | string | null;
 }
 
 export interface ICreateModuleInput {

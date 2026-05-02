@@ -247,6 +247,155 @@ export class ProjectModuleService extends ApiFetchService {
 	}
 
 	/**
+	 * @description Archive a module (only if completed or cancelled)
+	 * @param {ID} id - Module ID to archive
+	 * @param {ID} projectId - Project ID
+	 * @returns A promise resolved with the archived_at date
+	 * @memberof ProjectModuleService
+	 */
+	async archiveModule(id: ID, projectId: ID): Promise<{ archived_at: string }> {
+		try {
+			const module = await this.getExternalModule(id, projectId);
+
+			if (!module) {
+				throw new BadRequestException(`Module with id ${id} could not be found`);
+			}
+
+			// Only completed or cancelled modules can be archived
+			const archivableStatuses = ['completed', 'cancelled'];
+			if (!archivableStatuses.includes(module.status ?? '')) {
+				throw new BadRequestException(
+					'Only completed or cancelled modules can be archived'
+				);
+			}
+
+			const archivedAt = new Date().toISOString();
+
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body: {
+					...module,
+					isArchived: true,
+					archivedAt
+				}
+			});
+
+			return { archived_at: archivedAt };
+		} catch (error) {
+			this.logger.error(
+				'Archive operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Unarchive a module
+	 * @param {ID} id - Module ID to unarchive
+	 * @param {ID} projectId - Project ID
+	 * @returns void
+	 * @memberof ProjectModuleService
+	 */
+	async unarchiveModule(id: ID, projectId: ID): Promise<void> {
+		try {
+			const module = await this.getExternalModule(id, projectId);
+
+			if (!module) {
+				throw new BadRequestException(`Module with id ${id} could not be found`);
+			}
+
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body: {
+					...module,
+					isArchived: false,
+					archivedAt: null
+				}
+			});
+		} catch (error) {
+			this.logger.error(
+				'Unarchive operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Get archived modules for a project
+	 * @param {ID} projectId - The project ID
+	 * @returns Archived modules list
+	 * @memberof ProjectModuleService
+	 */
+	async getArchivedModules(projectId: ID) {
+		try {
+			const query = qs.stringify({
+				...getModulesQuery(projectId, ['members.employee', 'tasks.members', 'tasks.tags']),
+				'where[isArchived]': true
+			});
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationProjectModule
+				);
+
+			const modules: IPagination<IOrganizationProjectModule> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}`,
+					query
+				})
+			).data;
+
+			return modulesTransformer(modules.items, favoriteIds);
+		} catch (error: any) {
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Get a single archived module
+	 * @param {ID} id - Module ID
+	 * @param {ID} projectId - Project ID
+	 * @returns Archived module detail
+	 * @memberof ProjectModuleService
+	 */
+	async getArchivedModule(id: ID, projectId: ID) {
+		try {
+			const module = await this.getExternalModule(id, projectId, [
+				'members.employee', 'tasks.members', 'tasks.tags'
+			]);
+
+			if (!module?.isArchived) {
+				throw new BadRequestException('Module is not archived');
+			}
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationProjectModule
+				);
+
+			return modulesTransformer(module, favoriteIds);
+		} catch (error) {
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
 	 * @description Get user modules properties
 	 * @param {ID} id - Module ID of module for whom get properties
 	 * @returns A promise resolved to user properties

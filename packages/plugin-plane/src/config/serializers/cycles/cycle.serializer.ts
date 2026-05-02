@@ -242,7 +242,8 @@ export function cycleTransformer(
 			logo_props: {},
 			assignee_ids: sprint.members?.map((member) => member.employeeId) as string[],
 			external_id: null,
-			external_source: null
+			external_source: null,
+			archived_at: sprint.archivedAt ?? null
 		};
 	};
 

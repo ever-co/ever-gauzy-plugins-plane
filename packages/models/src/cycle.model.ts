@@ -24,6 +24,7 @@ export interface ICycle {
 	assignee_ids?: ID[];
 	external_source?: any;
 	external_id?: any;
+	archived_at?: Date | string | null;
 }
 
 export enum CycleStatusEnum {

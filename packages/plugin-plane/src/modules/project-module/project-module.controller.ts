@@ -133,6 +133,40 @@ export class ProjectModuleController {
 		return await this._projectModuleService.delete(id);
 	}
 
+	// ───────────── Module Archive ─────────────
+
+	/**
+	 * @description Archive a module (only completed or cancelled)
+	 * @param {ID} id - Module ID
+	 * @param {ID} projectId - Project ID
+	 * @returns The archived_at timestamp
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Archive Project Module' })
+	@Post(':id/archive')
+	async archiveModule(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._projectModuleService.archiveModule(id, projectId);
+	}
+
+	/**
+	 * @description Unarchive a module
+	 * @param {ID} id - Module ID
+	 * @param {ID} projectId - Project ID
+	 * @returns void (204)
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Unarchive Project Module' })
+	@Delete(':id/archive')
+	async unarchiveModule(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._projectModuleService.unarchiveModule(id, projectId);
+	}
+
 	// ───────────── Module Links ─────────────
 
 	/**

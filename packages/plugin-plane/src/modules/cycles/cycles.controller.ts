@@ -202,6 +202,40 @@ export class CyclesController {
 		return this._cycleService.updateCycleUserProperties(id, input);
 	}
 
+	// ───────────── Cycle Archive ─────────────
+
+	/**
+	 * @description Archive a cycle (only completed cycles with end_date in the past)
+	 * @param {ID} id - Cycle ID
+	 * @param {ID} projectId - Project ID
+	 * @returns The archived_at timestamp
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Archive Cycle' })
+	@Post(':id/archive')
+	async archiveCycle(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._cycleService.archiveCycle(id, projectId);
+	}
+
+	/**
+	 * @description Unarchive a cycle
+	 * @param {ID} id - Cycle ID
+	 * @param {ID} projectId - Project ID
+	 * @returns void (204)
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Unarchive Cycle' })
+	@Delete(':id/archive')
+	async unarchiveCycle(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._cycleService.unarchiveCycle(id, projectId);
+	}
+
 	/** Deletes a specific cycle (sprint) by its ID.
 	 *
 	 * @param {ID} id - The unique identifier of the cycle to delete.

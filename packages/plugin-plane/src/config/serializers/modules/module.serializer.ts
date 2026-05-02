@@ -104,6 +104,7 @@ export function modulesTransformer(
 				(member) => member.employeeId
 			),
 			workspace_id: projectModule?.organizationId,
+			archived_at: projectModule?.archivedAt ?? null,
 			...(projectModule ? moduleDetailsAdapter(projectModule) : {})
 		};
 	};

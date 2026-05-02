@@ -374,6 +374,152 @@ export class CyclesService extends ApiFetchService {
 	}
 
 	/**
+	 * @description Archive a cycle (only if end_date is in the past)
+	 * @param {ID} id - Cycle ID to archive
+	 * @param {ID} projectId - Project ID
+	 * @returns A promise resolved with the archived_at date
+	 * @memberof CyclesService
+	 */
+	async archiveCycle(id: ID, projectId: ID): Promise<{ archived_at: string }> {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			if (!sprint) {
+				throw new BadRequestException(`Cycle with id ${id} could not be found`);
+			}
+
+			// Only completed cycles (end_date in the past) can be archived
+			if (sprint.endDate && new Date(sprint.endDate) >= new Date()) {
+				throw new BadRequestException(
+					'Only completed cycles can be archived'
+				);
+			}
+
+			const archivedAt = new Date().toISOString();
+
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body: {
+					...sprint,
+					isArchived: true,
+					archivedAt
+				}
+			});
+
+			return { archived_at: archivedAt };
+		} catch (error) {
+			this.logger.error(
+				'Archive operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Unarchive a cycle
+	 * @param {ID} id - Cycle ID to unarchive
+	 * @param {ID} projectId - Project ID
+	 * @returns void
+	 * @memberof CyclesService
+	 */
+	async unarchiveCycle(id: ID, projectId: ID): Promise<void> {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			if (!sprint) {
+				throw new BadRequestException(`Cycle with id ${id} could not be found`);
+			}
+
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body: {
+					...sprint,
+					isArchived: false,
+					archivedAt: null
+				}
+			});
+		} catch (error) {
+			this.logger.error(
+				'Unarchive operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Get archived cycles for a project
+	 * @param {ID} projectId - The project ID
+	 * @returns Archived cycles list
+	 * @memberof CyclesService
+	 */
+	async getArchivedCycles(projectId: ID) {
+		try {
+			const query = qs.stringify({
+				...getSprintsQuery(projectId),
+				'where[isArchived]': true
+			});
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationSprint
+				);
+
+			const sprints: IPagination<IOrganizationSprint> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query
+				})
+			).data;
+
+			return cycleTransformer(sprints.items, favoriteIds);
+		} catch (error: any) {
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Get a single archived cycle
+	 * @param {ID} id - Cycle ID
+	 * @param {ID} projectId - Project ID
+	 * @returns Archived cycle detail
+	 * @memberof CyclesService
+	 */
+	async getArchivedCycle(id: ID, projectId: ID) {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			if (!sprint?.isArchived) {
+				throw new BadRequestException('Cycle is not archived');
+			}
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationSprint
+				);
+
+			return cycleTransformer(sprint, favoriteIds);
+		} catch (error) {
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
 	 * Checks for date overlaps between existing cycles and the new dates.
 	 * Uses `moment` for more precise date comparisons.
 	 * @param cycles The existing cycles.

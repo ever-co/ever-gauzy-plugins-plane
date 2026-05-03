@@ -69,11 +69,19 @@ function transformOne(task: ITask): ISticky {
 }
 
 /**
- * Strip HTML tags to produce description_stripped.
+ * Strip HTML tags safely to produce description_stripped.
+ * Removes script/style elements entirely, strips remaining tags,
+ * then removes any leftover angle brackets to prevent partial-tag injection.
  */
 function stripTags(html?: string | null): string | null {
 	if (!html) return null;
-	return html.replace(/<[^>]*>/g, '').trim() || null;
+	const cleaned = html
+		.replace(/<script[\s\S]*?<\/script>/gi, '')
+		.replace(/<style[\s\S]*?<\/style>/gi, '')
+		.replace(/<[^>]*>/g, '')
+		.replace(/[<>]/g, '')
+		.trim();
+	return cleaned || null;
 }
 
 /**

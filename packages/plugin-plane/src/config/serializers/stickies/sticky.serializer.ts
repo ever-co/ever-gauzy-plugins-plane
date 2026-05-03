@@ -43,7 +43,7 @@ export function stickyTransformer(task: ITask): ISticky;
 export function stickyTransformer(tasks: ITask[]): ISticky[];
 export function stickyTransformer(input: ITask | ITask[]): ISticky | ISticky[] {
 	if (Array.isArray(input)) {
-		return input.map((t) => transformOne(t));
+		return input.filter(Boolean).map((t) => transformOne(t));
 	}
 	return transformOne(input);
 }
@@ -90,9 +90,10 @@ export function stickyCreateInputTransformer(input: IStickyCreateInput): Record<
 	};
 
 	return {
-		title: input.name ?? '',
+		title: input.name || 'Untitled Sticky',
 		description: JSON.stringify(meta),
 		issueType: 'memo',
+		status: 'open',
 		// projectId is intentionally omitted (null) — workspace-level task
 		organizationId: getCurrentOrganizationSlug()
 	};

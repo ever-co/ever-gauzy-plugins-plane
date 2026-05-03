@@ -32,8 +32,7 @@ export class StickiesService extends ApiFetchService {
 	private getStickyQuery(): Record<string, string> {
 		return {
 			...baseGetItemsWhereQuery(),
-			'where[issueType]': 'memo',
-			'where[projectId]': ''
+			'where[issueType]': 'memo'
 		};
 	}
 
@@ -59,7 +58,7 @@ export class StickiesService extends ApiFetchService {
 				})
 			).data;
 
-			let stickies = stickyTransformer(response.items);
+			let stickies = stickyTransformer(response.items ?? []);
 
 			// Apply text search if provided (matching Django's description_stripped__icontains)
 			if (searchQuery) {

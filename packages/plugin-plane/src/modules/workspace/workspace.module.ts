@@ -14,6 +14,7 @@ import { IssueViewModule } from '../views/view.module';
 import { DashboardModule } from '../dashboard/dashboard.module';
 import { NotificationModule } from '../notification/notification.module';
 import { WorkspaceAdvanceAnalyticsModule } from '../advance-analytics/workspace-advance-analytics.module';
+import { StickiesModule } from '../stickies/stickies.module';
 
 @Module({
 	imports: [
@@ -25,6 +26,10 @@ import { WorkspaceAdvanceAnalyticsModule } from '../advance-analytics/workspace-
 					{
 						path: '/',
 						module: WorkspaceAdvanceAnalyticsModule
+					},
+					{
+						path: '/stickies',
+						module: StickiesModule
 					}
 				]
 			}

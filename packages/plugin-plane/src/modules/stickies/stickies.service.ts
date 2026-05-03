@@ -161,7 +161,16 @@ export class StickiesService extends ApiFetchService {
 				throw new BadRequestException(`Sticky ${id} not found`);
 			}
 
-			const body = stickyUpdateInputTransformer(input, existingTask.description);
+			const partialBody = stickyUpdateInputTransformer(input, existingTask.description);
+
+			// Gauzy PUT requires all mandatory fields — merge with existing task
+			const body = {
+				title: existingTask.title,
+				status: existingTask.status,
+				organizationId: existingTask.organizationId,
+				issueType: existingTask.issueType,
+				...partialBody
+			};
 
 			const updatedTask: ITask = (
 				await this.apiFetch({

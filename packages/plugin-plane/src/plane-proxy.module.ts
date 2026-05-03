@@ -48,6 +48,7 @@ import { AdvanceAnalyticsModule } from './modules/advance-analytics/advance-anal
 import { WorkspaceAdvanceAnalyticsModule } from './modules/advance-analytics/workspace-advance-analytics.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { FileAssetsModule } from './modules/file-assets/file-assets.module';
+import { StickiesModule } from './modules/stickies/stickies.module';
 
 const FEATURE_MODULES = [
 	LoggerModule,
@@ -87,7 +88,8 @@ const FEATURE_MODULES = [
 	AdvanceAnalyticsModule,
 	WorkspaceAdvanceAnalyticsModule,
 	PagesModule,
-	FileAssetsModule
+	FileAssetsModule,
+	StickiesModule
 ];
 
 @Module({})

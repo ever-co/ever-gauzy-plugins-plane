@@ -1,9 +1,10 @@
 import {
-	ID,
 	ISticky,
 	IStickyCreateInput,
 	IStickyUpdateInput,
-	ITask
+	ITask,
+	TaskStatusEnum,
+	TaskTypeEnum
 } from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	currentEmployeeId,
@@ -69,19 +70,12 @@ function transformOne(task: ITask): ISticky {
 }
 
 /**
- * Strip HTML tags safely to produce description_stripped.
- * Removes script/style elements entirely, strips remaining tags,
- * then removes any leftover angle brackets to prevent partial-tag injection.
+ * Strip HTML to produce a plain-text search field (description_stripped).
+ * Removes all angle brackets to prevent any form of HTML injection.
  */
 function stripTags(html?: string | null): string | null {
 	if (!html) return null;
-	const cleaned = html
-		.replace(/<script[\s\S]*?<\/script>/gi, '')
-		.replace(/<style[\s\S]*?<\/style>/gi, '')
-		.replace(/<[^>]*>/g, '')
-		.replace(/[<>]/g, '')
-		.trim();
-	return cleaned || null;
+	return html.replace(/[<>]/g, '').trim() || null;
 }
 
 /**
@@ -100,8 +94,8 @@ export function stickyCreateInputTransformer(input: IStickyCreateInput): Record<
 	return {
 		title: input.name || 'Untitled Sticky',
 		description: JSON.stringify(meta),
-		issueType: 'memo',
-		status: 'open',
+		issueType: TaskTypeEnum.MEMO,
+		status: TaskStatusEnum.OPEN,
 		// projectId is intentionally omitted (null) — workspace-level task
 		organizationId: getCurrentOrganizationSlug()
 	};

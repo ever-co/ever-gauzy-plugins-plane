@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import qs from 'qs';
 import {
 	ID,
@@ -157,10 +157,6 @@ export class StickiesService extends ApiFetchService {
 				})
 			).data;
 
-			if (!existingTask) {
-				throw new BadRequestException(`Sticky ${id} not found`);
-			}
-
 			const partialBody = stickyUpdateInputTransformer(input, existingTask.description);
 
 			// Gauzy PUT requires all mandatory fields — merge with existing task
@@ -186,7 +182,6 @@ export class StickiesService extends ApiFetchService {
 				'Failed to update sticky',
 				error instanceof Error ? error.stack : String(error)
 			);
-			if (error instanceof BadRequestException) throw error;
 			this.handleApiError(error);
 		}
 	}

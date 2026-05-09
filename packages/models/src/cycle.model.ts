@@ -83,3 +83,7 @@ export interface ICycleProgress {
 	started_issues: number;
 	unstarted_issues: number;
 }
+
+export interface ITransferCycleIssuesInput {
+	new_cycle_id: ID;
+}

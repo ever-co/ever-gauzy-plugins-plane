@@ -2,10 +2,12 @@ import {
     Injectable,
     CanActivate,
     ExecutionContext,
-    SetMetadata
+    SetMetadata,
+    UnauthorizedException
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request, Response } from 'express';
+import { Request } from 'express';
+import { decodeToken } from '../api-fetch/token.helper';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
@@ -26,7 +28,6 @@ export class AuthGuard implements CanActivate {
 		}
 
 		const request = context.switchToHttp().getRequest<Request>();
-		const response = context.switchToHttp().getResponse<Response>();
 
 		const tokenChunks: string[] = [];
 		let index = 0;
@@ -40,9 +41,14 @@ export class AuthGuard implements CanActivate {
 
 		const token = tokenChunks.join('');
 
-		if (!token) {
-			response.redirect(request.headers.referer!);
-			return false;
+		// Reject when no session token is present, or when it is structurally
+		// malformed. Respond 401 (which the Plane SPA handles by routing to sign-in)
+		// rather than redirecting to a client-controlled `Referer` or a request-scoped
+		// URL — either would be an open redirect. Cryptographic signature/expiry are
+		// enforced upstream by Gauzy (which owns the JWT secret) and, for the integrated
+		// mount, by the host's tenant resolver; this is an edge-level sanity check.
+		if (!token || !decodeToken(token)) {
+			throw new UnauthorizedException('Authentication required');
 		}
 
 		return true;

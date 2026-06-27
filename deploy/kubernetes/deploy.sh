@@ -11,12 +11,19 @@ cd "$(dirname "$0")"
 # shellcheck disable=SC1091
 [ -f .env ] && set -a && . ./.env && set +a
 
-: "${GAUZY_API_URL:?}"; : "${TENANT_ID:?}"; : "${IMAGE_REGISTRY:?}"; : "${IMAGE_TAG:?}"
+: "${GAUZY_API_URL:?}"; : "${IMAGE_REGISTRY:?}"; : "${IMAGE_TAG:?}"
 : "${PLANE_HOST:?}"; : "${PLANE_NAMESPACE:?}"
+MODE="${MODE:-custom}"
 TOPOLOGY="${TOPOLOGY:-single}"
 DRY_RUN="${1:-}"
 
-export VITE_API_BASE_URL="${GAUZY_API_URL%/}/api/plane/${TENANT_ID}"
+if [ "$MODE" = "shared" ]; then
+  export VITE_API_BASE_URL="${GAUZY_API_URL%/}/api/plane"
+  TENANT_ID="${TENANT_ID:-}"
+else
+  : "${TENANT_ID:?set TENANT_ID for MODE=custom}"
+  export VITE_API_BASE_URL="${GAUZY_API_URL%/}/api/plane/${TENANT_ID}"
+fi
 export IMAGE_WEB="${IMAGE_REGISTRY%/}/plane-web:${IMAGE_TAG}"
 export IMAGE_SPACE="${IMAGE_REGISTRY%/}/plane-space:${IMAGE_TAG}"
 export IMAGE_ADMIN="${IMAGE_REGISTRY%/}/plane-admin:${IMAGE_TAG}"

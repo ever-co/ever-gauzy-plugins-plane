@@ -2,8 +2,10 @@
 #
 # Build & push the Plane front-end images wired to the Gauzy proxy.
 #
-# The tenant is baked in at BUILD TIME via VITE_API_BASE_URL — Plane's Vite apps
-# have no runtime env injection, so one image == one tenant == one API host.
+# VITE_API_BASE_URL is baked in at BUILD TIME — Plane's Vite apps have no runtime
+# env injection. So the build is per-environment:
+#   MODE=custom  → .../api/plane/{tenantId}   (one image per tenant; tenant from the path)
+#   MODE=shared  → .../api/plane              (one image for all; tenant from the session)
 #
 # Usage:  cp .env.example .env && $EDITOR .env && ./build-images.sh [web|space|admin|live ...]
 #
@@ -13,15 +15,21 @@ cd "$(dirname "$0")"
 [ -f .env ] && set -a && . ./.env && set +a
 
 : "${GAUZY_API_URL:?set GAUZY_API_URL}"
-: "${TENANT_ID:?set TENANT_ID}"
 : "${PLANE_SRC:?set PLANE_SRC (path to a Plane checkout)}"
 : "${IMAGE_REGISTRY:?set IMAGE_REGISTRY}"
 : "${IMAGE_TAG:?set IMAGE_TAG}"
+MODE="${MODE:-custom}"
 TOPOLOGY="${TOPOLOGY:-single}"
 export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
 
-# The one value that matters most: the per-tenant proxy base URL.
-VITE_API_BASE_URL="${GAUZY_API_URL%/}/api/plane/${TENANT_ID}"
+# The one value that matters most: the proxy base URL baked into every front-end.
+if [ "$MODE" = "shared" ]; then
+  VITE_API_BASE_URL="${GAUZY_API_URL%/}/api/plane"
+else
+  : "${TENANT_ID:?set TENANT_ID for MODE=custom (the Gauzy tenant UUID)}"
+  VITE_API_BASE_URL="${GAUZY_API_URL%/}/api/plane/${TENANT_ID}"
+fi
+echo "▶ MODE              = ${MODE}"
 echo "▶ VITE_API_BASE_URL = ${VITE_API_BASE_URL}"
 echo "▶ topology          = ${TOPOLOGY}"
 

@@ -1,154 +1,167 @@
-# One Plane for all tenants? Shared deployment, SSO, and the security model
+# Plane UIs: shared vs self-hosted — a per-tenant choice (+ SSO & security)
 
-This companion to the [Kubernetes deployment guide](../deploy/kubernetes/README.md) answers two
-questions:
-
-1. **Why is the integration "one Plane build per tenant" today**, and can we instead run a single
-   `plane.gauzy.co` that serves **all** Gauzy tenants behind SSO?
-2. **Is the tenant UUID in the URL a security risk** — can knowing another tenant's UUID leak their
-   data? (See [Security](#security).)
+Companion to the [Kubernetes deployment guide](../deploy/kubernetes/README.md). It describes how a
+Gauzy tenant chooses **how** it uses Plane, how login/SSO works on the **shared** option, what the
+"Connect"/enable action actually does, and the **security model**.
 
 ---
 
-## 1. Why it's per‑tenant today
+## TL;DR
 
-The proxy resolves which Gauzy tenant a request belongs to, in priority order
-(`integration-plane/src/lib/plane-proxy.service.ts`):
+A tenant picks one of two modes when it enables the Plane integration in Gauzy:
 
-1. `X-TENANT-ID` header **+ a Bearer JWT whose `tenantId` claim must match** (Gauzy‑internal calls).
-2. A `tenant-id` cookie.
-3. **A UUID in the URL path** — `…/api/plane/{tenantId}/…`. This is what the browser UIs use,
-   because the Plane SPA is built with `VITE_API_BASE_URL=https://api.gauzy.co/api/plane/{tenantId}`.
-
-And the front‑ends **bake `VITE_API_BASE_URL` at build time** (Vite `define: process.env`; no runtime
-injection). So a built bundle contains exactly one tenant UUID:
-
-> **One Plane build = one tenant.** That is the entire reason each tenant needs its own Plane URLs
-> (`plane.<tenant>.com`) and its own image build.
-
-It is not that the proxy can only serve one tenant — the single `/api/plane` mount on `api.gauzy.co`
-already serves *all* tenants concurrently; it disambiguates them per request from the path UUID. The
-limitation is purely in the **static SPA**, which can carry only one baked URL.
-
----
-
-## 2. What it takes to run ONE shared `plane.gauzy.co` for ALL tenants
-
-To serve every tenant from a single deployment, the tenant must stop being a build‑time constant and
-become a **runtime** signal. Three things have to be solved:
-
-| Problem | Today | Needed for shared |
+| | **(a) Shared** *(default)* | **(b) Custom (self-hosted)** |
 |---|---|---|
-| **A. Tenant source** | baked path UUID | derive tenant at runtime (session cookie / SSO / subdomain) |
-| **B. The bundle** | one tenant baked in | one tenant‑agnostic build (`VITE_API_BASE_URL=https://api.gauzy.co/api/plane`, no UUID) |
-| **C. Bootstrap** | path carries tenant even pre‑login | the *unauthenticated* steps (email‑check, instances, CSRF) have no tenant yet |
-| **D. Ambiguity** | tenant is fixed by the URL | a user's email may exist in several tenants → which one? |
+| Plane UI URLs | Ever's global `plane.gauzy.co`, `plane-admin.gauzy.co`, `plane-space.gauzy.co` (shown read-only) | The tenant's own URLs (entered by the admin) |
+| Who deploys the UIs | Ever (once, globally) | The tenant |
+| The "Connect" action | **Just "Enable"** — opt the tenant in | Enter URLs + enable |
+| How the proxy finds the tenant | from the **logged-in session** (JWT) | from the **URL path** (`/api/plane/{tenantId}`) baked into that tenant's build |
+| Login | Open the URL, sign in with Gauzy credentials (or one-click SSO) | same |
 
-Good news: most of the machinery already exists.
+Both modes are served by the **same** proxy mount on `api.gauzy.co`. The only real difference is
+**where the tenant identity comes from** — the session (shared) or the baked URL path (custom).
 
-- The proxy **already accepts a `tenant-id` cookie** and the session JWT (`auth-proxy-plane-token-*`)
-  **already encodes `tenantId`** (`token.helper.ts: getCurrentTenantId()`).
-- After the security fix in this repo, **the session JWT is the source of truth** for the tenant when
-  a session is present — the path UUID is only a fallback. So an authenticated, tenant‑agnostic
-  bundle would already resolve the right tenant *from the cookie*, with no UUID in the URL.
+---
 
-So the remaining work is **B + C + D**: a tenant‑agnostic build, and a way to establish the tenant
-*before* the user has a Plane session.
+## Why both are possible (and why shared works now)
 
-### Recommended design — Gauzy‑initiated SSO (pin the tenant into the session)
+The proxy resolves the tenant per request, in priority order: the verified **session JWT**
+(`auth-proxy-plane-token-*` cookie) → a `tenant-id` cookie / `X-TENANT-ID` header → the **UUID in
+the URL path**. The recent security fix made the **session JWT the source of truth** when present.
 
-The cleanest path reuses Gauzy's existing auth and avoids Plane's ambiguous email/password login:
+That single change is what unlocks the shared option:
 
-```
-1. User is already logged into Gauzy (knows their tenant + organization).
-2. Gauzy dashboard shows "Open Plane" → links to
-      https://plane.gauzy.co/?sso=<short-lived, Gauzy-signed handoff token>
-3. A small proxy SSO endpoint (e.g. /api/plane/sso) validates the handoff token,
-   exchanges it for a Gauzy session, and sets the auth-proxy-plane-token-* cookie
-   (which already carries tenantId) on the shared domain.
-4. From here every /api/plane/* call carries that cookie. extractTenantId reads
-   tenantId from the verified cookie JWT — no path UUID, one shared bundle.
-```
+- **Custom build** bakes `VITE_API_BASE_URL=https://api.gauzy.co/api/plane/{tenantId}` → the tenant
+  is in every URL → one build per tenant.
+- **Shared build** bakes `VITE_API_BASE_URL=https://api.gauzy.co/api/plane` (no tenant) → the tenant
+  comes from the session after login → **one build serves every tenant.**
 
-Why this resolves A–D:
-- **A/B:** tenant comes from the cookie; the bundle is built once with
-  `VITE_API_BASE_URL=https://api.gauzy.co/api/plane` (no UUID).
-- **C:** the SSO handoff establishes the session *before* the SPA boots, so there is no
-  tenant‑less bootstrap. The truly tenant‑neutral calls (`/api/instances`, `/api/timezones`) don't
-  need a tenant anyway.
-- **D:** Gauzy initiates the flow, so it pins the exact tenant **and** organization the user chose —
-  no email‑based guessing. (A user who belongs to several tenants just gets several "Open Plane"
-  entries, one per workspace.)
+So a tenant that chooses "shared" needs to deploy nothing; it reuses the global Plane build.
 
-What has to be built:
-- A **proxy SSO bridge** endpoint that turns a Gauzy‑signed handoff into the `auth-proxy-plane-token`
-  cookie. (Gauzy can mint the handoff; the proxy already knows how to chunk the JWT into cookies.)
-- A **tenant‑agnostic build** of web/space (+admin) and a single set of DNS/ingress/CORS for
-  `plane.gauzy.co`. CORS is *simpler* here — one origin for everyone.
-- Make `email-check`/password login on the shared host either **disabled** (SSO‑only) or
-  tenant‑selecting, to avoid the multi‑tenant ambiguity (D) and the enumeration foot‑gun (see
-  Security).
+---
 
-### Alternative designs (and why they're weaker)
+## What the Gauzy integration screen looks like
 
-- **Wildcard subdomain per tenant** (`<tenant>.plane.gauzy.co`, proxy reads tenant from `Host`).
-  Still needs a tenant‑agnostic build + runtime `Host`→tenant mapping and wildcard DNS/TLS. More
-  moving parts than the cookie approach, and the `Host` isn't an authenticated signal.
-- **Tenant in path, but runtime‑injected** (drop a `window.__ENV` / `/env.js` into the image and
-  patch Plane to read it). This makes one image serve any tenant via config, but it's an upstream
-  Plane patch you'd have to carry, and it still needs the SSO bridge for bootstrap. Reasonable if
-  you already fork Plane's build.
-- **Keep per‑tenant builds** (status quo). Zero new code; just more images/URLs. Fine for a handful
-  of tenants; doesn't scale to self‑serve.
+When a tenant admin opens **Integrations → Plane**, they choose a mode:
 
-**Bottom line:** a shared multi‑tenant `plane.gauzy.co` is feasible and most of the plumbing is
-already present. The missing piece is a **Gauzy‑initiated SSO bridge** that sets the tenant‑bearing
-session cookie, plus a **tenant‑agnostic build**. Until that exists, per‑tenant builds (this repo's
-deployment guide) are the supported path.
+**(a) Use the shared Plane UIs (default).** The three global URLs are shown read-only with an
+**Enable** button. Enabling opts the tenant in (a feature gate) — it does **not** require entering
+URLs or self-hosting. After enabling, the admin (and the tenant's members) can open the URLs and
+sign in.
+
+**(b) Use my own Plane UIs.** The current page: the admin enters their `planeWebUrl` /
+`planeAdminUrl` / `planeSpaceUrl` (their self-hosted deployment). The proxy uses path-based tenant
+resolution and per-tenant CORS for these.
+
+> **"Connect" demystified:** in the custom case it registers the tenant's URLs and generates the
+> per-tenant credentials. In the shared case there are no custom URLs and no per-tenant credentials
+> to manage — so the button is simply **"Enable Plane for this tenant."**
+
+---
+
+## How login / SSO works on the shared UIs
+
+This is the part that's easy to over-think. There are two levels; **level 1 already works** once the
+shared build is deployed and the security fix is merged.
+
+### Level 1 — sign in with your Gauzy credentials (works today)
+
+1. The user opens `https://plane.gauzy.co` and sees Plane's sign-in screen.
+2. They enter their **Gauzy email + password** (or use the **magic link**). The proxy forwards this
+   to Gauzy's public `/auth/login` (or `/auth/signin.email`) endpoints — these need **no** API key
+   (verified: both are `@Public()` in Gauzy's auth controller).
+3. Gauzy authenticates them and returns a JWT carrying their `tenantId`. The proxy stores it in the
+   `auth-proxy-plane-token-*` cookie.
+4. Every later request carries that cookie; the proxy reads the tenant from the verified JWT and
+   scopes everything to the right tenant.
+
+This is **not** seamless SSO — the user types their Gauzy credentials into Plane's login — but it
+"just works" with the shared build because the tenant is derived from the session, not the URL.
+
+### Level 2 — one-click SSO (the recommended enhancement)
+
+1. From the Gauzy dashboard the user clicks **Open Plane**. Gauzy mints a short-lived **signed
+   handoff token** and redirects to `https://plane.gauzy.co/?sso=<token>`.
+2. A small **proxy SSO endpoint** validates the handoff, exchanges it for the Gauzy session, and
+   sets the Plane session cookie — the user lands **already logged in**, no second password entry.
+
+Why level 2 is worth building:
+- **Seamless** — no re-login for users already in Gauzy.
+- **Disambiguates multi-tenant users** — a person whose email exists in several Gauzy tenants is a
+  problem for plain email/password login (which tenant?). SSO pins the exact tenant **and**
+  organization the user chose in Gauzy, so there's no guessing.
+
+> So: **"will SSO work right away?"** — Plain credential login works right away. True one-click SSO
+> is a small bridge endpoint we add; until it exists, shared users just sign in once with their
+> Gauzy credentials.
+
+---
+
+## What each mode needs (implementation checklist)
+
+Status against the current codebase:
+
+**Already done (security fix — PRs `ever-co/ever-gauzy#9747` + `ever-co/ever-gauzy-plugins-plane#252`):**
+- Session JWT is authoritative for tenant resolution → a shared, tenant-agnostic build resolves the
+  tenant from login.
+
+**Operator one-time setup for the shared deployment (config/infra, no app code):**
+- Deploy **one** tenant-agnostic Plane build (`VITE_API_BASE_URL=https://api.gauzy.co/api/plane`) at
+  the global URLs — see the [deployment guide](../deploy/kubernetes/README.md) (`MODE=shared`).
+- Configure the proxy's default config with the **shared origins** (so CORS passes pre- and
+  post-login) and a **global app-level API key** (so password-login's `email-check` succeeds; without
+  it the UI falls back to magic-link, which needs no key).
+
+**Small code additions to productize the choice:**
+- **Backend** (`integration-plane`): add a `mode: 'shared' | 'custom'` to the setup DTO/flow. For
+  `shared`, don't require URLs (use the global ones) and skip per-tenant credential generation; just
+  record the opt-in (`IS_ENABLED`).
+- **Proxy** (`mount.ts`): union the configured **global shared origins** into the CORS allow-list so
+  a shared-mode request is permitted regardless of per-tenant config.
+- **UI** (`integration-plane-ui`): the two-option selector described above (shared default + Enable;
+  custom = the existing URL form).
+- *(Optional but recommended)* enforce the per-tenant **enable gate** in the proxy (reject a
+  session-resolved tenant that hasn't opted in), and build the **SSO bridge** for level-2 login.
+
+None of these are large; the load-bearing change (session-based tenant resolution) already landed.
 
 ---
 
 ## Security
 
-> **Does knowing another tenant's TenantID UUID let an attacker read that tenant's data? No.**
+> **Does knowing another tenant's TenantID UUID let an attacker read that tenant's data? No.** This
+> holds for **both** modes.
 
-The `<TENANT_ID>` in the URL is a **routing/config selector, not a credential**. It is intentionally
-non‑secret (it lives in the bundle, URLs and logs). It selects which config the proxy loads; it does
-**not** authorize data access. Four independent red‑team attempts to cross tenants all failed:
+The tenant identifier (a path UUID in custom mode, a session claim in shared mode) is a
+**routing/scoping input, not a credential**. Data access is always gated by the **signed** session
+JWT:
 
-- **Authenticated user hits another tenant's UUID/path/workspace‑slug** → no leak. Every upstream
-  query is force‑scoped to the **signed JWT's** tenant: `jwt.strategy.ts` verifies the signature and
-  reads `tenantId` from the payload; `RequestContext.currentTenantId() = user.tenantId`;
-  `TenantAwareCrudService.findConditionsWithTenant` ANDs that tenant into every query. A request with
-  tenant A's JWT returns **A's** rows, never B's. The auto workspace‑switch is itself gated by a
-  membership check that derives the email from the signed JWT.
-- **Unauthenticated, knows the UUID** → no data. The only API‑key‑authenticated route the proxy uses
-  is `email-check`, which returns just `{ exists: boolean }`. The credential that *would* grant
-  tenant access (`apiKey`/`apiSecret`) is server‑side and never exposed by the UUID.
+- Gauzy verifies the JWT signature (`jwt.strategy.ts`) and derives the tenant from the **token
+  payload** (`RequestContext.currentTenantId() = user.tenantId`); `TenantAwareCrudService` ANDs that
+  tenant into every query. A request with tenant A's JWT returns **A's** rows, never B's — whatever
+  the URL says.
+- The only API-key-authenticated route the proxy uses is `email-check`, which returns just
+  `{ exists: boolean }`.
 
-### Real weaknesses (none leak data, but worth fixing)
+**Shared-mode specifics:**
+- The shared build carries no tenant in the URL, so the tenant comes **only** from the verified
+  session — there is no path UUID to confuse. The security fix ensures the session is authoritative.
+- The global API key used for the shared deployment's `email-check` is an **email-existence oracle**
+  only (global, boolean); treat it as such and rate-limit it.
+- Multi-tenant users: prefer **SSO** (level 2) so the tenant is pinned by Gauzy rather than inferred
+  from an email that may exist in several tenants.
 
-| # | Severity | Issue | Status / fix |
-|---|---|---|---|
-| 1 | medium | **Path tenant not bound to session** (confused deputy): a request could run under another tenant's resolved config while carrying a different tenant's session. Inert today (Gauzy re‑scopes by JWT), but fragile. | **Fixed in this repo** — `extractTenantId` now makes the verified session JWT authoritative, overriding the path UUID. |
-| 2 | low | **`email-check` enumeration**: an unauthenticated caller who knows a tenant's UUID drives Gauzy's global email‑existence oracle using that tenant's API key. | Recommend: require a session (or an app‑level credential) before using the per‑tenant key for email‑check, and rate‑limit it. |
-| 3 | low | **Proxy `AuthGuard` open‑redirect**: it redirected missing‑cookie requests to the client‑controlled `Referer`. | **Fixed in this repo** — redirects to the configured Plane URL; rejects malformed tokens. |
-| 4 | low | **CORS/redirect keyed on the (formerly unbound) path tenant.** | Closed by fix #1 (config now follows the session tenant). |
+**Custom-mode specifics:** unchanged from before — per-tenant build + per-tenant CORS; the path UUID
+is non-secret and grants nothing on its own.
 
-### To confirm with a human (the no‑leak conclusion rests on these)
-
-- Gauzy's JWT trust is sound (no `alg:none`/algorithm‑confusion; `JWT_SECRET` correctly configured;
-  token expiry enforced upstream — the proxy edge decodes but does not fully verify in standalone
-  mode).
-- No route other than `email-check` consumes the path‑tenant's `apiKey`/`clientUrls` for an
-  authorization decision (add a guard so it stays that way).
-- No admin/settings write path can persist a **tenant‑controlled** `externalBaseApiUrl` (today it's
-  host‑hardcoded in `getConfigForTenant`); a tenant‑settable upstream URL would reopen an
-  SSRF/token‑exfil angle.
+### Known residuals (low severity, both modes)
+- `email-check` is a global user-existence oracle — rate-limit it.
+- A session-resolved tenant with no Plane config currently falls back to a default (empty
+  credentials) rather than an explicit deny; the optional enable-gate above closes this.
 
 ### Operational hardening
-
-- Register **exactly** the origins you serve from as the Plane URLs in Gauzy (they become the CORS
-  allow‑list). Serve everything over **HTTPS** (the session cookie is `Secure`).
+- Serve everything over **HTTPS** (the session cookie is `Secure`).
 - Keep the Plane UI and the Gauzy API under one **registrable domain** (`gauzy.co`) so the session
-  cookie stays same‑site; cross‑registrable‑domain hosting needs `SameSite=None; Secure`.
+  cookie stays same-site; cross-registrable-domain hosting needs `SameSite=None; Secure`.
+- Register **exactly** the origins you serve from (shared globals, or a custom tenant's own URLs) —
+  they become the CORS allow-list.

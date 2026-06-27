@@ -13,15 +13,19 @@
 
 ## TL;DR
 
+There are **two modes** (§2): **shared** (one global deployment Ever runs for all tenants) and
+**custom** (a tenant self‑hosts its own). Both use the same steps below — only `MODE` differs.
+
 ```bash
 cd deploy/kubernetes
-cp .env.example .env && $EDITOR .env      # set TENANT_ID, GAUZY_API_URL, hosts, registry…
+cp .env.example .env && $EDITOR .env      # set MODE, GAUZY_API_URL (+ TENANT_ID for custom), hosts, registry…
 ./build-images.sh                          # build & push web/space/(admin)/(live) images
 ./deploy.sh                                # envsubst the manifests and kubectl apply
 ```
 
-You will end up with the Plane UI live at `https://plane.gauzy.co`, talking to
-`https://api.gauzy.co/api/plane/<TENANT_ID>`, authenticating against your Gauzy tenant.
+You end up with the Plane UI live at `https://plane.gauzy.co`, talking to
+`https://api.gauzy.co/api/plane` (shared) or `…/api/plane/<TENANT_ID>` (custom), authenticating
+against your Gauzy tenant.
 
 ---
 
@@ -63,28 +67,34 @@ endpoint, so **no object store is required** either.
 
 ---
 
-## 2. Why this is **per‑tenant** (read this before you build)
+## 2. Two modes: shared vs custom (pick before you build)
 
-Two facts decide the whole deployment shape:
+A Gauzy tenant uses Plane in one of two ways, chosen in the Gauzy integration settings:
 
-1. **The tenant is identified by a UUID in the API path.** The proxy resolves which Gauzy tenant a
-   request belongs to from the first path segment after `/api/plane/`:
-   `https://api.gauzy.co/api/plane/<TENANT_ID>/...`. That UUID selects the tenant's API
-   credentials and CORS origins server‑side.
+| | **Shared** (`MODE=shared`) | **Custom / self‑hosted** (`MODE=custom`) |
+|---|---|---|
+| Who deploys the UIs | **Ever**, once, globally | the tenant, in its own cluster |
+| Plane build | tenant‑agnostic — `VITE_API_BASE_URL=https://api.gauzy.co/api/plane` (no UUID) | per‑tenant — `…/api/plane/{tenantId}` |
+| Tenant resolved from | the **logged‑in session** (JWT cookie) | the **UUID in the URL path** |
+| One deployment serves | **all** tenants | exactly **one** tenant |
+| In the Gauzy UI | tenant just clicks **Enable** (URLs are the global ones, read‑only) | tenant enters its own URLs |
 
-2. **Plane's front‑ends bake `VITE_API_BASE_URL` at _build time_.** They are Vite apps; every
-   `VITE_*` value is frozen into the JS bundle during `docker build` (`define: process.env`).
-   **There is no runtime env injection** — setting a Kubernetes env var on a running pod does
-   nothing.
+**Why the modes differ — Plane bakes config at _build time_.** Plane's front‑ends are Vite apps;
+every `VITE_*` value is frozen into the JS bundle during `docker build` (`define: process.env`) —
+**there is no runtime env injection.** So a build carries exactly one `VITE_API_BASE_URL`:
 
-Put together: a Plane image carries exactly **one** `VITE_API_BASE_URL`, hence exactly **one**
-`<TENANT_ID>`. **One Plane build = one Gauzy tenant.** So each tenant that wants the Plane UI builds
-its own images (with its own tenant UUID baked in) and hosts them at its own URLs
-(`plane.<tenant>.com`, …). That is by design and is what makes the integration multi‑tenant‑safe.
+- include a tenant UUID → that image only ever talks for **that** tenant (custom), and
+- omit it → the proxy learns the tenant another way: from the **session** after login. The security
+  fix makes the session JWT authoritative, so one tenant‑agnostic image works for **everyone**
+  (shared).
 
-> Want a single shared `plane.gauzy.co` that serves **all** tenants via SSO instead of one build per
-> tenant? That is a real option with trade‑offs — see
-> [`docs/shared-multi-tenant-plane-sso.md`](../../docs/shared-multi-tenant-plane-sso.md).
+**This guide builds whichever you need** via `MODE` in `.env`. Self‑hosting for one tenant →
+`MODE=custom`. Standing up the global `plane.gauzy.co` for the whole platform → `MODE=shared`. The
+k8s manifests, topologies and TLS below are **identical** for both — only the baked
+`VITE_API_BASE_URL` (and whether you pass a `TENANT_ID`) differ.
+
+> How login/SSO works on the shared deployment, and what "Enable" vs "Connect" means per tenant, is
+> in [`docs/shared-multi-tenant-plane-sso.md`](../../docs/shared-multi-tenant-plane-sso.md).
 
 ---
 
@@ -109,8 +119,12 @@ its own images (with its own tenant UUID baked in) and hosts them at its own URL
 ## 4. Step 1 — Configure the Plane integration in Gauzy (get your `TENANT_ID`)
 
 The Plane integration is configured **per tenant** through Gauzy's REST API (or the Integrations UI
-in the Gauzy dashboard → **Plane**). This is what mints the per‑tenant API credentials the proxy
-uses, and registers the URLs the proxy will allow as CORS origins.
+in the Gauzy dashboard → **Plane**).
+
+- **Shared mode:** the tenant just **enables** Plane — the URLs are the global ones (shown
+  read‑only) and there is nothing to build or host. Open the global URL and sign in; skip to §9.
+- **Custom mode (below):** register the tenant's own URLs. This mints the per‑tenant API credentials
+  the proxy uses and sets the CORS origins, and is where you get the `TENANT_ID` for the build.
 
 Authenticate to Gauzy as a tenant admin (you need `INTEGRATION_ADD`), then:
 
@@ -185,15 +199,17 @@ This guide ships manifests for **A** (`manifests/50-ingress.yaml`) and **B1**
 ## 6. Step 3 — Build & push the images
 
 `build-images.sh` builds each app from your Plane checkout with the correct `VITE_*` build args and
-pushes to your registry. The tenant UUID is baked in here.
+pushes to your registry. For `MODE=custom` the tenant UUID is baked in here; for `MODE=shared` it is
+omitted (the tenant comes from the session).
 
 ```bash
 # .env (excerpt)
 PLANE_SRC=/path/to/plane                       # your Plane checkout
 GAUZY_API_URL=https://api.gauzy.co             # self-hosted: https://api.your-co.com
-TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # your Gauzy tenant UUID
+MODE=custom                                    # custom (per-tenant) | shared (global, tenant-agnostic)
+TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # required for MODE=custom; leave empty for MODE=shared
 IMAGE_REGISTRY=registry.digitalocean.com/ever
-IMAGE_TAG=tenant-acme-1                          # treat the tag as per-tenant + version
+IMAGE_TAG=tenant-acme-1                          # custom: per-tenant + version; shared: just a version
 TOPOLOGY=single                                  # or: subdomains
 PLANE_HOST=plane.gauzy.co
 PLANE_ADMIN_HOST=plane-admin.gauzy.co            # used only when TOPOLOGY=subdomains
@@ -208,14 +224,18 @@ LIVE_SERVER_SECRET_KEY=                          # required only if DEPLOY_LIVE=
 ./build-images.sh            # builds web (+ space, +admin/live if enabled), tags, pushes
 ```
 
-The single most important value it bakes:
+The single most important value it bakes depends on `MODE`:
 
 ```
-VITE_API_BASE_URL = ${GAUZY_API_URL}/api/plane/${TENANT_ID}
+MODE=custom   →  VITE_API_BASE_URL = ${GAUZY_API_URL}/api/plane/${TENANT_ID}
+MODE=shared   →  VITE_API_BASE_URL = ${GAUZY_API_URL}/api/plane     (no tenant; resolved from the session)
 ```
 
-> ⚠️ Because `VITE_API_BASE_URL` is build‑time, **a new tenant or a new API host means a new image
-> build.** Use a per‑tenant `IMAGE_TAG`.
+> ⚠️ Because `VITE_API_BASE_URL` is build‑time: in **custom** mode a new tenant or API host means a
+> new image build (use a per‑tenant `IMAGE_TAG`); in **shared** mode you build **once** for the whole
+> platform. For shared, also point the proxy's default config at the shared origins + a global
+> app‑level API key — see
+> [`docs/shared-multi-tenant-plane-sso.md`](../../docs/shared-multi-tenant-plane-sso.md#what-each-mode-needs-implementation-checklist).
 
 ---
 
@@ -341,6 +361,6 @@ pod to deploy.
 | `manifests/50-ingress.yaml` | Topology A — single host, path‑routed |
 | `manifests/51-ingress-subdomains.yaml` | Topology B1 — three subdomains |
 
-> Reference appendix of every `VITE_*` build arg is in
-> [`docs/shared-multi-tenant-plane-sso.md`](../../docs/shared-multi-tenant-plane-sso.md) and inline
-> in `build-images.sh`.
+> The exact `VITE_*` build args (and how they differ per `MODE`/`TOPOLOGY`) are inline in
+> `build-images.sh`. The shared‑vs‑custom modes, login/SSO, and security model are in
+> [`docs/shared-multi-tenant-plane-sso.md`](../../docs/shared-multi-tenant-plane-sso.md).

@@ -313,18 +313,24 @@ Cloud `https://api.gauzy.co` or self‑hosted) through this proxy? There is a co
 guide plus ready‑to‑use provisioning scripts and manifests:
 
 - 📘 **[deploy/kubernetes/README.md](deploy/kubernetes/README.md)** — step‑by‑step: configure the
-  Gauzy integration, build the per‑tenant images, and deploy (namespace, Deployments, Services,
-  Ingress, TLS). Worked example on the `k8s-gauzy` cluster.
+  Gauzy integration, build the images, and deploy (namespace, Deployments, Services, Ingress, TLS).
+  Worked example on the `k8s-gauzy` cluster.
 - 🔧 **[deploy/kubernetes/](deploy/kubernetes/)** — `build-images.sh`, `deploy.sh`, `.env.example`,
   and Kubernetes manifests (`manifests/`). `envsubst`‑templated, no secrets committed.
-- 🔐 **[docs/shared-multi-tenant-plane-sso.md](docs/shared-multi-tenant-plane-sso.md)** — why the
-  integration is one‑build‑per‑tenant, how a **shared multi‑tenant `plane.gauzy.co` via SSO** could
-  work, and the **security model** (what the tenant UUID does and does not protect).
+- 🔐 **[docs/shared-multi-tenant-plane-sso.md](docs/shared-multi-tenant-plane-sso.md)** — the
+  **shared vs self‑hosted** per‑tenant choice, how **login/SSO** works on the shared deployment, and
+  the **security model** (what the tenant identifier does and does not protect).
 
-> **Key fact:** Plane's SPAs bake `VITE_API_BASE_URL` at build time, and the proxy identifies the
-> tenant from `…/api/plane/{tenantId}/…`. So **one Plane build = one Gauzy tenant** — each tenant
-> builds its own images and hosts them at its own URLs. You do **not** deploy Plane's own backend
-> (Django API, Postgres, Redis, RabbitMQ, MinIO, workers); the proxy replaces all of it.
+> **Two modes (a per‑tenant choice in the Gauzy UI):**
+> - **Shared** *(default)* — reuse Ever's global `plane.gauzy.co`; the build is **tenant‑agnostic**
+>   (`VITE_API_BASE_URL=…/api/plane`) and the proxy resolves the tenant from the **logged‑in
+>   session**. One deployment serves all tenants; the tenant just clicks **Enable**.
+> - **Custom** — the tenant self‑hosts; its build bakes `…/api/plane/{tenantId}` and the proxy reads
+>   the tenant from the **URL path**. One build per tenant.
+>
+> Either way you do **not** deploy Plane's own backend (Django API, Postgres, Redis, RabbitMQ,
+> MinIO, workers) — the proxy replaces all of it. `VITE_*` is build‑time only, so the API URL is
+> baked at `docker build`.
 
 ---
 

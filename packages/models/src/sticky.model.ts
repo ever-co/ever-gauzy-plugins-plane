@@ -1,4 +1,4 @@
-import { ID } from '@ever-gauzy/plugin-integration-plane-models';
+import { ID } from './imports';
 
 /**
  * Plane Sticky interface — the shape returned by the proxy to the frontend.

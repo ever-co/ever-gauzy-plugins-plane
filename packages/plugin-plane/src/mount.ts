@@ -43,6 +43,14 @@ export interface MountPlaneProxyOptions extends Partial<PlanePluginOptions> {
 	 * Only effective when both `resolveConfig` and `extractTenantId` are provided.
 	 */
 	cacheTtl?: number;
+
+	/**
+	 * Origins ALWAYS allowed for CORS, regardless of the resolved tenant config —
+	 * for a single SHARED Plane deployment serving all tenants (e.g.
+	 * https://plane.gauzy.co). Falls back to the comma-separated PLANE_SHARED_ORIGINS
+	 * env var.
+	 */
+	sharedOrigins?: string[];
 }
 
 export interface MountPlaneProxyResult {
@@ -117,6 +125,14 @@ export function mountPlaneProxy(
 		[staticClientBaseUrl, staticClientAdminUrl, staticClientSpaceUrl].filter(Boolean)
 	);
 
+	// Origins always permitted for CORS (shared multi-tenant deployment).
+	const sharedOrigins: string[] =
+		options?.sharedOrigins ??
+		(process.env.PLANE_SHARED_ORIGINS || '')
+			.split(',')
+			.map((o) => o.trim())
+			.filter(Boolean);
+
 	const handlerRef: { current: ((req: any, res: any) => void) | null } = { current: null };
 	let shutdownFn: (() => Promise<void>) | null = null;
 
@@ -154,11 +170,15 @@ export function mountPlaneProxy(
 		if (resolveConfigFn) {
 			tenantConfig = await getResolvedConfig(req);
 			allowedOrigins = new Set(
-				[tenantConfig.clientBaseUrl, tenantConfig.clientAdminUrl, tenantConfig.clientSpaceUrl]
-					.filter(Boolean) as string[]
+				[
+					tenantConfig.clientBaseUrl,
+					tenantConfig.clientAdminUrl,
+					tenantConfig.clientSpaceUrl,
+					...sharedOrigins
+				].filter(Boolean) as string[]
 			);
 		} else {
-			allowedOrigins = staticOrigins;
+			allowedOrigins = new Set([...staticOrigins, ...sharedOrigins]);
 		}
 
 		// ── CORS ─────────────────────────────────────────────────────

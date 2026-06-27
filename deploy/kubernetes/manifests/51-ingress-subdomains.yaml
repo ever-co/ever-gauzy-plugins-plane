@@ -1,0 +1,76 @@
+# Topology B1 — three subdomains, no rebuild.
+#   plane.gauzy.co        → web   (/)
+#   plane-admin.gauzy.co  → admin (served at /god-mode; root redirects via app-root)
+#   plane-space.gauzy.co  → space (served at /spaces;   root redirects via app-root)
+# Register all three as the Plane URLs in Gauzy so the proxy allows them as CORS origins.
+# Pre-create each <host>-tls secret (or set CERT_MANAGER_ISSUER).
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plane-web
+  namespace: ${PLANE_NAMESPACE}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    ${CERT_ANNOTATION}
+spec:
+  ingressClassName: ${INGRESS_CLASS}
+  tls:
+    - hosts: ["${PLANE_HOST}"]
+      secretName: ${TLS_SECRET_WEB}
+  rules:
+    - host: ${PLANE_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: plane-web, port: { number: 80 } } }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plane-admin
+  namespace: ${PLANE_NAMESPACE}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    # redirect plane-admin.gauzy.co/ → /god-mode/ (the app's baked base path)
+    nginx.ingress.kubernetes.io/app-root: /god-mode/
+    ${CERT_ANNOTATION}
+spec:
+  ingressClassName: ${INGRESS_CLASS}
+  tls:
+    - hosts: ["${PLANE_ADMIN_HOST}"]
+      secretName: ${TLS_SECRET_ADMIN}
+  rules:
+    - host: ${PLANE_ADMIN_HOST}
+      http:
+        paths:
+          - path: /god-mode
+            pathType: Prefix
+            backend: { service: { name: plane-admin, port: { number: 80 } } }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plane-space
+  namespace: ${PLANE_NAMESPACE}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    # redirect plane-space.gauzy.co/ → /spaces/ (the app's baked base path)
+    nginx.ingress.kubernetes.io/app-root: /spaces/
+    ${CERT_ANNOTATION}
+spec:
+  ingressClassName: ${INGRESS_CLASS}
+  tls:
+    - hosts: ["${PLANE_SPACE_HOST}"]
+      secretName: ${TLS_SECRET_SPACE}
+  rules:
+    - host: ${PLANE_SPACE_HOST}
+      http:
+        paths:
+          - path: /spaces
+            pathType: Prefix
+            backend: { service: { name: plane-space, port: { number: 80 } } }

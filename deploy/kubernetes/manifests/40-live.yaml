@@ -1,0 +1,80 @@
+# Plane Live — OPTIONAL realtime collaboration server (Hocuspocus/WebSocket), port 3000,
+# served under /live. Authenticates and reads/writes Page docs against the Gauzy proxy.
+# REQUIRES Redis (the default hocuspocus Redis extension throws without a client).
+# Only deployed when DEPLOY_LIVE=true.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-redis
+  namespace: ${PLANE_NAMESPACE}
+  labels: { app.kubernetes.io/name: plane-redis, app.kubernetes.io/part-of: plane-ui }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: plane-redis }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: plane-redis, app.kubernetes.io/part-of: plane-ui }
+    spec:
+      containers:
+        - name: redis
+          image: valkey/valkey:7.2.11-alpine
+          ports: [{ containerPort: 6379 }]
+          resources:
+            requests: { cpu: 25m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-redis
+  namespace: ${PLANE_NAMESPACE}
+spec:
+  selector: { app.kubernetes.io/name: plane-redis }
+  ports: [{ port: 6379, targetPort: 6379 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-live
+  namespace: ${PLANE_NAMESPACE}
+  labels: { app.kubernetes.io/name: plane-live, app.kubernetes.io/part-of: plane-ui }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: plane-live }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: plane-live, app.kubernetes.io/part-of: plane-ui }
+    spec:
+      containers:
+        - name: live
+          image: ${IMAGE_LIVE}
+          imagePullPolicy: Always
+          ports: [{ containerPort: 3000 }]
+          env:
+            # live calls the Gauzy proxy for auth (/api/users/me/) and page docs.
+            - name: API_BASE_URL
+              value: "${VITE_API_BASE_URL}"
+            - name: LIVE_SERVER_SECRET_KEY
+              value: "${LIVE_SERVER_SECRET_KEY}"
+            - name: REDIS_URL
+              value: "redis://plane-redis:6379"
+          readinessProbe:
+            tcpSocket: { port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: { cpu: ${CPU_REQUEST}, memory: ${MEM_REQUEST} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-live
+  namespace: ${PLANE_NAMESPACE}
+  labels: { app.kubernetes.io/name: plane-live }
+spec:
+  selector: { app.kubernetes.io/name: plane-live }
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

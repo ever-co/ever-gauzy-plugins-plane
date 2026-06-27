@@ -306,6 +306,28 @@ Existing standalone deployments (single-tenant, env-based) keep working with zer
 
 ---
 
+## Deploying the Plane UI on Kubernetes
+
+Want to run the Plane **Web / Admin / Space** front‑ends in a cluster, connected to Gauzy (Gauzy
+Cloud `https://api.gauzy.co` or self‑hosted) through this proxy? There is a complete, end‑to‑end
+guide plus ready‑to‑use provisioning scripts and manifests:
+
+- 📘 **[deploy/kubernetes/README.md](deploy/kubernetes/README.md)** — step‑by‑step: configure the
+  Gauzy integration, build the per‑tenant images, and deploy (namespace, Deployments, Services,
+  Ingress, TLS). Worked example on the `k8s-gauzy` cluster.
+- 🔧 **[deploy/kubernetes/](deploy/kubernetes/)** — `build-images.sh`, `deploy.sh`, `.env.example`,
+  and Kubernetes manifests (`manifests/`). `envsubst`‑templated, no secrets committed.
+- 🔐 **[docs/shared-multi-tenant-plane-sso.md](docs/shared-multi-tenant-plane-sso.md)** — why the
+  integration is one‑build‑per‑tenant, how a **shared multi‑tenant `plane.gauzy.co` via SSO** could
+  work, and the **security model** (what the tenant UUID does and does not protect).
+
+> **Key fact:** Plane's SPAs bake `VITE_API_BASE_URL` at build time, and the proxy identifies the
+> tenant from `…/api/plane/{tenantId}/…`. So **one Plane build = one Gauzy tenant** — each tenant
+> builds its own images and hosts them at its own URLs. You do **not** deploy Plane's own backend
+> (Django API, Postgres, Redis, RabbitMQ, MinIO, workers); the proxy replaces all of it.
+
+---
+
 ## How `mountPlaneProxy()` Works
 
 `mountPlaneProxy(httpServer, options?)` is the single entry-point for in-process integration. It:

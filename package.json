@@ -1,21 +1,21 @@
 {
   "name": "ever-gauzy-plugins-plane",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ever Gauzy Plane Integration",
   "license": "AGPL-3.0",
   "homepage": "https://gauzy.co",
   "repository": {
     "type": "git",
-       "url": "https://github.com/ever-co/ever-gauzy-plugins-plane.git"
-    },
-    "bugs": {
-       "url": "https://github.com/ever-co/ever-gauzy-plugins-plane/issues"
-  },	
+    "url": "https://github.com/ever-co/ever-gauzy-plugins-plane.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ever-co/ever-gauzy-plugins-plane/issues"
+  },
   "private": true,
   "author": {
-      "name": "Ever Co. LTD",
-      "email": "ever@ever.co",
-      "url": "https://ever.co"
+    "name": "Ever Co. LTD",
+    "email": "ever@ever.co",
+    "url": "https://ever.co"
   },
   "keywords": [],
   "scripts": {

@@ -2,11 +2,11 @@ import {
     Injectable,
     CanActivate,
     ExecutionContext,
-    SetMetadata
+    SetMetadata,
+    UnauthorizedException
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request, Response } from 'express';
-import { PlaneConfigRegistry } from '../../plane-config.registry';
+import { Request } from 'express';
 import { decodeToken } from '../api-fetch/token.helper';
 
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -28,7 +28,6 @@ export class AuthGuard implements CanActivate {
 		}
 
 		const request = context.switchToHttp().getRequest<Request>();
-		const response = context.switchToHttp().getResponse<Response>();
 
 		const tokenChunks: string[] = [];
 		let index = 0;
@@ -43,24 +42,15 @@ export class AuthGuard implements CanActivate {
 		const token = tokenChunks.join('');
 
 		// Reject when no session token is present, or when it is structurally
-		// malformed. Cryptographic signature/expiry are enforced upstream by
-		// Gauzy (which owns the JWT secret) and, for the integrated mount, by the
-		// host's tenant resolver; this is an edge-level sanity check.
+		// malformed. Respond 401 (which the Plane SPA handles by routing to sign-in)
+		// rather than redirecting to a client-controlled `Referer` or a request-scoped
+		// URL — either would be an open redirect. Cryptographic signature/expiry are
+		// enforced upstream by Gauzy (which owns the JWT secret) and, for the integrated
+		// mount, by the host's tenant resolver; this is an edge-level sanity check.
 		if (!token || !decodeToken(token)) {
-			return this.denyAccess(response);
+			throw new UnauthorizedException('Authentication required');
 		}
 
 		return true;
-	}
-
-	/**
-	 * Deny an unauthenticated request by redirecting to the configured Plane web
-	 * app instead of the client-controlled `Referer` header, which would be an
-	 * open redirect.
-	 */
-	private denyAccess(response: Response): boolean {
-		const loginUrl = PlaneConfigRegistry.clientBaseUrl || '/';
-		response.redirect(loginUrl);
-		return false;
 	}
 }

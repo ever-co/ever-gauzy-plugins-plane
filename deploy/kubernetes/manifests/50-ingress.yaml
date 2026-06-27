@@ -1,0 +1,38 @@
+# Topology A — single host, path-routed (Plane's native layout).
+#   /spaces  → space      /god-mode → admin      /live → live      / → web
+# The /god-mode and /live paths are inert (503) unless those apps are deployed.
+# All /api + /auth traffic goes cross-origin to the Gauzy proxy (baked into the bundle),
+# so no /api route is needed here.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plane
+  namespace: ${PLANE_NAMESPACE}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    # WebSocket support for the live collaboration server
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    ${CERT_ANNOTATION}
+spec:
+  ingressClassName: ${INGRESS_CLASS}
+  tls:
+    - hosts: ["${PLANE_HOST}"]
+      secretName: ${TLS_SECRET_WEB}
+  rules:
+    - host: ${PLANE_HOST}
+      http:
+        paths:
+          - path: /spaces
+            pathType: Prefix
+            backend: { service: { name: plane-space, port: { number: 80 } } }
+          - path: /god-mode
+            pathType: Prefix
+            backend: { service: { name: plane-admin, port: { number: 80 } } }
+          - path: /live
+            pathType: Prefix
+            backend: { service: { name: plane-live, port: { number: 80 } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: plane-web, port: { number: 80 } } }

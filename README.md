@@ -306,6 +306,34 @@ Existing standalone deployments (single-tenant, env-based) keep working with zer
 
 ---
 
+## Deploying the Plane UI on Kubernetes
+
+Want to run the Plane **Web / Admin / Space** front‑ends in a cluster, connected to Gauzy (Gauzy
+Cloud `https://api.gauzy.co` or self‑hosted) through this proxy? There is a complete, end‑to‑end
+guide plus ready‑to‑use provisioning scripts and manifests:
+
+- 📘 **[deploy/kubernetes/README.md](deploy/kubernetes/README.md)** — step‑by‑step: configure the
+  Gauzy integration, build the images, and deploy (namespace, Deployments, Services, Ingress, TLS).
+  Worked example on the `k8s-gauzy` cluster.
+- 🔧 **[deploy/kubernetes/](deploy/kubernetes/)** — `build-images.sh`, `deploy.sh`, `.env.example`,
+  and Kubernetes manifests (`manifests/`). `envsubst`‑templated, no secrets committed.
+- 🔐 **[docs/shared-multi-tenant-plane-sso.md](docs/shared-multi-tenant-plane-sso.md)** — the
+  **shared vs self‑hosted** per‑tenant choice, how **login/SSO** works on the shared deployment, and
+  the **security model** (what the tenant identifier does and does not protect).
+
+> **Two modes (a per‑tenant choice in the Gauzy UI):**
+> - **Shared** *(default)* — reuse Ever's global `plane.gauzy.co`; the build is **tenant‑agnostic**
+>   (`VITE_API_BASE_URL=…/api/plane`) and the proxy resolves the tenant from the **logged‑in
+>   session**. One deployment serves all tenants; the tenant just clicks **Enable**.
+> - **Custom** — the tenant self‑hosts; its build bakes `…/api/plane/{tenantId}` and the proxy reads
+>   the tenant from the **URL path**. One build per tenant.
+>
+> Either way you do **not** deploy Plane's own backend (Django API, Postgres, Redis, RabbitMQ,
+> MinIO, workers) — the proxy replaces all of it. `VITE_*` is build‑time only, so the API URL is
+> baked at `docker build`.
+
+---
+
 ## How `mountPlaneProxy()` Works
 
 `mountPlaneProxy(httpServer, options?)` is the single entry-point for in-process integration. It:

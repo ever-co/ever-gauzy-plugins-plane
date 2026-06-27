@@ -1,0 +1,45 @@
+# Plane Space — Node SSR server (react-router-serve), NOT static. Listens on 3000,
+# served under /spaces (basename baked at build time). Treat as a long-running pod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-space
+  namespace: ${PLANE_NAMESPACE}
+  labels: { app.kubernetes.io/name: plane-space, app.kubernetes.io/part-of: plane-ui }
+spec:
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels: { app.kubernetes.io/name: plane-space }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: plane-space, app.kubernetes.io/part-of: plane-ui }
+    spec:
+      containers:
+        - name: space
+          image: ${IMAGE_SPACE}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet: { path: /spaces/, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /spaces/, port: 3000 }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: { cpu: ${CPU_REQUEST}, memory: ${MEM_REQUEST} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-space
+  namespace: ${PLANE_NAMESPACE}
+  labels: { app.kubernetes.io/name: plane-space }
+spec:
+  selector: { app.kubernetes.io/name: plane-space }
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

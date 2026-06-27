@@ -1,0 +1,7 @@
+# Dedicated namespace for the Plane UIs. (Gauzy core uses `default`; we isolate Plane.)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${PLANE_NAMESPACE}
+  labels:
+    app.kubernetes.io/part-of: plane-ui

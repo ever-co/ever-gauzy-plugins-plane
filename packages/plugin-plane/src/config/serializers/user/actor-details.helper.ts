@@ -1,6 +1,6 @@
 import { IEmployee } from '@ever-gauzy/plugin-integration-plane-models';
 
-export function actorDetailsTransformer(actor: IEmployee) {
+export function actorDetailsTransformer(actor: IEmployee | undefined) {
 	return {
 		id: actor?.id,
 		first_name: actor?.user?.firstName || '',

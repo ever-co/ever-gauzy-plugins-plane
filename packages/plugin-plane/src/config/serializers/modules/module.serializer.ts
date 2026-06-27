@@ -267,9 +267,9 @@ export const getModulesQuery = (
 export function completionChartMapping(module: IOrganizationProjectModule) {
 	// Format startDate and targetDate to YYYY-MM-DD
 	const startDate: CompletionDateType = module.startDate?.toString()
-		.split('T')[0];
+		.split('T')[0]!;
 	const targetDate: CompletionDateType = module.endDate?.toString()
-		.split('T')[0];
+		.split('T')[0]!;
 
 	const chart: ICompletionChart = {};
 

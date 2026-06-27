@@ -29,6 +29,7 @@ import {
 	IUserSigninWorkspaceResponse
 } from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
+import { PlaneConfigRegistry } from '../../plane-config.registry';
 import {
 	apiSecretKeys,
 	clearTokenChuncks,
@@ -147,15 +148,17 @@ export class AuthService extends ApiFetchService {
 					queryNextPath ||
 					`${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
 
-				const normalizedPath = redirectPath;
+				const baseUrl = PlaneConfigRegistry.appBaseUrl.replace(/\/$/, '');
+				const normalizedPath = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
 
-				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+				return res.redirect(`${baseUrl}${normalizedPath}`);
 			}
 			const nextPathParam = data.next_path
 				? `&next_path=${encodeURIComponent(data.next_path)}`
 				: '';
+			const errorBaseUrl = PlaneConfigRegistry.appBaseUrl.replace(/\/$/, '');
 			return res.redirect(
-				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
+				`${errorBaseUrl}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${encodeURIComponent(data.email)}${nextPathParam}`
 			);
 		} catch (error) {
 			this.logger.error(
@@ -185,7 +188,7 @@ export class AuthService extends ApiFetchService {
 
 			return user;
 		} catch (error: any) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -209,7 +212,7 @@ export class AuthService extends ApiFetchService {
 
 			return { key: `${DEFAULT_MAGIC_GENERATE_PREFIX}${input.email}` };
 		} catch (error: any) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -258,7 +261,7 @@ export class AuthService extends ApiFetchService {
 				`Magic Signin Error: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -291,16 +294,18 @@ export class AuthService extends ApiFetchService {
 					queryNextPath ||
 					`${result.user.lastOrganizationId ?? result.user.defaultOrganizationId ?? ''}`;
 
-				const normalizedPath = redirectPath;
+				const baseUrl = PlaneConfigRegistry.appBaseUrl.replace(/\/$/, '');
+				const normalizedPath = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
 
-				return res.redirect(`${req.headers.referer}${normalizedPath}`);
+				return res.redirect(`${baseUrl}${normalizedPath}`);
 			}
 
 			const nextPathParam = data.next_path
 				? `&next_path=${encodeURIComponent(data.next_path)}`
 				: '';
+			const errorBaseUrl = PlaneConfigRegistry.appBaseUrl.replace(/\/$/, '');
 			return res.redirect(
-				`${req.headers.referer}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${data.email}${nextPathParam}`
+				`${errorBaseUrl}?error_code=5065&error_message=AUTHENTICATION_FAILED_SIGN_IN&email=${encodeURIComponent(data.email)}${nextPathParam}`
 			);
 		} catch (error) {
 			this.logger.error(
@@ -339,7 +344,7 @@ export class AuthService extends ApiFetchService {
 				`Tenant Onboard Error: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -372,7 +377,7 @@ export class AuthService extends ApiFetchService {
 				`Refresh Token error: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -475,7 +480,7 @@ export class AuthService extends ApiFetchService {
 				`Failed to create employee: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 

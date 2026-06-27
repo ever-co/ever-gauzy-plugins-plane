@@ -242,7 +242,8 @@ export function cycleTransformer(
 			logo_props: {},
 			assignee_ids: sprint.members?.map((member) => member.employeeId) as string[],
 			external_id: null,
-			external_source: null
+			external_source: null,
+			archived_at: sprint.archivedAt ?? null
 		};
 	};
 
@@ -569,5 +570,43 @@ export function cycleAnalyticsData(
 		assignees: [...assigneeMap.values(), unassignedStats],
 		labels: [...labelMap.values(), unlabeledStats],
 		completion_chart: completionChart
+	};
+}
+
+/**
+ * Builds a progress snapshot for a cycle before transferring its issues.
+ * The snapshot matches Django's progress_snapshot format so that the Plane frontend
+ * can render analytics for transferred (completed) cycles.
+ *
+ * @param {IOrganizationSprint} sprint - The sprint with loaded task relations
+ * @returns {Record<string, any>} A progress snapshot containing issue counts and distribution
+ */
+export function buildProgressSnapshot(
+	sprint: IOrganizationSprint
+): Record<string, any> {
+	const tasks = retrieveCycleTotalTasks(sprint);
+	const {
+		completedIssues,
+		startedIssues,
+		unstartedIssues,
+		backlogIssues
+	} = getTaskCounts(tasks);
+
+	// Reuse existing analytics logic for distribution data
+	const analytics = cycleAnalyticsData(sprint);
+
+	return {
+		total_issues: tasks.length,
+		completed_issues: completedIssues,
+		cancelled_issues: 0, // Gauzy does not have a separate "cancelled" state group
+		started_issues: startedIssues,
+		unstarted_issues: unstartedIssues,
+		backlog_issues: backlogIssues,
+		distribution: {
+			labels: analytics.labels,
+			assignees: analytics.assignees,
+			completion_chart: analytics.completion_chart
+		},
+		estimate_distribution: {}
 	};
 }

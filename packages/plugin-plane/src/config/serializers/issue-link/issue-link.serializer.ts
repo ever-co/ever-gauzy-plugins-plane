@@ -63,11 +63,12 @@ export function createIssueLinkInputTransformer(
 	issueId: ID,
 	type: string = 'issue'
 ): IResourceLinkCreateInput {
+	const entityMap: Record<string, BaseEntityEnum> = {
+		issue: BaseEntityEnum.Task,
+		module: BaseEntityEnum.OrganizationProjectModule
+	};
 	return {
-		entity:
-			type === 'issue'
-				? BaseEntityEnum.Task
-				: BaseEntityEnum.Organization,
+		entity: entityMap[type] ?? BaseEntityEnum.Organization,
 		entityId: issueId,
 		title: input.title,
 		url: input.url

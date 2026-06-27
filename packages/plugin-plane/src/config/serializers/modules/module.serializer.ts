@@ -104,6 +104,7 @@ export function modulesTransformer(
 				(member) => member.employeeId
 			),
 			workspace_id: projectModule?.organizationId,
+			archived_at: projectModule?.archivedAt ?? null,
 			...(projectModule ? moduleDetailsAdapter(projectModule) : {})
 		};
 	};
@@ -265,11 +266,9 @@ export const getModulesQuery = (
  */
 export function completionChartMapping(module: IOrganizationProjectModule) {
 	// Format startDate and targetDate to YYYY-MM-DD
-	const startDate: CompletionDateType = module.startDate!
-		.toString()
+	const startDate: CompletionDateType = module.startDate?.toString()
 		.split('T')[0];
-	const targetDate: CompletionDateType = module.endDate!
-		.toString()
+	const targetDate: CompletionDateType = module.endDate?.toString()
 		.split('T')[0];
 
 	const chart: ICompletionChart = {};

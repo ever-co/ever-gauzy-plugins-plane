@@ -24,6 +24,7 @@ export interface ICycle {
 	assignee_ids?: ID[];
 	external_source?: any;
 	external_id?: any;
+	archived_at?: Date | string | null;
 }
 
 export enum CycleStatusEnum {
@@ -81,4 +82,8 @@ export interface ICycleProgress {
 	cancelled_issues: number;
 	started_issues: number;
 	unstarted_issues: number;
+}
+
+export interface ITransferCycleIssuesInput {
+	new_cycle_id: ID;
 }

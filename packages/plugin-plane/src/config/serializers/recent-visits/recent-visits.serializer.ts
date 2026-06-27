@@ -45,7 +45,7 @@ export function issueRecentVisitTransformer(task: ITask): IIssueRecentVisit {
 		name: task.title!,
 		state: task.taskStatusId!,
 		priority: task.priority!,
-		assignees: task.members!.map((member) => member.id) as string[],
+		assignees: (task.members || []).map((member) => member.id) as string[],
 		type: task.taskType?.name,
 		sequence_id: task.number!,
 		project_id: task.projectId!,
@@ -74,7 +74,7 @@ export function projectRecentVisitTransformer(
 			},
 			in_use: 'emoji'
 		},
-		project_members: project.members!.map((member) => member.id) as string[],
+		project_members: (project.members || []).map((member) => member.id) as string[],
 		identifier: (project.code || project.name?.slice(0, 4).toUpperCase())!
 	};
 }

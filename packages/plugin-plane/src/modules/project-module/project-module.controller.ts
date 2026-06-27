@@ -8,15 +8,26 @@ import {
 	HttpStatus,
 	Param,
 	Patch,
-	Post
+	Post,
+	Put
 } from '@nestjs/common';
-import { ID, IModule } from '@ever-gauzy/plugin-integration-plane-models';
+import {
+	BaseEntityEnum,
+	ICreateIssueLink,
+	ID,
+	IModule
+} from '@ever-gauzy/plugin-integration-plane-models';
 import { ProjectModuleService } from './project-module.service';
+import { IssueLinksService } from '../issue-links/issue-links.service';
+import { getCurrentOrganizationSlug } from '../../config';
 import { CreateModuleDTO, UpdateModuleDTO } from './dto';
 
 @Controller()
 export class ProjectModuleController {
-	constructor(private readonly _projectModuleService: ProjectModuleService) {}
+	constructor(
+		private readonly _projectModuleService: ProjectModuleService,
+		private readonly _issueLinksService: IssueLinksService
+	) {}
 
 	/**
 	 * @description - Create module
@@ -120,5 +131,153 @@ export class ProjectModuleController {
 	@Delete(':id')
 	async delete(@Param('id') id: ID) {
 		return await this._projectModuleService.delete(id);
+	}
+
+	// ───────────── Module Archive ─────────────
+
+	/**
+	 * @description Archive a module (only completed or cancelled)
+	 * @param {ID} id - Module ID
+	 * @param {ID} projectId - Project ID
+	 * @returns The archived_at timestamp
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Archive Project Module' })
+	@Post(':id/archive')
+	async archiveModule(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._projectModuleService.archiveModule(id, projectId);
+	}
+
+	/**
+	 * @description Unarchive a module
+	 * @param {ID} id - Module ID
+	 * @param {ID} projectId - Project ID
+	 * @returns void (204)
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Unarchive Project Module' })
+	@Delete(':id/archive')
+	async unarchiveModule(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._projectModuleService.unarchiveModule(id, projectId);
+	}
+
+	// ───────────── Module Links ─────────────
+
+	/**
+	 * @description List all links for a module
+	 * @param {ID} id - Module ID
+	 * @returns All links attached to the module
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'List Module Links' })
+	@Get(':id/module-links')
+	async listModuleLinks(@Param('id') id: ID) {
+		return this._issueLinksService.findAll(
+			BaseEntityEnum.OrganizationProjectModule,
+			id
+		);
+	}
+
+	/**
+	 * @description Create a link for a module
+	 * @param {ID} id - Module ID
+	 * @param {ICreateIssueLink} input - Link data (title, url)
+	 * @returns The created link
+	 */
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: 'Create Module Link' })
+	@Post(':id/module-links')
+	async createModuleLink(
+		@Param('id') id: ID,
+		@Body() input: ICreateIssueLink
+	) {
+		return this._issueLinksService.create(input, id, 'module');
+	}
+
+	/**
+	 * @description Get a specific module link
+	 * @param {ID} id - Module ID
+	 * @param {ID} linkId - Link ID
+	 * @returns The found link
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get Module Link' })
+	@Get(':id/module-links/:linkId')
+	async getModuleLink(
+		@Param('id') id: ID,
+		@Param('linkId') linkId: ID
+	) {
+		return this._issueLinksService.findOne(
+			linkId,
+			BaseEntityEnum.OrganizationProjectModule,
+			id,
+			getCurrentOrganizationSlug()
+		);
+	}
+
+	/**
+	 * @description Update a module link
+	 * @param {ID} id - Module ID
+	 * @param {ID} linkId - Link ID
+	 * @param {ICreateIssueLink} input - Updated link data
+	 * @returns The updated link
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Update Module Link' })
+	@Put(':id/module-links/:linkId')
+	async updateModuleLink(
+		@Param('id') id: ID,
+		@Param('linkId') linkId: ID,
+		@Body() input: ICreateIssueLink
+	) {
+		return this._issueLinksService.update(
+			linkId,
+			id,
+			getCurrentOrganizationSlug(),
+			input,
+			BaseEntityEnum.OrganizationProjectModule
+		);
+	}
+
+	/**
+	 * @description Update a module link (partial)
+	 * @param {ID} id - Module ID
+	 * @param {ID} linkId - Link ID
+	 * @param {Partial<ICreateIssueLink>} input - Partial updated link data
+	 * @returns The updated link
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Patch Module Link' })
+	@Patch(':id/module-links/:linkId')
+	async patchModuleLink(
+		@Param('id') id: ID,
+		@Param('linkId') linkId: ID,
+		@Body() input: ICreateIssueLink
+	) {
+		return this._issueLinksService.update(
+			linkId,
+			id,
+			getCurrentOrganizationSlug(),
+			input,
+			BaseEntityEnum.OrganizationProjectModule
+		);
+	}
+
+	/**
+	 * @description Delete a module link
+	 * @param {ID} linkId - Link ID
+	 * @returns Delete result
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete Module Link' })
+	@Delete(':id/module-links/:linkId')
+	async deleteModuleLink(@Param('linkId') linkId: ID) {
+		return this._issueLinksService.delete(linkId);
 	}
 }

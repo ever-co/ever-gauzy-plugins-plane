@@ -20,6 +20,7 @@ export * from './issue-label.model';
 export * from './issue-link.model';
 export * from './issue-relation.model';
 export * from './module.model';
+export * from './sticky.model';
 export * from './notification.model';
 export * from './project.model';
 export * from './project-deploy-boards.model';

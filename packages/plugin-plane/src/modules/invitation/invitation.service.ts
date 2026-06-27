@@ -89,7 +89,7 @@ export class InvitationService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -138,10 +138,10 @@ export class InvitationService extends ApiFetchService {
 			return Array.isArray(transformed) ? transformed : [transformed];
 		} catch (error: any) {
 			this.logger.error(
-				'Operation failed',
+				`findAll failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -178,10 +178,10 @@ export class InvitationService extends ApiFetchService {
 			return Array.isArray(transformed) ? transformed[0] : transformed;
 		} catch (error: any) {
 			this.logger.error(
-				'Operation failed',
+				`findOne failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -200,13 +200,23 @@ export class InvitationService extends ApiFetchService {
 		input: IInvitationAcceptInput
 	): Promise<{ message: string }> {
 		try {
-			const { token, email, accepted } = input;
+			const { token, accepted } = input;
+
+			// Plane frontend doesn't send email in the body — extract it from the JWT token
+			const email = input.email || decodeToken(token)?.email;
+
+			if (!email) {
+				throw new BadRequestException('Unable to resolve email from input or token');
+			}
+
+			const path = `${this.path}/${accepted ? 'accept' : 'reject'}`;
+			const body = { token, email, user: { email } };
 
 			const user: IInvitationAcceptResponse = (
 				await this.apiFetch({
 					method: 'POST',
-					path: `${this.path}/${accepted ? 'accept' : 'reject'}`,
-					body: { token, email, user: { email } }
+					path,
+					body
 				})
 			).data;
 			if (user) {
@@ -219,10 +229,10 @@ export class InvitationService extends ApiFetchService {
 			return { message: '' };
 		} catch (error: any) {
 			this.logger.error(
-				'Operation failed',
+				`acceptOrReject failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -245,12 +255,12 @@ export class InvitationService extends ApiFetchService {
 					query
 				})
 			).data;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(
-				'Operation failed',
+				`delete failed [${error?.response?.status}]: ${JSON.stringify(error?.response?.data) || error.message}`,
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

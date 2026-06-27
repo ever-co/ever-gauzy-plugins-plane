@@ -44,7 +44,7 @@ export class DashboardService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -64,7 +64,7 @@ export class DashboardService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -91,8 +91,7 @@ export class DashboardService extends ApiFetchService {
 
 			return dashboard.items[0];
 		} catch (error: any) {
-			// this.logger.error(`Operation failed: ${error?.response?.data?.message || error.message}`, error.stack);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

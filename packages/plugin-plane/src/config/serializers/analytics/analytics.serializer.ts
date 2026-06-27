@@ -27,7 +27,7 @@ const statusGroupMap: Record<string, string> = {
 /**
  * Get the state group for a given task
  */
-function getStateGroup(task: ITask): string {
+export function getStateGroup(task: ITask): string {
 	// Check taskStatus properties first (more reliable)
 	if (task.taskStatus?.isDone) return 'completed';
 	if (task.taskStatus?.isInProgress) return 'started';

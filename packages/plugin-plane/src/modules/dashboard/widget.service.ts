@@ -38,7 +38,7 @@ export class WidgetService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -69,7 +69,7 @@ export class WidgetService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

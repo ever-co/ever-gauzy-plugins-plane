@@ -44,7 +44,7 @@ export class RecentVisitsService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 }

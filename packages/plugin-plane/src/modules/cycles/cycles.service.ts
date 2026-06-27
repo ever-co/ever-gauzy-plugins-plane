@@ -22,6 +22,7 @@ import {
 	IUserViewProperties
 } from '@ever-gauzy/plugin-integration-plane-models';
 import {
+	buildProgressSnapshot,
 	createCycleInputTransformer,
 	currentEmployeeId,
 	cycleAnalyticsData,
@@ -108,7 +109,7 @@ export class CyclesService extends ApiFetchService {
 				`Failed: ${error?.response?.data?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -147,7 +148,7 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -185,7 +186,7 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -213,7 +214,7 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -250,7 +251,7 @@ export class CyclesService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -273,7 +274,7 @@ export class CyclesService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -316,7 +317,7 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -353,7 +354,7 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -371,6 +372,152 @@ export class CyclesService extends ApiFetchService {
 				path: `${this.path}/${id}/soft`
 			})
 		).data;
+	}
+
+	/**
+	 * @description Archive a cycle (only if end_date is in the past)
+	 * @param {ID} id - Cycle ID to archive
+	 * @param {ID} projectId - Project ID
+	 * @returns A promise resolved with the archived_at date
+	 * @memberof CyclesService
+	 */
+	async archiveCycle(id: ID, projectId: ID): Promise<{ archived_at: string }> {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			if (!sprint) {
+				throw new BadRequestException(`Cycle with id ${id} could not be found`);
+			}
+
+			// Only completed cycles (end_date in the past) can be archived
+			if (sprint.endDate && new Date(sprint.endDate) >= new Date()) {
+				throw new BadRequestException(
+					'Only completed cycles can be archived'
+				);
+			}
+
+			const archivedAt = new Date().toISOString();
+
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body: {
+					...sprint,
+					isArchived: true,
+					archivedAt
+				}
+			});
+
+			return { archived_at: archivedAt };
+		} catch (error) {
+			this.logger.error(
+				'Archive operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Unarchive a cycle
+	 * @param {ID} id - Cycle ID to unarchive
+	 * @param {ID} projectId - Project ID
+	 * @returns void
+	 * @memberof CyclesService
+	 */
+	async unarchiveCycle(id: ID, projectId: ID): Promise<void> {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			if (!sprint) {
+				throw new BadRequestException(`Cycle with id ${id} could not be found`);
+			}
+
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${id}`,
+				body: {
+					...sprint,
+					isArchived: false,
+					archivedAt: null
+				}
+			});
+		} catch (error) {
+			this.logger.error(
+				'Unarchive operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Get archived cycles for a project
+	 * @param {ID} projectId - The project ID
+	 * @returns Archived cycles list
+	 * @memberof CyclesService
+	 */
+	async getArchivedCycles(projectId: ID) {
+		try {
+			const query = qs.stringify({
+				...getSprintsQuery(projectId),
+				'where[isArchived]': true
+			});
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationSprint
+				);
+
+			const sprints: IPagination<IOrganizationSprint> = (
+				await this.apiFetch({
+					method: 'GET',
+					path: this.path,
+					query
+				})
+			).data;
+
+			return cycleTransformer(sprints.items, favoriteIds);
+		} catch (error: any) {
+			this.logger.error(
+				`Operation failed: ${error?.response?.data?.message || error.message}`,
+				error.stack
+			);
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * @description Get a single archived cycle
+	 * @param {ID} id - Cycle ID
+	 * @param {ID} projectId - Project ID
+	 * @returns Archived cycle detail
+	 * @memberof CyclesService
+	 */
+	async getArchivedCycle(id: ID, projectId: ID) {
+		try {
+			const sprint = await this.getExternalSprint(id, projectId);
+
+			if (!sprint?.isArchived) {
+				throw new BadRequestException('Cycle is not archived');
+			}
+
+			const favoriteIds =
+				await this._userFavoriteService.findEmployeeFavoriteEntityIds(
+					BaseEntityEnum.OrganizationSprint
+				);
+
+			return cycleTransformer(sprint, favoriteIds);
+		} catch (error) {
+			this.logger.error(
+				'Operation failed',
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (error instanceof BadRequestException) throw error;
+			this.handleApiError(error);
+		}
 	}
 
 	/**
@@ -529,7 +676,7 @@ export class CyclesService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -598,7 +745,7 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -653,7 +800,151 @@ export class CyclesService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * Transfers incomplete issues from a completed cycle to a target cycle.
+	 *
+	 * Steps:
+	 * 1. Fetch the old cycle with task relations
+	 * 2. Validate the old cycle is completed (end_date in the past)
+	 * 3. Fetch the new cycle and validate it's not completed
+	 * 4. Build a progress snapshot on the old cycle
+	 * 5. Save the snapshot via PUT /organization-sprint/:id
+	 * 6. Transfer incomplete tasks (backlog, unstarted, started) to the new cycle
+	 *
+	 * Gauzy automatically creates OrganizationSprintTaskHistory records when
+	 * a task's organizationSprintId changes, so no additional history logic is needed.
+	 *
+	 * @param {ID} cycleId - The ID of the source cycle (must be completed)
+	 * @param {ID} newCycleId - The ID of the destination cycle
+	 * @param {ID} projectId - The project ID
+	 * @returns {Promise<{ message: string }>} Success message
+	 * @throws {BadRequestException} If validation fails or transfer errors
+	 */
+	async transferCycleIssues(
+		cycleId: ID,
+		newCycleId: ID,
+		projectId: ID
+	): Promise<{ message: string }> {
+		try {
+			// 1. Fetch old cycle with full task relations (for snapshot and filtering)
+			const oldSprint = await this.getExternalSprint(cycleId, projectId, [
+				...cycleRelations,
+				'tasks.tags',
+				'tasks.taskStatus',
+				'tasks.members',
+				'tasks.members.user',
+				'toSprintTaskHistories.task.tags',
+				'toSprintTaskHistories.task.taskStatus',
+				'toSprintTaskHistories.task.members',
+				'toSprintTaskHistories.task.members.user',
+				'fromSprintTaskHistories.task.tags',
+				'fromSprintTaskHistories.task.taskStatus',
+				'fromSprintTaskHistories.task.members',
+				'fromSprintTaskHistories.task.members.user',
+				'taskSprints.task.tags',
+				'taskSprints.task.taskStatus',
+				'taskSprints.task.members',
+				'taskSprints.task.members.user'
+			]);
+
+			if (!oldSprint) {
+				throw new NotFoundException('Source cycle not found');
+			}
+
+			// 2. Validate old cycle is completed (end_date in the past)
+			if (
+				!oldSprint.endDate ||
+				moment(oldSprint.endDate).isAfter(moment())
+			) {
+				throw new BadRequestException(
+					'The old cycle is not completed yet'
+				);
+			}
+
+			// 3. Fetch new cycle and validate it's not already completed
+			const newSprint = await this.getExternalSprint(
+				newCycleId,
+				projectId
+			);
+
+			if (!newSprint) {
+				throw new NotFoundException('Target cycle not found');
+			}
+
+			if (
+				newSprint.endDate &&
+				moment(newSprint.endDate).isBefore(moment())
+			) {
+				throw new BadRequestException(
+					'The cycle where the issues are transferred is already completed'
+				);
+			}
+
+			// 4. Build progress snapshot from old cycle's tasks
+			const snapshot = buildProgressSnapshot(oldSprint);
+
+			// 5. Save the snapshot on the old cycle
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/${cycleId}`,
+				body: {
+					...oldSprint,
+					sprintProgress: snapshot
+				}
+			});
+
+			this.logger.log(
+				`Progress snapshot saved for cycle ${cycleId}: ${snapshot.total_issues} total, ${snapshot.completed_issues} completed`
+			);
+
+			// 6. Get all tasks and filter incomplete ones (backlog, unstarted, started)
+			const allTasks = retrieveCycleTotalTasks(oldSprint);
+			const incompleteTasks = allTasks.filter((task) => {
+				const status = task?.status?.toLowerCase() ?? '';
+				const taskStatusValue =
+					task?.taskStatus?.value?.toLowerCase() ?? '';
+
+				// Exclude completed/done/cancelled tasks — transfer everything else
+				const completedStatuses = ['done', 'completed', 'cancelled'];
+				return (
+					!completedStatuses.includes(status) &&
+					!completedStatuses.includes(taskStatusValue)
+				);
+			});
+
+			this.logger.log(
+				`Transferring ${incompleteTasks.length} incomplete tasks from cycle ${cycleId} to ${newCycleId}`
+			);
+
+			// 7. Transfer each incomplete task to the new cycle
+			// Gauzy auto-creates OrganizationSprintTaskHistory when organizationSprintId changes
+			await Promise.all(
+				incompleteTasks.map(async (task) =>
+					await this._issueService.update(
+						task.id!,
+						{ cycle_id: newCycleId },
+						false
+					)
+				)
+			);
+
+			return { message: 'Success' };
+		} catch (error: any) {
+			this.logger.error(
+				`Transfer cycle issues failed: ${error?.message}`,
+				error instanceof Error ? error.stack : String(error)
+			);
+			if (
+				error instanceof BadRequestException ||
+				error instanceof NotFoundException
+			) {
+				throw error;
+			}
+			this.handleApiError(error);
 		}
 	}
 }

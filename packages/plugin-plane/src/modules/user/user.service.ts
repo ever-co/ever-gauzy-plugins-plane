@@ -16,10 +16,13 @@ import {
 	updateUserProfileInputTranformer,
 	userMeTransformer,
 	userProfileTransformer,
-	userSettingsTranformer
+	userSettingsTranformer,
+	workspacesResponseTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
+import { decodeToken } from '../api-fetch/token.helper';
 import { ProjectService } from '../project/project.service';
+import { WorkspaceContextService } from '../workspace/workspace-context.service';
 
 @Injectable()
 export class UserService extends ApiFetchService {
@@ -53,7 +56,7 @@ export class UserService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -82,7 +85,7 @@ export class UserService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -112,7 +115,7 @@ export class UserService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 	/**
@@ -136,7 +139,7 @@ export class UserService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -163,15 +166,132 @@ export class UserService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
 	/**
-	 * Retrieves and transforms the current user's workspaces with organization details
+	 * Retrieves and transforms the current user's workspaces across all tenants.
+	 *
+	 * Uses Gauzy's GET /auth/workspaces to discover all tenants, then for each
+	 * tenant calls /auth/signin.workspace to get a valid token, and finally
+	 * queries /user-organization with that token to get the actual organizations.
+	 *
+	 * Falls back to the single-tenant /user-organization endpoint if the
+	 * cross-tenant call fails.
+	 *
 	 * @returns Array of transformed organizations with owner and member information
 	 */
 	async getMyWorkspaces() {
+		try {
+			// Step 1: Discover all tenants via /auth/workspaces
+			const response = (
+				await this.apiFetch({
+					method: 'GET',
+					path: '/auth/workspaces'
+				})
+			).data;
+
+			if (response?.workspaces?.length > 0) {
+				this.logger.debug(
+					`GET /auth/workspaces → ${response.total_workspaces} workspace(s) found`
+				);
+
+				const allOrganizations: IUserOrganization[] = [];
+
+				// Step 2: For each workspace/tenant, get a token and query organizations
+				for (const ws of response.workspaces) {
+					try {
+						const email = ws.user?.email;
+						const wsToken = ws.token;
+						const tenantId = ws.user?.tenant?.id || ws.user?.tenantId;
+
+						if (!email || !wsToken) {
+							this.logger.warn(`Skipping workspace: missing email or token`);
+							continue;
+						}
+
+						// Get a valid access token for this tenant
+						const authRes = (
+							await this.apiFetch({
+								method: 'POST',
+								path: '/auth/signin.workspace',
+								body: { email, token: wsToken }
+							})
+						).data;
+
+						if (!authRes?.token) {
+							this.logger.warn(
+								`signin.workspace failed for tenant ${tenantId}: no token returned`
+							);
+							continue;
+						}
+
+						// Get the userId from the auth response token
+						const decoded = decodeToken(authRes.token);
+						const userId = decoded?.id;
+						const resolvedTenantId = decoded?.tenantId || tenantId;
+
+						if (!userId || !resolvedTenantId) {
+							this.logger.warn(
+								`Could not resolve userId/tenantId from workspace token`
+							);
+							continue;
+						}
+
+						// Query user-organization for this tenant
+						const orgQuery = qs.stringify({
+							'where[tenantId]': resolvedTenantId,
+							'where[userId]': userId,
+							includeEmployee: true,
+							'relations[0]': 'user.role',
+							'relations[1]': 'organization'
+						});
+
+						const userOrgs: IPagination<IUserOrganization> = (
+							await this.apiFetch({
+								method: 'GET',
+								path: '/user-organization',
+								query: orgQuery,
+								bearer_token: authRes.token,
+								tenantId: resolvedTenantId
+							})
+						).data;
+
+						if (userOrgs?.items?.length > 0) {
+							// Store orgId → tenantId mapping for workspace switching
+							for (const uo of userOrgs.items) {
+								if (uo.organization?.id) {
+									WorkspaceContextService.setOrgTenantMapping(
+										uo.organization.id,
+										resolvedTenantId
+									);
+								}
+							}
+							allOrganizations.push(...userOrgs.items);
+						}
+
+						this.logger.debug(
+							`Tenant ${resolvedTenantId}: found ${userOrgs?.items?.length || 0} org(s)`
+						);
+					} catch (wsError: any) {
+						this.logger.warn(
+							`Failed to load orgs for workspace: ${wsError?.response?.status || ''} ${wsError?.message}`
+						);
+					}
+				}
+
+				if (allOrganizations.length > 0) {
+					return organizationsTranformer(allOrganizations);
+				}
+			}
+		} catch (error: any) {
+			this.logger.warn(
+				`Cross-tenant workspace listing failed, falling back to single-tenant: ${error?.response?.status || ''} ${error?.message}`
+			);
+		}
+
+		// Fallback: single-tenant behavior
 		try {
 			const query = qs.stringify(
 				getUserOrganizationsQueryParams(['user.role', 'organization'])
@@ -228,7 +348,7 @@ export class UserService extends ApiFetchService {
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 }

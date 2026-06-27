@@ -7,6 +7,7 @@ import {
 	IUserProfile,
 	RolesEnum
 } from '@ever-gauzy/plugin-integration-plane-models';
+import { WorkspaceContextService } from '../../../modules/workspace/workspace-context.service';
 import { currentTenantId, currentUserId } from '../../credentials';
 import { employeeSettingSerializer } from '../employee-properties';
 import { roleTransformer } from '../workspace-organization';
@@ -80,6 +81,61 @@ export function organizationsTranformer(
 			// updated_by: organization.updatedBy
 		};
 	});
+}
+
+/**
+ * Transforms the cross-tenant workspace response from GET /auth/workspaces
+ * into the format expected by the Plane frontend.
+ *
+ * Each workspace entry has `{ user: IUser, token: string }` where `user.tenant`
+ * carries the tenant info. The user's `lastOrganizationId` / `defaultOrganizationId`
+ * tells us which organization this workspace maps to.
+ *
+ * Side-effect: stores orgId → tenantId in WorkspaceContextService for the
+ * workspace middleware to detect cross-tenant switches.
+ */
+export function workspacesResponseTransformer(
+	workspaces: Array<{ user: IUser; token: string }>
+) {
+	WorkspaceContextService.clearOrgTenantMappings();
+
+	return workspaces
+		.filter((ws) => {
+			const orgId =
+				ws.user.lastOrganizationId || ws.user.defaultOrganizationId;
+			return !!orgId;
+		})
+		.map((ws) => {
+			const user = ws.user;
+			const tenant = (user as any).tenant;
+			const orgId = (
+				user.lastOrganizationId || user.defaultOrganizationId
+			)!;
+			const tenantId = user.tenantId || tenant?.id;
+
+			// Store the mapping for workspace middleware
+			if (tenantId) {
+				WorkspaceContextService.setOrgTenantMapping(orgId, tenantId);
+			}
+
+			return {
+				id: orgId,
+				owner: actorDetailsTransformer(user.employee),
+				total_members: 0,
+				created_at: user.createdAt,
+				current_plan: 'PRO',
+				updated_at: user.updatedAt,
+				deleted_at: null,
+				is_on_trial: false,
+				name: tenant?.name || 'Workspace',
+				logo: tenant?.logo || null,
+				slug: orgId,
+				role: user.role
+					? roleTransformer(user.role)
+					: 20, // Default to admin
+				organization_size: '11-50'
+			};
+		});
 }
 
 /**

@@ -1,5 +1,6 @@
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -15,7 +16,8 @@ import {
 	ICycleAnalytics,
 	ICycleIssuesResponse,
 	ICycleProgress,
-	ID
+	ID,
+	ITransferCycleIssuesInput
 } from '@ever-gauzy/plugin-integration-plane-models';
 import { CyclesService } from './cycles.service';
 import { CreateCycleDTO, CycleDTO, UpdateCycleDTO } from './dto';
@@ -200,6 +202,69 @@ export class CyclesController {
 	@Patch(':id/user-properties')
 	async updateModuleUserProperties(@Param('id') id: ID, @Body() input: any) {
 		return this._cycleService.updateCycleUserProperties(id, input);
+	}
+
+	// ───────────── Transfer Cycle Issues ─────────────
+
+	/**
+	 * Transfers incomplete issues from a completed cycle to a target cycle.
+	 * Creates a progress snapshot on the source cycle before moving issues.
+	 *
+	 * @param {ID} id - The ID of the source cycle (must be completed)
+	 * @param {ITransferCycleIssuesInput} input - Contains the target cycle ID
+	 * @param {ID} projectId - The project ID (from route params)
+	 * @returns {Promise<{ message: string }>} Success message
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Transfer Cycle Issues' })
+	@Post(':id/transfer-issues')
+	async transferCycleIssues(
+		@Param('id') id: ID,
+		@Body() input: ITransferCycleIssuesInput,
+		@Param('projectId') projectId: ID
+	): Promise<{ message: string }> {
+		if (!input.new_cycle_id) {
+			throw new BadRequestException('New Cycle Id is required');
+		}
+		return await this._cycleService.transferCycleIssues(
+			id,
+			input.new_cycle_id,
+			projectId
+		);
+	}
+
+	// ───────────── Cycle Archive ─────────────
+
+	/**
+	 * @description Archive a cycle (only completed cycles with end_date in the past)
+	 * @param {ID} id - Cycle ID
+	 * @param {ID} projectId - Project ID
+	 * @returns The archived_at timestamp
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Archive Cycle' })
+	@Post(':id/archive')
+	async archiveCycle(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._cycleService.archiveCycle(id, projectId);
+	}
+
+	/**
+	 * @description Unarchive a cycle
+	 * @param {ID} id - Cycle ID
+	 * @param {ID} projectId - Project ID
+	 * @returns void (204)
+	 */
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Unarchive Cycle' })
+	@Delete(':id/archive')
+	async unarchiveCycle(
+		@Param('id') id: ID,
+		@Param('projectId') projectId: ID
+	) {
+		return this._cycleService.unarchiveCycle(id, projectId);
 	}
 
 	/** Deletes a specific cycle (sprint) by its ID.

@@ -51,7 +51,7 @@ export class ReactionsService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -83,7 +83,7 @@ export class ReactionsService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException();
+			this.handleApiError(error);
 		}
 	}
 
@@ -114,7 +114,7 @@ export class ReactionsService extends ApiFetchService {
 				'Operation failed',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 

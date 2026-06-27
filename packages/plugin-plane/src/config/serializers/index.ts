@@ -8,6 +8,7 @@ export * from './invitation';
 export * from './issue-link';
 export * from './mention';
 export * from './modules';
+export * from './stickies';
 export * from './notification';
 export * from './projects';
 export * from './query-params.serializers';

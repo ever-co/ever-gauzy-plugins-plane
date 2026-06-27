@@ -1,17 +1,28 @@
-# Ever Gauzy — Plane Integration Proxy
+# Ever Gauzy Integration with Plane
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[uri_license]: https://www.gnu.org/licenses/agpl-3.0.html
+[uri_license_image]: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
+
+[![License: AGPL v3][uri_license_image]][uri_license]
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue.svg)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-10.x-red.svg)](https://nestjs.com/)
 
-A proxy API that bridges [Ever Gauzy](https://github.com/ever-co/ever-gauzy) backend services with the [Plane](https://plane.so/) project management frontend. It intercepts requests from Plane UI, transforms them to match the Gauzy API contract, forwards them, and transforms the responses back to the format Plane UI expects.
+A proxy that bridges [Plane](https://github.com/makeplane/plane) project management frontend with [Ever Gauzy](https://github.com/ever-co/ever-gauzy) backend services. It intercepts requests from Plane UI, transforms them to match the Gauzy API contract, forwards them, and transforms the responses back to the format Plane UI expects.
 
 ```
-Plane UI  ──►  Proxy  ──►  Ever Gauzy API
+Plane UI  ──►  Proxy APIs ──►  Ever Gauzy API
               (transform request)
               (transform response)
 ```
+
+## ⚠️ Disclaimer
+
+This project is an **independent, community-driven integration** between [Ever® Gauzy™](https://gauzy.co) and [Plane](https://plane.so). It is **not affiliated with, endorsed by, or sponsored by Plane** or its maintainers in any way.
+
+This proxy is provided "as is" for the sole purpose of enabling interoperability between Ever® Gauzy™ and Plane. Use of the Plane name and any references to its APIs are solely for the purpose of describing the integration target.
+
+## Modes
 
 The proxy can run in two modes:
 
@@ -295,6 +306,34 @@ Existing standalone deployments (single-tenant, env-based) keep working with zer
 
 ---
 
+## Deploying the Plane UI on Kubernetes
+
+Want to run the Plane **Web / Admin / Space** front‑ends in a cluster, connected to Gauzy (Gauzy
+Cloud `https://api.gauzy.co` or self‑hosted) through this proxy? There is a complete, end‑to‑end
+guide plus ready‑to‑use provisioning scripts and manifests:
+
+- 📘 **[deploy/kubernetes/README.md](deploy/kubernetes/README.md)** — step‑by‑step: configure the
+  Gauzy integration, build the images, and deploy (namespace, Deployments, Services, Ingress, TLS).
+  Worked example on the `k8s-gauzy` cluster.
+- 🔧 **[deploy/kubernetes/](deploy/kubernetes/)** — `build-images.sh`, `deploy.sh`, `.env.example`,
+  and Kubernetes manifests (`manifests/`). `envsubst`‑templated, no secrets committed.
+- 🔐 **[docs/shared-multi-tenant-plane-sso.md](docs/shared-multi-tenant-plane-sso.md)** — the
+  **shared vs self‑hosted** per‑tenant choice, how **login/SSO** works on the shared deployment, and
+  the **security model** (what the tenant identifier does and does not protect).
+
+> **Two modes (a per‑tenant choice in the Gauzy UI):**
+> - **Shared** *(default)* — reuse Ever's global `plane.gauzy.co`; the build is **tenant‑agnostic**
+>   (`VITE_API_BASE_URL=…/api/plane`) and the proxy resolves the tenant from the **logged‑in
+>   session**. One deployment serves all tenants; the tenant just clicks **Enable**.
+> - **Custom** — the tenant self‑hosts; its build bakes `…/api/plane/{tenantId}` and the proxy reads
+>   the tenant from the **URL path**. One build per tenant.
+>
+> Either way you do **not** deploy Plane's own backend (Django API, Postgres, Redis, RabbitMQ,
+> MinIO, workers) — the proxy replaces all of it. `VITE_*` is build‑time only, so the API URL is
+> baked at `docker build`.
+
+---
+
 ## How `mountPlaneProxy()` Works
 
 `mountPlaneProxy(httpServer, options?)` is the single entry-point for in-process integration. It:
@@ -511,12 +550,31 @@ The workflow also supports `workflow_dispatch` for manual runs from the GitHub A
 
 ---
 
+## ™️ Trademarks
+
+**Ever**® is a registered trademark of [Ever Co. LTD](https://ever.co).
+**Ever® Demand™**, **Ever® Gauzy™**, **Ever® Teams™**, **Ever® Rec™**, **Ever® Recu™**, **Ever® Cloc™**, **Ever® Works™** and **Ever® OpenSaaS™** are all trademarks of [Ever Co. LTD](https://ever.co).
+
+The trademarks may only be used with the written permission of Ever Co. LTD. and may not be used to promote or otherwise market competitive products or services.
+
+[Plane](https://plane.so) is a trademark of **Plane Software, Inc.** (or its respective owner). This project's use of the name "Plane" is strictly for identification and interoperability purposes and does not imply any ownership, affiliation, or endorsement
+
+All other brand and product names are trademarks, registered trademarks, or service marks of their respective holders.
+
+## 🍺 Contribute
+
+-   Please give us :star: on Github, it **helps**!
+-   You are more than welcome to submit feature requests in the [separate repo](https://github.com/ever-co/feature-requests/issues)
+-   Pull requests are always welcome! Please base pull requests against the _develop_ branch and follow the [contributing guide](.github/CONTRIBUTING.md).
+
 ## License
 
 This project is licensed under the AGPLv3 License — see the [LICENSE](LICENSE) file for details.
 
-## About
+## ©️ Copyright
 
-Developed and maintained by [Ever Co. LTD](https://ever.co).
+#### Copyright © 2024-present, Ever Co. LTD. All rights reserved
 
-- [Ever Gauzy](https://github.com/ever-co/ever-gauzy) — The backend platform
+## 🔥 P.S
+
+-   [We are Hiring: remote TypeScript / NestJS / Angular developers](https://github.com/ever-co/jobs#available-positions)

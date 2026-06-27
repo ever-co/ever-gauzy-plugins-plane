@@ -5,6 +5,7 @@ import { StatesModule } from '../states/states.module';
 import { IssuesModule } from '../issues/issues.module';
 import { IssueLabelsModule } from '../issues/issue-labels/issue-labels.module';
 import { ProjectModuleModule } from '../project-module/project-module.module';
+import { ArchivedModulesModule } from '../project-module/archived-modules.module';
 import { ProjectService } from './project.service';
 import { ProjectDeployBoardsService } from './project-deploy-boards/project-deploy-boards.service';
 import { ProjectController } from './project.controller';
@@ -13,12 +14,11 @@ import { ProjectIdentifiersModule } from './project-identifiers/project-identifi
 import { CommentsModule } from '../comments/comments.module';
 import { IssueViewModule } from '../views/view.module';
 import { CyclesModule } from '../cycles/cycles.module';
+import { ArchivedCyclesModule } from '../cycles/archived-cycles.module';
 import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
 import {
-    AdvanceAnalyticsModule,
-    AdvanceAnalyticsStatsModule,
-    AdvanceAnalyticsChartsModule
+    AdvanceAnalyticsModule
 } from '../advance-analytics/advance-analytics.module';
 
 @Module({
@@ -32,6 +32,10 @@ import {
 					{ path: '/:projectId/issues', module: IssuesModule },
 					{ path: '/:projectId/views', module: IssueViewModule },
 					{ path: '/:projectId/cycles', module: CyclesModule },
+					{
+						path: '/:projectId/archived-cycles',
+						module: ArchivedCyclesModule
+					},
 					{
 						path: '/:projectId/inbox-issues',
 						module: IntakeIssuesModule
@@ -48,18 +52,14 @@ import {
 						path: '/:projectId/modules',
 						module: ProjectModuleModule
 					},
+					{
+						path: '/:projectId/archived-modules',
+						module: ArchivedModulesModule
+					},
 					{ path: '/:projectId/comments', module: CommentsModule },
 					{
-						path: '/:projectId/advance-analytics',
+						path: '/:projectId',
 						module: AdvanceAnalyticsModule
-					},
-					{
-						path: '/:projectId/advance-analytics-stats',
-						module: AdvanceAnalyticsStatsModule
-					},
-					{
-						path: '/:projectId/advance-analytics-charts',
-						module: AdvanceAnalyticsChartsModule
 					}
 				]
 			}

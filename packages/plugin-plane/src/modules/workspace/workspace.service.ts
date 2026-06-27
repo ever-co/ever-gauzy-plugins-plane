@@ -1,80 +1,80 @@
 import {
-    BadRequestException,
-    forwardRef,
-    Inject,
-    Injectable
+	BadRequestException,
+	forwardRef,
+	Inject,
+	Injectable
 } from '@nestjs/common';
 import qs from 'qs';
 import {
-    BaseEntityEnum,
-    DashboardIssueTypeEnum,
-    DashboardWigetQueryEnum,
-    ID,
-    IIssue, IRecentCollaborator,
-    ITask,
-    IWorkspaceUserInfo,
-    TaskStatusEnum,
-    IUserStatsResponse,
-    IUserProjectsDataResponse,
-    IssueGroupByEnum,
-    IIssueFindInput,
-    IModule,
-    ICycle,
-    IIssueLabel,
-    IssueOrderByField,
-    IIssueCreateInput,
-    IIssueUpdateInput,
-    EmployeeSettingTypeEnum,
-    IGlobalEntitiesResponse,
-    IGlabalEntitiesFindInput,
-    IEntitySearchFindInput,
-    IUnreadNotificationResponse,
-    INotificationResponse,
-    INotification,
-    IEmployeeSetting,
-    IProject,
-    IIssueLink,
-    ICreateIssueLink,
-    IEmployee
+	BaseEntityEnum,
+	DashboardIssueTypeEnum,
+	DashboardWigetQueryEnum,
+	ID,
+	IIssue, IRecentCollaborator,
+	ITask,
+	IWorkspaceUserInfo,
+	TaskStatusEnum,
+	IUserStatsResponse,
+	IUserProjectsDataResponse,
+	IssueGroupByEnum,
+	IIssueFindInput,
+	IModule,
+	ICycle,
+	IIssueLabel,
+	IssueOrderByField,
+	IIssueCreateInput,
+	IIssueUpdateInput,
+	EmployeeSettingTypeEnum,
+	IGlobalEntitiesResponse,
+	IGlabalEntitiesFindInput,
+	IEntitySearchFindInput,
+	IUnreadNotificationResponse,
+	INotificationResponse,
+	INotification,
+	IEmployeeSetting,
+	IProject,
+	IIssueLink,
+	ICreateIssueLink,
+	IEmployee
 } from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
-    currentEmployeeId,
-    cycleTransformer,
-    dashboardTransformer,
-    DEFAULT_DASHBOARD_WIDGETS,
-    getCurrentOrganizationSlug,
-    currentUserId,
-    extractWorkspaceViewIdFromReferer,
-    getProjectsResponse,
-    getStatesTransformer,
-    getTaskCounts,
-    groupIssuesByLabel,
-    groupIssuesByPriority,
-    groupIssuesByProjectId,
-    groupIssuesByStateGroup,
-    issueActivityLogTransformer,
-    issueFilterSplitter,
-    issueLabelsTransformer,
-    issueLinkTransformer,
-    issuesByPriority,
-    issueTransformer,
-    MEMBER_DEFAULT_VIEW_PROPS,
-    modulesTransformer,
-    userIssuesByPriority,
-    userWorkNonGroupedIssues,
-    userWorkProjectsTransformer,
-    widgetTargetDateTransformer,
-    widgetTransformer,
-    currentTenantId,
-    memberPropertiesSerializer,
-    notificationTranformer,
-    unreadNotificationData,
-    isNotEmpty
+	currentEmployeeId,
+	cycleTransformer,
+	dashboardTransformer,
+	DEFAULT_DASHBOARD_WIDGETS,
+	getCurrentOrganizationSlug,
+	currentUserId,
+	extractWorkspaceViewIdFromReferer,
+	getProjectsResponse,
+	getStatesTransformer,
+	getTaskCounts,
+	groupIssuesByLabel,
+	groupIssuesByPriority,
+	groupIssuesByProjectId,
+	groupIssuesByStateGroup,
+	issueActivityLogTransformer,
+	issueFilterSplitter,
+	issueLabelsTransformer,
+	issueLinkTransformer,
+	issuesByPriority,
+	issueTransformer,
+	MEMBER_DEFAULT_VIEW_PROPS,
+	modulesTransformer,
+	userIssuesByPriority,
+	userWorkNonGroupedIssues,
+	userWorkProjectsTransformer,
+	widgetTargetDateTransformer,
+	widgetTransformer,
+	currentTenantId,
+	memberPropertiesSerializer,
+	notificationTranformer,
+	unreadNotificationData,
+	isNotEmpty
 } from '../../config';
 import {
-    getEmployeeMembersQuery,
-    employeeMembersTransformer
+	getEmployeeMembersQuery,
+	employeeMembersTransformer
 } from '../../config';
 import { ProjectService } from '../project/project.service';
 import { IssuesService } from '../issues/issues.service';
@@ -163,7 +163,7 @@ export class WorkspaceService extends ApiFetchService {
 						`Failed to create widget: ${error?.response?.data?.message || error.message}`,
 						error.stack
 					);
-					throw new BadRequestException(error.response);
+					this.handleApiError(error);
 				}
 			}
 
@@ -177,7 +177,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to get dashboard: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -362,7 +362,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Error while retrieving workspace members',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -403,7 +403,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find recent collaborators',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -529,7 +529,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to get assigned issues by state: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -571,11 +571,10 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find assigned issues by priority: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
-	/*************  ✨ Windsurf Command ⭐  *************/
 	/**
 	 * Retrieves all projects for the authenticated employee.
 	 *
@@ -584,7 +583,6 @@ export class WorkspaceService extends ApiFetchService {
 	 * @returns {Promise<IProject[]>} A promise that resolves to an array of projects.
 	 * @throws {BadRequestException} If an error occurs during project retrieval.
 	 */
-	/*******  e3fe4c94-518f-42c5-ad1c-6ca918f83028  *******/
 	async findProjects(): Promise<IProject[]> {
 		try {
 			return await this._projectService.getProjects([
@@ -597,7 +595,103 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find projects',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * Retrieves project analytics counts for all projects in the workspace.
+	 *
+	 * Matches Plane's ProjectStatsEndpoint which returns per-project statistics
+	 * using these valid fields: total_issues, completed_issues, total_members,
+	 * total_cycles, total_modules.
+	 *
+	 * @param {string} fields - Optional comma-separated list of fields to include
+	 * @param {string} project_ids - Optional comma-separated list of project IDs to filter
+	 * @returns {Promise<any[]>} Array of project analytics counts
+	 * @throws {BadRequestException} If an error occurs during retrieval.
+	 */
+	async getProjectStats(fields?: string, project_ids?: string): Promise<any[]> {
+		try {
+			// Valid fields matching Plane's ProjectStatsEndpoint
+			const validFields = new Set([
+				'total_issues',
+				'completed_issues',
+				'total_members',
+				'total_cycles',
+				'total_modules'
+			]);
+
+			// Parse requested fields, intersect with valid fields
+			const parsedFields = fields
+				? fields.split(',').map((f) => f.trim()).filter(Boolean)
+				: [];
+			const requestedFields = parsedFields.length > 0
+				? new Set(parsedFields.filter((f) => validFields.has(f)))
+				: validFields;
+
+			// Parse project IDs filter
+			const projectIdFilter = project_ids
+				? project_ids.split(',').map((id) => id.trim()).filter(Boolean)
+				: [];
+
+			// Fetch projects with relations needed for computing stats
+			const projects = await this._projectService.getExternalProjects([
+				'members',
+				'organizationSprints',
+				'modules',
+				'tasks.taskStatus'
+			]);
+
+			// Filter by project IDs if specified
+			const filteredProjects = projectIdFilter.length > 0
+				? projects.filter((p) => projectIdFilter.includes(p.id!))
+				: projects;
+
+			// Build per-project stats
+			return filteredProjects.map((project) => {
+				const tasks = project.tasks || [];
+				const members = project.members || [];
+				const cycles = project.organizationSprints || [];
+				const modules = project.modules || [];
+
+				const stats: Record<string, any> = { id: project.id };
+
+				if (requestedFields.has('total_issues')) {
+					stats.total_issues = tasks.length;
+				}
+
+				if (requestedFields.has('completed_issues')) {
+					stats.completed_issues = tasks.filter((task) => {
+						if (task.taskStatus?.isDone) return true;
+						const status = task.status?.toLowerCase();
+						return (
+							status === TaskStatusEnum.DONE.toLowerCase() ||
+							status === TaskStatusEnum.COMPLETED.toLowerCase()
+						);
+					}).length;
+				}
+
+				if (requestedFields.has('total_cycles')) {
+					stats.total_cycles = cycles.length;
+				}
+
+				if (requestedFields.has('total_modules')) {
+					stats.total_modules = modules.length;
+				}
+
+				if (requestedFields.has('total_members')) {
+					stats.total_members = members.length;
+				}
+
+				return stats;
+			});
+		} catch (error) {
+			this.logger.error(
+				'Failed to get project stats',
+				error instanceof Error ? error.stack : String(error)
+			);
+			this.handleApiError(error);
 		}
 	}
 
@@ -621,7 +715,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find recent projects',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -757,7 +851,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find recent issue activity',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -861,7 +955,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to get issues: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -939,7 +1033,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user work summary: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -976,7 +1070,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user recent activity: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1010,7 +1104,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user projects data: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1104,7 +1198,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find user grouped issue assigned',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1155,7 +1249,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace states',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1172,7 +1266,7 @@ export class WorkspaceService extends ApiFetchService {
 	async findWorkspaceModules(): Promise<IModule[]> {
 		try {
 			const projects = await this._projectService.getExternalProjects([
-				'modules'
+				'modules', 'modules.members.employee', 'modules.tasks.members', 'modules.tasks.tags'
 			]);
 
 			const modules = projects.map((project) => project.modules!).flat();
@@ -1189,7 +1283,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace modules',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1225,7 +1319,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace cycles',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1263,7 +1357,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find workspace labels',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1373,7 +1467,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find global entities by search: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1454,7 +1548,7 @@ export class WorkspaceService extends ApiFetchService {
 					)
 			};
 		} catch (error) {
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1498,7 +1592,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find view issues: ${error?.response?.data?.message || error.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error.response);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1561,7 +1655,7 @@ export class WorkspaceService extends ApiFetchService {
 				`Failed to find user notifications: ${error?.message}`,
 				error.stack
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1586,7 +1680,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to find unread notifications',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 
@@ -1702,7 +1796,7 @@ export class WorkspaceService extends ApiFetchService {
 				'Failed to toggle notification status',
 				error instanceof Error ? error.stack : String(error)
 			);
-			throw new BadRequestException(error);
+			this.handleApiError(error);
 		}
 	}
 

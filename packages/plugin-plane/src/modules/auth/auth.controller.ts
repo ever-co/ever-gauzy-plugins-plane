@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	ForbiddenException,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -23,7 +24,7 @@ import { AuthService } from './auth.service';
 import { clearTokenChuncks, sendTokenChunks } from '../../config';
 import { Public } from './auth.guard';
 import { CheckExistUserDTO, UserEmailDTO } from '../user/dto';
-import { WorkspaceSigninEmailVerifyDTO } from './dto';
+import { SsoExchangeDto, WorkspaceSigninEmailVerifyDTO } from './dto';
 
 @ApiTags('Authentication routes')
 @Controller()
@@ -71,6 +72,22 @@ export class AuthController {
 			res,
 			data,
 			queryNextPath
+		);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'SSO exchange' })
+	@Post('sso-exchange')
+	@Public()
+	async ssoExchange(
+		@Req() req: Request,
+		@Res({ passthrough: true }) res: Response,
+		@Body() body: SsoExchangeDto
+	) {
+		return await this._authService.handleSsoExchange(
+			req,
+			res,
+			body.token
 		);
 	}
 
@@ -157,6 +174,12 @@ export class AuthController {
 		@Res() res: Response,
 		@Body() data: IUserRegisterInput
 	) {
+		// ever-gauzy fork: registration is disabled — accounts are created only in the
+		// Gauzy platform; the proxy authenticates existing Gauzy users. Override with
+		// PLANE_ENABLE_SIGNUP=true if ever needed.
+		if (process.env.PLANE_ENABLE_SIGNUP !== 'true') {
+			throw new ForbiddenException('Sign up is disabled. Accounts are managed in Gauzy.');
+		}
 		try {
 			// 1. Attempt to register the new user
 			const user = await this._authService.signUp(data);

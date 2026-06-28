@@ -1,8 +1,10 @@
 import {
 	BadGatewayException,
 	BadRequestException,
-	Injectable
+	Injectable,
+	UnauthorizedException
 } from '@nestjs/common';
+import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import {
 	BaseEntityEnum,
@@ -166,6 +168,53 @@ export class AuthService extends ApiFetchService {
 				error instanceof Error ? error.stack : String(error)
 			);
 		}
+	}
+
+	/**
+	 * Exchanges a Gauzy access JWT for a proxy session cookie.
+	 *
+	 * Verifies the token's signature and expiry against the Gauzy JWT secret
+	 * (the proxy session cookie IS the Gauzy access JWT), then sets the chunked
+	 * session cookies so a logged-in Gauzy user is logged into Plane without
+	 * re-entering credentials. Verification is mandatory — the token is never
+	 * trusted on the basis of a bare decode.
+	 *
+	 * @param {Request} req - The Express request object.
+	 * @param {Response} res - The Express response object.
+	 * @param {string} token - The Gauzy access JWT to verify and persist.
+	 * @returns {Promise<{ ok: true }>} A promise resolving once the session cookie is set.
+	 *
+	 * @throws {UnauthorizedException} If the token is invalid, expired, or missing a tenantId.
+	 */
+	async handleSsoExchange(
+		req: Request,
+		res: Response,
+		token: string
+	): Promise<{ ok: true }> {
+		const secret = process.env.JWT_SECRET;
+		if (!secret) {
+			this.logger.error('JWT_SECRET is not configured; cannot verify SSO token');
+			throw new UnauthorizedException('Invalid SSO token');
+		}
+
+		let payload: jwt.JwtPayload;
+		try {
+			payload = jwt.verify(token, secret) as jwt.JwtPayload;
+		} catch (error) {
+			this.logger.warn(
+				`SSO token verification failed: ${error instanceof Error ? error.message : String(error)}`
+			);
+			throw new UnauthorizedException('Invalid SSO token');
+		}
+
+		if (!payload || typeof payload.tenantId !== 'string' || !payload.tenantId) {
+			throw new UnauthorizedException('Invalid SSO token');
+		}
+
+		clearTokenChuncks(req, res);
+		sendTokenChunks(token, res);
+
+		return { ok: true };
 	}
 
 	/**

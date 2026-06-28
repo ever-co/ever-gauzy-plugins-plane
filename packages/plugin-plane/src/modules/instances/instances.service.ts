@@ -45,14 +45,20 @@ export class InstancesService {
 
 	getDefaultConfigs() {
 		return {
-			enable_signup: true,
+			// ever-gauzy: registration happens ONLY via the Gauzy platform; the Plane
+			// proxy authenticates existing Gauzy users. Signup is OFF by default;
+			// set PLANE_ENABLE_SIGNUP=true to re-enable (not recommended).
+			enable_signup: process.env.PLANE_ENABLE_SIGNUP === 'true',
 			is_workspace_creation_disabled: false,
-			is_google_enabled: true,
-			is_github_enabled: true,
+			// Social / OIDC / SAML providers are NOT implemented by the proxy (auth is
+			// forwarded to Gauzy). Disable them so the sign-in page does not render dead
+			// buttons. Email+password and magic-code both route to Gauzy.
+			is_google_enabled: false,
+			is_github_enabled: false,
 			is_gitlab_enabled: false,
 			is_magic_login_enabled: true,
 			is_email_password_enabled: true,
-			is_oidc_enabled: true,
+			is_oidc_enabled: false,
 			oidc_provider_name: '',
 			is_telemetry_enabled: true,
 			is_support_required: true,

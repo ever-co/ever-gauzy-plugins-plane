@@ -23,7 +23,7 @@ import { AuthService } from './auth.service';
 import { clearTokenChuncks, sendTokenChunks } from '../../config';
 import { Public } from './auth.guard';
 import { CheckExistUserDTO, UserEmailDTO } from '../user/dto';
-import { WorkspaceSigninEmailVerifyDTO } from './dto';
+import { SsoExchangeDto, WorkspaceSigninEmailVerifyDTO } from './dto';
 
 @ApiTags('Authentication routes')
 @Controller()
@@ -71,6 +71,22 @@ export class AuthController {
 			res,
 			data,
 			queryNextPath
+		);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'SSO exchange' })
+	@Post('sso-exchange')
+	@Public()
+	async ssoExchange(
+		@Req() req: Request,
+		@Res({ passthrough: true }) res: Response,
+		@Body() body: SsoExchangeDto
+	) {
+		return await this._authService.handleSsoExchange(
+			req,
+			res,
+			body.token
 		);
 	}
 

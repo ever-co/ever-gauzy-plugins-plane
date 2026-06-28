@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	ForbiddenException,
 	Get,
 	HttpCode,
 	HttpStatus,
@@ -173,6 +174,12 @@ export class AuthController {
 		@Res() res: Response,
 		@Body() data: IUserRegisterInput
 	) {
+		// ever-gauzy fork: registration is disabled — accounts are created only in the
+		// Gauzy platform; the proxy authenticates existing Gauzy users. Override with
+		// PLANE_ENABLE_SIGNUP=true if ever needed.
+		if (process.env.PLANE_ENABLE_SIGNUP !== 'true') {
+			throw new ForbiddenException('Sign up is disabled. Accounts are managed in Gauzy.');
+		}
 		try {
 			// 1. Attempt to register the new user
 			const user = await this._authService.signUp(data);

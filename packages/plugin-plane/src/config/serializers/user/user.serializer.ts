@@ -51,9 +51,10 @@ export function organizationsTranformer(
 ) {
 	return userOrganizations.map((userOrganization) => {
 		const organization = userOrganization?.organization!;
-		const owner = userOrganization?.organization!.employees?.find(
+		// ever-gauzy fork: null-safe (hardening)
+		const owner = userOrganization?.organization?.employees?.find(
 			(employee) => {
-				const employeeRole = employee.user!.role!.name;
+				const employeeRole = employee?.user?.role?.name;
 				return (
 					employeeRole === RolesEnum.SUPER_ADMIN ||
 					employeeRole === RolesEnum.ADMIN ||
@@ -275,7 +276,8 @@ export function memberPropertiesSerializer(
 		workspace_info: {
 			id: memberSetting?.organizationId,
 			slug: memberSetting?.organizationId,
-			name: memberSetting?.organization!.name
+			// ever-gauzy fork: null-safe (hardening)
+			name: memberSetting?.organization?.name
 		},
 		member: employeeId
 	};

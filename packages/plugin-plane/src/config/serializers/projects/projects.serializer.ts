@@ -48,9 +48,10 @@ export function getProjectsResponse(
 		if (memberReturnType === 'objects') {
 			members = Array.isArray(project?.members)
 				? project.members.map((member) => ({
-						member__display_name: member.employee!.fullName,
+						// ever-gauzy fork: null-safe (hardening)
+						member__display_name: member.employee?.fullName ?? null,
 						member__id: member.employeeId,
-						member__avatar_url: member.employee!.user!.imageUrl
+						member__avatar_url: member.employee?.user?.imageUrl ?? null
 					}))
 				: [];
 		} else {

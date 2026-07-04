@@ -57,7 +57,8 @@ function activityLogDetails(
 		project: project.id,
 		workspace: workspaceDetail.id,
 		issue: issue.id,
-		actor: activityLog.employeeId || employee.id
+		// ever-gauzy fork: null-safe (hardening)
+		actor: activityLog.employeeId || employee?.id
 	};
 }
 

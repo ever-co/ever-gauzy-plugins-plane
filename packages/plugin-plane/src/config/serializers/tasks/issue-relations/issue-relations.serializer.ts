@@ -115,20 +115,25 @@ export const findByOptionsQuery = (
 export function issueRelationTransformer(
 	linkedIssues: ITaskLinkedIssue[]
 ): IIssueRelation[] {
-	return linkedIssues?.map((linkedIssue) => {
-		return {
-			id: linkedIssue.taskFrom!.id,
-			relation_type: getIssueRelationType(linkedIssue.action),
-			issue_id: linkedIssue.taskFrom!.id,
-			related_issue_id: linkedIssue.taskTo!.id,
-			name: linkedIssue.taskFrom!.title,
-			sequence_id: linkedIssue.taskFrom!.number,
-			project_id: linkedIssue.taskFrom!.projectId, // Should be consistent
-			workspace_id: linkedIssue.organizationId,
-			created_at: linkedIssue.createdAt,
-			updated_at: linkedIssue.updatedAt,
-			created_by_id: null, // To update
-			updated_by_id: null // To update
-		};
-	}) as unknown as IIssueRelation[];
+	// ever-gauzy fork: null-safe (hardening) — skip rows whose taskFrom/taskTo relation is missing
+	return (linkedIssues ?? [])
+		.filter((linkedIssue) => linkedIssue?.taskFrom && linkedIssue?.taskTo)
+		.map((linkedIssue) => {
+			const from = linkedIssue.taskFrom!;
+			const to = linkedIssue.taskTo!;
+			return {
+				id: from.id,
+				relation_type: getIssueRelationType(linkedIssue.action),
+				issue_id: from.id,
+				related_issue_id: to.id,
+				name: from.title,
+				sequence_id: from.number,
+				project_id: from.projectId, // Should be consistent
+				workspace_id: linkedIssue.organizationId,
+				created_at: linkedIssue.createdAt,
+				updated_at: linkedIssue.updatedAt,
+				created_by_id: null, // To update
+				updated_by_id: null // To update
+			};
+		}) as unknown as IIssueRelation[];
 }

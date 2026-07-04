@@ -193,9 +193,10 @@ export class ProjectModuleService extends ApiFetchService {
 			}
 
 			// Identify the lead (manager) if lead_id is provided in input
+			// ever-gauzy fork: null-safe (hardening)
 			const lead = input.lead_id
-				? project.members!.find(
-						(member) => member.employee!.id === input.lead_id
+				? project.members?.find(
+						(member) => member.employee?.id === input.lead_id
 					)
 				: undefined;
 

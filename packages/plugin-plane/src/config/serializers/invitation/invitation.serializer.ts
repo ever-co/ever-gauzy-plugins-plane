@@ -76,7 +76,12 @@ export function invitationTransformer(
 		return {
 			id: invitation.id!,
 			deleted_at: invitation.deletedAt,
-			workspace: workspaceTransformer(invitation.organization!),
+			// ever-gauzy fork: /invite/validate (the @Public() join route) does not
+			// load the organization relation, so guard it — workspaceTransformer
+			// dereferences organization.id and would 500 on an org-less invite.
+			workspace: invitation.organization
+				? workspaceTransformer(invitation.organization)
+				: undefined,
 			invite_link: `/workspace-invitations/?invitation_id=${invitation.id}&email=${invitation.email}&slug=${invitation.organizationId}`,
 			created_at: invitation.createdAt,
 			updated_at: invitation.updatedAt,

@@ -144,11 +144,13 @@ export function workspacesResponseTransformer(
  * @returns Transformed user data with basic profile information
  */
 export function userMeTransformer(user: IUser) {
+	// ever-gauzy fork: not every Gauzy user has an employee record (e.g. the
+	// tenant admin/owner). Fall back to the user id so SSO /user/me never 500s.
 	return {
-		id: user?.employee!.id,
+		id: user?.employee?.id ?? user?.id,
 		avatar: user?.imageUrl,
 		cover_image: null,
-		date_joined: user?.employee!.startedWorkOn,
+		date_joined: user?.employee?.startedWorkOn ?? user?.createdAt,
 		display_name: user?.name,
 		email: user?.email,
 		first_name: user?.firstName,
@@ -188,8 +190,9 @@ export function userProfileTransformer(user: IUser): IUserProfile {
 		billing_address_country: 'INDIA',
 		billing_address: 'My Billing address',
 		has_billing_address: true,
-		company_name: user.tenant!.name,
-		user: user.employee!.id
+		// ever-gauzy fork: null-safe for employee-less / tenant-less users.
+		company_name: user.tenant?.name ?? '',
+		user: user.employee?.id ?? user.id
 	};
 }
 
@@ -212,16 +215,17 @@ export function updateUserProfileInputTranformer(
 }
 
 export function userSettingsTranformer(user: IUser) {
+	// ever-gauzy fork: null-safe for employee-less / tenant-less users.
 	return {
-		id: user.employee!.id,
+		id: user.employee?.id ?? user.id,
 		email: user.email,
 		workspace: {
 			last_workspace_id: user.lastOrganizationId,
 			last_workspace_slug: user.lastOrganizationId,
 			fallback_workspace_id:
-				user.defaultOrganizationId ?? user.employee!.organizationId,
+				user.defaultOrganizationId ?? user.employee?.organizationId ?? null,
 			fallback_workspace_slug:
-				user.defaultOrganizationId ?? user.employee!.organizationId,
+				user.defaultOrganizationId ?? user.employee?.organizationId ?? null,
 			invites: user.invites
 		}
 	};

@@ -13,6 +13,14 @@ jobs:
 
     if: github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/')
 
+    # setup-node's `registry-url` writes an .npmrc that references ${NODE_AUTH_TOKEN}. Yarn 1 aborts
+    # ("Failed to replace env in config") on any step where that variable is unset, so the job gets a
+    # placeholder; public installs don't need a real token. The real NPM_TOKEN is set only on the
+    # steps that publish (step env overrides this), and it is written to .npmrc only after
+    # `yarn install`, so dependency install scripts never see it.
+    env:
+      NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+
     steps:
       - uses: actions/checkout@v7
         with:
@@ -32,13 +40,6 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Authenticate to NPM
-        run: |
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - run: yarn install --frozen-lockfile
 
       - name: Set version from tag
@@ -49,6 +50,13 @@ jobs:
 
       - name: Build
         run: npx tsc -p tsconfig.json
+
+      - name: Authenticate to NPM
+        run: |
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Prepare and publish models
         working-directory: packages/models

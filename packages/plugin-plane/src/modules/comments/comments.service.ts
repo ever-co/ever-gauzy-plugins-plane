@@ -263,12 +263,14 @@ export class CommentsService extends ApiFetchService {
 			const workspace = {
 				name: tenant?.name,
 				id: tenant?.id,
-				slug: tenant!.name!.toLowerCase()
+				// ever-gauzy fork: null-safe (hardening)
+			slug: tenant?.name?.toLowerCase()
 			};
 
 			// Find actor by userId
-			const actor = project.members!.find(
-				(member) => member.employee!.userId === creatorId
+			// ever-gauzy fork: null-safe (hardening)
+			const actor = project.members?.find(
+				(member) => member.employee?.userId === creatorId
 			)?.employee;
 
 			return { project, workspace, actor };

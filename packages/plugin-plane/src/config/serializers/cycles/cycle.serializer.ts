@@ -486,9 +486,10 @@ export function cycleAnalyticsData(
 
 	// Calculate statistics
 	tasks.forEach((task) => {
+		// ever-gauzy fork: null-safe (hardening)
 		const isCompleted =
-			task?.taskStatus!.value === TaskStatusEnum.COMPLETED ||
-			task?.taskStatus!.value === TaskStatusEnum.DONE;
+			task?.taskStatus?.value === TaskStatusEnum.COMPLETED ||
+			task?.taskStatus?.value === TaskStatusEnum.DONE;
 
 		// Handle unassigned tasks
 		if (!task?.members?.length) {

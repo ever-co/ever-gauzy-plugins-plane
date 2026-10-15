@@ -638,7 +638,10 @@ export class IssuesService extends ApiFetchService {
 				projectId!,
 				['members.employee']
 			);
-			const employees = project.members!.map((member) => member.employee) as IEmployee[];
+			// ever-gauzy fork: null-safe (hardening)
+			const employees = (project.members ?? [])
+				.map((member) => member.employee)
+				.filter((employee): employee is IEmployee => !!employee);
 			switch (group_by) {
 				case IssueGroupByEnum.STATE:
 					return groupIssuesByStateId(
@@ -735,14 +738,15 @@ export class IssuesService extends ApiFetchService {
 			if (!issue) {
 				throw new BadRequestException('Issue could not be found');
 			}
-			if (issue.children!.length > 0) {
-				const children = issue.children;
-				children!.forEach((task) =>
+			// ever-gauzy fork: null-safe (hardening)
+			const children = issue.children ?? [];
+			if (children.length > 0) {
+				children.forEach((task) =>
 					sub_issues.push(issueTransformer(task))
 				);
 			}
 
-			const stateDistribution = getTaskDistribution(issue.children!);
+			const stateDistribution = getTaskDistribution(children);
 
 			return { sub_issues, state_distribution: stateDistribution };
 		} catch (error) {
@@ -924,9 +928,10 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
-			const projectMembers = task.project!.members!.map(
-				(member) => member.employee
-			) as IEmployee[];
+			// ever-gauzy fork: null-safe (hardening)
+			const projectMembers = (task.project?.members ?? [])
+				.map((member) => member.employee)
+				.filter((e): e is IEmployee => !!e) as IEmployee[];
 
 			// Create comment
 			const comment = await this._commentService.create(
@@ -951,11 +956,13 @@ export class IssuesService extends ApiFetchService {
 				project!,
 				workspace,
 				[], // On creation, comment has no reaction yet
-				project!.members!
-					.map((member) => member.employee!)
+				// ever-gauzy fork: null-safe (hardening)
+				(project?.members ?? [])
+					.map((member) => member.employee)
 					.filter(
-						(employee) =>
-							employee!.userId === comment.createdByUserId
+						(employee): employee is IEmployee =>
+							!!employee &&
+							employee.userId === comment.createdByUserId
 					)[0]
 			);
 
@@ -1074,9 +1081,10 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
-			const projectMembers = task.project!.members!.map(
-				(member) => member.employee
-			) as IEmployee[];
+			// ever-gauzy fork: null-safe (hardening)
+			const projectMembers = (task.project?.members ?? [])
+				.map((member) => member.employee)
+				.filter((employee): employee is IEmployee => !!employee) as IEmployee[];
 
 			const issueComments: IIssueComment[] = await Promise.all(
 				(comments ?? []).map(async (comment) => {
@@ -1103,9 +1111,10 @@ export class IssuesService extends ApiFetchService {
 						project!,
 						workspace,
 						reactions,
+						// ever-gauzy fork: null-safe (hardening)
 						projectMembers.filter(
 							(employee) =>
-								employee!.userId === comment.createdByUserId
+								employee?.userId === comment.createdByUserId
 						)[0]
 					);
 					return Array.isArray(transformedComment)
@@ -1143,9 +1152,10 @@ export class IssuesService extends ApiFetchService {
 				false
 			);
 
-			const projectEmployees = task.project!.members!.map(
-				(member) => member.employee
-			) as IEmployee[];
+			// ever-gauzy fork: null-safe (hardening)
+			const projectEmployees = (task.project?.members ?? [])
+				.map((member) => member.employee)
+				.filter((employee): employee is IEmployee => !!employee) as IEmployee[];
 
 			// Collect all the IDs of parents mentioned in the logs
 			const parentIds = new Set<string>();
@@ -1203,7 +1213,8 @@ export class IssuesService extends ApiFetchService {
 						updatedSprintObj &&
 						updatedSprintObj.organizationSprintId
 					) {
-					updatedSprint = (task.taskSprintHistories!.find(
+					// ever-gauzy fork: null-safe (hardening)
+					updatedSprint = ((task.taskSprintHistories ?? []).find(
 						(sprint) =>
 							sprint.toSprintId ===
 							updatedSprintObj.organizationSprintId
@@ -1217,9 +1228,10 @@ export class IssuesService extends ApiFetchService {
 					project!,
 						workspace,
 						updatedSprint ? updatedSprint : task.organizationSprint!,
+						// ever-gauzy fork: null-safe (hardening)
 						projectEmployees.filter(
 							(employee) =>
-								employee!.userId === activityLog.createdByUserId
+								employee?.userId === activityLog.createdByUserId
 						)[0],
 						projectEmployees,
 						parentTasks
@@ -1262,9 +1274,10 @@ export class IssuesService extends ApiFetchService {
 								actor!,
 								project!,
 								workspace,
+								// ever-gauzy fork: null-safe (hardening)
 								projectEmployees.filter(
 									(employee) =>
-										employee!.userId === log.createdByUserId
+										employee?.userId === log.createdByUserId
 								)[0]
 							);
 						})
@@ -1302,9 +1315,10 @@ export class IssuesService extends ApiFetchService {
 								actor!,
 								project!,
 								workspace,
+								// ever-gauzy fork: null-safe (hardening)
 								projectEmployees.filter(
 									(employee) =>
-										employee!.userId === log.createdByUserId
+										employee?.userId === log.createdByUserId
 								)[0]
 							);
 						})
@@ -1765,9 +1779,14 @@ export class IssuesService extends ApiFetchService {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// ever-gauzy fork: null-safe (hardening)
+			if (!issue.project) {
+				throw new BadRequestException('Issue project not found');
+			}
+
 			return {
 				sequence_id: issue.number!,
-				project_identifier: issue.project!.code!
+				project_identifier: issue.project.code!
 			};
 		} catch (error) {
 			this.logger.error(

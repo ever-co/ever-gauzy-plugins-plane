@@ -122,7 +122,8 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 	const labelMap = new Map<string, any>();
 
 	tasks?.forEach((task) => {
-		task.tags!.forEach((label) => {
+		// ever-gauzy fork: null-safe (hardening)
+		(task.tags ?? []).forEach((label) => {
 			if (!labelMap.has(label.id!)) {
 				labelMap.set(label.id!, {
 					label_name: label.name,
@@ -137,9 +138,10 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 			const labelData = labelMap.get(label.id!);
 			labelData.total_issues += 1;
 
+			// ever-gauzy fork: null-safe (hardening)
 			if (
-				task.status!.toLocaleLowerCase() === 'completed' ||
-				task.status!.toLocaleLowerCase() === 'done'
+				task?.status?.toLocaleLowerCase() === 'completed' ||
+				task?.status?.toLocaleLowerCase() === 'done'
 			) {
 				labelData.completed_issues += 1;
 			} else {
@@ -159,14 +161,16 @@ export function moduleDetailsAdapter(module: IOrganizationProjectModule) {
 		let pendingIssues = 0;
 
 		(tasks ?? []).forEach((task) => {
-			if (task.members!.some((assignee) => assignee.id === member.id)) {
+			// ever-gauzy fork: null-safe (hardening)
+			if ((task.members ?? []).some((assignee) => assignee.id === member.id)) {
 				// Increment the total issues number
 				totalIssues++;
 
 				// Check if the task is completed or still pending
+				// ever-gauzy fork: null-safe (hardening)
 				if (
-					task.status!.toLocaleLowerCase() === 'completed' ||
-					task.status!.toLocaleLowerCase() === 'done'
+					task?.status?.toLocaleLowerCase() === 'completed' ||
+					task?.status?.toLocaleLowerCase() === 'done'
 				) {
 					completedIssues++;
 				} else {

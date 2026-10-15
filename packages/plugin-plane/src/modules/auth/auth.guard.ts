@@ -8,6 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { decodeToken } from '../api-fetch/token.helper';
+import { readSessionTokenFromCookies } from '../../config/utils/session-cookie.utils';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
@@ -29,17 +30,7 @@ export class AuthGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<Request>();
 
-		const tokenChunks: string[] = [];
-		let index = 0;
-
-		while (request.cookies[`auth-proxy-plane-token-${index}`]) {
-			tokenChunks.push(
-				request.cookies[`auth-proxy-plane-token-${index}`]
-			);
-			index++;
-		}
-
-		const token = tokenChunks.join('');
+		const token = readSessionTokenFromCookies(request.cookies);
 
 		// Reject when no session token is present, or when it is structurally
 		// malformed. Respond 401 (which the Plane SPA handles by routing to sign-in)

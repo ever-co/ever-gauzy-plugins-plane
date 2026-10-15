@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { ID, IssueOrderByField } from '@ever-gauzy/plugin-integration-plane-models';
 import { Request, Response } from 'express';
 import { MAX_TOKEN_COOKIE_SIZE } from '../constants';
+import { encodeSessionToken, SESSION_COOKIE_PREFIX } from './session-cookie.utils';
 
 const logger = new Logger('SharedUtils');
 
@@ -145,15 +146,17 @@ export function splitToken(token: string, chunkSize: number): string[] {
 
 /**
  * Sends token chunks as cookies in the response.
+ * The token is stored in its compact form (see `encodeSessionToken`), which keeps
+ * an admin JWT in one cookie instead of three.
  * @param token - The token string to be split and sent as cookies.
  * @param response - The response object to set cookies on.
  */
 export function sendTokenChunks(token: string, response: Response) {
-	// Split the token into chunks using the splitToken function
-	const tokenChunks = splitToken(token, MAX_TOKEN_COOKIE_SIZE);
+	// Split the compact token into chunks using the splitToken function
+	const tokenChunks = splitToken(encodeSessionToken(token), MAX_TOKEN_COOKIE_SIZE);
 	// Iterate through each chunk and set it as a cookie
 	tokenChunks.forEach((chunk, index) => {
-		response.cookie(`auth-proxy-plane-token-${index}`, chunk, {
+		response.cookie(`${SESSION_COOKIE_PREFIX}${index}`, chunk, {
 			httpOnly: true, // Ensure cookie is inaccessible to JavaScript
 			secure: true, // Use secure cookies in production
 			sameSite: 'strict' // Restrict cookie to same-site requests
@@ -171,7 +174,7 @@ export function clearTokenChuncks(request: Request, response: Response) {
 	let index = 0;
 	// Loop to find and clear all token chunk cookies
 	while (true) {
-		const cookieName = `auth-proxy-plane-token-${index}`;
+		const cookieName = `${SESSION_COOKIE_PREFIX}${index}`;
 		// Break if no cookie exists with the current index
 		if (!request.cookies[cookieName]) {
 			break;

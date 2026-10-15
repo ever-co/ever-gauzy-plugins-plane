@@ -248,18 +248,23 @@ export class ProjectService extends ApiFetchService {
 			]);
 			const members = project.members;
 
-			return members?.map((member) => {
-				if (typeof member !== 'string') {
-					return {
-						// ever-gauzy fork: null-safe (hardening)
-						id: member.employee?.user?.id || member.employee?.userId,
+			return (members ?? []).flatMap((member) => {
+				// ever-gauzy fork: null-safe (hardening) — a member whose employee/user
+				// relation is missing has no user ID, so it cannot be returned as a member.
+				const id = typeof member !== 'string' ? member.employee?.user?.id || member.employee?.userId : undefined;
+				if (typeof member === 'string' || !id) {
+					return [];
+				}
+				return [
+					{
+						id,
 						original_role: member.isManager ? 20 : 15,
 						member: member.employeeId,
 						role: member.isManager ? 20 : 15,
 						created_at: member.createdAt,
 						project: project.id
-					};
-				}
+					}
+				];
 			}) as IGetProjectMembersResponse[];
 		} catch (error) {
 			this.logger.error(

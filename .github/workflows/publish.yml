@@ -13,6 +13,12 @@ jobs:
 
     if: github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/')
 
+    # setup-node's `registry-url` writes an .npmrc that references ${NODE_AUTH_TOKEN}. Yarn 1 aborts
+    # ("Failed to replace env in config") on any step where that variable is unset, so it is set for
+    # the whole job, `yarn install` included, not only on the publish steps.
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
     steps:
       - uses: actions/checkout@v7
         with:

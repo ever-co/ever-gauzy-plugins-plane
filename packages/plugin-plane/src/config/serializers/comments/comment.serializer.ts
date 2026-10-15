@@ -60,7 +60,8 @@ export function issueCommentTrasnsformer(
 		project: project.id,
 			workspace: workspace_detail.id,
 			issue: issue.id,
-			actor: comment.employeeId || employee.id
+			// ever-gauzy fork: null-safe (hardening)
+			actor: comment.employeeId || employee?.id
 		};
 	};
 

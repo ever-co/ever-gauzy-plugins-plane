@@ -149,7 +149,8 @@ export function intakeIssueTranformer(
 					linkedIssue.action ===
 					TaskRelatedIssuesRelationEnum.DUPLICATES
 			) ??
-			task?.linkedIssues!.find(
+			// ever-gauzy fork: null-safe (hardening)
+			(task?.linkedIssues ?? []).find(
 				(linkedIssue) =>
 					linkedIssue.action ===
 					TaskRelatedIssuesRelationEnum.DUPLICATES

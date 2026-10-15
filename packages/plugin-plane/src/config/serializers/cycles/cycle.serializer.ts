@@ -21,6 +21,16 @@ import { getTaskCounts } from '../modules';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
 
 /**
+ * Whether a task is completed. Falls back to the task's `status` text when the
+ * `taskStatus` relation is not loaded, as `getTaskCounts` does, so the cycle
+ * totals, the completion chart and the issue counts agree.
+ */
+function isTaskCompleted(task: ITask): boolean {
+	const status = task?.taskStatus?.value ?? task?.status?.toLocaleLowerCase();
+	return status === TaskStatusEnum.COMPLETED || status === TaskStatusEnum.DONE;
+}
+
+/**
  * Converts a cycle status to the corresponding sprint status.
  *
  * @param {CycleStatusEnum} cycleStatus - The cycle status to convert.
@@ -486,9 +496,8 @@ export function cycleAnalyticsData(
 
 	// Calculate statistics
 	tasks.forEach((task) => {
-		const isCompleted =
-			task?.taskStatus!.value === TaskStatusEnum.COMPLETED ||
-			task?.taskStatus!.value === TaskStatusEnum.DONE;
+		// ever-gauzy fork: null-safe (hardening)
+		const isCompleted = isTaskCompleted(task);
 
 		// Handle unassigned tasks
 		if (!task?.members?.length) {
@@ -557,8 +566,7 @@ export function cycleAnalyticsData(
 			const dateStr = current.format('YYYY-MM-DD');
 			const remainingTasks = tasks.filter(
 				(task) =>
-					(task?.taskStatus?.value !== TaskStatusEnum.COMPLETED &&
-						task?.taskStatus?.value !== TaskStatusEnum.DONE) ||
+					!isTaskCompleted(task) ||
 					(task.resolvedAt && moment(task.resolvedAt).isAfter(current))
 			).length;
 			completionChart[dateStr] = remainingTasks;

@@ -265,25 +265,30 @@ export function userWorkProjectsTransformer(
 	employeeId: ID,
 	userId: ID
 ): IUserProjectsDataResponse {
+	// ever-gauzy fork: null-safe (hardening)
 	const employee = projects
-		.map((project) => project.members)
+		.map((project) => project.members ?? [])
 		.flat()
-		.find((member) => (member!.employeeId = employeeId))!.employee;
+		.find((member) => member?.employeeId === employeeId)?.employee;
 
 	const transformedProjects = projects.map((project) => {
 		const createdIssues = project.tasks?.filter(
 			(task) => task.createdByUserId === userId
 		);
 
-		const assignedIssues = project.tasks?.filter((task) =>
-			task.members!.map((member) => member.id).includes(employeeId)
-		);
+		// ever-gauzy fork: null-safe (hardening)
+		const assignedIssues =
+			project.tasks?.filter((task) =>
+				(task.members ?? [])
+					.map((member) => member.id)
+					.includes(employeeId)
+			) ?? [];
 		const {
 			completedIssues,
 			backlogIssues,
 			startedIssues,
 			unstartedIssues
-		} = getTaskCounts(assignedIssues!);
+		} = getTaskCounts(assignedIssues);
 
 		return {
 			id: project.id,
@@ -297,19 +302,24 @@ export function userWorkProjectsTransformer(
 			created_issues: createdIssues?.length || 0,
 			assigned_issues: assignedIssues?.length || 0,
 			completed_issues: completedIssues || 0,
-			pending_issues: backlogIssues + startedIssues + unstartedIssues || 0
+			// ever-gauzy fork: null-safe (hardening)
+			pending_issues:
+				(backlogIssues || 0) +
+				(startedIssues || 0) +
+				(unstartedIssues || 0)
 		};
 	}) as IUserProjectData[];
 
+	// ever-gauzy fork: null-safe (hardening)
 	const user_data: IUserProfileData = {
-		email: employee!.user?.email!,
-		first_name: employee!.user?.firstName,
-		last_name: employee!.user?.lastName,
-		avatar_url: employee!.user?.imageUrl,
+		email: employee?.user?.email ?? '',
+		first_name: employee?.user?.firstName,
+		last_name: employee?.user?.lastName,
+		avatar_url: employee?.user?.imageUrl,
 		cover_image_url: undefined,
-		date_joined: employee!.createdAt,
+		date_joined: employee?.createdAt,
 		user_timezone: 'UTC',
-		display_name: employee!.fullName
+		display_name: employee?.fullName
 	};
 
 	return { project_data: transformedProjects, user_data };

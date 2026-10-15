@@ -3,7 +3,8 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable
+	Injectable,
+	NotFoundException
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -247,17 +248,23 @@ export class ProjectService extends ApiFetchService {
 			]);
 			const members = project.members;
 
-			return members?.map((member) => {
-				if (typeof member !== 'string') {
-					return {
-						id: member.employee?.user!.id || member.employee?.userId,
+			return (members ?? []).flatMap((member) => {
+				// ever-gauzy fork: null-safe (hardening) — a member whose employee/user
+				// relation is missing has no user ID, so it cannot be returned as a member.
+				const id = typeof member !== 'string' ? member.employee?.user?.id || member.employee?.userId : undefined;
+				if (typeof member === 'string' || !id) {
+					return [];
+				}
+				return [
+					{
+						id,
 						original_role: member.isManager ? 20 : 15,
 						member: member.employeeId,
 						role: member.isManager ? 20 : 15,
 						created_at: member.createdAt,
 						project: project.id
-					};
-				}
+					}
+				];
 			}) as IGetProjectMembersResponse[];
 		} catch (error) {
 			this.logger.error(
@@ -457,14 +464,21 @@ export class ProjectService extends ApiFetchService {
 			]);
 
 			// Retrieve current member information from the project
-			const memberInfos = project.members!.find(
+			// ever-gauzy fork: null-safe (hardening) — members may be undefined/empty
+			const memberInfos = (project.members ?? []).find(
 				(member) => member.employeeId === employeeId
 			);
 
+			if (!memberInfos) {
+				throw new NotFoundException(
+					'You are not a member of this project'
+				);
+			}
+
 			// Construct and return the response object
 			return {
-				member: memberInfos!.employeeId,
-				role: memberInfos!.isManager ? 20 : 15
+				member: memberInfos.employeeId,
+				role: memberInfos.isManager ? 20 : 15
 			};
 		} catch (error) {
 			this.handleApiError(error);

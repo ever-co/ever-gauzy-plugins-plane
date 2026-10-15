@@ -195,9 +195,12 @@ export class IssueRelationsService extends ApiFetchService {
 			}
 			const linkedIssues = issue.linkedIssues;
 
-			linkedIssues!
+			// ever-gauzy fork: null-safe (hardening)
+			(linkedIssues ?? [])
 				.filter(
-					(relatedIssue) => !relatedIssue.taskFrom!.isScreeningTask
+					(relatedIssue) =>
+						relatedIssue.taskFrom &&
+						!relatedIssue.taskFrom.isScreeningTask
 				)
 				.forEach((linkedIssue) => {
 					const relation_type = getIssueRelationType(

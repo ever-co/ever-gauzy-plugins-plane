@@ -9,7 +9,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ${{ vars.RUNNER_LINUX_X64_4 || 'ubuntu-latest' }}
+    runs-on: ${{ vars.RUNNER_LINUX_X64_8 || 'ubuntu-latest' }}
 
     if: github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/')
 

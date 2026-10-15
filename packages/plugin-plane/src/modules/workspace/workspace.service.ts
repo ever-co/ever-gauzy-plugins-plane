@@ -781,9 +781,10 @@ export class WorkspaceService extends ApiFetchService {
 						]
 					);
 
-					const projectMembers = task.project!.members!.map(
-						(member) => member.employee
-					) as IEmployee[];
+					// ever-gauzy fork: null-safe (hardening)
+					const projectMembers = ((task.project?.members ?? [])
+						.map((member) => member.employee)
+						.filter(Boolean)) as IEmployee[];
 
 					if (task.projectId) {
 						const { actor, issue, project, workspace } =
@@ -806,7 +807,8 @@ export class WorkspaceService extends ApiFetchService {
 							updatedSprintObj &&
 							updatedSprintObj.organizationSprintId
 						) {
-							updatedSprint = (task.taskSprintHistories!.find(
+							// ever-gauzy fork: null-safe (hardening)
+							updatedSprint = ((task.taskSprintHistories ?? []).find(
 								(sprint) =>
 									sprint.toSprintId ===
 									updatedSprintObj.organizationSprintId
@@ -823,9 +825,10 @@ export class WorkspaceService extends ApiFetchService {
 								updatedSprint
 									? updatedSprint
 									: task.organizationSprint!,
+								// ever-gauzy fork: null-safe (hardening)
 								projectMembers.filter(
 									(employee) =>
-										employee!.userId ===
+										employee?.userId ===
 										activityLog.createdByUserId
 								)[0],
 								projectMembers,

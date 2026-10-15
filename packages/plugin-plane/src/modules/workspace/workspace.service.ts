@@ -1,5 +1,6 @@
 import {
 	BadRequestException,
+	ForbiddenException,
 	forwardRef,
 	Inject,
 	Injectable
@@ -70,7 +71,9 @@ import {
 	memberPropertiesSerializer,
 	notificationTranformer,
 	unreadNotificationData,
-	isNotEmpty
+	isNotEmpty,
+	USER_NOT_EMPLOYEE_ERROR_CODE,
+	USER_NOT_EMPLOYEE_MESSAGE
 } from '../../config';
 import {
 	getEmployeeMembersQuery,
@@ -256,6 +259,17 @@ export class WorkspaceService extends ApiFetchService {
 	async getMembersMe() {
 		const employeeId = currentEmployeeId();
 		const tenantId = currentTenantId();
+
+		// ever-gauzy fork: workspace membership is the Gauzy employee. A user without an
+		// employee profile is not a member — answer 403 USER_NOT_EMPLOYEE so the Plane UI can
+		// say so, instead of failing the settings lookup/creation below with a 400.
+		if (!employeeId) {
+			throw new ForbiddenException({
+				statusCode: 403,
+				error_code: USER_NOT_EMPLOYEE_ERROR_CODE,
+				message: USER_NOT_EMPLOYEE_MESSAGE
+			});
+		}
 
 		try {
 			let memberSetting =

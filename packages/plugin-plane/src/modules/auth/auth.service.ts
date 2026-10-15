@@ -1,6 +1,7 @@
 import {
 	BadGatewayException,
 	BadRequestException,
+	ForbiddenException,
 	Injectable,
 	UnauthorizedException
 } from '@nestjs/common';
@@ -38,7 +39,10 @@ import {
 	DEFAULT_MAGIC_GENERATE_PREFIX,
 	MEMBER_DEFAULT_VIEW_PROPS,
 	registerInputTranformer,
-	sendTokenChunks
+	sendTokenChunks,
+	USER_NOT_EMPLOYEE_AUTH_ERROR_CODE,
+	USER_NOT_EMPLOYEE_ERROR_CODE,
+	USER_NOT_EMPLOYEE_MESSAGE
 } from '../../config';
 import { UserService } from '../user/user.service';
 import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
@@ -141,6 +145,9 @@ export class AuthService extends ApiFetchService {
 		try {
 			const result = await this.signIn(data);
 			if (result?.user) {
+				if (!this.hasEmployee(result.token)) {
+					return this.redirectNotEmployee(req, res, data.email, data.next_path);
+				}
 				clearTokenChuncks(req, res);
 				sendTokenChunks(result.token, res);
 
@@ -168,6 +175,33 @@ export class AuthService extends ApiFetchService {
 				error instanceof Error ? error.stack : String(error)
 			);
 		}
+	}
+
+	/**
+	 * Whether a Gauzy access token belongs to a user with an employee profile.
+	 * Ever Gauzy PM is employees-only: its workspace membership, assignees and
+	 * views are Gauzy employees.
+	 *
+	 * @param {string} token - The Gauzy access JWT returned by the login.
+	 * @returns {boolean} `true` when the token carries an `employeeId` claim.
+	 */
+	private hasEmployee(token?: string): boolean {
+		const payload = token ? jwt.decode(token) : null;
+		return !!(payload && typeof payload === 'object' && payload.employeeId);
+	}
+
+	/**
+	 * Refuses the sign-in of a Gauzy user without an employee profile: no session
+	 * cookie is set (a stale one is cleared) and the user is sent back to the
+	 * sign-in screen with the `USER_NOT_EMPLOYEE` auth error code.
+	 */
+	private redirectNotEmployee(req: Request, res: Response, email: string, nextPath?: string): void {
+		clearTokenChuncks(req, res);
+		const nextPathParam = nextPath ? `&next_path=${encodeURIComponent(nextPath)}` : '';
+		const errorBaseUrl = PlaneConfigRegistry.appBaseUrl.replace(/\/$/, '');
+		return res.redirect(
+			`${errorBaseUrl}?error_code=${USER_NOT_EMPLOYEE_AUTH_ERROR_CODE}&error_message=${USER_NOT_EMPLOYEE_ERROR_CODE}&email=${encodeURIComponent(email)}${nextPathParam}`
+		);
 	}
 
 	/**
@@ -209,6 +243,15 @@ export class AuthService extends ApiFetchService {
 
 		if (!payload || typeof payload.tenantId !== 'string' || !payload.tenantId) {
 			throw new UnauthorizedException('Invalid SSO token');
+		}
+
+		if (!payload.employeeId) {
+			clearTokenChuncks(req, res);
+			throw new ForbiddenException({
+				statusCode: 403,
+				error_code: USER_NOT_EMPLOYEE_ERROR_CODE,
+				message: USER_NOT_EMPLOYEE_MESSAGE
+			});
 		}
 
 		clearTokenChuncks(req, res);
@@ -334,6 +377,9 @@ export class AuthService extends ApiFetchService {
 		try {
 			const result = await this.magicSignin(data);
 			if (result?.user) {
+				if (!this.hasEmployee(result.token)) {
+					return this.redirectNotEmployee(req, res, data.email, data.next_path);
+				}
 				clearTokenChuncks(req, res);
 				sendTokenChunks(result.token, res);
 

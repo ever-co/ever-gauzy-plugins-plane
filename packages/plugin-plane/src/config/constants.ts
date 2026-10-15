@@ -11,6 +11,17 @@ export const CLIENT_URLS = () => PlaneConfigRegistry.clientUrls;
 
 export const MAX_TOKEN_COOKIE_SIZE = 3999;
 
+/**
+ * ever-gauzy fork: Ever Gauzy PM is available to Gauzy employees only — workspace membership,
+ * assignees and views are employees. A user without an employee profile is refused: sign-in
+ * redirects with this Plane auth error code (UI `USER_NOT_EMPLOYEE = "5990"`), API calls answer
+ * 403 with `error_code: USER_NOT_EMPLOYEE_ERROR_CODE`.
+ */
+export const USER_NOT_EMPLOYEE_AUTH_ERROR_CODE = '5990';
+export const USER_NOT_EMPLOYEE_ERROR_CODE = 'USER_NOT_EMPLOYEE';
+export const USER_NOT_EMPLOYEE_MESSAGE =
+	'Only employees can use Ever Gauzy PM. Your Gauzy user is not an employee of this organization.';
+
 export const EXTERNAL_BASE_API_URL = () => PlaneConfigRegistry.externalBaseApiUrl;
 
 /**

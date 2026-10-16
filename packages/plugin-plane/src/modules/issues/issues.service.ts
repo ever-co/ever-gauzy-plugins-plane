@@ -2,7 +2,8 @@ import {
 	Injectable,
 	BadRequestException,
 	Inject,
-	forwardRef
+	forwardRef,
+	NotFoundException
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -318,7 +319,7 @@ export class IssuesService extends ApiFetchService {
 					input,
 					state.name as TaskStatusEnum
 				),
-				...(await this.taskSizeFieldsOf(input))
+				...(await this.taskSizeFieldsOf(input, input.project_id))
 			};
 
 			const issue: ITask = (
@@ -433,7 +434,10 @@ export class IssuesService extends ApiFetchService {
 					method: 'PUT',
 					body: {
 						...body,
-						...(await this.taskSizeFieldsOf(input)),
+						...(await this.taskSizeFieldsOf(
+							input,
+							issue.project_id
+						)),
 						title: input.name ?? issue.name,
 						status: state?.name || externalIssue.status
 					}
@@ -773,9 +777,11 @@ export class IssuesService extends ApiFetchService {
 	 * size's value in `size` like Gauzy's own clients write it. `null` clears both; no `estimate_point` changes nothing.
 	 *
 	 * @param input - The Plane create/update input.
+	 * @param projectId - The issue's project: the size must be one of its estimate points.
 	 */
 	private async taskSizeFieldsOf(
-		input: Pick<IIssueUpdateInput, 'estimate_point'>
+		input: Pick<IIssueUpdateInput, 'estimate_point'>,
+		projectId?: ID
 	): Promise<{ taskSizeId?: ID | null; size?: string | null }> {
 		if (!input || !('estimate_point' in input)) {
 			return {};
@@ -783,7 +789,13 @@ export class IssuesService extends ApiFetchService {
 		if (!input.estimate_point) {
 			return { taskSizeId: null, size: null };
 		}
-		const size = await this._estimatesService.getTaskSize(
+		if (!projectId) {
+			throw new BadRequestException(
+				"An estimate point needs the issue's project."
+			);
+		}
+		const size = await this._estimatesService.getProjectTaskSize(
+			projectId,
 			input.estimate_point
 		);
 		return { taskSizeId: size.id, size: size.value };
@@ -1518,6 +1530,11 @@ export class IssuesService extends ApiFetchService {
 				['project.members.employee.user.role', 'project.organization'],
 				isDraft
 			);
+
+			// ever-gauzy fork: only the reactions of an issue of the route's project (no cross-project reads by id)
+			if (projectId && task?.projectId && task.projectId !== projectId) {
+				throw new NotFoundException('Issue not found in this project');
+			}
 
 			const reactions = await this._reactionService.findAll(options);
 

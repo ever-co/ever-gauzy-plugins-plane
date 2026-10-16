@@ -50,14 +50,22 @@ export class EstimatesService extends ApiFetchService {
 	}
 
 	/**
-	 * One task size by id.
+	 * One of the project's task sizes (estimate points). An id from another project, or an unknown one, is refused, so
+	 * an issue can only get a size its project's estimate shows.
 	 *
+	 * @param projectId - The issue's project.
 	 * @param id - The task size (estimate point) id.
 	 */
-	async getTaskSize(id: ID): Promise<ITaskSize> {
-		return (
-			await this.apiFetch({ method: 'GET', path: `${this.path}/${id}` })
-		).data;
+	async getProjectTaskSize(projectId: ID, id: ID): Promise<ITaskSize> {
+		const size = (await this.getProjectSizes(projectId)).find(
+			(candidate) => candidate.id === id
+		);
+		if (!size) {
+			throw new BadRequestException(
+				"The estimate point is not one of this project's task sizes."
+			);
+		}
+		return size;
 	}
 
 	/**
@@ -258,17 +266,64 @@ export class EstimatesService extends ApiFetchService {
 
 		const copies: ITaskSize[] = [];
 		for (const size of sortTaskSizes(sizes)) {
-			copies.push(
-				await this.createSize(projectId, {
-					value: size.name,
-					description: size.description,
-					sizeValue: size.value,
-					icon: size.icon,
-					color: size.color
-				})
-			);
+			const copy = await this.createSize(projectId, {
+				value: size.name,
+				description: size.description,
+				sizeValue: size.value,
+				icon: size.icon,
+				color: size.color
+			});
+			copies.push(copy);
+			// The project's tasks that used the shared size now use the project's copy, so their estimate point stays one
+			// of the project's points (and follows renames)
+			await this.moveProjectTasksToSize(projectId, size.id!, copy);
 		}
 		return copies;
+	}
+
+	/**
+	 * Points the project's tasks that use task size `fromId` at `to` (`taskSizeId` and `size`). Runs once per copied
+	 * size when a project gets its own sizes, so it only touches the few sized tasks of that project.
+	 */
+	private async moveProjectTasksToSize(
+		projectId: ID,
+		fromId: ID,
+		to: ITaskSize
+	): Promise<void> {
+		const tasks: IPagination<{
+			id: ID;
+			title?: string;
+			status?: string;
+		}> = (
+			await this.apiFetch({
+				method: 'GET',
+				path: '/tasks',
+				query: qs.stringify({
+					...baseGetItemsWhereQuery(),
+					'where[projectId]': projectId,
+					'where[taskSizeId]': fromId,
+					'select[id]': true,
+					'select[title]': true,
+					'select[status]': true
+				})
+			})
+		).data;
+
+		for (const task of tasks?.items ?? []) {
+			await this.apiFetch({
+				method: 'PUT',
+				path: `/tasks/${task.id}`,
+				body: {
+					taskSizeId: to.id,
+					size: to.value,
+					title: task.title,
+					status: task.status,
+					projectId,
+					organizationId: getCurrentOrganizationSlug(),
+					tenantId: currentTenantId()
+				}
+			});
+		}
 	}
 
 	private async createSize(

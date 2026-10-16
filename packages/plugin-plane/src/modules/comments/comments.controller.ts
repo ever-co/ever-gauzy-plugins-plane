@@ -9,11 +9,7 @@ import {
 	Param,
 	Post
 } from '@nestjs/common';
-import {
-	ID,
-	IReactionData,
-	ReactionEntityEnum
-} from '@ever-gauzy/plugin-integration-plane-models';
+import { ID, IReactionData } from '@ever-gauzy/plugin-integration-plane-models';
 import { CreateIssueReactionDTO } from '../issues/dto';
 import { CommentsService } from './comments.service';
 
@@ -39,8 +35,8 @@ export class CommentsController {
 		@Param('id') entityId: ID,
 		@Param('projectId') projectId: ID
 	): Promise<IReactionData[]> {
-		return await this._commentService.findCommentReactions(
-			{ entityId, entity: ReactionEntityEnum.Comment },
+		return await this._commentService.findCommentReactionsInProject(
+			entityId,
 			projectId
 		);
 	}

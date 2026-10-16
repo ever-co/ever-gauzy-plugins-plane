@@ -58,6 +58,14 @@ export class WorkspacePreferencesService {
 		Promise<IEmployeeSetting>
 	>();
 
+	/**
+	 * The last queued write per employee (see `save`).
+	 */
+	private static readonly writes = new Map<
+		string,
+		Promise<IEmployeeSetting>
+	>();
+
 	constructor(
 		private readonly _employeePropertiesService: EmployeePropertiesService
 	) {}
@@ -86,7 +94,7 @@ export class WorkspacePreferencesService {
 				.filter((key) => input?.[key] !== undefined)
 				.map((key) => [key, input[key]])
 		);
-		return this.userPropertiesResponse(await this.save(changes));
+		return this.userPropertiesResponse(await this.save(() => changes));
 	}
 
 	/**
@@ -101,16 +109,16 @@ export class WorkspacePreferencesService {
 	 * PATCH /sidebar-preferences/:key — one sidebar item.
 	 */
 	async updateSidebarPreference(key: string, input: SidebarItem) {
-		const data = this.dataOf(await this.getOrCreate());
-		const sidebar = {
-			...(data.sidebar_preferences ?? {}),
-			[key]: {
-				...(data.sidebar_preferences?.[key] ?? {}),
-				...this.pickSidebar(input)
-			}
-		};
 		const saved = this.dataOf(
-			await this.save({ sidebar_preferences: sidebar })
+			await this.save((data) => ({
+				sidebar_preferences: {
+					...(data.sidebar_preferences ?? {}),
+					[key]: {
+						...(data.sidebar_preferences?.[key] ?? {}),
+						...this.pickSidebar(input)
+					}
+				}
+			}))
 		);
 		return { key, ...this.mergeSidebar(saved.sidebar_preferences)[key] };
 	}
@@ -126,18 +134,19 @@ export class WorkspacePreferencesService {
 				'Expected a list of { key, is_pinned, sort_order }.'
 			);
 		}
-		const data = this.dataOf(await this.getOrCreate());
-		const sidebar = { ...(data.sidebar_preferences ?? {}) };
-		input
-			.filter((item) => !!item?.key)
-			.forEach((item) => {
-				sidebar[item.key] = {
-					...(sidebar[item.key] ?? {}),
-					...this.pickSidebar(item)
-				};
-			});
 		const saved = this.dataOf(
-			await this.save({ sidebar_preferences: sidebar })
+			await this.save((data) => {
+				const sidebar = { ...(data.sidebar_preferences ?? {}) };
+				input
+					.filter((item) => !!item?.key)
+					.forEach((item) => {
+						sidebar[item.key] = {
+							...(sidebar[item.key] ?? {}),
+							...this.pickSidebar(item)
+						};
+					});
+				return { sidebar_preferences: sidebar };
+			})
 		);
 		return this.mergeSidebar(saved.sidebar_preferences);
 	}
@@ -157,29 +166,24 @@ export class WorkspacePreferencesService {
 		key: string,
 		input: Partial<HomeWidget>
 	): Promise<HomeWidget> {
-		const data = this.dataOf(await this.getOrCreate());
 		const { is_enabled, sort_order, config } = input ?? {};
-		const widget = {
-			...(data.home_preferences?.[key] ?? {}),
-			...(is_enabled !== undefined ? { is_enabled } : {}),
-			...(sort_order !== undefined ? { sort_order } : {}),
-			...(config !== undefined ? { config } : {})
-		};
 		const saved = this.dataOf(
-			await this.save({
+			await this.save((data) => ({
 				home_preferences: {
 					...(data.home_preferences ?? {}),
-					[key]: widget
+					[key]: {
+						...(data.home_preferences?.[key] ?? {}),
+						...(is_enabled !== undefined ? { is_enabled } : {}),
+						...(sort_order !== undefined ? { sort_order } : {}),
+						...(config !== undefined ? { config } : {})
+					}
 				}
-			})
+			}))
 		);
 		return (
 			this.mergeHome(saved.home_preferences).find(
 				(item) => item.key === key
-			) ?? {
-				key,
-				...widget
-			}
+			) ?? { key, ...saved.home_preferences?.[key] }
 		);
 	}
 
@@ -297,17 +301,40 @@ export class WorkspacePreferencesService {
 	}
 
 	/**
-	 * Merges `changes` into the record's data and saves it.
+	 * Saves the changes `mutate` derives from the record's current data.
+	 *
+	 * The read-modify-write runs in a per-employee queue and reads the record fresh inside it, so parallel PATCHes (a
+	 * sidebar pin and a widget toggle, two sidebar items, …) apply one after the other instead of the later one writing
+	 * back stale data over the earlier. This covers one proxy process; Gauzy has no partial update for `data`.
 	 */
-	private async save(
-		changes: Partial<IWorkspacePreferencesData>
+	private save(
+		mutate: (
+			data: IWorkspacePreferencesData
+		) => Partial<IWorkspacePreferencesData>
 	): Promise<IEmployeeSetting> {
-		const setting = await this.getOrCreate();
-		return this._employeePropertiesService.update(setting.id!, {
-			entity: BaseEntityEnum.Organization,
-			entityId: getCurrentOrganizationSlug(),
-			settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-			data: { ...this.dataOf(setting), ...changes }
+		const key = this.key();
+		const previous =
+			WorkspacePreferencesService.writes.get(key) ?? Promise.resolve();
+
+		const write = previous
+			.catch(() => undefined)
+			.then(async () => {
+				const setting =
+					(await this.find()) ?? (await this.getOrCreate());
+				const data = this.dataOf(setting);
+				return this._employeePropertiesService.update(setting.id!, {
+					entity: BaseEntityEnum.Organization,
+					entityId: getCurrentOrganizationSlug(),
+					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
+					data: { ...data, ...mutate(data) }
+				});
+			});
+
+		WorkspacePreferencesService.writes.set(key, write);
+		return write.finally(() => {
+			if (WorkspacePreferencesService.writes.get(key) === write) {
+				WorkspacePreferencesService.writes.delete(key);
+			}
 		});
 	}
 }

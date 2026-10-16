@@ -2,7 +2,10 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { isAxiosError } from 'axios';
 import qs from 'qs';
 import { ID, IHelpCenterArticle, IPage, IPagination } from '@ever-gauzy/plugin-integration-plane-models';
-import { getCurrentOrganizationSlug } from '../../config/credentials';
+import {
+	currentTenantId,
+	getCurrentOrganizationSlug
+} from '../../config/credentials';
 import {
 	articleToPage, createPageInputTransformer,
 	getPagesQuery,
@@ -21,6 +24,57 @@ export class PagesService extends ApiFetchService {
 	}
 
 	private readonly path = '/help-center-article';
+
+	/** ever-gauzy fork: employee id per Gauzy user id, per tenant + organization, kept for a minute */
+	private static employeeIdsCache = new Map<
+		string,
+		{ expiresAt: number; employeeIdByUserId: Promise<Map<string, string>> }
+	>();
+
+	/**
+	 * ever-gauzy fork: maps Gauzy user ids to employee ids (Plane member ids) for the page actor fields, with one
+	 * `/employee/members` request per organization per minute. A failed lookup only drops the fallback.
+	 */
+	private async employeeIdByUserId(): Promise<Map<string, string>> {
+		const key = `${currentTenantId()}:${getCurrentOrganizationSlug()}`;
+		const cached = PagesService.employeeIdsCache.get(key);
+		if (cached && cached.expiresAt > Date.now()) {
+			return cached.employeeIdByUserId;
+		}
+
+		const employeeIdByUserId = this.apiFetch({
+			method: 'GET',
+			path: '/employee/members',
+			query: qs.stringify({
+				organizationId: getCurrentOrganizationSlug(),
+				tenantId: currentTenantId()
+			})
+		})
+			.then(({ data }) => {
+				const map = new Map<string, string>();
+				(data?.items ?? []).forEach(
+					(employee: { id?: string; userId?: string }) => {
+						if (employee?.userId && employee?.id) {
+							map.set(employee.userId, employee.id);
+						}
+					}
+				);
+				return map;
+			})
+			.catch((error) => {
+				PagesService.employeeIdsCache.delete(key);
+				this.logger.warn(
+					`Could not load employees for page actors: ${error instanceof Error ? error.message : String(error)}`
+				);
+				return new Map<string, string>();
+			});
+
+		PagesService.employeeIdsCache.set(key, {
+			expiresAt: Date.now() + 60_000,
+			employeeIdByUserId
+		});
+		return employeeIdByUserId;
+	}
 
 	/**
 	 * Get or lazily create a default "Pages" HelpCenter category.
@@ -96,7 +150,10 @@ export class PagesService extends ApiFetchService {
 				return [];
 			}
 
-			return articles.items.map(articleToPage);
+			const employeeIdByUserId = await this.employeeIdByUserId();
+			return articles.items.map((article) =>
+				articleToPage(article, employeeIdByUserId)
+			);
 		} catch (error) {
 			if (error instanceof NotFoundException || (isAxiosError(error) && error.response?.status === 404)) {
 				return [];
@@ -126,8 +183,15 @@ export class PagesService extends ApiFetchService {
 				'relations[0]': 'projects',
 				'relations[1]': 'tags'
 			});
-			const response = await this.apiFetch({ method: 'GET', path: `${this.path}/${id}`, query });
-			return articleToPage(response.data);
+			const [response, employeeIdByUserId] = await Promise.all([
+				this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/${id}`,
+					query
+				}),
+				this.employeeIdByUserId()
+			]);
+			return articleToPage(response.data, employeeIdByUserId);
 		} catch (error) {
 			this.handleApiError(error);
 		}

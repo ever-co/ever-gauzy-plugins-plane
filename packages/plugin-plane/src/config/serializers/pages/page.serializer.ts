@@ -1,6 +1,9 @@
 import { ICreatePageInput, ID, IPage, IUpdatePageInput } from '@ever-gauzy/plugin-integration-plane-models';
 import { baseGetItemsWhereQuery } from '../query-params.serializers';
-import { getCurrentOrganizationSlug } from '../../credentials';
+import {
+	currentEmployeeId,
+	getCurrentOrganizationSlug
+} from '../../credentials';
 
 // ─── Input Transformers (Plane → Gauzy body) ─────────────────────────────────
 
@@ -23,6 +26,9 @@ export function createPageInputTransformer(
 		parentId: input.parent ?? null,
 		index: input.sort_order ?? 0,
 		organizationId: getCurrentOrganizationSlug(),
+		// ever-gauzy fork: Gauzy does not default the owner, and pages created without one showed
+		// "Deactivated user" and linked to /profile/null
+		...(currentEmployeeId() ? { ownedById: currentEmployeeId() } : {}),
 		...(categoryId ? { categoryId } : {}),
 		...(projectId ? { projects: [{ id: projectId }] } : {})
 	};
@@ -58,8 +64,29 @@ export function updatePageInputTransformer(
 
 /**
  * Transform a single Gauzy HelpCenterArticle (plain JSON) into a Plane IPage.
+ *
+ * ever-gauzy fork: Plane's actor fields hold workspace member ids, which are Gauzy employee ids. Gauzy records the
+ * creator and the last editor as user ids, and the owner as an employee (missing on pages created before the proxy
+ * set it). Each actor is resolved on its own through `employeeIdByUserId`: a recorded user without an employee is
+ * `null` (shown as an unknown user, never linked to /profile/null), and the owner falls back to the creator.
+ *
+ * @param article - The Gauzy article.
+ * @param employeeIdByUserId - Employee id per Gauzy user id, for the creator/updater fallback.
  */
-export function articleToPage(article: Record<string, any>): IPage {
+export function articleToPage(
+	article: Record<string, any>,
+	employeeIdByUserId?: Map<string, string>
+): IPage {
+	const employeeOf = (userId?: string | null): string | null =>
+		(userId && employeeIdByUserId?.get(userId)) || null;
+	const createdBy = article['createdByUserId']
+		? employeeOf(article['createdByUserId'])
+		: (article['ownedById'] ?? null);
+	const ownedBy = article['ownedById'] ?? createdBy;
+	const updatedBy = article['updatedByUserId']
+		? employeeOf(article['updatedByUserId'])
+		: createdBy;
+
 	return {
 		id: article['id'],
 		name: article['name'],
@@ -72,7 +99,7 @@ export function articleToPage(article: Record<string, any>): IPage {
 		archived_at: article['archivedAt'] ?? null,
 		color: article['color'],
 		parent: article['parentId'] ?? null,
-		owned_by: article['ownedById'],
+		owned_by: ownedBy,
 		workspace: article['organizationId'],
 		project_ids: (article['projects'] ?? []).map((p: any) =>
 			typeof p === 'string' ? p : p?.id
@@ -85,8 +112,8 @@ export function articleToPage(article: Record<string, any>): IPage {
 		external_id: article['externalId'] ?? null,
 		created_at: article['createdAt'],
 		updated_at: article['updatedAt'],
-		created_by: article['ownedById'],
-		updated_by: article['ownedById'],
+		created_by: createdBy,
+		updated_by: updatedBy,
 		deleted_at: article['deletedAt'] ?? null
 	};
 }
@@ -98,7 +125,7 @@ export function articlesToPages(
 	articles: Record<string, any> | Record<string, any>[]
 ): IPage | IPage[] {
 	if (Array.isArray(articles)) {
-		return articles.map(articleToPage);
+		return articles.map((article) => articleToPage(article));
 	}
 	return articleToPage(articles);
 }

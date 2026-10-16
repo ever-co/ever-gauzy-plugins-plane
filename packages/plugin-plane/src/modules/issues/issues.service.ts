@@ -27,6 +27,7 @@ import {
 	IPagination,
 	IReaction,
 	IReactionData,
+	IResourceLink,
 	IssueActivityTypeEnum,
 	IssueGroupByEnum,
 	IssueOrderByField,
@@ -71,6 +72,7 @@ import {
 	nonGroupedIssues,
 	reactionTransformer,
 	subscriptionTransformer,
+	taskListRelations,
 	updateIssueInputTransformer
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
@@ -514,7 +516,13 @@ export class IssuesService extends ApiFetchService {
 
 			// Create the query string based on the provided options and projectId
 			const query = qs.stringify(
-				getTaskQuery(projectId, options, undefined, undefined, false)
+				getTaskQuery(
+					projectId,
+					options,
+					taskListRelations,
+					undefined,
+					false
+				)
 			);
 
 			let path = '';
@@ -616,23 +624,35 @@ export class IssuesService extends ApiFetchService {
 				}
 			}
 
-			// Group the issues based on the group_by option, or return non-grouped issues by default
-			const issuesWithLinks = await Promise.all(
-				(issues ?? []).map(async (issue) => {
-					const issueLinks = await this._issueLinkService.findAll(
-						BaseEntityEnum.Task,
-						issue.id
+			// ever-gauzy fork: load the organization's task links once and match them here. This used to be one
+			// request per issue, all in parallel (509 for the Ever Gauzy project on every board load).
+			// A failed link lookup only loses the link counts, so it does not fail the list.
+			const linksByTaskId = new Map<ID, IResourceLink[]>();
+			if ((issues ?? []).length > 0) {
+				try {
+					const taskLinks =
+						(await this._issueLinkService.findAll(
+							BaseEntityEnum.Task
+						)) ?? [];
+					taskLinks.forEach((link) => {
+						const links = linksByTaskId.get(link.entityId) ?? [];
+						links.push(link);
+						linksByTaskId.set(link.entityId, links);
+					});
+				} catch (error) {
+					this.logger.warn(
+						`Could not load task links for the issue list: ${error instanceof Error ? error.message : String(error)}`
 					);
+				}
+			}
 
-					const transformedIssueLinks =
-						issueLinkTransformer(issueLinks);
-
-					return {
-						issue,
-						issueLinks: transformedIssueLinks
-					};
-				})
-			);
+			// Group the issues based on the group_by option, or return non-grouped issues by default
+			const issuesWithLinks = (issues ?? []).map((issue) => ({
+				issue,
+				issueLinks: issueLinkTransformer(
+					linksByTaskId.get(issue.id!) ?? []
+				)
+			}));
 
 			const project = await this._projectService.getExternalProject(
 				projectId!,

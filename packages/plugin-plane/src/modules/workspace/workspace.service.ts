@@ -36,7 +36,8 @@ import {
 	IProject,
 	IIssueLink,
 	ICreateIssueLink,
-	IEmployee
+	IEmployee,
+	IActivityLog
 } from '@ever-gauzy/plugin-integration-plane-models';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import {
@@ -784,80 +785,120 @@ export class WorkspaceService extends ApiFetchService {
 				});
 			}
 
-			const issueActivities = await Promise.all(
-				(activityLogs ?? []).map(async (activityLog) => {
-					const task = await this._issueService.getExternalIssue(
+			// ever-gauzy fork: a task (and its actor details) is fetched once however many logs it has
+			const tasksById = new Map<ID, Promise<ITask>>();
+			const commentDetailsByKey = new Map<
+				string,
+				ReturnType<IssuesService['getIssueCommentDetails']>
+			>();
+
+			const resolveActivity = async (activityLog: IActivityLog) => {
+				if (!tasksById.has(activityLog.entityId)) {
+					tasksById.set(
 						activityLog.entityId,
-						[
-							'project.members.employee.user.role',
-							'organizationSprint',
-							'taskSprintHistories.toSprint'
-						]
+						this._issueService.getExternalIssue(
+							activityLog.entityId,
+							[
+								'project.members.employee.user.role',
+								'organizationSprint',
+								'taskSprintHistories.toSprint'
+							]
+						)
 					);
+				}
+				const task = await tasksById.get(activityLog.entityId)!;
 
-					// ever-gauzy fork: null-safe (hardening)
-					const projectMembers = ((task.project?.members ?? [])
-						.map((member) => member.employee)
-						.filter(Boolean)) as IEmployee[];
+				// ever-gauzy fork: null-safe (hardening)
+				const projectMembers = (task.project?.members ?? [])
+					.map((member) => member.employee)
+					.filter(Boolean) as IEmployee[];
 
-					if (task.projectId) {
-						const { actor, issue, project, workspace } =
-							await this._issueService.getIssueCommentDetails(
+				if (task.projectId) {
+					const detailsKey = `${task.id}:${activityLog.employeeId}`;
+					if (!commentDetailsByKey.has(detailsKey)) {
+						commentDetailsByKey.set(
+							detailsKey,
+							this._issueService.getIssueCommentDetails(
 								task.id!,
 								task.projectId!,
 								activityLog.employeeId!,
 								task,
 								task.project
-							);
-
-						// Check if updatedValues contains organizationSprintId
-						const updatedSprintObj: any =
-							activityLog.updatedValues?.find(
-								(value) => 'organizationSprintId' in value
-							);
-						let updatedSprint = null;
-
-						if (
-							updatedSprintObj &&
-							updatedSprintObj.organizationSprintId
-						) {
-							// ever-gauzy fork: null-safe (hardening)
-							updatedSprint = ((task.taskSprintHistories ?? []).find(
-								(sprint) =>
-									sprint.toSprintId ===
-									updatedSprintObj.organizationSprintId
-							)?.toSprint ?? null) as any;
-						}
-
-						const transformedActivityLogs =
-							issueActivityLogTransformer(
-								activityLog,
-								issue,
-								actor!,
-								project!,
-								workspace,
-								updatedSprint
-									? updatedSprint
-									: task.organizationSprint!,
-								// ever-gauzy fork: null-safe (hardening)
-								projectMembers.filter(
-									(employee) =>
-										employee?.userId ===
-										activityLog.createdByUserId
-								)[0],
-								projectMembers,
-								parentTasks
-							);
-
-						return Array.isArray(transformedActivityLogs)
-							? transformedActivityLogs
-							: [transformedActivityLogs];
+							)
+						);
 					}
-				})
+					const { actor, issue, project, workspace } =
+						await commentDetailsByKey.get(detailsKey)!;
+
+					// Check if updatedValues contains organizationSprintId
+					const updatedSprintObj: any =
+						activityLog.updatedValues?.find(
+							(value) => 'organizationSprintId' in value
+						);
+					let updatedSprint = null;
+
+					if (
+						updatedSprintObj &&
+						updatedSprintObj.organizationSprintId
+					) {
+						// ever-gauzy fork: null-safe (hardening)
+						updatedSprint = ((task.taskSprintHistories ?? []).find(
+							(sprint) =>
+								sprint.toSprintId ===
+								updatedSprintObj.organizationSprintId
+						)?.toSprint ?? null) as any;
+					}
+
+					const transformedActivityLogs = issueActivityLogTransformer(
+						activityLog,
+						issue,
+						actor!,
+						project!,
+						workspace,
+						updatedSprint
+							? updatedSprint
+							: task.organizationSprint!,
+						// ever-gauzy fork: null-safe (hardening)
+						projectMembers.filter(
+							(employee) =>
+								employee?.userId === activityLog.createdByUserId
+						)[0],
+						projectMembers,
+						parentTasks
+					);
+
+					return Array.isArray(transformedActivityLogs)
+						? transformedActivityLogs
+						: [transformedActivityLogs];
+				}
+			};
+
+			// ever-gauzy fork: newest first, resolved in batches until `length` activities exist. Every log of the
+			// employee used to be resolved (several API requests each) only to return the first few.
+			const sortedLogs = [...(activityLogs ?? [])].sort(
+				(a, b) =>
+					new Date(b.createdAt ?? 0).getTime() -
+					new Date(a.createdAt ?? 0).getTime()
 			);
+			const batchSize = length
+				? Math.max(length, 8)
+				: Math.max(sortedLogs.length, 1);
 
 			// TODO: Include also links activities and filter both by createdAt to return most recent activities.
-			const activities = issueActivities.flat().filter(Boolean);
+			const activities: any[] = [];
+			for (let start = 0; start < sortedLogs.length; start += batchSize) {
+				const batch = await Promise.all(
+					sortedLogs
+						.slice(start, start + batchSize)
+						.map(resolveActivity)
+				);
+				activities.push(...batch.flat().filter(Boolean));
+
+				if (length && activities.length >= length) {
+					break;
+				}
+			}
+
 			if (length) {
 				return activities.slice(0, length);
 			}

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
+import { WorkspacePreferencesService } from '../workspace-preferences/workspace-preferences.service';
 import {
 	DashboardIssueTypeEnum,
 	DashboardWigetQueryEnum,
@@ -33,7 +34,10 @@ import { CreateIssueDTO, UpdateIssueDTO } from '../issues/dto';
 @ApiTags('Workspaces routes')
 @Controller()
 export class WorkspaceController {
-	constructor(private readonly _workspaceService: WorkspaceService) {}
+	constructor(
+		private readonly _workspaceService: WorkspaceService,
+		private readonly _workspacePreferencesService: WorkspacePreferencesService
+	) {}
 
 	/*
 	|--------------------------------------------------------------------------
@@ -105,26 +109,8 @@ export class WorkspaceController {
 	@ApiOperation({ summary: 'Get dashboard widgets' })
 	@Get('home-preferences')
 	async getWidgets() {
-		return [
-			{
-				key: 'my_stickies',
-				is_enabled: true,
-				config: {},
-				sort_order: 997.0
-			},
-			{
-				key: 'recents',
-				is_enabled: true,
-				config: {},
-				sort_order: 998.0
-			},
-			{
-				key: 'quick_links',
-				is_enabled: true,
-				config: {},
-				sort_order: 999.0
-			}
-		];
+		// ever-gauzy fork: the defaults (DEFAULT_HOME_PREFERENCES) overlaid with the employee's stored changes
+		return await this._workspacePreferencesService.getHomePreferences();
 	}
 
 	/*

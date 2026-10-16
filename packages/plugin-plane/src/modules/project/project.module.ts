@@ -17,6 +17,7 @@ import { CyclesModule } from '../cycles/cycles.module';
 import { ArchivedCyclesModule } from '../cycles/archived-cycles.module';
 import { IntakeIssuesModule } from '../issues/intake-issues/intake-issues.module';
 import { EmployeePropertiesModule } from '../employee-properties/employee-properties.module';
+import { EstimatesModule } from '../estimates/estimates.module';
 import {
     AdvanceAnalyticsModule
 } from '../advance-analytics/advance-analytics.module';
@@ -57,6 +58,11 @@ import {
 						module: ArchivedModulesModule
 					},
 					{ path: '/:projectId/comments', module: CommentsModule },
+					// ever-gauzy fork: estimates = the project's Gauzy task sizes
+					{
+						path: '/:projectId/estimates',
+						module: EstimatesModule
+					},
 					{
 						path: '/:projectId',
 						module: AdvanceAnalyticsModule
@@ -69,7 +75,8 @@ import {
 		IssuesModule,
 		IssueLabelsModule,
 		ProjectIdentifiersModule,
-		EmployeePropertiesModule
+		EmployeePropertiesModule,
+		EstimatesModule
 	],
 	providers: [ProjectService, ProjectDeployBoardsService],
 	controllers: [ProjectController],

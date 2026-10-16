@@ -2,7 +2,8 @@ import {
 	Injectable,
 	BadRequestException,
 	Inject,
-	forwardRef
+	forwardRef,
+	NotFoundException
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -62,6 +63,7 @@ import {
 	groupIssuesByStateGroup,
 	groupIssuesByStateId,
 	groupIssuesByTargetDate,
+	intakeStateId,
 	issueActivityLogTransformer,
 	issueCommentTrasnsformer,
 	issueFilterSplitter,
@@ -71,6 +73,7 @@ import {
 	issueTransformer,
 	nonGroupedIssues,
 	reactionTransformer,
+	resolveEstimatePointId,
 	subscriptionTransformer,
 	taskListRelations,
 	updateIssueInputTransformer
@@ -86,6 +89,7 @@ import { ActivityService } from '../activity/activity.service';
 import { IssueLabelsService } from './issue-labels/issue-labels.service';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { MentionService } from '../mention/mention.service';
+import { EstimatesService } from '../estimates/estimates.service';
 
 @Injectable()
 export class IssuesService extends ApiFetchService {
@@ -101,6 +105,7 @@ export class IssuesService extends ApiFetchService {
 		private readonly _activityService: ActivityService,
 		private readonly _subscriptionService: SubscriptionService,
 		private readonly _mentionService: MentionService,
+		private readonly _estimatesService: EstimatesService,
 		private readonly _serverFetchService: ApiFetchService
 	) {
 		super(_serverFetchService['_httpService']);
@@ -255,6 +260,13 @@ export class IssuesService extends ApiFetchService {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// ever-gauzy fork: a task that only carries its size's value gets its estimate point from the project's sizes
+			const [withEstimate] = await this.withEstimatePoints(
+				[issue],
+				issue.projectId
+			);
+			Object.assign(issue, { taskSizeId: withEstimate.taskSizeId });
+
 			// Find Issue Reactions
 			const reactions = await this.findIssueReactions(
 				{
@@ -302,10 +314,13 @@ export class IssuesService extends ApiFetchService {
 				state = await this._stateSerive.getOne(input.state_id!);
 			}
 
-			const body = createIssueInputTransformer(
-				input,
-				state.name as TaskStatusEnum
-			);
+			const body = {
+				...createIssueInputTransformer(
+					input,
+					state.name as TaskStatusEnum
+				),
+				...(await this.taskSizeFieldsOf(input, input.project_id))
+			};
 
 			const issue: ITask = (
 				await this.apiFetch({
@@ -368,6 +383,17 @@ export class IssuesService extends ApiFetchService {
 				throw new BadRequestException('Issue not found');
 			}
 
+			// ever-gauzy fork: the intake "Triage" state is not a Gauzy task status (see intakeStateId), so choosing it
+			// keeps the task's current status
+			if (
+				issue.project_id &&
+				input.state_id === intakeStateId(issue.project_id)
+			) {
+				const { state_id: _triage, ...rest } = input;
+				input = rest as IIssueUpdateInput;
+				state = undefined;
+			}
+
 			// Find labels
 			const labelResult =
 				await this._issueLabelService.getProjectIssueLabels(
@@ -408,6 +434,10 @@ export class IssuesService extends ApiFetchService {
 					method: 'PUT',
 					body: {
 						...body,
+						...(await this.taskSizeFieldsOf(
+							input,
+							issue.project_id
+						)),
 						title: input.name ?? issue.name,
 						status: state?.name || externalIssue.status
 					}
@@ -543,7 +573,8 @@ export class IssuesService extends ApiFetchService {
 			).data;
 
 			// Extract the issues from the API response
-			let issues = tasks.items;
+			// ever-gauzy fork: estimate points for tasks that only carry their size's value
+			let issues = await this.withEstimatePoints(tasks.items, projectId);
 
 			// Optional filter tasks by priority criteria
 			if (priority) {
@@ -738,6 +769,72 @@ export class IssuesService extends ApiFetchService {
 				error.stack
 			);
 			this.handleApiError(error);
+		}
+	}
+
+	/**
+	 * ever-gauzy fork: the Gauzy task size fields for a Plane `estimate_point` (a task size id): `taskSizeId`, and the
+	 * size's value in `size` like Gauzy's own clients write it. `null` clears both; no `estimate_point` changes nothing.
+	 *
+	 * @param input - The Plane create/update input.
+	 * @param projectId - The issue's project: the size must be one of its estimate points.
+	 */
+	private async taskSizeFieldsOf(
+		input: Pick<IIssueUpdateInput, 'estimate_point'>,
+		projectId?: ID
+	): Promise<{ taskSizeId?: ID | null; size?: string | null }> {
+		if (!input || !('estimate_point' in input)) {
+			return {};
+		}
+		if (!input.estimate_point) {
+			return { taskSizeId: null, size: null };
+		}
+		if (!projectId) {
+			throw new BadRequestException(
+				"An estimate point needs the issue's project."
+			);
+		}
+		const size = await this._estimatesService.getProjectTaskSize(
+			projectId,
+			input.estimate_point
+		);
+		return { taskSizeId: size.id, size: size.value };
+	}
+
+	/**
+	 * ever-gauzy fork: tasks created by older Gauzy clients carry only their size's value (`size`), not `taskSizeId`.
+	 * Their estimate point is matched against the project's task sizes, loaded once for all of them. Display only:
+	 * nothing is written back.
+	 *
+	 * @param tasks - The tasks.
+	 * @param projectId - Their project, when known.
+	 */
+	private async withEstimatePoints(
+		tasks: ITask[],
+		projectId?: ID
+	): Promise<ITask[]> {
+		const needSizes = (tasks ?? []).some(
+			(task) => !task?.taskSizeId && !!task?.size
+		);
+		if (!needSizes || !projectId) {
+			return tasks ?? [];
+		}
+		try {
+			const sizes =
+				await this._estimatesService.getProjectSizes(projectId);
+			return tasks.map((task) =>
+				task.taskSizeId || !task.size
+					? task
+					: {
+							...task,
+							taskSizeId: resolveEstimatePointId(task, sizes)
+						}
+			);
+		} catch (error) {
+			this.logger.warn(
+				`Could not load task sizes for estimate points: ${error instanceof Error ? error.message : String(error)}`
+			);
+			return tasks;
 		}
 	}
 
@@ -1434,6 +1531,11 @@ export class IssuesService extends ApiFetchService {
 				isDraft
 			);
 
+			// ever-gauzy fork: only the reactions of an issue of the route's project (no cross-project reads by id)
+			if (projectId && task?.projectId && task.projectId !== projectId) {
+				throw new NotFoundException('Issue not found in this project');
+			}
+
 			const reactions = await this._reactionService.findAll(options);
 
 			const issueReactions: IReactionData[] = await Promise.all(
@@ -1775,6 +1877,21 @@ export class IssuesService extends ApiFetchService {
 	 * @returns {Promise<any>} A promise that resolves to the response of the unsubscribe operation.
 	 * @throws {BadRequestException} If the unsubscription fails or encounters an error.
 	 */
+	/**
+	 * ever-gauzy fork: whether the current user follows an issue (`GET /:id/subscribe`).
+	 *
+	 * @param {ID} issueId - The issue.
+	 * @returns {Promise<{ subscribed: boolean }>} Plane's subscription status.
+	 */
+	async isSubscribed(issueId: ID): Promise<{ subscribed: boolean }> {
+		const subscriptions = await this._subscriptionService.findAll({
+			entity: BaseEntityEnum.Task,
+			entityId: issueId,
+			userId: currentUserId() ?? undefined
+		});
+		return { subscribed: (subscriptions ?? []).length > 0 };
+	}
+
 	async unsubscribe(issueId: ID): Promise<any> {
 		return await this._subscriptionService.unsubscribe({
 			entity: BaseEntityEnum.Task,

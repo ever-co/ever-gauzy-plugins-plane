@@ -123,7 +123,8 @@ export function getProjectsResponse(
 			workspace: project?.organizationId,
 			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
-			estimate: null, // To add for external API
+			// ever-gauzy fork: every project's estimate is its task sizes, and the estimate id is the project id
+			estimate: project?.id ?? null,
 			default_state: null // To add for external API
 		};
 	})) as Partial<IProject>[];

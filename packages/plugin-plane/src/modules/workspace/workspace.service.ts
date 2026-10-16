@@ -880,9 +880,10 @@ export class WorkspaceService extends ApiFetchService {
 					new Date(b.createdAt ?? 0).getTime() -
 					new Date(a.createdAt ?? 0).getTime()
 			);
-			const batchSize = length
-				? Math.max(length, 8)
-				: Math.max(sortedLogs.length, 1);
+			// Without `length` every activity is returned, still in bounded batches so a long history does not
+			// start one request per task at once.
+			const MAX_ACTIVITY_BATCH = 16;
+			const batchSize = length ? Math.max(length, 8) : MAX_ACTIVITY_BATCH;
 
 			// TODO: Include also links activities and filter both by createdAt to return most recent activities.
 			const activities: any[] = [];

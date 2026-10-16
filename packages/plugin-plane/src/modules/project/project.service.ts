@@ -26,6 +26,8 @@ import {
 	baseGetItemsWhereQuery,
 	createProjectInputTransformer,
 	currentEmployeeId,
+	currentTenantId,
+	getCurrentOrganizationSlug,
 	employeeSettingSerializer,
 	fetchWithSplitRelations,
 	findEmployeeProjectsQuery,
@@ -394,8 +396,9 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async update(id: ID, input: IUpdateProjectInput): Promise<IProject> {
 		try {
-			// Extract members from the input if provided
-			const { members, ...restInput } = input;
+			// Extract members from the input if provided. ever-gauzy fork: `estimate` is the project's "Estimates"
+			// switch (an estimate id turns it on, null turns it off), stored in Gauzy's project settings below.
+			const { members, estimate, ...restInput } = input;
 
 			// Retrieve the project details from a remote source
 			const project = await this.getExternalProject(id, ['members']);
@@ -404,32 +407,63 @@ export class ProjectService extends ApiFetchService {
 				throw new BadRequestException('Project could not be found');
 			}
 
-			// Transform the input using the transformer function
-			const transformedInput = createProjectInputTransformer(restInput);
+			// ever-gauzy fork: the Estimates switch sends only `estimate`. Rewriting the project from the transformer
+			// would also reset fields that were not sent (it defaults `public`, the managers, …), so only a PATCH with
+			// other fields goes through the full update.
+			const hasProjectChanges =
+				members !== undefined || Object.keys(restInput).length > 0;
 
-			// Destructure the project object to exclude 'members' and construct `projectWithoutMembers`
-			const { members: existingMembers = [], ...projectWithoutMembers } =
-				project;
+			let updatedProject: IOrganizationProject = project;
 
-			// Assign existing members if new members are not provided
-			const memberIds = members
-				? assignMembersToProjectTransformer(members)
-				: existingMembers.map((m) => m.employeeId);
+			if (hasProjectChanges) {
+				// Transform the input using the transformer function
+				const transformedInput =
+					createProjectInputTransformer(restInput);
 
-			// Create the final body for the PUT request by merging objects
-			const body = {
-				...projectWithoutMembers,
-				...transformedInput,
-				memberIds
-			};
+				// Destructure the project object to exclude 'members' and construct `projectWithoutMembers`. The
+				// estimation switch is left out so this write cannot put back a stale value.
+				const {
+					members: existingMembers = [],
+					isTaskSizeEstimationEnabled: _storedEstimation,
+					...projectWithoutMembers
+				} = project;
 
-			const updatedProject = (
-				await this.apiFetch({
-					method: 'PUT',
-					path: `${this.path}/${id}`,
-					body: { ...project, ...body }
-				})
-			).data;
+				// Assign existing members if new members are not provided
+				const memberIds = members
+					? assignMembersToProjectTransformer(members)
+					: existingMembers.map((m) => m.employeeId);
+
+				// Create the final body for the PUT request by merging objects
+				const body = {
+					...projectWithoutMembers,
+					...transformedInput,
+					memberIds
+				};
+
+				updatedProject = (
+					await this.apiFetch({
+						method: 'PUT',
+						path: `${this.path}/${id}`,
+						body: {
+							...project,
+							isTaskSizeEstimationEnabled: undefined,
+							...body
+						}
+					})
+				).data;
+			}
+
+			if (estimate !== undefined) {
+				const settings = await this.updateTaskSizeEstimation(
+					id,
+					estimate !== null
+				);
+				updatedProject = {
+					...updatedProject,
+					isTaskSizeEstimationEnabled:
+						settings?.isTaskSizeEstimationEnabled
+				};
+			}
 
 			// Transform the response to match the expected IProject format
 			return getProjectsResponse([updatedProject])[0] as IProject;
@@ -440,6 +474,32 @@ export class ProjectService extends ApiFetchService {
 			);
 			throw new BadGatewayException(error);
 		}
+	}
+
+	/**
+	 * ever-gauzy fork: turns the project's task-size estimation (Plane's "Estimates") on or off through Gauzy's
+	 * project settings. A Gauzy without the setting ignores it, and its answer then has no value, which the project
+	 * transformer reads as on.
+	 *
+	 * @param {ID} id - The project.
+	 * @param {boolean} enabled - Whether the project's tasks are estimated with its task sizes.
+	 * @returns The project settings Gauzy answers.
+	 */
+	private async updateTaskSizeEstimation(
+		id: ID,
+		enabled: boolean
+	): Promise<IOrganizationProject> {
+		return (
+			await this.apiFetch({
+				method: 'PUT',
+				path: `${this.path}/setting/${id}`,
+				body: {
+					isTaskSizeEstimationEnabled: enabled,
+					organizationId: getCurrentOrganizationSlug(),
+					tenantId: currentTenantId()
+				}
+			})
+		).data;
 	}
 
 	/**
@@ -610,59 +670,14 @@ export class ProjectService extends ApiFetchService {
 		input: IUpdateUserPropertiesInput
 	): Promise<any> {
 		try {
-			// Destructure input properties for clarity
-			const {
-				display_filters,
-				display_properties,
-				filters,
-				rich_filters
-			} = input;
-
-			// Find existing employee settings for the given project
-			let memberSetting =
-				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId()!,
-					entity: BaseEntityEnum.OrganizationProject,
-					entityId: id,
-					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
-				});
-
-			if (memberSetting) {
-				// Update the existing settings with new data or fallback to existing data
-				const data: Record<string, any> = memberSetting.data as Record<
-					string,
-					any
-				>;
-				memberSetting = await this._employeePropertiesService.update(
-					memberSetting.id!,
-					{
-						...memberSetting,
-						data: {
-							filters: filters ? filters : data.filters,
-							rich_filters: rich_filters
-								? rich_filters
-								: data.rich_filters,
-							display_filters: display_filters
-								? display_filters
-								: data.display_filters,
-							display_properties: display_properties
-								? display_properties
-								: data.display_properties
-						}
-					}
+			// ever-gauzy fork: one atomic, key-level save (see EmployeePropertiesService.saveViewProperties)
+			const memberSetting =
+				await this._employeePropertiesService.saveViewProperties(
+					BaseEntityEnum.OrganizationProject,
+					id,
+					input
 				);
-			} else {
-				// Create new settings with default properties if none exist
-				memberSetting = await this._employeePropertiesService.create({
-					entity: BaseEntityEnum.OrganizationProject,
-					entityId: id,
-					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-					data: MEMBER_DEFAULT_VIEW_PROPS,
-					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeId() ?? undefined },
-					employeeId: currentEmployeeId()!
-				});
-			}
+
 			// Serialize and return the updated/created employee setting.
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {

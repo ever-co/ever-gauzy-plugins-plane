@@ -18,6 +18,26 @@ export interface IEmployeeSettingCreateInput extends IEmployeeSetting {}
 
 export interface IEmployeeSettingUpdateInput extends Omit<IEmployeeSettingCreateInput, 'employee' | 'employeeId'> {}
 
+/**
+ * What one operation of an employee-setting data patch does (Gauzy `PATCH /employee-settings/:id/data`).
+ */
+export enum EmployeeSettingDataOperationEnum {
+	/** Writes `value` at `path`, creating the missing objects on the way. */
+	SET = 'set',
+	/** Removes the key at `path`; a path that is not there is left alone. */
+	UNSET = 'unset'
+}
+
+/**
+ * One change to the `data` of an employee setting: `path` lists the object keys from the root of `data`.
+ */
+export interface IEmployeeSettingDataOperation {
+	op: EmployeeSettingDataOperationEnum;
+	path: string[];
+	/** The value `set` writes; ignored by `unset`. */
+	value?: unknown;
+}
+
 export interface IEmployeeSettingFindInput {
 	employeeId?: string;
 	employee?: IEmployee;

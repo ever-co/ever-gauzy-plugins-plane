@@ -123,8 +123,12 @@ export function getProjectsResponse(
 			workspace: project?.organizationId,
 			default_assignee: project?.defaultAssigneeId,
 			project_lead: manager ? manager.employeeId : null, // Use the first manager's ID if found, else null
-			// ever-gauzy fork: every project's estimate is its task sizes, and the estimate id is the project id
-			estimate: project?.id ?? null,
+			// ever-gauzy fork: every project's estimate is its task sizes, and the estimate id is the project id. None
+			// while the project's task-size estimation is off; missing (an older Gauzy) means on.
+			estimate:
+				project?.isTaskSizeEstimationEnabled === false
+					? null
+					: (project?.id ?? null),
 			default_state: null // To add for external API
 		};
 	})) as Partial<IProject>[];

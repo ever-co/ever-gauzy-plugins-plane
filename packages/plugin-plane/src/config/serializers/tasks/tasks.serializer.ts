@@ -38,12 +38,15 @@ import {
 
 /**
  * Task default relations
+ *
+ * ever-gauzy fork: `project` instead of `project.members.employee.user.role`. Nothing reads a task's project
+ * members, and joining them multiplied every task row by the project's member count.
  */
 export const taskRelations = [
 	'tags',
 	'members.user',
 	'createdByUser',
-	'project.members.employee.user.role',
+	'project',
 	'organizationSprint',
 	'linkedIssues.taskTo',
 	'linkedIssues.taskFrom',
@@ -51,6 +54,22 @@ export const taskRelations = [
 	'children.taskStatus',
 	'taskStatus',
 	'modules'
+];
+
+/**
+ * ever-gauzy fork: relations for issue lists (boards, lists, calendars). A list item only needs the ids of its
+ * labels, assignees and modules, its sub-issue count and the project/state/parent it belongs to. Every one-to-many
+ * relation multiplies the joined rows, so this stays minimal: for the 509-task Ever Gauzy project it is ~1.4k rows
+ * where `taskRelations` (with project members) was ~23k much wider rows.
+ */
+export const taskListRelations = [
+	'tags',
+	'members',
+	'modules',
+	'children',
+	'taskStatus',
+	'project',
+	'parent'
 ];
 
 /**
@@ -1211,7 +1230,8 @@ export function getFilteredByDatesTaskQuery(
 	});
 
 	if (!options.relations) {
-		taskRelations.forEach((relation, i) => {
+		// ever-gauzy fork: date-filtered tasks feed calendar/list views, so they use the list relations
+		taskListRelations.forEach((relation, i) => {
 			query[`relations[${i}]`] = relation;
 		});
 	}

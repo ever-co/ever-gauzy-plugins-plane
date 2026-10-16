@@ -8,6 +8,10 @@ type JsonObject = Record<string, unknown>;
 /** Keys that would reach an object's prototype instead of the object itself. */
 const FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 
+/** Whether `key` is the object's own key (not an inherited member such as `toString`). */
+const hasOwn = (object: JsonObject, key: string): boolean =>
+	Object.prototype.hasOwnProperty.call(object, key);
+
 const isPlainObject = (value: unknown): value is JsonObject =>
 	typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -65,7 +69,8 @@ export function applyEmployeeSettingDataOperations(
 
 		if (op === EmployeeSettingDataOperationEnum.SET) {
 			const target = parent.reduce<JsonObject>((node, segment) => {
-				const child = node[segment];
+				// Own keys only: an inherited member (`toString`, `valueOf`, …) is not stored data.
+				const child = hasOwn(node, segment) ? node[segment] : undefined;
 				if (child === undefined || child === null) {
 					return (node[segment] = {});
 				}
@@ -80,7 +85,10 @@ export function applyEmployeeSettingDataOperations(
 		} else if (op === EmployeeSettingDataOperationEnum.UNSET) {
 			let node: unknown = result;
 			for (const segment of parent) {
-				node = isPlainObject(node) ? node[segment] : undefined;
+				node =
+					isPlainObject(node) && hasOwn(node, segment)
+						? node[segment]
+						: undefined;
 			}
 			if (isPlainObject(node)) {
 				delete node[key];

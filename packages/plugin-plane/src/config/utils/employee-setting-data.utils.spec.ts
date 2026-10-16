@@ -55,6 +55,14 @@ describe('applyEmployeeSettingDataOperations (fallback for a Gauzy without the p
 		expect(data.sidebar_preferences.home).toEqual({ is_pinned: true });
 	});
 
+	it('uses own keys only, so inherited names such as toString are ordinary keys', () => {
+		expect(
+			applyEmployeeSettingDataOperations({}, [
+				{ op: SET, path: ['toString', 'x'], value: 1 }
+			])
+		).toEqual({ toString: { x: 1 } });
+	});
+
 	it('refuses prototype keys and paths through scalars', () => {
 		expect(() =>
 			applyEmployeeSettingDataOperations({}, [

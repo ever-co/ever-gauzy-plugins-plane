@@ -125,7 +125,8 @@ export function issueTransformer(
 		state_id: issue?.taskStatusId,
 		sort_order: 65535.0, // TODO : Research usecase and add to API
 		completed_at: issue?.resolvedAt,
-		estimate_point: undefined, // TODO : Research usecase and add to API
+		// ever-gauzy fork: estimate points are the project's task sizes (see estimate.serializer.ts)
+		estimate_point: issue?.taskSizeId ?? undefined,
 		priority: issue?.priority?.toLocaleLowerCase() as TaskPriorityEnum,
 		start_date: issue?.startDate,
 		target_date: issue?.dueDate,

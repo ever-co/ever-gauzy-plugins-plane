@@ -14,6 +14,7 @@ import {
 	createIntakeIssueInputTransformer,
 	getIntakeIssueQuery,
 	intakeIssueTranformer,
+	intakeStateId,
 	screeningStatusToIntakeStatusMap,
 	updateIntakeIssueInputTransformer
 } from '../../../config';
@@ -46,6 +47,12 @@ export class IntakeIssuesService extends ApiFetchService {
 		projectId: ID
 	): Promise<IIntakeIssue | IIntakeIssue[]> {
 		try {
+			// ever-gauzy fork: the intake "Triage" state is not a Gauzy task status (being in triage is the screening
+			// task's Pending status), so it means "no particular state": the task starts in the default one
+			if (input.issue?.state_id === intakeStateId(projectId)) {
+				const { state_id: _triage, ...issue } = input.issue;
+				input = { ...input, issue };
+			}
 			const { state_id } = input.issue!;
 
 			// Set default status

@@ -2,7 +2,8 @@ import {
 	BadRequestException,
 	forwardRef,
 	Inject,
-	Injectable
+	Injectable,
+	NotFoundException
 } from '@nestjs/common';
 import qs from 'qs';
 import {
@@ -281,6 +282,52 @@ export class CommentsService extends ApiFetchService {
 			);
 			this.handleApiError(error);
 		}
+	}
+
+	/**
+	 * ever-gauzy fork: a comment's reactions for `GET /projects/:projectId/comments/:id/reactions`, after checking that
+	 * the comment is on an issue of that project (no cross-project reads by id).
+	 *
+	 * @param {ID} commentId - The comment.
+	 * @param {ID} projectId - The project of the route.
+	 */
+	async findCommentReactionsInProject(
+		commentId: ID,
+		projectId: ID
+	): Promise<IReactionData[]> {
+		try {
+			const comment: IComment = (
+				await this.apiFetch({
+					method: 'GET',
+					path: `${this.path}/${commentId}`
+				})
+			).data;
+			const task: { projectId?: ID } | undefined =
+				comment?.entity === BaseEntityEnum.Task && comment.entityId
+					? (
+							await this.apiFetch({
+								method: 'GET',
+								path: `/tasks/${comment.entityId}`,
+								query: qs.stringify({
+									'select[id]': true,
+									'select[projectId]': true
+								})
+							})
+						).data
+					: undefined;
+			if (!task || task.projectId !== projectId) {
+				throw new NotFoundException(
+					'Comment not found in this project'
+				);
+			}
+		} catch (error) {
+			this.handleApiError(error);
+		}
+
+		return this.findCommentReactions(
+			{ entityId: commentId, entity: ReactionEntityEnum.Comment },
+			projectId
+		);
 	}
 
 	/**

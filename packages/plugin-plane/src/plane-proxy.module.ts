@@ -49,6 +49,9 @@ import { WorkspaceAdvanceAnalyticsModule } from './modules/advance-analytics/wor
 import { PagesModule } from './modules/pages/pages.module';
 import { FileAssetsModule } from './modules/file-assets/file-assets.module';
 import { StickiesModule } from './modules/stickies/stickies.module';
+import { EstimatesModule } from './modules/estimates/estimates.module';
+import { WorkspaceEstimatesModule } from './modules/estimates/workspace-estimates.module';
+import { WorkspacePreferencesModule } from './modules/workspace-preferences/workspace-preferences.module';
 
 const FEATURE_MODULES = [
 	LoggerModule,
@@ -89,7 +92,10 @@ const FEATURE_MODULES = [
 	WorkspaceAdvanceAnalyticsModule,
 	PagesModule,
 	FileAssetsModule,
-	StickiesModule
+	StickiesModule,
+	EstimatesModule,
+	WorkspaceEstimatesModule,
+	WorkspacePreferencesModule
 ];
 
 @Module({})

@@ -3,6 +3,7 @@ import {
 	Body,
 	Controller,
 	Delete,
+	Get,
 	HttpCode,
 	HttpStatus,
 	Param,
@@ -24,6 +25,22 @@ export class CommentsController {
 	 * @returns A promise resolved to created and transformed reaction.
 	 * @memberof CommentsController
 	 */
+	/**
+	 * ever-gauzy fork: a comment's reactions (the UI reloads them when adding one fails)
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get comment reactions' })
+	@Get(':id/reactions')
+	async findReactions(
+		@Param('id') entityId: ID,
+		@Param('projectId') projectId: ID
+	): Promise<IReactionData[]> {
+		return await this._commentService.findCommentReactionsInProject(
+			entityId,
+			projectId
+		);
+	}
+
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Comment Reaction' })
 	@Post(':id/reactions')

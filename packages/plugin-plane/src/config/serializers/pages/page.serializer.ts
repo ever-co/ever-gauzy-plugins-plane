@@ -65,10 +65,10 @@ export function updatePageInputTransformer(
 /**
  * Transform a single Gauzy HelpCenterArticle (plain JSON) into a Plane IPage.
  *
- * ever-gauzy fork: Plane's actor fields hold workspace member ids, which are Gauzy employee ids. The article's
- * owner is an employee, but pages created before the owner was set have none, and Gauzy records the last editor
- * as a user id. `employeeIdByUserId` maps Gauzy's creator/updater user ids to employees for those fields; without
- * it they fall back to the owner (and stay null rather than linking to a missing profile).
+ * ever-gauzy fork: Plane's actor fields hold workspace member ids, which are Gauzy employee ids. Gauzy records the
+ * creator and the last editor as user ids, and the owner as an employee (missing on pages created before the proxy
+ * set it). Each actor is resolved on its own through `employeeIdByUserId`: a recorded user without an employee is
+ * `null` (shown as an unknown user, never linked to /profile/null), and the owner falls back to the creator.
  *
  * @param article - The Gauzy article.
  * @param employeeIdByUserId - Employee id per Gauzy user id, for the creator/updater fallback.
@@ -77,12 +77,15 @@ export function articleToPage(
 	article: Record<string, any>,
 	employeeIdByUserId?: Map<string, string>
 ): IPage {
-	const ownedBy =
-		article['ownedById'] ??
-		employeeIdByUserId?.get(article['createdByUserId']) ??
-		null;
-	const updatedBy =
-		employeeIdByUserId?.get(article['updatedByUserId']) ?? ownedBy;
+	const employeeOf = (userId?: string | null): string | null =>
+		(userId && employeeIdByUserId?.get(userId)) || null;
+	const createdBy = article['createdByUserId']
+		? employeeOf(article['createdByUserId'])
+		: (article['ownedById'] ?? null);
+	const ownedBy = article['ownedById'] ?? createdBy;
+	const updatedBy = article['updatedByUserId']
+		? employeeOf(article['updatedByUserId'])
+		: createdBy;
 
 	return {
 		id: article['id'],
@@ -109,7 +112,7 @@ export function articleToPage(
 		external_id: article['externalId'] ?? null,
 		created_at: article['createdAt'],
 		updated_at: article['updatedAt'],
-		created_by: ownedBy,
+		created_by: createdBy,
 		updated_by: updatedBy,
 		deleted_at: article['deletedAt'] ?? null
 	};

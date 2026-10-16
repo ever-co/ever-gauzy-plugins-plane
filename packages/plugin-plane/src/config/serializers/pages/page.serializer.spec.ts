@@ -7,7 +7,7 @@ describe('articleToPage actor fields', () => {
 		['user-editor', 'emp-editor']
 	]);
 
-	it('uses the owner employee for owned_by and created_by, and maps the last editor to an employee', () => {
+	it('resolves owner, creator and editor independently', () => {
 		const page = articleToPage(
 			{
 				id: 'p1',
@@ -19,11 +19,11 @@ describe('articleToPage actor fields', () => {
 		);
 
 		expect(page.owned_by).toBe('emp-owner');
-		expect(page.created_by).toBe('emp-owner');
+		expect(page.created_by).toBe('emp-creator');
 		expect(page.updated_by).toBe('emp-editor');
 	});
 
-	it('falls back to the creator employee when the page has no owner (pages created before the fix)', () => {
+	it('falls back to the creator employee for the owner when the page has none', () => {
 		const page = articleToPage(
 			{
 				id: 'p2',
@@ -39,9 +39,24 @@ describe('articleToPage actor fields', () => {
 		expect(page.updated_by).toBe('emp-creator');
 	});
 
+	it('keeps an unmappable recorded editor null instead of crediting the owner', () => {
+		const page = articleToPage(
+			{
+				id: 'p3',
+				ownedById: 'emp-owner',
+				createdByUserId: 'user-creator',
+				updatedByUserId: 'user-gone'
+			},
+			employees
+		);
+
+		expect(page.owned_by).toBe('emp-owner');
+		expect(page.updated_by).toBeNull();
+	});
+
 	it('keeps null (never the string "null") when nothing maps', () => {
 		const page = articleToPage({
-			id: 'p3',
+			id: 'p4',
 			ownedById: null,
 			createdByUserId: 'user-unknown'
 		});
@@ -49,6 +64,13 @@ describe('articleToPage actor fields', () => {
 		expect(page.owned_by).toBeNull();
 		expect(page.created_by).toBeNull();
 		expect(page.updated_by).toBeNull();
+	});
+
+	it('uses the owner for created_by on rows without a recorded creator', () => {
+		const page = articleToPage({ id: 'p5', ownedById: 'emp-owner' });
+
+		expect(page.created_by).toBe('emp-owner');
+		expect(page.updated_by).toBe('emp-owner');
 	});
 
 	it('articlesToPages does not pass the array index as the employee map', () => {

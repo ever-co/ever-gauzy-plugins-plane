@@ -204,8 +204,11 @@ export class PagesService extends ApiFetchService {
 		try {
 			const categoryId = await this.getOrCreateDefaultCategory();
 			const body = createPageInputTransformer(input, categoryId, projectId);
-			const response = await this.apiFetch({ method: 'POST', path: this.path, body });
-			return articleToPage(response.data);
+			const [response, employeeIdByUserId] = await Promise.all([
+				this.apiFetch({ method: 'POST', path: this.path, body }),
+				this.employeeIdByUserId()
+			]);
+			return articleToPage(response.data, employeeIdByUserId);
 		} catch (error) {
 			this.handleApiError(error);
 		}
@@ -299,11 +302,14 @@ export class PagesService extends ApiFetchService {
 	 */
 	async duplicate(id: ID): Promise<IPage> {
 		try {
-			const response = await this.apiFetch({
-				method: 'POST',
-				path: `${this.path}/${id}/duplicate`
-			});
-			return articleToPage(response.data);
+			const [response, employeeIdByUserId] = await Promise.all([
+				this.apiFetch({
+					method: 'POST',
+					path: `${this.path}/${id}/duplicate`
+				}),
+				this.employeeIdByUserId()
+			]);
+			return articleToPage(response.data, employeeIdByUserId);
 		} catch (error) {
 			this.handleApiError(error);
 		}

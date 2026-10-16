@@ -3,7 +3,8 @@ import {
 	BaseEntityEnum,
 	EmployeeSettingTypeEnum,
 	ID,
-	IEmployeeSetting
+	IEmployeeSetting,
+	IEmployeeSettingDataOperation
 } from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	currentEmployeeId,
@@ -13,7 +14,8 @@ import {
 	DEFAULT_WORKSPACE_NAVIGATION,
 	employeeSettingSerializer,
 	getCurrentOrganizationSlug,
-	MEMBER_DEFAULT_VIEW_PROPS
+	MEMBER_DEFAULT_VIEW_PROPS,
+	setOperations
 } from '../../config';
 import { EmployeePropertiesService } from '../employee-properties/employee-properties.service';
 
@@ -94,7 +96,9 @@ export class WorkspacePreferencesService {
 				.filter((key) => input?.[key] !== undefined)
 				.map((key) => [key, input[key]])
 		);
-		return this.userPropertiesResponse(await this.save(() => changes));
+		return this.userPropertiesResponse(
+			await this.save(setOperations([], changes))
+		);
 	}
 
 	/**
@@ -110,15 +114,12 @@ export class WorkspacePreferencesService {
 	 */
 	async updateSidebarPreference(key: string, input: SidebarItem) {
 		const saved = this.dataOf(
-			await this.save((data) => ({
-				sidebar_preferences: {
-					...(data.sidebar_preferences ?? {}),
-					[key]: {
-						...(data.sidebar_preferences?.[key] ?? {}),
-						...this.pickSidebar(input)
-					}
-				}
-			}))
+			await this.save(
+				setOperations(
+					['sidebar_preferences', key],
+					this.pickSidebar(input)
+				)
+			)
 		);
 		return { key, ...this.mergeSidebar(saved.sidebar_preferences)[key] };
 	}
@@ -135,18 +136,16 @@ export class WorkspacePreferencesService {
 			);
 		}
 		const saved = this.dataOf(
-			await this.save((data) => {
-				const sidebar = { ...(data.sidebar_preferences ?? {}) };
+			await this.save(
 				input
 					.filter((item) => !!item?.key)
-					.forEach((item) => {
-						sidebar[item.key] = {
-							...(sidebar[item.key] ?? {}),
-							...this.pickSidebar(item)
-						};
-					});
-				return { sidebar_preferences: sidebar };
-			})
+					.flatMap((item) =>
+						setOperations(
+							['sidebar_preferences', item.key],
+							this.pickSidebar(item)
+						)
+					)
+			)
 		);
 		return this.mergeSidebar(saved.sidebar_preferences);
 	}
@@ -168,17 +167,13 @@ export class WorkspacePreferencesService {
 	): Promise<HomeWidget> {
 		const { is_enabled, sort_order, config } = input ?? {};
 		const saved = this.dataOf(
-			await this.save((data) => ({
-				home_preferences: {
-					...(data.home_preferences ?? {}),
-					[key]: {
-						...(data.home_preferences?.[key] ?? {}),
-						...(is_enabled !== undefined ? { is_enabled } : {}),
-						...(sort_order !== undefined ? { sort_order } : {}),
-						...(config !== undefined ? { config } : {})
-					}
-				}
-			}))
+			await this.save(
+				setOperations(['home_preferences', key], {
+					is_enabled,
+					sort_order,
+					config
+				})
+			)
 		);
 		return (
 			this.mergeHome(saved.home_preferences).find(
@@ -301,16 +296,15 @@ export class WorkspacePreferencesService {
 	}
 
 	/**
-	 * Saves the changes `mutate` derives from the record's current data.
+	 * Saves key-level changes to the record's data.
 	 *
-	 * The read-modify-write runs in a per-employee queue and reads the record fresh inside it, so parallel PATCHes (a
-	 * sidebar pin and a widget toggle, two sidebar items, …) apply one after the other instead of the later one writing
-	 * back stale data over the earlier. This covers one proxy process; Gauzy has no partial update for `data`.
+	 * The changes go to Gauzy as one atomic patch (`EmployeePropertiesService.patchData`), so parallel PATCHes (a
+	 * sidebar pin and a widget toggle, two sidebar items, …) all keep their change even when they reach different API
+	 * processes. The per-employee queue still orders this process's writes, and covers a Gauzy without the patch
+	 * route, where the proxy writes the whole data back itself.
 	 */
 	private save(
-		mutate: (
-			data: IWorkspacePreferencesData
-		) => Partial<IWorkspacePreferencesData>
+		operations: IEmployeeSettingDataOperation[]
 	): Promise<IEmployeeSetting> {
 		const key = this.key();
 		const previous =
@@ -321,13 +315,12 @@ export class WorkspacePreferencesService {
 			.then(async () => {
 				const setting =
 					(await this.find()) ?? (await this.getOrCreate());
-				const data = this.dataOf(setting);
-				return this._employeePropertiesService.update(setting.id!, {
-					entity: BaseEntityEnum.Organization,
-					entityId: getCurrentOrganizationSlug(),
-					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-					data: { ...data, ...mutate(data) }
-				});
+				return operations.length > 0
+					? this._employeePropertiesService.patchData(
+							setting.id!,
+							operations
+						)
+					: setting;
 			});
 
 		WorkspacePreferencesService.writes.set(key, write);

@@ -23,14 +23,17 @@ import {
 } from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	assignMembersToProjectTransformer,
+	baseGetItemsWhereQuery,
 	createProjectInputTransformer,
 	currentEmployeeId,
 	employeeSettingSerializer,
+	fetchWithSplitRelations,
 	findEmployeeProjectsQuery,
 	getProjectsQuery,
 	getProjectsResponse,
 	isEmpty,
-	MEMBER_DEFAULT_VIEW_PROPS
+	MEMBER_DEFAULT_VIEW_PROPS,
+	projectRelations
 } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { WorkspaceService } from '../workspace/workspace.service';
@@ -55,17 +58,24 @@ export class ProjectService extends ApiFetchService {
 		relations?: string[],
 		options?: Partial<IOrganizationProject>
 	): Promise<IOrganizationProject[]> {
-		const query = qs.stringify(getProjectsQuery(relations, options));
 		try {
-			const projects: IPagination<IOrganizationProject> = (
-				await this.apiFetch({
-					method: 'GET',
-					path: this.path,
-					query
-				})
-			).data;
+			// ever-gauzy fork: one request per root relation (see fetchWithSplitRelations)
+			return await fetchWithSplitRelations(
+				relations ?? projectRelations,
+				async (group) => {
+					const projects: IPagination<IOrganizationProject> = (
+						await this.apiFetch({
+							method: 'GET',
+							path: this.path,
+							query: qs.stringify(
+								getProjectsQuery(group, options)
+							)
+						})
+					).data;
 
-			return projects.items;
+					return projects.items;
+				}
+			);
 		} catch (error: any) {
 			this.logger.error(
 				`Operation failed: ${error?.response?.data?.message || error.message}`,
@@ -189,14 +199,20 @@ export class ProjectService extends ApiFetchService {
 				);
 			}
 
-			const query = qs.stringify(getProjectsQuery(relations));
-			return (
-				await this.apiFetch({
-					method: 'GET',
-					path: `${this.path}/${id}`,
-					query
-				})
-			).data;
+			// ever-gauzy fork: one request per root relation (see fetchWithSplitRelations)
+			const [project] = await fetchWithSplitRelations(
+				relations ?? projectRelations,
+				async (group) => [
+					(
+						await this.apiFetch({
+							method: 'GET',
+							path: `${this.path}/${id}`,
+							query: qs.stringify(getProjectsQuery(group))
+						})
+					).data as IOrganizationProject
+				]
+			);
+			return project;
 		} catch (error: any) {
 			throw new BadRequestException(error.message);
 		}
@@ -210,10 +226,22 @@ export class ProjectService extends ApiFetchService {
 	 */
 	async getProject(id: ID, relations?: string[]): Promise<IProject> {
 		try {
-			const project: IOrganizationProject = await this.getExternalProject(
-				id,
-				relations
+			// ever-gauzy fork: the `tasks` relation was only loaded to count them (`total_issues`), and loading every
+			// task of a big project is expensive, so count them instead
+			const countTasks = !!relations?.some(
+				(relation) => relation.split('.')[0] === 'tasks'
 			);
+			const [project, totalIssues] = await Promise.all([
+				this.getExternalProject(
+					id,
+					countTasks
+						? relations!.filter(
+								(relation) => relation.split('.')[0] !== 'tasks'
+							)
+						: relations
+				),
+				countTasks ? this.countProjectTasks(id) : undefined
+			]);
 
 			if (!project) {
 				throw new BadRequestException('Project not found');
@@ -224,7 +252,16 @@ export class ProjectService extends ApiFetchService {
 					BaseEntityEnum.OrganizationProject
 				);
 
-			return getProjectsResponse([project], favoriteIds)[0] as IProject;
+			const response = getProjectsResponse(
+				[project],
+				favoriteIds
+			)[0] as IProject;
+
+			if (totalIssues !== undefined) {
+				response.total_issues = totalIssues;
+			}
+
+			return response;
 		} catch (error: any) {
 			this.logger.error(
 				'Operation failed',
@@ -232,6 +269,29 @@ export class ProjectService extends ApiFetchService {
 			);
 			this.handleApiError(error);
 		}
+	}
+
+	/**
+	 * ever-gauzy fork: counts a project's tasks without loading them (one `id` column, one row; `total` is the count).
+	 *
+	 * @param {ID} id - The project ID
+	 * @returns The number of tasks in the project
+	 */
+	private async countProjectTasks(id: ID): Promise<number> {
+		const tasks: IPagination<{ id: ID }> = (
+			await this.apiFetch({
+				method: 'GET',
+				path: '/tasks',
+				query: qs.stringify({
+					...baseGetItemsWhereQuery(),
+					'where[projectId]': id,
+					'select[id]': true,
+					take: 1
+				})
+			})
+		).data;
+
+		return tasks.total;
 	}
 
 	/**

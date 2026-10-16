@@ -12,6 +12,7 @@ export * from './analytics.model';
 export * from './comment.model';
 export * from './cycle.model';
 export * from './dashboard.model';
+export * from './estimate.model';
 export * from './favorite.model';
 export * from './intake-issue.model';
 export * from './invitation.model';

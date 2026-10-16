@@ -15,6 +15,7 @@ import { DashboardModule } from '../dashboard/dashboard.module';
 import { NotificationModule } from '../notification/notification.module';
 import { WorkspaceAdvanceAnalyticsModule } from '../advance-analytics/workspace-advance-analytics.module';
 import { StickiesModule } from '../stickies/stickies.module';
+import { WorkspacePreferencesModule } from '../workspace-preferences/workspace-preferences.module';
 
 @Module({
 	imports: [
@@ -45,7 +46,8 @@ import { StickiesModule } from '../stickies/stickies.module';
 		EmployeePropertiesModule,
 		DashboardModule,
 		NotificationModule,
-		WorkspaceAdvanceAnalyticsModule
+		WorkspaceAdvanceAnalyticsModule,
+		WorkspacePreferencesModule
 	],
 	providers: [WorkspaceService],
 	controllers: [WorkspaceController],

@@ -21,7 +21,8 @@ import {
 	IReactionData,
 	IssueActivityTypeEnum,
 	ISubIssueResponse,
-	ISubscriber
+	ISubscriber,
+	ReactionEntityEnum
 } from '@ever-gauzy/plugin-integration-plane-models';
 import { IssuesService } from './issues.service';
 import {
@@ -411,6 +412,22 @@ export class IssuesController {
 	 * @returns A promise resolved to created and transformed reaction.
 	 * @memberof IssuesController
 	 */
+	/**
+	 * ever-gauzy fork: an issue's reactions (the intake view loads them separately)
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Get issue reactions' })
+	@Get(':id/reactions')
+	async findReactions(
+		@Param('id') entityId: ID,
+		@Param('projectId') projectId: ID
+	): Promise<IReactionData[]> {
+		return await this._issueService.findIssueReactions(
+			{ entityId, entity: ReactionEntityEnum.Task },
+			projectId
+		);
+	}
+
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Create Issue Reaction' })
 	@Post(':id/reactions')
@@ -459,6 +476,18 @@ export class IssuesController {
 	 * @param {ID} projectId - The ID of the project where the issue exists.
 	 * @returns {Promise<ISubscriber | ISubscriber[]>} A promise that resolves to the transformed subscription data, either a single subscriber or a list of subscribers.
 	 */
+	/**
+	 * ever-gauzy fork: whether the current user follows the issue
+	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: 'Subscription status' })
+	@Get(':id/subscribe')
+	async isSubscribed(
+		@Param('id') issueId: ID
+	): Promise<{ subscribed: boolean }> {
+		return await this._issueService.isSubscribed(issueId);
+	}
+
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: 'Subscribe' })
 	@Post(':id/subscribe')

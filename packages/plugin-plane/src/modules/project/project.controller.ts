@@ -11,6 +11,7 @@ import {
 	Post
 } from '@nestjs/common';
 import { ID, IProjectDeployBoardsCreateInput } from '@ever-gauzy/plugin-integration-plane-models';
+import { intakeStateTransformer } from '../../config';
 import { ProjectService } from './project.service';
 import { ProjectDeployBoardsService } from './project-deploy-boards/project-deploy-boards.service';
 import { CreateProjectDTO, ProjectMemberDTO } from './dto';
@@ -85,6 +86,14 @@ export class ProjectController {
 	 * @returns - A promise that resolves after getting the promises
 	 * @memberof WorkspaceController
 	 */
+	@HttpCode(HttpStatus.OK)
+	@ApiOperation({ summary: "Get the project's intake (triage) state" })
+	@Get(':id/intake-state')
+	getProjectIntakeState(@Param('id') id: ID) {
+		// ever-gauzy fork: a stable per-project state, see intakeStateId
+		return intakeStateTransformer(id);
+	}
+
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Get user properties project' })
 	@Get(':id/user-properties')

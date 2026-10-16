@@ -71,7 +71,8 @@ export class InstancesService {
 			slack_client_id: PlaneConfigRegistry.slackClientId,
 			posthog_api_key: PlaneConfigRegistry.posthogKey,
 			posthog_host: PlaneConfigRegistry.posthogHost,
-			has_unsplash_configured: true,
+			// ever-gauzy fork: no Unsplash key and no /api/unsplash route, so the image picker hides its Unsplash tab
+			has_unsplash_configured: false,
 			has_openai_configured: true,
 			file_size_limit: 5242880.0,
 			is_smtp_configured: true,

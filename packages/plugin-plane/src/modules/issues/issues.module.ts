@@ -11,6 +11,7 @@ import { IssueLinksModule } from '../issue-links/issue-links.module';
 import { IssueLabelsModule } from './issue-labels/issue-labels.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { MentionModule } from '../mention/mention.module';
+import { EstimatesModule } from '../estimates/estimates.module';
 
 @Module({
 	imports: [
@@ -22,6 +23,7 @@ import { MentionModule } from '../mention/mention.module';
 		IssueLinksModule,
 		SubscriptionModule,
 		MentionModule,
+		EstimatesModule,
 		forwardRef(() => IssueRelationsModule),
 		forwardRef(() => ProjectModule)
 	],

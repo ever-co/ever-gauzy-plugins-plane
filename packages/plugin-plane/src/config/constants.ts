@@ -173,6 +173,23 @@ export const DEFAULT_SIDBAR_PREFERENCES = {
 };
 
 /**
+ * ever-gauzy fork: the default home page widgets (an employee's changes are stored with their workspace preferences)
+ */
+export const DEFAULT_HOME_PREFERENCES = [
+	{ key: 'my_stickies', is_enabled: true, config: {}, sort_order: 997.0 },
+	{ key: 'recents', is_enabled: true, config: {}, sort_order: 998.0 },
+	{ key: 'quick_links', is_enabled: true, config: {}, sort_order: 999.0 }
+];
+
+/**
+ * ever-gauzy fork: the default sidebar project navigation (Plane's defaults)
+ */
+export const DEFAULT_WORKSPACE_NAVIGATION = {
+	navigation_project_limit: 10,
+	navigation_control_preference: 'ACCORDION'
+};
+
+/**
  * The default magic generate prefix
  */
 export const DEFAULT_MAGIC_GENERATE_PREFIX = 'magic_';

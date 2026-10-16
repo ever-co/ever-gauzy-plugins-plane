@@ -618,58 +618,15 @@ export class CyclesService extends ApiFetchService {
 		input: IUpdateUserPropertiesInput
 	): Promise<IUserViewProperties> {
 		try {
-			// Destructure input properties
-			const {
-				display_filters,
-				display_properties,
-				filters,
-				rich_filters
-			} = input;
-
-			// Find existing employee settings for the given cycle
-			let memberSetting =
-				await this._employeePropertiesService.findOneByOptions({
-					employeeId: currentEmployeeId()!,
-					entity: BaseEntityEnum.OrganizationSprint,
-					entityId: id,
-					settingType: EmployeeSettingTypeEnum.TASK_VIEWS
-				});
-
-			if (memberSetting) {
-				// Update the existings with new data or fallback to existing data
-				const data: Record<string, any> = memberSetting.data as Record<
-					string,
-					any
-				>;
-
-				memberSetting = await this._employeePropertiesService.update(
-					memberSetting.id!,
-					{
-						...memberSetting,
-						data: {
-							filters: filters ?? data.filters,
-							rich_filters: rich_filters ?? data.rich_filters,
-							display_filters:
-								display_filters ?? data.display_filters,
-							display_properties:
-								display_properties ?? data.display_properties
-						}
-					}
+			// ever-gauzy fork: one atomic, key-level save (see EmployeePropertiesService.saveViewProperties)
+			const memberSetting =
+				await this._employeePropertiesService.saveViewProperties(
+					BaseEntityEnum.OrganizationSprint,
+					id,
+					input
 				);
-			} else {
-				// Create new setting with default properties if none exist
-				memberSetting = await this._employeePropertiesService.create({
-					entity: BaseEntityEnum.OrganizationSprint,
-					entityId: id,
-					settingType: EmployeeSettingTypeEnum.TASK_VIEWS,
-					data: MEMBER_DEFAULT_VIEW_PROPS,
-					defaultData: MEMBER_DEFAULT_VIEW_PROPS,
-					employee: { id: currentEmployeeId() ?? undefined },
-					employeeId: currentEmployeeId()!
-				});
-			}
 
-			// Serialize and return the updated/created employee setting
+			// Serialize and return the updated/created employee setting.
 			return employeeSettingSerializer(memberSetting);
 		} catch (error: any) {
 			this.logger.error(

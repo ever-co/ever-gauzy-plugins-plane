@@ -70,6 +70,8 @@ export interface IOrganizationProjectSetting extends IBasePerTenantAndOrganizati
 	isTasksAutoSync?: boolean;
 	isTasksAutoSyncOnLabel?: boolean;
 	syncTag?: string;
+	/** Whether the project's tasks are estimated with its task sizes. Missing (an older Gauzy) means enabled. */
+	isTaskSizeEstimationEnabled?: boolean;
 }
 
 export interface IOrganizationProject extends IOrganizationProjectBase {

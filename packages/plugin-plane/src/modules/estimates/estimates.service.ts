@@ -124,16 +124,20 @@ export class EstimatesService extends ApiFetchService {
 	/**
 	 * POST /projects/:projectId/estimates/ — Plane creates an estimate system with its points. In Gauzy that means the
 	 * project's task sizes: every point without a project size of the same name becomes one. Existing sizes are kept
-	 * (tasks may use them), so this never removes anything.
+	 * (tasks may use them), so this never removes anything; a project still on the shared defaults simply gets its own
+	 * sizes, exactly the given points.
 	 */
 	async createEstimate(
 		projectId: ID,
 		input: IEstimateCreateInput
 	): Promise<IEstimate> {
 		try {
-			const sizes = await this.ensureProjectSizes(projectId);
+			// Only the project's own sizes count: a project on the shared defaults gets exactly the given points
+			const own = (await this.getProjectSizes(projectId)).filter(
+				(size) => size.projectId === projectId
+			);
 			const names = new Set(
-				sizes.map((size) => (size.name ?? '').toLowerCase())
+				own.map((size) => (size.name ?? '').toLowerCase())
 			);
 			const points = [...(input?.estimate_points ?? [])]
 				.filter((point) => (point?.value ?? '').trim() !== '')

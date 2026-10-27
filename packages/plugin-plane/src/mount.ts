@@ -210,12 +210,12 @@ export function mountPlaneProxy(
 
 		if (tenantConfig) {
 			PlaneConfigRegistry.requestStore.run(tenantConfig, () => {
-				RequestContextService.store.run(RequestContextService.createContext(), () => {
+				RequestContextService.store.run(RequestContextService.createContext(req), () => {
 					handlerRef.current!(req, res);
 				});
 			});
 		} else {
-			RequestContextService.store.run(RequestContextService.createContext(), () => {
+			RequestContextService.store.run(RequestContextService.createContext(req), () => {
 				handlerRef.current!(req, res);
 			});
 		}

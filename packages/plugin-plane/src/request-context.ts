@@ -20,15 +20,27 @@ interface RequestContext {
 }
 
 /**
- * The headers that tell the Gauzy API which address a request came from, as it reads them:
- * `X-Forwarded-For` (the socket address when the request came without one) and `CF-Connecting-IP`.
+ * The signed client address a trusted server (the Ever Teams server) forwards, which Gauzy believes
+ * before any other header when its signature verifies. Passed on as received; Gauzy does the verifying.
+ */
+const SIGNED_CLIENT_ADDRESS_HEADERS = {
+	'x-ever-client-ip': 'X-Ever-Client-IP',
+	'x-ever-client-ip-timestamp': 'X-Ever-Client-IP-Timestamp',
+	'x-ever-client-ip-signature': 'X-Ever-Client-IP-Signature'
+} as const;
+
+/**
+ * The headers that tell the Gauzy API which address a request came from, as it reads them: the signed
+ * `X-Ever-Client-IP` set, `CF-Connecting-IP`, and `X-Forwarded-For` (the socket address when the request
+ * came without one).
  *
  * The proxy mounted inside the Gauzy API calls it over loopback, so without these every call it makes
  * would come from 127.0.0.1 and share one rate-limit and sign-in-attempt bucket. Passed on unchanged,
- * they make Gauzy resolve the same client for the proxy's call as for the browser's own request when it
- * trusts a number of proxy hops (`TRUST_PROXY`, 1 by default: the loopback hop then stands in for the hop
- * the request came through) or `CF-Connecting-IP`. A client gains nothing by sending them: it could send
- * the same headers to Gauzy directly.
+ * they make Gauzy resolve the same client for the proxy's call as for the browser's own request: by the
+ * signed address, by `CF-Connecting-IP` when it trusts that, or by `X-Forwarded-For` when it trusts a
+ * number of proxy hops (`TRUST_PROXY`, 1 by default: the loopback hop then stands in for the hop the
+ * request came through). A client gains nothing by sending them: it could send the same headers to
+ * Gauzy directly.
  *
  * @param req - The incoming request.
  * @returns The headers to send with every call made while handling it.
@@ -50,6 +62,15 @@ export function clientAddressHeaders(
 	const connectingIp = req.headers['cf-connecting-ip'];
 	if (typeof connectingIp === 'string' && connectingIp) {
 		headers['CF-Connecting-IP'] = connectingIp;
+	}
+
+	for (const [name, header] of Object.entries(
+		SIGNED_CLIENT_ADDRESS_HEADERS
+	)) {
+		const value = req.headers[name];
+		if (typeof value === 'string' && value) {
+			headers[header] = value;
+		}
 	}
 
 	return headers;

@@ -50,6 +50,30 @@ describe('clientAddressHeaders', () => {
 		});
 		expect(clientAddressHeaders(incoming({}))).toEqual({});
 	});
+
+	it('passes a signed X-Ever-Client-IP set on as received, for Gauzy to verify', () => {
+		const signed = {
+			'x-ever-client-ip': '203.0.113.7',
+			'x-ever-client-ip-timestamp': '1793120000',
+			'x-ever-client-ip-signature': 'a'.repeat(64)
+		};
+
+		expect(clientAddressHeaders(incoming(signed, '10.0.0.9'))).toEqual({
+			'X-Forwarded-For': '10.0.0.9',
+			'X-Ever-Client-IP': '203.0.113.7',
+			'X-Ever-Client-IP-Timestamp': '1793120000',
+			'X-Ever-Client-IP-Signature': 'a'.repeat(64)
+		});
+		// A repeated one is not a single value; Gauzy would refuse it, so it is not passed on either.
+		expect(
+			clientAddressHeaders(
+				incoming(
+					{ 'x-ever-client-ip': ['1.1.1.1', '2.2.2.2'] as any },
+					'10.0.0.9'
+				)
+			)
+		).toEqual({ 'X-Forwarded-For': '10.0.0.9' });
+	});
 });
 
 describe('ApiFetchService — client address on calls to Gauzy', () => {

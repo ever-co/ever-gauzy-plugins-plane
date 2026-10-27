@@ -155,6 +155,8 @@ export class ApiFetchService {
 
 		const isBinaryRequest = responseType === 'arraybuffer';
 		const headers: HeadersInit = {
+			// The browser's address, so Gauzy does not count every proxied call against the proxy's own.
+			...RequestContextService.getClientAddressHeaders(),
 			'Content-Type': isBinaryRequest ? 'application/octet-stream' : 'application/json',
 			Accept: isBinaryRequest ? 'application/octet-stream' : 'application/json',
 			Authorization: `Bearer ${bearer_token || ApiFetchService.getToken()}`

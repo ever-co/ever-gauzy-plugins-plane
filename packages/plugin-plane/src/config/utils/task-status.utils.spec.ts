@@ -1,5 +1,9 @@
 /// <reference types="jest" />
-import { normalizeStatusValue, resolveTaskStatusId } from './task-status.utils';
+import {
+	findTaskStatusByString,
+	normalizeStatusValue,
+	resolveTaskStatusId
+} from './task-status.utils';
 
 /** The six statuses Gauzy gives a project (its own copies, or the shared system ones). */
 const STATUSES = [
@@ -62,5 +66,12 @@ describe('resolveTaskStatusId', () => {
 		expect(normalizeStatusValue('To Do')).toBe('open');
 		expect(normalizeStatusValue('done')).toBe('completed');
 		expect(normalizeStatusValue(undefined)).toBe('');
+	});
+});
+
+describe('findTaskStatusByString', () => {
+	it('returns the matching status itself, so its relation (and state group) can be attached', () => {
+		expect(findTaskStatusByString('Completed', STATUSES)).toBe(STATUSES[5]);
+		expect(findTaskStatusByString('nothing', STATUSES)).toBeUndefined();
 	});
 });

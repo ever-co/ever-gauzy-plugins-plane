@@ -43,14 +43,29 @@ export function resolveTaskStatusId(
 	if (task.taskStatusId) {
 		return task.taskStatusId;
 	}
-	const wanted = normalizeStatusValue(task.status);
+	return findTaskStatusByString(task.status, statuses)?.id;
+}
+
+/**
+ * The project status a status string names: by value, else by name (see {@link normalizeStatusValue}).
+ *
+ * @param status - A task's status string.
+ * @param statuses - The statuses of the task's project.
+ * @returns The matching status, or `undefined`.
+ */
+export function findTaskStatusByString<
+	S extends { value?: string | null; name?: string | null }
+>(status: string | null | undefined, statuses: S[]): S | undefined {
+	const wanted = normalizeStatusValue(status);
 	if (!wanted) {
 		return undefined;
 	}
 	return (
-		statuses.find((status) => normalizeStatusValue(status.value) === wanted)
-			?.id ??
-		statuses.find((status) => normalizeStatusValue(status.name) === wanted)
-			?.id
+		statuses.find(
+			(candidate) => normalizeStatusValue(candidate.value) === wanted
+		) ??
+		statuses.find(
+			(candidate) => normalizeStatusValue(candidate.name) === wanted
+		)
 	);
 }

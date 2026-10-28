@@ -74,7 +74,7 @@ import {
 	nonGroupedIssues,
 	reactionTransformer,
 	resolveEstimatePointId,
-	resolveTaskStatusId,
+	findTaskStatusByString,
 	subscriptionTransformer,
 	taskListRelations,
 	updateIssueInputTransformer
@@ -268,7 +268,10 @@ export class IssuesService extends ApiFetchService {
 			);
 			Object.assign(issue, { taskSizeId: withEstimate.taskSizeId });
 			const [withStatus] = await this.withResolvedStatuses([issue], issue.projectId);
-			Object.assign(issue, { taskStatusId: withStatus.taskStatusId });
+			Object.assign(issue, {
+				taskStatusId: withStatus.taskStatusId,
+				taskStatus: withStatus.taskStatus
+			});
 
 			// Find Issue Reactions
 			const reactions = await this.findIssueReactions(
@@ -845,7 +848,7 @@ export class IssuesService extends ApiFetchService {
 
 	/**
 	 * ever-gauzy fork: gives a task that has a status string but no `taskStatusId` the project's status that matches
-	 * it (see `resolveTaskStatusId`), so it shows in its state. Only the response changes, never the task.
+	 * it (see `findTaskStatusByString`), id and relation, so it shows in its state and state group. Only the response changes, never the task.
 	 *
 	 * @param tasks - Tasks of one project.
 	 * @param projectId - Their project.
@@ -862,8 +865,11 @@ export class IssuesService extends ApiFetchService {
 				if (task.taskStatusId || !task.status) {
 					return task;
 				}
-				const taskStatusId = resolveTaskStatusId(task, statuses);
-				return taskStatusId ? { ...task, taskStatusId } : task;
+				// The relation too: the state group (`state__group`, group-by state group) is read from it.
+				const taskStatus = findTaskStatusByString(task.status, statuses);
+				return taskStatus
+					? { ...task, taskStatusId: taskStatus.id, taskStatus }
+					: task;
 			});
 		} catch (error) {
 			this.logger.warn(

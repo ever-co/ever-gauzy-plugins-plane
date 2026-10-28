@@ -1273,7 +1273,7 @@ export class WorkspaceService extends ApiFetchService {
 
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
-			userId: currentUserId() ?? undefined
+			employeeId: currentEmployeeId() ?? undefined
 		});
 		const subscribedTaskIds = subscriptions.map(
 			(subscription) => subscription.entityId

@@ -18,17 +18,17 @@ export class SubscriptionService extends ApiFetchService {
 	private readonly path = '/entity-subscription';
 
 	/**
-	 * Creates a subscription for a given issue and optionally a specific user.
+	 * Creates a subscription for a given issue and optionally a specific employee.
 	 *
 	 * @param {ID} issueId - The ID of the issue to subscribe to.
-	 * @param {ID} [userId] - Optional ID of the user to associate with the subscription. Defaults to the current user if not provided.
+	 * @param {ID} [employeeId] - Optional employee to subscribe. Defaults to the current employee if not provided.
 	 * @returns {Promise<ISubscription>} A promise that resolves to the created subscription object.
 	 * @throws {BadRequestException} If an error occurs during the creation process.
 	 */
-	async create(issueId: ID, userId?: ID): Promise<ISubscription> {
+	async create(issueId: ID, employeeId?: ID): Promise<ISubscription> {
 		try {
 			const body = {
-				...createSubscriptionTransformer(issueId, userId),
+				...createSubscriptionTransformer(issueId, employeeId),
 				organizationId: getCurrentOrganizationSlug()
 			};
 

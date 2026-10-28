@@ -195,3 +195,41 @@ describe('EmployeePropertiesService.saveViewProperties', () => {
 		expect(calls.map((c) => c.method)).toEqual(['GET']);
 	});
 });
+
+/**
+ * Gauzy's create response can come back without `data`. A member's first visit to a project then got view
+ * properties without a layout, and Plane drew no work items until a reload.
+ */
+describe('EmployeePropertiesService.create', () => {
+	const DEFAULTS = { display_filters: { layout: 'list', group_by: 'state' } };
+	const input = {
+		entity: BaseEntityEnum.OrganizationProject,
+		entityId: 'p1',
+		data: DEFAULTS,
+		defaultData: DEFAULTS
+	} as any;
+
+	it('returns the data it sent when the response has none', async () => {
+		const service = serviceWith(() => ({ id: 's1', entityId: 'p1' }));
+
+		await expect(service.create(input)).resolves.toMatchObject({
+			id: 's1',
+			data: DEFAULTS,
+			defaultData: DEFAULTS
+		});
+	});
+
+	it('keeps the data the response has (control)', async () => {
+		const stored = { display_filters: { layout: 'kanban' } };
+		const service = serviceWith(() => ({
+			id: 's1',
+			data: stored,
+			defaultData: stored
+		}));
+
+		await expect(service.create(input)).resolves.toMatchObject({
+			data: stored,
+			defaultData: stored
+		});
+	});
+});

@@ -43,7 +43,7 @@ import {
 } from '@ever-gauzy/plugin-integration-plane-models';
 import {
 	createIssueInputTransformer,
-	currentUserId,
+	currentEmployeeId,
 	extractViewIdFromReferer,
 	extractWorkspaceViewIdFromReferer,
 	filterIssuesByActiveType,
@@ -74,6 +74,7 @@ import {
 	nonGroupedIssues,
 	reactionTransformer,
 	resolveEstimatePointId,
+	resolveTaskStatusId,
 	subscriptionTransformer,
 	taskListRelations,
 	updateIssueInputTransformer
@@ -266,6 +267,8 @@ export class IssuesService extends ApiFetchService {
 				issue.projectId
 			);
 			Object.assign(issue, { taskSizeId: withEstimate.taskSizeId });
+			const [withStatus] = await this.withResolvedStatuses([issue], issue.projectId);
+			Object.assign(issue, { taskStatusId: withStatus.taskStatusId });
 
 			// Find Issue Reactions
 			const reactions = await this.findIssueReactions(
@@ -281,7 +284,7 @@ export class IssuesService extends ApiFetchService {
 			const subscriptions = await this._subscriptionService.findAll({
 				entity: BaseEntityEnum.Task,
 				entityId: issue.id,
-				userId: currentUserId() ?? undefined
+				employeeId: currentEmployeeId() ?? undefined
 			});
 			const isSubscribed = subscriptions && subscriptions.length > 0;
 
@@ -575,6 +578,8 @@ export class IssuesService extends ApiFetchService {
 			// Extract the issues from the API response
 			// ever-gauzy fork: estimate points for tasks that only carry their size's value
 			let issues = await this.withEstimatePoints(tasks.items, projectId);
+			// ever-gauzy fork: tasks with only a status string get the matching status, or no state-grouped list shows them
+			issues = await this.withResolvedStatuses(issues, projectId);
 
 			// Optional filter tasks by priority criteria
 			if (priority) {
@@ -833,6 +838,36 @@ export class IssuesService extends ApiFetchService {
 		} catch (error) {
 			this.logger.warn(
 				`Could not load task sizes for estimate points: ${error instanceof Error ? error.message : String(error)}`
+			);
+			return tasks;
+		}
+	}
+
+	/**
+	 * ever-gauzy fork: gives a task that has a status string but no `taskStatusId` the project's status that matches
+	 * it (see `resolveTaskStatusId`), so it shows in its state. Only the response changes, never the task.
+	 *
+	 * @param tasks - Tasks of one project.
+	 * @param projectId - Their project.
+	 * @returns The tasks, those without a status id resolved where a status matches.
+	 */
+	private async withResolvedStatuses(tasks: ITask[], projectId?: ID): Promise<ITask[]> {
+		const needStatuses = (tasks ?? []).some((task) => !task?.taskStatusId && !!task?.status);
+		if (!needStatuses || !projectId) {
+			return tasks ?? [];
+		}
+		try {
+			const statuses = await this._stateSerive.getProjectStatuses(projectId);
+			return tasks.map((task) => {
+				if (task.taskStatusId || !task.status) {
+					return task;
+				}
+				const taskStatusId = resolveTaskStatusId(task, statuses);
+				return taskStatusId ? { ...task, taskStatusId } : task;
+			});
+		} catch (error) {
+			this.logger.warn(
+				`Could not load task statuses to place tasks without one: ${error instanceof Error ? error.message : String(error)}`
 			);
 			return tasks;
 		}
@@ -1887,7 +1922,7 @@ export class IssuesService extends ApiFetchService {
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
 			entityId: issueId,
-			userId: currentUserId() ?? undefined
+			employeeId: currentEmployeeId() ?? undefined
 		});
 		return { subscribed: (subscriptions ?? []).length > 0 };
 	}
@@ -1896,7 +1931,7 @@ export class IssuesService extends ApiFetchService {
 		return await this._subscriptionService.unsubscribe({
 			entity: BaseEntityEnum.Task,
 			entityId: issueId,
-			userId: currentUserId() ?? undefined
+			employeeId: currentEmployeeId() ?? undefined
 		});
 	}
 

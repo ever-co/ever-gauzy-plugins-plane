@@ -87,19 +87,28 @@ export class StatesService extends ApiFetchService {
 	 * @memberof WorkspaceController
 	 */
 	async getWorkspaceProjectStates(projectId?: ID): Promise<IState[]> {
-		const query = qs.stringify(getStatesQuery(projectId));
 		try {
-			const states: IPagination<ITaskStatus> = (
-				await this.apiFetch({
-					method: 'GET',
-					path: this.path,
-					query
-				})
-			).data;
-
-			return getStatesTransformer(states.items);
+			return getStatesTransformer(await this.getProjectStatuses(projectId), projectId);
 		} catch (error) {
 			this.handleApiError(error);
 		}
+	}
+
+	/**
+	 * The Gauzy task statuses a project's tasks are shown with: its own, or the shared system statuses when it
+	 * has none.
+	 *
+	 * @param {ID} projectId - The project.
+	 * @returns The statuses, as Gauzy returns them.
+	 */
+	async getProjectStatuses(projectId?: ID): Promise<ITaskStatus[]> {
+		const statuses: IPagination<ITaskStatus> = (
+			await this.apiFetch({
+				method: 'GET',
+				path: this.path,
+				query: qs.stringify(getStatesQuery(projectId))
+			})
+		).data;
+		return statuses?.items ?? [];
 	}
 }

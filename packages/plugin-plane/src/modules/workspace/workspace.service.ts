@@ -1273,7 +1273,7 @@ export class WorkspaceService extends ApiFetchService {
 
 		const subscriptions = await this._subscriptionService.findAll({
 			entity: BaseEntityEnum.Task,
-			userId: currentUserId() ?? undefined
+			employeeId: currentEmployeeId() ?? undefined
 		});
 		const subscribedTaskIds = subscriptions.map(
 			(subscription) => subscription.entityId
@@ -1300,9 +1300,10 @@ export class WorkspaceService extends ApiFetchService {
 				'statuses'
 			]);
 
-			const states = projects.map((project) => project.statuses!);
-
-			return getStatesTransformer(states.flat());
+			// Each project's statuses carry that project, as on the project route.
+			return projects.flatMap((project) =>
+				getStatesTransformer(project.statuses ?? [], project.id)
+			);
 		} catch (error) {
 			this.logger.error(
 				'Failed to find workspace states',

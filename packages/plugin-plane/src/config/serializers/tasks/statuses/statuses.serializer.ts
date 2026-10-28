@@ -67,12 +67,25 @@ export const mapGroupToTemplate = (group: string): TaskStatusEnum => {
 	return groupToTemplateMapping[group] || TaskStatusEnum.CUSTOM;
 };
 
-export function getStatesTransformer(statuses: ITaskStatus[]): IState[] {
+/**
+ * Plane states from Gauzy task statuses.
+ *
+ * @param statuses - The statuses, in display order.
+ * @param projectId - The project they were read for. Gauzy answers a project without statuses of its own with
+ *   the shared system statuses (`projectId` null), and Plane only draws a project's states whose `project_id`
+ *   is that project, so those are given the project they were read for.
+ */
+export function getStatesTransformer(
+	statuses: ITaskStatus[],
+	projectId?: ID
+): IState[] {
 	return statuses.map((status, i) => {
 		const group = stateGroup(status);
 		return {
 			id: status.id,
-			project_id: status.projectId,
+			project_id: projectId
+				? (status.projectId ?? projectId)
+				: status.projectId,
 			workspace_id: status.organizationId,
 			name: capitalizeWords(
 				status.name.replace('-', ' ')

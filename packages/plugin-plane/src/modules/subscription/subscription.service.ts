@@ -92,9 +92,12 @@ export class SubscriptionService extends ApiFetchService {
 				await this.apiFetch({
 					method: 'DELETE',
 					path: `${this.path}/${subscription.id}`,
+					// Gauzy validates the delete query as a tenant-organization input and refuses one without
+					// the organization ("organization must be an object").
 					query: qs.stringify({
 						entity: options.entity,
-						entityId: options.entityId
+						entityId: options.entityId,
+						organizationId: getCurrentOrganizationSlug()
 					})
 				})
 			).data;

@@ -1,12 +1,10 @@
 /// <reference types="jest" />
-// `uuid` is ESM-only and this package's Jest config does not transform node_modules; nothing here needs real ids.
-jest.mock('uuid', () => ({
-	v4: () => '00000000-0000-4000-8000-000000000000',
-	validate: () => true
-}));
+// Only what the service imports from config, so the test does not load the models package (unbuilt in a fresh
+// checkout) through the rest of config.
 jest.mock('../../config', () => ({
-	...jest.requireActual('../../config'),
-	getCurrentOrganizationSlug: () => 'org-1'
+	createSubscriptionTransformer: jest.fn(),
+	getCurrentOrganizationSlug: () => 'org-1',
+	getSubscriptionQuery: jest.fn()
 }));
 import 'reflect-metadata';
 import { SubscriptionService } from './subscription.service';

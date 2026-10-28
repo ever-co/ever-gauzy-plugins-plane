@@ -11,18 +11,29 @@ const STATUS_ALIASES: Record<string, string> = {
 };
 
 /**
- * A status string or value in comparable form: lower case, spaces and underscores as hyphens, with the
- * aliases above applied (`In Progress` → `in-progress`, `Todo` → `open`).
+ * A status string or value in comparable form: lower case, spaces and underscores as hyphens
+ * (`In Progress` → `in-progress`).
  *
  * @param value - A task's `status`, or a status's `value` or `name`.
  * @returns The comparable form, or an empty string.
  */
-export function normalizeStatusValue(value?: string | null): string {
-	const normalized = (value ?? '')
+export function canonicalStatusValue(value?: string | null): string {
+	return (value ?? '')
 		.trim()
 		.toLowerCase()
 		.replace(/[\s_]+/g, '-');
-	return STATUS_ALIASES[normalized] ?? normalized;
+}
+
+/**
+ * {@link canonicalStatusValue} with the aliases above applied (`Todo` → `open`). Only a task's status string is
+ * aliased: a project's own statuses are compared as they are, so two of them never merge.
+ *
+ * @param value - A task's `status`.
+ * @returns The comparable form, or an empty string.
+ */
+export function normalizeStatusValue(value?: string | null): string {
+	const canonical = canonicalStatusValue(value);
+	return STATUS_ALIASES[canonical] ?? canonical;
 }
 
 /**
@@ -47,7 +58,8 @@ export function resolveTaskStatusId(
 }
 
 /**
- * The project status a status string names: by value, else by name (see {@link normalizeStatusValue}).
+ * The project status a status string names: the status whose value, else name, is the string as it is; failing
+ * that, the one it aliases to (see {@link normalizeStatusValue}).
  *
  * @param status - A task's status string.
  * @param statuses - The statuses of the task's project.
@@ -56,16 +68,19 @@ export function resolveTaskStatusId(
 export function findTaskStatusByString<
 	S extends { value?: string | null; name?: string | null }
 >(status: string | null | undefined, statuses: S[]): S | undefined {
-	const wanted = normalizeStatusValue(status);
-	if (!wanted) {
+	const exact = canonicalStatusValue(status);
+	if (!exact) {
 		return undefined;
 	}
-	return (
+	const matching = (wanted: string) =>
 		statuses.find(
-			(candidate) => normalizeStatusValue(candidate.value) === wanted
+			(candidate) => canonicalStatusValue(candidate.value) === wanted
 		) ??
 		statuses.find(
-			(candidate) => normalizeStatusValue(candidate.name) === wanted
-		)
+			(candidate) => canonicalStatusValue(candidate.name) === wanted
+		);
+	const aliased = normalizeStatusValue(status);
+	return (
+		matching(exact) ?? (aliased !== exact ? matching(aliased) : undefined)
 	);
 }

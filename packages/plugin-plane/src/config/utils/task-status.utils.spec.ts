@@ -70,6 +70,17 @@ describe('resolveTaskStatusId', () => {
 });
 
 describe('findTaskStatusByString', () => {
+	it('prefers a project status named as the task says over an alias (done ≠ completed)', () => {
+		const statuses = [
+			{ id: 'completed-id', value: 'completed', name: 'completed' },
+			{ id: 'done-id', value: 'done', name: 'done' }
+		];
+		expect(findTaskStatusByString('done', statuses)?.id).toBe('done-id');
+		expect(findTaskStatusByString('closed', statuses)?.id).toBe(
+			'completed-id'
+		);
+	});
+
 	it('returns the matching status itself, so its relation (and state group) can be attached', () => {
 		expect(findTaskStatusByString('Completed', STATUSES)).toBe(STATUSES[5]);
 		expect(findTaskStatusByString('nothing', STATUSES)).toBeUndefined();

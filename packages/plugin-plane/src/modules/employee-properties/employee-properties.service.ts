@@ -56,7 +56,14 @@ export class EmployeePropertiesService extends ApiFetchService {
 				})
 			).data;
 
-			return employeeSetting;
+			// ever-gauzy fork: Gauzy's create response can come back without `data`, and a member's first visit to
+			// a project then got view properties without a layout, so Plane drew no work items. What was sent
+			// is what was stored.
+			return {
+				...employeeSetting,
+				data: employeeSetting?.data ?? input.data,
+				defaultData: employeeSetting?.defaultData ?? input.defaultData
+			};
 		} catch (error: any) {
 			this.logger.error(
 				`Operation failed: ${error?.response?.data?.message || error.message}`,

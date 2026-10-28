@@ -10,7 +10,7 @@ import {
 	getTaskByIdentifierQuery,
 	issueTransformer
 } from '../../config/serializers/tasks/tasks.serializer';
-import { currentUserId } from '../../config';
+import { currentEmployeeId } from '../../config';
 import { ApiFetchService } from '../api-fetch/api-fetch.service';
 import { IssuesService } from '../issues/issues.service';
 import { SubscriptionService } from '../subscription/subscription.service';
@@ -104,7 +104,7 @@ export class WorkItemsService extends ApiFetchService {
 				this._subscriptionService.findAll({
 					entity: BaseEntityEnum.Task,
 					entityId: task.id,
-					userId: currentUserId() ?? undefined
+					employeeId: currentEmployeeId() ?? undefined
 				})
 			]);
 

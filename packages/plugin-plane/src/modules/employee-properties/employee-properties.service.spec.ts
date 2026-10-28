@@ -195,3 +195,59 @@ describe('EmployeePropertiesService.saveViewProperties', () => {
 		expect(calls.map((c) => c.method)).toEqual(['GET']);
 	});
 });
+
+/**
+ * Gauzy's create response can come back without `data`. A member's first visit to a project then got view
+ * properties without a layout, and Plane drew no work items until a reload.
+ */
+describe('EmployeePropertiesService.create', () => {
+	const DATA = { display_filters: { layout: 'list', group_by: 'state' } };
+	const DEFAULT_DATA = {
+		display_filters: { layout: 'kanban', group_by: 'priority' }
+	};
+	const input = {
+		entity: BaseEntityEnum.OrganizationProject,
+		entityId: 'p1',
+		data: DATA,
+		defaultData: DEFAULT_DATA
+	} as any;
+
+	it('returns the data it sent when the response has none, each field from its own input', async () => {
+		const service = serviceWith(() => ({ id: 's1', entityId: 'p1' }));
+
+		await expect(service.create(input)).resolves.toMatchObject({
+			id: 's1',
+			data: DATA,
+			defaultData: DEFAULT_DATA
+		});
+	});
+
+	it('fills only the field the response lacks', async () => {
+		const storedData = { display_filters: { layout: 'gantt' } };
+		const service = serviceWith(() => ({
+			id: 's1',
+			data: storedData,
+			defaultData: null
+		}));
+
+		await expect(service.create(input)).resolves.toMatchObject({
+			data: storedData,
+			defaultData: DEFAULT_DATA
+		});
+	});
+
+	it('keeps the data the response has (control)', async () => {
+		const storedData = { display_filters: { layout: 'gantt' } };
+		const storedDefault = { display_filters: { layout: 'spreadsheet' } };
+		const service = serviceWith(() => ({
+			id: 's1',
+			data: storedData,
+			defaultData: storedDefault
+		}));
+
+		await expect(service.create(input)).resolves.toMatchObject({
+			data: storedData,
+			defaultData: storedDefault
+		});
+	});
+});
